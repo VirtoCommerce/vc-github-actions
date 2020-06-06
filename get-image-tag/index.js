@@ -10,13 +10,14 @@ String.isNullOrEmpty = function(value) {
 
 fs.readFile('Directory.Build.Props', function (err, data) {
     if (!err) {
-
         parser.parseString(data, function (err, json) {
             if (!err) {
                 var prefix = json.Project.PropertyGroup[1].VersionPrefix[0].trim();
                 var suffix = json.Project.PropertyGroup[1].VersionSuffix[0].trim();
+
+                sha = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.sha : github.context.sha;
         
-                let version = prefix + (suffix != '' ? '-' + suffix : '') + '-' + github.context.sha.substring(0, 8)
+                let version = prefix + (suffix != '' ? '-' + suffix : '') + '-' + sha.substring(0, 8)
         
                 core.setOutput("tag", version);
         
