@@ -17,11 +17,13 @@ fs.readFile('Directory.Build.Props', function (err, data) {
 
                 sha = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.sha : github.context.sha;
         
-                let version = prefix + (suffix != '' ? '-' + suffix : '') + '-' + sha.substring(0, 8)
+                let version = prefix + (suffix != '' ? '-' + suffix : '') + '-' + sha.substring(0, 8);
         
                 core.setOutput("tag", version);
+                core.setOutput("sha", sha);
         
                 console.log(`Version tag is: ${version}`);
+                console.log(`Head sha is: ${sha}`);
             }
         });
     }
