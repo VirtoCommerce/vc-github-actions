@@ -1,8 +1,10 @@
 name: 'Get Image Tag'
-description: 'Determines docker image tag based on VP product version, branch and pull request'
+description: 'This action grabs Version and Version suffix from Directory.Build.Props and adds SHA of the current branch or of the head branch of a pull request.'
 outputs:
   tag: # id of output
-    description: 'Image tag'
+    description: 'Tag value formatted as x.x.x-sha8 or x.x.x-suffix-sha8'
+  sha:
+    description: 'Full SHA of the current branch or of the head branch of a pull request.'
 runs:
   using: 'node12'
   main: 'index.js'
