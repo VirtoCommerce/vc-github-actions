@@ -17,9 +17,9 @@ Full SHA of the current branch or of the head branch of a pull request.
 
 ## Example usage
 
-- name: Get Image Tag
-  uses: VirtoCommerce/vc-github-actions/get-image-tag@master
-  id: image
+name: Get Image Tag
+uses: VirtoCommerce/vc-github-actions/get-image-tag@master
+id: image
   
 ...
 Get the outputs:
