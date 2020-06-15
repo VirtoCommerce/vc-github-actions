@@ -8,7 +8,12 @@ String.isNullOrEmpty = function(value) {
     return !(typeof value === "string" && value.length > 0);
 }
 
-fs.readFile('Directory.Build.Props', function (err, data) {
+let path = 'Directory.Build.Props';
+if (!fs.existsSync(path)) {
+    path = 'Directory.Build.props';
+}
+
+fs.readFile(path, function (err, data) {
     if (!err) {
         parser.parseString(data, function (err, json) {
             if (!err) {
@@ -26,5 +31,8 @@ fs.readFile('Directory.Build.Props', function (err, data) {
                 console.log(`Head sha is: ${sha}`);
             }
         });
+    }
+    else {
+        console.log(`Cannot load file ${path}`);
     }
 });
