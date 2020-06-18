@@ -4,5 +4,4 @@ runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
-    - ${{ github.repository }}
-    - ${{ github.repository_owner }}
+    - $GITHUB_REPOSITORY

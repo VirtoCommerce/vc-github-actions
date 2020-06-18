@@ -1,17 +1,16 @@
 param (
-    [string]$Repository,
-    [string]$RepositoryOwner,
+    [string]$TargetRepository,
     [string]$SourceRepository = "vc-module-catalog",
     [string]$BranchToSync = "feature/vp-3187-initial-ci"
 )
 
-$repoDir = $Repository.Substring($RepositoryOwner.Length + 1)
+$repoDir = $TargetRepository.Substring(($TargetRepository.IndexOf('/')+1))
 
 git clone "https://github.com/VirtoCommerce/$($SourceRepository)"
 cd $SourceRepository
 git checkout $BranchToSync
 cd ..
-git clone "https://github.com/$($Repository)"
+git clone "https://github.com/$($TargetRepository)"
 cd $repoDir
 git checkout $BranchToSync
 cd ..
