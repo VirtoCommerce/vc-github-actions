@@ -2,7 +2,7 @@ param (
     [string]$GitHubToken,
     [string]$TargetRepository = $env:GITHUB_REPOSITORY,
     [string]$SourceRepository = "vc-module-order",
-    [string]$BranchToSync = "feature/vp-3187-initial-ci"
+    [string]$BranchToSync = "dev"
 )
 
 $repoDir = $TargetRepository.Substring(($TargetRepository.IndexOf('/')+1))
