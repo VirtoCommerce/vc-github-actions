@@ -2,6 +2,6 @@ name: 'Sync module CI/CD'
 description: 'Sync the current module CI/CD from the /VirtoCommerce/vc-module-core'
 runs:
   using: 'docker'
-  image: 'Dockerfile'
+  image: 'dockerfile'
   args:
     - $GITHUB_REPOSITORY
