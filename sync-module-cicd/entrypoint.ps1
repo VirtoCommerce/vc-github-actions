@@ -1,7 +1,7 @@
 param (
     [string]$GitHubToken,
     [string]$TargetRepository = $env:GITHUB_REPOSITORY,
-    [string]$SourceRepository = "vc-module-order",
+    [string]$SourceRepository = "vc-module-core",
     [string]$BranchToSync = "dev"
 )
 
