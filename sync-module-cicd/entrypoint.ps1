@@ -1,5 +1,5 @@
 param (
-    [string]$TargetRepository,
+    [string]$TargetRepository = $env:GITHUB_REPOSITORY,
     [string]$SourceRepository = "vc-module-order",
     [string]$BranchToSync = "feature/vp-3187-initial-ci"
 )

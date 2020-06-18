@@ -3,5 +3,3 @@ description: 'Sync the current module CI/CD from the /VirtoCommerce/vc-module-co
 runs:
   using: 'docker'
   image: 'dockerfile'
-  args:
-    - ${{ GITHUB_REPOSITORY }}
