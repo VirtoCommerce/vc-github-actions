@@ -1,6 +1,6 @@
 FROM alpine:3.10
 
-RUN sudo apk add --no-cache \
+RUN apk add --no-cache \
         ca-certificates \
         less \
         ncurses-terminfo-base \
@@ -14,13 +14,13 @@ RUN sudo apk add --no-cache \
         zlib \
         icu-libs \
         curl \
-    & sudo apk -X https://dl-cdn.alpinelinux.org/alpine/edge/main add --no-cache \
+    & apk -X https://dl-cdn.alpinelinux.org/alpine/edge/main add --no-cache \
         lttng-ust \
     & curl -L https://github.com/PowerShell/PowerShell/releases/download/v7.0.1/powershell-7.0.1-linux-alpine-x64.tar.gz -o /tmp/powershell.tar.gz \
-    & sudo mkdir -p /opt/microsoft/powershell/7 \
-    & sudo tar zxf /tmp/powershell.tar.gz -C /opt/microsoft/powershell/7 \
-    & sudo chmod +x /opt/microsoft/powershell/7/pwsh \
-    & sudo ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
+    & mkdir -p /opt/microsoft/powershell/7 \
+    & tar zxf /tmp/powershell.tar.gz -C /opt/microsoft/powershell/7 \
+    & chmod +x /opt/microsoft/powershell/7/pwsh \
+    & ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
 
 
 ADD entrypoint.ps1 /entrypoint.ps1
