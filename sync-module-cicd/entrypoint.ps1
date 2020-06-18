@@ -14,6 +14,9 @@ git clone "https://github.com/$($TargetRepository)"
 cd $repoDir
 git checkout $BranchToSync
 
+git config --global user.email "noreply@virtoway.com"
+git config --global user.name "GitHub Actions"
+
 Get-ChildItem -Path "../$($SourceRepository)/.github/workflows" -Filter "*.yml" | ForEach-Object {
     $file = ".github/workflows/$($_.name)"
     Copy-Item $_ $file
