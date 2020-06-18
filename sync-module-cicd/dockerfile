@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM alpine:3.10
 
 LABEL "com.github.actions.name"="Do something"
 LABEL "com.github.actions.description"="Do something else."
