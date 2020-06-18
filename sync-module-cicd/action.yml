@@ -1,5 +1,12 @@
 name: 'Sync module CI/CD'
 description: 'Sync the current module CI/CD from the /VirtoCommerce/vc-module-core'
+inputs:
+    github_token:  # id of input
+      description: 'GitHub Token'
+      required: false
+      default: ${{ secrets.GITHUB_TOKEN }}
 runs:
   using: 'docker'
   image: 'dockerfile'
+  args:
+    - ${{ inputs.github_token }}
