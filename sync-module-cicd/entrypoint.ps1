@@ -18,6 +18,6 @@ Get-ChildItem -Path "../$($SourceRepository)/.github/workflows" -Filter "*.yml" 
     $file = ".github/workflows/$($_.name)"
     Copy-Item $_ $file
     git add $file
-    git commit "Sync $($file) from $($SourceRepository)"
+    git commit -m "Sync $($file) from $($SourceRepository)"
     git push
 }
