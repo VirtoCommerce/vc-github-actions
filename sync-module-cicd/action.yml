@@ -4,4 +4,4 @@ runs:
   using: 'docker'
   image: 'dockerfile'
   args:
-    - $GITHUB_REPOSITORY
+    - ${{ GITHUB_REPOSITORY }}

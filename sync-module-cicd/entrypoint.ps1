@@ -1,6 +1,6 @@
 param (
     [string]$TargetRepository,
-    [string]$SourceRepository = "vc-module-catalog",
+    [string]$SourceRepository = "vc-module-order",
     [string]$BranchToSync = "feature/vp-3187-initial-ci"
 )
 
