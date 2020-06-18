@@ -13,9 +13,8 @@ cd ..
 git clone "https://github.com/$($TargetRepository)"
 cd $repoDir
 git checkout $BranchToSync
-cd ..
 
-Get-ChildItem -Path "$($SourceRepository)/.github/workflows" -Filter "*.yml" | ForEach-Object {
+Get-ChildItem -Path "../$($SourceRepository)/.github/workflows" -Filter "*.yml" | ForEach-Object {
     $file = "$($repoDir)/.github/workflows/$($_.name)"
     Copy-Item $_ $file
     git add $file
