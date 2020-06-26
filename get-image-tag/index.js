@@ -17,13 +17,7 @@ fs.readFile(path, function (err, data) {
     if (!err) {
         parser.parseString(data, function (err, json) {
             if (!err) {
-                var propertyGroup = null;
-                if (Array.isArray(json.Project.PropertyGroup)) {
-                    propertyGroup = json.Project.PropertyGroup[1];
-                }
-                else {
-                    propertyGroup = json.Project.PropertyGroup;
-                }
+                var propertyGroup = json.Project.PropertyGroup.pop();
                 
                 var prefix = propertyGroup.VersionPrefix[0].trim();
                 var suffix = propertyGroup.VersionSuffix[0].trim();
