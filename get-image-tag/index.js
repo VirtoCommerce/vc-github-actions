@@ -17,8 +17,16 @@ fs.readFile(path, function (err, data) {
     if (!err) {
         parser.parseString(data, function (err, json) {
             if (!err) {
-                var prefix = json.Project.PropertyGroup[1].VersionPrefix[0].trim();
-                var suffix = json.Project.PropertyGroup[1].VersionSuffix[0].trim();
+                var propertyGroup = null;
+                if (Array.isArray(json.Project.PropertyGroup)) {
+                    propertyGroup = json.Project.PropertyGroup[1];
+                }
+                else {
+                    propertyGroup = json.Project.PropertyGroup;
+                }
+                
+                var prefix = propertyGroup.VersionPrefix[0].trim();
+                var suffix = propertyGroup.VersionSuffix[0].trim();
 
                 sha = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.sha : github.context.sha;
         
