@@ -33,19 +33,17 @@ function findFile(base,name,files,result)
 let prefix = "";
 let suffix = "";
 let moduleId = "";
+let promisies = [];
 
 let files = findFile("src", "module.manifest");
 if (files.length > 0) {
     let manifestPath = files[0];
-    fs.readFile(manifestPath, function (err, data) {
+    let promise = fs.readFile(manifestPath, function (err, data) {
         if (!err) {
             parser.parseString(data, function (err, json) {
                 if (!err) {
-                    console.log(json.module.id[0]);
-                    console.log(json.module["version-tag"][0]);
-                    console.log(json.module["version-tag"]);
                     moduleId = json.module.id[0].trim();
-                    prefix = json.module.version[0];
+                    prefix = json.module.version[0].trim();
                     suffix = json.module["version-tag"][0].trim();
                 }
             });
@@ -54,6 +52,8 @@ if (files.length > 0) {
             console.log(`Cannot load file ${manifestPath}`);
         }
     });
+
+    promisies.push(promise);
 }
 else {
     let buildPropsFile = 'Directory.Build.Props';
@@ -61,7 +61,7 @@ else {
         buildPropsFile = 'Directory.Build.props';
     }
     
-    fs.readFile(buildPropsFile, function (err, data) {
+    let promise = fs.readFile(buildPropsFile, function (err, data) {
         if (!err) {
             parser.parseString(data, function (err, json) {
                 if (!err) {
@@ -76,14 +76,19 @@ else {
             console.log(`Cannot load file ${buildPropsFile}`);
         }
     });
+
+    promisies.push(promise);
 }
 
-const sha = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.sha : github.context.sha;
-const version = prefix + (suffix != '' ? '-' + suffix : '') + '-' + sha.substring(0, 8);
-core.setOutput("sha", sha);                    
-core.setOutput("tag", version);
-core.setOutput("moduleId", moduleId)
 
-console.log(`Version tag is: ${version}`);
-console.log(`Head sha is: ${sha}`);
-console.log(`Module Id is: ${moduleId}`);
+Promise.all(promisies).then((values) => {
+    const sha = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.sha : github.context.sha;
+    const version = prefix + (suffix != '' ? '-' + suffix : '') + '-' + sha.substring(0, 8);
+    core.setOutput("sha", sha);                    
+    core.setOutput("tag", version);
+    core.setOutput("moduleId", moduleId)
+    
+    console.log(`Version tag is: ${version}`);
+    console.log(`Head sha is: ${sha}`);
+    console.log(`Module Id is: ${moduleId}`);
+});
