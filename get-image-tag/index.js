@@ -33,12 +33,12 @@ let files = findFile("src", "module.manifest");
 console.log(files);
 
 
-let path = 'Directory.Build.Props';
-if (!fs.existsSync(path)) {
-    path = 'Directory.Build.props';
+let buildPropsFile = 'Directory.Build.Props';
+if (!fs.existsSync(buildPropsFile)) {
+    buildPropsFile = 'Directory.Build.props';
 }
 
-fs.readFile(path, function (err, data) {
+fs.readFile(buildPropsFile, function (err, data) {
     if (!err) {
         parser.parseString(data, function (err, json) {
             if (!err) {
@@ -60,6 +60,6 @@ fs.readFile(path, function (err, data) {
         });
     }
     else {
-        console.log(`Cannot load file ${path}`);
+        console.log(`Cannot load file ${buildPropsFile}`);
     }
 });
