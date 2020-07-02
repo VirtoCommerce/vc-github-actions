@@ -1,6 +1,7 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const fs = require('fs');
+const path = require('path')
 const xml2js = require('xml2js');
 const parser = new xml2js.Parser();
 
