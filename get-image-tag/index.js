@@ -30,58 +30,7 @@ function findFile(base,name,files,result)
     return result
 }
 
-let prefix = "";
-let suffix = "";
-let moduleId = "";
-let promisies = [];
-
-let files = findFile("src", "module.manifest");
-if (files.length > 0) {
-    let manifestPath = files[0];
-    let promise = fs.readFile(manifestPath, function (err, data) {
-        if (!err) {
-            parser.parseString(data, function (err, json) {
-                if (!err) {
-                    moduleId = json.module.id[0].trim();
-                    prefix = json.module.version[0].trim();
-                    suffix = json.module["version-tag"][0].trim();
-                }
-            });
-        }
-        else {
-            console.log(`Cannot load file ${manifestPath}`);
-        }
-    });
-
-    promisies.push(promise);
-}
-else {
-    let buildPropsFile = 'Directory.Build.Props';
-    if (!fs.existsSync(buildPropsFile)) {
-        buildPropsFile = 'Directory.Build.props';
-    }
-    
-    let promise = fs.readFile(buildPropsFile, function (err, data) {
-        if (!err) {
-            parser.parseString(data, function (err, json) {
-                if (!err) {
-                    var propertyGroup = json.Project.PropertyGroup.pop();
-                    
-                    prefix = propertyGroup.VersionPrefix[0].trim();
-                    suffix = propertyGroup.VersionSuffix[0].trim();
-                }
-            });
-        }
-        else {
-            console.log(`Cannot load file ${buildPropsFile}`);
-        }
-    });
-
-    promisies.push(promise);
-}
-
-
-Promise.all(promisies).then((values) => {
+function pushOutputs(prefix, suffix, moduleId) {
     const sha = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.sha : github.context.sha;
     const version = prefix + (suffix != '' ? '-' + suffix : '') + '-' + sha.substring(0, 8);
     core.setOutput("sha", sha);                    
@@ -91,4 +40,50 @@ Promise.all(promisies).then((values) => {
     console.log(`Version tag is: ${version}`);
     console.log(`Head sha is: ${sha}`);
     console.log(`Module Id is: ${moduleId}`);
-});
+}
+
+let files = findFile("src", "module.manifest");
+if (files.length > 0) {
+    let manifestPath = files[0];
+    
+    fs.readFile(manifestPath, function (err, data) {
+        if (!err) {
+            parser.parseString(data, function (err, json) {
+                if (!err) {
+                    moduleId = json.module.id[0].trim();
+                    prefix = json.module.version[0].trim();
+                    suffix = json.module["version-tag"][0].trim();
+
+                    pushOutputs(prefix, suffix, moduleId);
+                }
+            });
+        }
+        else {
+            console.log(`Cannot load file ${manifestPath}`);
+        }
+    });
+}
+else {
+    let buildPropsFile = 'Directory.Build.Props';
+    if (!fs.existsSync(buildPropsFile)) {
+        buildPropsFile = 'Directory.Build.props';
+    }
+    
+    fs.readFile(buildPropsFile, function (err, data) {
+        if (!err) {
+            parser.parseString(data, function (err, json) {
+                if (!err) {
+                    var propertyGroup = json.Project.PropertyGroup.pop();
+                    
+                    prefix = propertyGroup.VersionPrefix[0].trim();
+                    suffix = propertyGroup.VersionSuffix[0].trim();
+
+                    pushOutputs(prefix, suffix, "");
+                }
+            });
+        }
+        else {
+            console.log(`Cannot load file ${buildPropsFile}`);
+        }
+    });
+}
