@@ -28,7 +28,7 @@ function findFile(base,name,files,result)
     return result
 }
 
-let files = findFile(src, "module.manifest");
+let files = findFile("src", "module.manifest");
 console.log(files);
 
 
