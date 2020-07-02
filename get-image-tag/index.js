@@ -41,8 +41,8 @@ if (files.length > 0) {
         if (!err) {
             parser.parseString(data, function (err, json) {
                 if (!err) {
-                    console.log(json.mo.id);
-                    id = json.module.id[0].trim();
+                    console.log(json.module.id);
+                    moduleId = json.module.id[0].trim();
                     prefix = json.module.version[0].trim();
                     suffix = json.module["version-tag"][0].trim();
                 }
