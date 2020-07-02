@@ -4,9 +4,33 @@ const fs = require('fs');
 const xml2js = require('xml2js');
 const parser = new xml2js.Parser();
 
-String.isNullOrEmpty = function(value) {
-    return !(typeof value === "string" && value.length > 0);
+function findFile(base,name,files,result) 
+{
+    files = files || fs.readdirSync(base) 
+    result = result || [] 
+
+    files.forEach( 
+        function (file) {
+            var newbase = path.join(base,file)
+            if ( fs.statSync(newbase).isDirectory() )
+            {
+                result = findFile(newbase,name,fs.readdirSync(newbase),result)
+            }
+            else
+            {
+                if ( file == name )
+                {
+                    result.push(newbase)
+                } 
+            }
+        }
+    )
+    return result
 }
+
+let files = findFile(src, "module.manifest");
+console.log(files);
+
 
 let path = 'Directory.Build.Props';
 if (!fs.existsSync(path)) {
