@@ -30,7 +30,6 @@ function findFile(base,name,files,result)
     return result
 }
 
-let version = "";
 let prefix = "";
 let suffix = "";
 let moduleId = "";
