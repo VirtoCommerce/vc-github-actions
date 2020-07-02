@@ -41,9 +41,10 @@ if (files.length > 0) {
         if (!err) {
             parser.parseString(data, function (err, json) {
                 if (!err) {
-                    id = json.module.id.trim();
-                    prefix = json.module.version.trim();
-                    suffix = json.module["version-tag"].trim();
+                    console.log(json.mo.id);
+                    id = json.module.id[0].trim();
+                    prefix = json.module.version[0].trim();
+                    suffix = json.module["version-tag"][0].trim();
                 }
             });
         }
