@@ -3,6 +3,7 @@ const github = require('@actions/github');
 const fs = require('fs');
 const path = require('path')
 const xml2js = require('xml2js');
+const { CONNREFUSED } = require('dns');
 const parser = new xml2js.Parser();
 
 function findFile(base,name,files,result) 
@@ -29,37 +30,58 @@ function findFile(base,name,files,result)
     return result
 }
 
+let version = "";
+let prefix = "";
+let suffix = "";
+let moduleId = "";
+
 let files = findFile("src", "module.manifest");
-console.log(files);
-
-
-let buildPropsFile = 'Directory.Build.Props';
-if (!fs.existsSync(buildPropsFile)) {
-    buildPropsFile = 'Directory.Build.props';
+if (files.length > 0) {
+    let manifestPath = files[0];
+    fs.readFile(manifestPath, function (err, data) {
+        if (!err) {
+            parser.parseString(data, function (err, json) {
+                if (!err) {
+                    id = json.module.id.trim();
+                    prefix = json.module.version.trim();
+                    suffix = json.module["version-tag"].trim();
+                }
+            });
+        }
+        else {
+            console.log(`Cannot load file ${manifestPath}`);
+        }
+    });
+}
+else {
+    let buildPropsFile = 'Directory.Build.Props';
+    if (!fs.existsSync(buildPropsFile)) {
+        buildPropsFile = 'Directory.Build.props';
+    }
+    
+    fs.readFile(buildPropsFile, function (err, data) {
+        if (!err) {
+            parser.parseString(data, function (err, json) {
+                if (!err) {
+                    var propertyGroup = json.Project.PropertyGroup.pop();
+                    
+                    prefix = propertyGroup.VersionPrefix[0].trim();
+                    suffix = propertyGroup.VersionSuffix[0].trim();
+                }
+            });
+        }
+        else {
+            console.log(`Cannot load file ${buildPropsFile}`);
+        }
+    });
 }
 
-fs.readFile(buildPropsFile, function (err, data) {
-    if (!err) {
-        parser.parseString(data, function (err, json) {
-            if (!err) {
-                var propertyGroup = json.Project.PropertyGroup.pop();
-                
-                var prefix = propertyGroup.VersionPrefix[0].trim();
-                var suffix = propertyGroup.VersionSuffix[0].trim();
+const sha = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.sha : github.context.sha;
+const version = prefix + (suffix != '' ? '-' + suffix : '') + '-' + sha.substring(0, 8);
+core.setOutput("sha", sha);                    
+core.setOutput("tag", version);
+core.setOutput("moduleId", moduleId)
 
-                sha = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.sha : github.context.sha;
-        
-                let version = prefix + (suffix != '' ? '-' + suffix : '') + '-' + sha.substring(0, 8);
-        
-                core.setOutput("tag", version);
-                core.setOutput("sha", sha);
-        
-                console.log(`Version tag is: ${version}`);
-                console.log(`Head sha is: ${sha}`);
-            }
-        });
-    }
-    else {
-        console.log(`Cannot load file ${buildPropsFile}`);
-    }
-});
+console.log(`Version tag is: ${version}`);
+console.log(`Head sha is: ${sha}`);
+console.log(`Module Id is: ${moduleId}`);
