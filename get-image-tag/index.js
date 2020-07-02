@@ -41,9 +41,11 @@ if (files.length > 0) {
         if (!err) {
             parser.parseString(data, function (err, json) {
                 if (!err) {
-                    console.log(json.module.id);
+                    console.log(json.module.id[0]);
+                    console.log(json.module["version-tag"][0]);
+                    console.log(json.module["version-tag"]);
                     moduleId = json.module.id[0].trim();
-                    prefix = json.module.version[0].trim();
+                    prefix = json.module.version[0];
                     suffix = json.module["version-tag"][0].trim();
                 }
             });
