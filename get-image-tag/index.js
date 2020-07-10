@@ -31,8 +31,22 @@ function findFile(base,name,files,result)
 }
 
 function pushOutputs(prefix, suffix, moduleId) {
-    const sha = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.sha : github.context.sha;
-    const version = prefix + (suffix != '' ? '-' + suffix : '') + '-' + sha.substring(0, 8);
+    var sha = '';
+    var branchName = '';
+    var branchPrefix = '';
+    if (github.context.eventName === 'pull_request') {
+        sha = github.context.payload.pull_request.head.sha;
+        branchName = github.context.payload.pull_request.head.ref;
+        branchPrefix = 'PR-';
+    } else {
+        sha = github.context.sha;
+        branchName = github.context.ref;
+    } 
+    branchName = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.ref : github.context.ref;
+    if (branchName.indexOf('/refs/heads/') > -1) {
+        branchName = branchName.slice('/refs/heads/'.length);
+    }
+    const version = branchPrefix + branchName + '-' + prefix + (suffix != '' ? '-' + suffix : '') + '-' + sha.substring(0, 8);
     core.setOutput("sha", sha);                    
     core.setOutput("tag", version);
     core.setOutput("moduleId", moduleId)
