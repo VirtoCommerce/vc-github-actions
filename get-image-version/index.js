@@ -1,10 +1,13 @@
 const core = require('@actions/core');
+const exec = require('@actions/exec');
 const github = require('@actions/github');
 const fs = require('fs');
 const path = require('path')
 const xml2js = require('xml2js');
 const { CONNREFUSED } = require('dns');
 const parser = new xml2js.Parser();
+
+const src = __dirname;
 
 function findFile(base,name,files,result) 
 {
@@ -31,14 +34,27 @@ function findFile(base,name,files,result)
 }
 
 function pushOutputs(prefix, suffix, moduleId) {
-    const sha = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.sha : github.context.sha;
-    const version = prefix + (suffix != '' ? '-' + suffix : '') + '-' + sha.substring(0, 8);
-    core.setOutput("sha", sha);                    
-    core.setOutput("tag", version);
+    var branchName = '';
+    var branchPrefix = '';
+
+    if (github.context.eventName === 'pull_request') {
+        sha = github.context.payload.pull_request.head.sha;
+        branchName = github.context.payload.pull_request.head.ref;
+        branchPrefix = 'PR-' + branchName;
+    } else {
+        branchName = github.context.ref;
+    } 
+
+    if (branchName.indexOf('/refs/heads/') > -1) {
+        branchName = branchName.slice('/refs/heads/'.length);
+    }
+
+    version = branchPrefix + '-' + prefix + (suffix != '' ? '-' + suffix : '-' + getCommitCount(branchName) );
+    
+    core.setOutput("version", version);
     core.setOutput("moduleId", moduleId)
     
-    console.log(`Version tag is: ${version}`);
-    console.log(`Head sha is: ${sha}`);
+    console.log(`Version is: ${version}`);
     console.log(`Module Id is: ${moduleId}`);
 }
 
@@ -87,3 +103,36 @@ else {
         }
     });
 }
+function getCommitCount(baseBranch) {
+    try {
+      let output = '';
+      let err = '';
+  
+      // These are option configurations for the @actions/exec lib`
+      const options = {};
+      options.listeners = {
+        stdout: (data) => {
+          output += data.toString();
+        },
+        stderr: (data) => {
+          err += data.toString();
+        }
+      };
+      options.cwd = './';
+  
+      exec.exec(`${src}/commit-count.sh`, [baseBranch], options);
+      const { commitCount } = JSON.parse(output);
+  
+      if (commitCount) {
+        console.log('\x1b[32m%s\x1b[0m', `${baseBranch} branch contain: ${commitCount} commits`);
+        result = commitCount;
+      } else {
+        core.setFailed(err);
+        process.exit(1);
+      }
+    } catch (err) {
+      core.setFailed(`Could not get commit counts because: ${err.message}`);
+      process.exit(0);
+    }
+    return result;
+  }
