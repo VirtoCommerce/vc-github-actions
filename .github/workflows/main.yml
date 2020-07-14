@@ -21,4 +21,4 @@ jobs:
     - name: Show version
       shell: pwsh
       run: |
-        Write-Output ${{ steps.image.outputs.tag }}
+        Write-Output ${{ steps.image.outputs.version }}
