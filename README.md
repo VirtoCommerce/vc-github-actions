@@ -1,6 +1,6 @@
 # vc-github-actions
 
-
+test
 VirtoCommerce specific GitHub actions.
 
 ## Repositories
