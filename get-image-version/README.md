@@ -1,6 +1,6 @@
-# Get Docker Image tag javascript action
+# Get Docker Image version javascript action
 
-This action grabs Version and Version suffix from Directory.Build.Props and adds SHA of the current branch or of the head branch of a pull request. 
+This action grabs Version and Version suffix from Directory.Build.Props. If Version suffix not present calculate it as a branch commits count
 
 ## Inputs
 
@@ -8,23 +8,25 @@ No imputs required
 
 ## Outputs
 
-### `tag`
+### `version`
 
-Tag value formatted as x.x.x-sha8 or x.x.x-suffix-sha8
-### `sha`
+'Version value formatted as prefix.suffix or PR-branch name-prefix.suffix'
 
-Full SHA of the current branch or of the head branch of a pull request. 
+### `moduleId`
+
+Module Id value.
 
 ## Example usage
+
 ```
-- name: Get Image Tag
-  uses: VirtoCommerce/vc-github-actions/get-image-tag@master
+- name: Get Image version
+  uses: VirtoCommerce/vc-github-actions/get-image-versiong@master
   id: image
 ```
-  
-...
+
 Get the outputs:
+
 ```
-${{ steps.image.outputs.tag }}
-${{ steps.image.outputs.sha }}
+${{ steps.image.outputs.version }}
+${{ steps.image.outputs.moduleId }}
 ```

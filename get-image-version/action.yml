@@ -1,5 +1,5 @@
-name: 'Get Image Tag'
-description: 'This action grabs Version and Version suffix from Directory.Build.Props. If Version suffix not present calculate it as branch commits count'
+name: 'Get Image Version'
+description: 'This action grabs Version and Version suffix from Directory.Build.Props. If Version suffix not present calculate it as a branch commits count'
 outputs:
   version: # id of output
     description: 'Version value formatted as prefix.suffix or PR-branch name-prefix.suffix'
