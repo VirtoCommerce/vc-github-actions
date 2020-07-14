@@ -1,6 +1,5 @@
 # Get Docker Image tag javascript action
 
-test workflow
 This action grabs Version and Version suffix from Directory.Build.Props and adds SHA of the current branch or of the head branch of a pull request. 
 
 ## Inputs
