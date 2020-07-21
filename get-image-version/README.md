@@ -44,7 +44,7 @@ Module Id value.
 
 ```
 - name: Get Image version
-  uses: VirtoCommerce/vc-github-actions/get-image-versiong@master
+  uses: VirtoCommerce/vc-github-actions/get-image-versiong@v3.0.1
   id: image
 ```
 
