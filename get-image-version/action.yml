@@ -1,0 +1,23 @@
+name: 'Get Image Version'
+description: 'This action grabs Version and Version suffix from Directory.Build.Props. If Version suffix not present calculate it as a branch commits count'
+outputs:
+  branchName:
+    description: 'Triggered branch name'
+  prefix:
+    description: 'Version prefix value'
+  suffix:
+    description: 'Version suffix value'
+  moduleId:
+    description: 'Module Id value'
+  sha:
+    description: 'Version SHA value'
+  shortVersion:
+    description: 'Version value formatted as prefix-suffix'
+  tag:
+    description: 'Version value formatted as branchName-prefix-sha'
+  fullVersion:
+    description: 'Version value formatted as branchName-prefix-suffix'
+
+runs:
+  using: 'node12'
+  main: 'index.js'
