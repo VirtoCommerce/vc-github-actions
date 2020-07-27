@@ -40,6 +40,11 @@ Version value formatted as branchName-prefix-sha
 
 Module Id value.
 
+### `taggedVersion`
+
+Version value formatted as branchName-prefix-suffix-sha
+
+
 ## Example usage
 
 ```

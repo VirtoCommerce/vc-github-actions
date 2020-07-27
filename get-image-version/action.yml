@@ -17,6 +17,9 @@ outputs:
     description: 'Version value formatted as branchName-prefix-sha'
   fullVersion:
     description: 'Version value formatted as branchName-prefix-suffix'
+  taggedVersion:
+    description: 'Version value formatted as branchName-prefix-suffix-sha'
+
 
 runs:
   using: 'node12'

@@ -39,6 +39,7 @@ function pushOutputs(branchName, prefix, suffix, moduleId) {
     const shortVersion = prefix + '-' + suffix;
     const tag = branchName + '-' + prefix + '-' + sha;
     const fullVersion = branchName + '-' + prefix + '-' + suffix;
+    const taggedVersion = branchName + '-' + prefix + '-' + suffix+ '-' + sha;;
 
     core.setOutput("branchName", branchName);
     core.setOutput("prefix", prefix);
@@ -48,6 +49,7 @@ function pushOutputs(branchName, prefix, suffix, moduleId) {
     core.setOutput("shortVersion", shortVersion);
     core.setOutput("tag", tag);
     core.setOutput("fullVersion", fullVersion);
+    core.setOutput("taggedVersion", taggedVersion);
 
     console.log(`Branch name is: ${branchName}`);
     console.log(`Version prefix is: ${prefix}`);
@@ -57,6 +59,7 @@ function pushOutputs(branchName, prefix, suffix, moduleId) {
     console.log(`Short version is: ${shortVersion}`);
     console.log(`Tag is: ${tag}`);
     console.log(`Full version is: ${fullVersion}`);
+    console.log(`Tagged version is: ${taggedVersion}`);
 }
 async function getCommitCount(baseBranch) {
     try {
