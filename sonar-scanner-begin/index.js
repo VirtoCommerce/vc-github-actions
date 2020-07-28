@@ -19,4 +19,4 @@ let SonarAuthToken = process.env.SONAR_TOKEN;
 let sonarAuthArg = `-SonarAuthToken ${SonarAuthToken}`;
 let repoNameArg = `-RepoName ${repoName}`;
 
-await exec.exec(`vc-build SonarQubeStart ${prArg} ${sonarAuthArg} ${repoNameArg}`);
+exec.exec(`vc-build SonarQubeStart ${prArg} ${sonarAuthArg} ${repoNameArg}`);
