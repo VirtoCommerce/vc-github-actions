@@ -1,0 +1,5 @@
+name: 'Hello World'
+description: 'Prepares parameters for vc-build SonarQubeStart'
+runs:
+  using: 'node12'
+  main: 'index.js'
