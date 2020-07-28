@@ -19,4 +19,6 @@ let SonarAuthToken = process.env.SONAR_TOKEN;
 let sonarAuthArg = `-SonarAuthToken ${SonarAuthToken}`;
 let repoNameArg = `-RepoName ${repoName}`;
 
+console.log(`Debug: ${prArg} ${sonarAuthArg} ${repoNameArg} ${process.env.GITHUB_REPOSITORY} ${branchName} ${process.env.SONAR_TOKEN.length}`)
+
 exec.exec(`vc-build SonarQubeStart ${prArg} ${sonarAuthArg} ${repoNameArg}`);
