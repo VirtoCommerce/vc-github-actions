@@ -76,9 +76,10 @@ async function getCommitCount(baseBranch) {
                 err += data.toString();
             }
         };
-        options.cwd = './';
+        //options.cwd = './';
 
-        await exec.exec(`${src}/commit-count.sh`, [baseBranch], options);
+        //await exec.exec(`${src}/commit-count.sh`, [baseBranch], options);
+        await exec.exec(`git rev-list --count ${baseBranch}`, options);
         const { commitCount } = JSON.parse(output);
 
         if (commitCount) {
