@@ -1,0 +1,5 @@
+name: 'publish-github-release'
+description: 'Publish github release or prerelease dependant to github.ref'
+runs:
+  using: 'node12'
+  main: 'index.js'

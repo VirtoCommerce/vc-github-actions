@@ -1,4 +1,4 @@
-name: 'Hello World'
+name: 'sonar-scanner-begin'
 description: 'Prepares parameters for vc-build SonarQubeStart'
 runs:
   using: 'node12'

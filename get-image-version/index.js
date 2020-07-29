@@ -148,7 +148,7 @@ if (branchName.indexOf('refs/heads/') > -1) {
 }
 
 if (suffix === "") {
-    getCommitCount(branchName).then(result => { pushOutputs(branchName, prefix, result, moduleId); })
+    getCommitCount(branchName).then(result => { pushOutputs(branchName, prefix, `alpha.${result}`, moduleId); })
 
 } else {
     pushOutputs(branchName, prefix, suffix, moduleId);
