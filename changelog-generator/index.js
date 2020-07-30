@@ -44,6 +44,6 @@ async function getCommitMessages(since)
     return commitMessages;
 }
 
-let latestRelease = await getLatestRelease(orgName, repoName);
-let commitMessages = await getCommitMessages(latestRelease.published_at);
+let latestRelease = getLatestRelease(orgName, repoName);
+let commitMessages = getCommitMessages(latestRelease.published_at);
 core.setOutput("changelog", commitMessages);

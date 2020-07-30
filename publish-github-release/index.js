@@ -49,3 +49,5 @@ exec.exec(`vc-build PublishModuleManifest ${customModuleDownloadUrl}`).then(exit
         core.setFailed("Failed to update modules.json");
     }
 });
+
+github.repos
