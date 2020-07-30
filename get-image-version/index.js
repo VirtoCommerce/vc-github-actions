@@ -35,8 +35,8 @@ function findFile(base, name, files, result) {
 }
 
 function getPackage() {
-    delete require.cache[require.resolve("./package.json")];
-    return require("./package.json");
+    delete require.cache[require.resolve("package.json")];
+    return require("package.json");
 }
 
 function pushOutputs(branchName, prefix, suffix, moduleId) {
