@@ -64,4 +64,5 @@ ${{ steps.image.shortVersion }}
 ${{ steps.image.fullVersion }}
 ${{ steps.image.outputs.tag }}
 ${{ steps.image.outputs.moduleId }}
+${{ steps.image.outputs.taggedVersion }}
 ```
