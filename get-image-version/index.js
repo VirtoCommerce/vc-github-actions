@@ -35,8 +35,9 @@ function findFile(base, name, files, result) {
 }
 
 function getPackage() {
-    delete require.cache[require.resolve("package.json")];
-    return require("package.json");
+    let rawData = fs.readFileSync('package.json');
+    let package = JSON.parse(rawData);
+    return package;
 }
 
 function pushOutputs(branchName, prefix, suffix, moduleId) {
