@@ -1,5 +1,6 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
+const exec = require('@actions/exec');
 const { exception } = require('console');
 
 let orgName = process.env.GITHUB_REPOSITORY.split('/')[0];
