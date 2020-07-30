@@ -1,0 +1,13 @@
+name: 'changelog-generator'
+description: 'Generates changelog'
+# inputs:
+#     github_token:  # id of input
+#       description: 'GitHub Token'
+#       required: true
+#       default: ${{ github.token }}
+outputs:
+  changelog:
+    description: 'Result'
+runs:
+  using: 'node12'
+  main: 'index.js'
