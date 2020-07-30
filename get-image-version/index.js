@@ -34,6 +34,11 @@ function findFile(base, name, files, result) {
     return result;
 }
 
+function getPackage() {
+    delete require.cache[require.resolve("./package.json")];
+    return require("./package.json");
+}
+
 function pushOutputs(branchName, prefix, suffix, moduleId) {
     const sha = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.sha.substring(0, 8) : github.context.sha.substring(0, 8);
     const shortVersion = prefix + '-' + suffix;
@@ -119,6 +124,11 @@ if (files.length > 0) {
             console.log(`Cannot load file ${manifestPath}`);
         }
     });
+}
+else if(fs.existsSync("package.json"))
+{
+    let package = getPackage();
+    prefix = package.version;
 }
 else {
     let buildPropsFile = 'Directory.Build.Props';
