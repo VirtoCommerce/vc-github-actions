@@ -9,7 +9,7 @@ let repoName = process.env.GITHUB_REPOSITORY.split('/')[1];
 async function getLatestRelease(orgName, repoName)
 {
     let octokit = github.getOctokit(process.env.GITHUB_TOKEN);
-    let releases =  await octokit.repos.listReleases();
+    let releases =  await octokit.repos.listTags();
     console.log(releases);
     for(let release of releases)
     {
