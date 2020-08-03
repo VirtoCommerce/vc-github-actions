@@ -15,7 +15,7 @@ async function getLatestRelease(releases)
     throw new exception("No github releases found");
 }
 
-function getCommitMessages(since)
+async function getCommitMessages(since)
 {
     let output = '';
     let err = '';
@@ -29,8 +29,8 @@ function getCommitMessages(since)
             err += data.toString();
         }
     };
-    exec.exec(`git log --pretty=format:"%s (%h)" --since="${since}"`, [], options).then(exitCode => console.log(`git log --pretty=format:"%s (%h)" --since exitCode: ${exitCode}`));
-    const commitMessages = output;
+    await exec.exec(`git log --pretty=format:"%s (%h)" --since="${since}"`, [], options).then(exitCode => console.log(`git log --pretty=format:"%s (%h)" --since exitCode: ${exitCode}`));
+    const commitMessages = output.trim();
     return commitMessages;
 }
 
