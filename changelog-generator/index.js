@@ -47,7 +47,7 @@ async function cleanMessages(messages)
     return result;
 }
 
-String.prototype.replaceAll() = function (find, replace) 
+String.prototype.replaceAll = function (find, replace) 
 {
     return this.split(find).join(replace);
 }
