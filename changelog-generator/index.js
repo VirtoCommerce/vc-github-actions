@@ -1,9 +1,17 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const exec = require('@actions/exec');
+const { request } = require("@octokit/request");
 
-async function getLatestRelease(releases)
+async function getLatestRelease(repo)
 {
+    const repoUrl = `/repos/${repo}/releases`;
+    const result = await request(`GET ${repoUrl}`, {
+        headers: {
+            authorization: process.env.GITHUB_TOKEN
+        }
+    });
+    releases = JSON.parse(result.data);
     console.log(releases);
     for(let release of releases)
     {
@@ -39,7 +47,6 @@ async function cleanMessages(messages)
     let jiraTasksRegex = /^#*[A-Z]{2,5}-\d{2,4}:{0,1}\s*/mi;
     let mergeRegex = /^Merge.*$/mi;
     console.log(`Before: \n ${messages}`);
-    console.log('hello world'.split('l').join('dc'));
     let result = messages.split(jiraTasksRegex).join("").split(mergeRegex).join("");
     console.log(result);
     result = result.replaceAll("\n", "<br />").replaceAll("\"", "").replaceAll("<br /><br />", "<br />");
@@ -55,8 +62,7 @@ String.prototype.replaceAll = function (find, replace)
 
 async function run()
 {
-    let releases = JSON.parse(core.getInput('releases_list'));
-    let latestRelease = await getLatestRelease(releases);
+    let latestRelease = await getLatestRelease(process.env.GITHUB_REPOSITORY);
     let commitMessages = await getCommitMessages(latestRelease.published_at);
     commitMessages = await cleanMessages(commitMessages);
 

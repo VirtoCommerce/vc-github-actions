@@ -1,9 +1,5 @@
 name: 'changelog-generator'
 description: 'Generates changelog'
-inputs:
-    releases_list:
-      description: 'List of Github Releases'
-      required: true
 outputs:
   changelog:
     description: 'Result'
