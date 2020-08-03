@@ -34,7 +34,8 @@ if(branchName === 'dev')
 else if(branchName == 'master')
 {
     let orgName = process.env.GITHUB_REPOSITORY.split('/')[0];
-    let releaseNotesArg = "";
+    let changelog = core.getInput('changelog');
+    let releaseNotesArg = `-ReleaseNotes ${changelog}`;
     exec.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip Clean+Restore+Compile+Test`).then(exitCode => {
         if(exitCode != 0 || exitCode != 422)
         {
