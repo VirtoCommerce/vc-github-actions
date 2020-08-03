@@ -1,10 +1,9 @@
 name: 'changelog-generator'
 description: 'Generates changelog'
-# inputs:
-#     github_token:  # id of input
-#       description: 'GitHub Token'
-#       required: true
-#       default: ${{ github.token }}
+inputs:
+    releases_list:
+      description: 'List of Github Releases'
+      required: true
 outputs:
   changelog:
     description: 'Result'

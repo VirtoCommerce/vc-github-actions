@@ -1,15 +1,9 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const exec = require('@actions/exec');
-const { exception } = require('console');
 
-let orgName = process.env.GITHUB_REPOSITORY.split('/')[0];
-let repoName = process.env.GITHUB_REPOSITORY.split('/')[1];
-
-async function getLatestRelease(orgName, repoName)
+async function getLatestRelease(releases)
 {
-    let octokit = github.getOctokit(process.env.GITHUB_TOKEN);
-    let releases =  await octokit.repos.listTags();
     console.log(releases);
     for(let release of releases)
     {
@@ -44,6 +38,8 @@ async function getCommitMessages(since)
     return commitMessages;
 }
 
-let latestRelease = getLatestRelease(orgName, repoName);
+let releases = core.getInput('releases_list');
+let latestRelease = getLatestRelease(releases);
 let commitMessages = getCommitMessages(latestRelease.published_at);
+console.log(commitMessages);
 core.setOutput("changelog", commitMessages);
