@@ -20,7 +20,6 @@ async function getCommitMessages(since)
     let output = '';
     let err = '';
 
-    // These are option configurations for the @actions/exec lib`
     const options = {};
     options.listeners = {
         stdout: (data) => {
@@ -30,15 +29,12 @@ async function getCommitMessages(since)
             err += data.toString();
         }
     };
-    //options.cwd = './';
-
-    //await exec.exec(`${src}/commit-count.sh`, [baseBranch], options);
     await exec.exec(`git log --pretty=format:"%s (%h)" --since="${since}"`, [], options).then(exitCode => console.log(`git log --pretty=format:"%s (%h)" --since exitCode: ${exitCode}`));
     const commitMessages = output;
     return commitMessages;
 }
 
-let releases = core.getInput('releases_list');
+let releases = JSON.parse(core.getInput('releases_list'));
 let latestRelease = getLatestRelease(releases);
 let commitMessages = getCommitMessages(latestRelease.published_at);
 console.log(commitMessages);
