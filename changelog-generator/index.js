@@ -34,8 +34,20 @@ async function getCommitMessages(since)
     return commitMessages;
 }
 
-let releases = JSON.parse(core.getInput('releases_list'));
-let latestRelease = getLatestRelease(releases);
-let commitMessages = getCommitMessages(latestRelease.published_at);
-console.log(commitMessages);
-core.setOutput("changelog", commitMessages);
+async function cleanMessages(messages)
+{
+    return messages;
+}
+
+async function run()
+{
+    let releases = JSON.parse(core.getInput('releases_list'));
+    let latestRelease = await getLatestRelease(releases);
+    let commitMessages = await getCommitMessages(latestRelease.published_at);
+    commitMessages = await cleanMessages(commitMessages);
+
+    console.log(commitMessages);
+    core.setOutput("changelog", commitMessages);
+}
+
+run();
