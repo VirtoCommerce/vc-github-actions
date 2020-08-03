@@ -43,7 +43,8 @@ async function cleanMessages(messages)
     let result = messages.split(jiraTasksRegex).join("").split(mergeRegex).join("");
     console.log(result);
     result = result.replaceAll("\n", "<br />").replaceAll("\"", "").replaceAll("<br /><br />", "<br />");
-    //result = `&bull; ${result}`.replaceAll("<br />", "<br />&bull; ");
+    result = `&bull; ${result}`;
+    result = result.replaceAll("<br />", "<br />&bull; ");
     return result;
 }
 
