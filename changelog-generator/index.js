@@ -39,8 +39,8 @@ async function cleanMessages(messages)
     let jiraTasksRegex = /^#*[A-Z]{2,5}-\d{2,4}:{0,1}\s*/mi;
     let mergeRegex = /^Merge.*$/mi;
     console.log(`Before: \n ${messages}`);
-    console.log('hello world'.replace('l', 'dc'));
-    let result = messages.replaceAll(jiraTasksRegex, "").replaceAll(mergeRegex, "");
+    console.log('hello world'.split('l').join('dc'));
+    let result = messages.split(jiraTasksRegex).join("").split(mergeRegex).join("");
     console.log(resuilt);
     result = result.replaceAll("\n", "<br />").replaceAll("\"", "").replaceAll("<br /><br />", "<br />");
     result = "&bull; ${result}".replaceAll("<br />", "<br />&bull; ");
