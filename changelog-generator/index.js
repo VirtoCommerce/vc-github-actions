@@ -11,7 +11,7 @@ async function getLatestRelease(repo)
             authorization: process.env.GITHUB_TOKEN
         }
     });
-    releases = JSON.parse(result.data);
+    releases = result.data;
     console.log(releases);
     for(let release of releases)
     {
