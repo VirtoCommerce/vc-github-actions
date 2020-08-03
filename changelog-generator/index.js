@@ -36,7 +36,12 @@ async function getCommitMessages(since)
 
 async function cleanMessages(messages)
 {
-    return messages;
+    let jiraTasksRegex = /^#*[A-Z]{2,5}-\d{2,4}:{0,1}\s*/mi;
+    let mergeRegex = /^Merge.*$/mi;
+    let result = messages.replaceAll(jiraTasksRegex, "").replaceAll(mergeRegex, "");
+    result = result.replaceAll("\n", "<br />").replaceAll("\"", "").replaceAll("<br /><br />", "<br />");
+    result = "&bull; ${result}".replaceAll("<br />", "<br />&bull; ");
+    return result;
 }
 
 async function run()
