@@ -47,6 +47,11 @@ async function cleanMessages(messages)
     return result;
 }
 
+String.prototype.replaceAll() = function (find, replace) 
+{
+    return this.split(find).join(replace);
+}
+
 async function run()
 {
     let releases = JSON.parse(core.getInput('releases_list'));
