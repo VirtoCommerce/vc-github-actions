@@ -46,6 +46,8 @@ else if(branchName === 'master')
 
 if(branchName === 'dev' || branchName === 'master')
 {
+    exec.exec(`git config --global user.email "vc-ci@virtoway.com"`);
+    exec.exec(`git config --global user.name "vc-ci"`);
     exec.exec(`vc-build PublishModuleManifest ${customModuleDownloadUrl}`).then(exitCode => {
         if(exitCode != 0 || exitCode != 423)
         {
