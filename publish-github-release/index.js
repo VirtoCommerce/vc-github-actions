@@ -31,7 +31,7 @@ if(branchName === 'dev')
     });
     customModuleDownloadUrl = `-CustomModulePackageUri ${downloadUrl}`;
 } 
-else if(branchName == 'master')
+else if(branchName === 'master')
 {
     let orgName = process.env.GITHUB_REPOSITORY.split('/')[0];
     let changelog = core.getInput('changelog');
@@ -44,11 +44,12 @@ else if(branchName == 'master')
     });
 }
 
-exec.exec(`vc-build PublishModuleManifest ${customModuleDownloadUrl}`).then(exitCode => {
-    if(exitCode != 0 || exitCode != 423)
-    {
-        core.setFailed("Failed to update modules.json");
-    }
-});
-
-github.repos
+if(branchName === 'dev' || branchName === 'master')
+{
+    exec.exec(`vc-build PublishModuleManifest ${customModuleDownloadUrl}`).then(exitCode => {
+        if(exitCode != 0 || exitCode != 423)
+        {
+            core.setFailed("Failed to update modules.json");
+        }
+    });
+}
