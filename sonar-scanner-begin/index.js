@@ -4,7 +4,7 @@ const exec = require('@actions/exec');
 
 let isPullRequest = github.context.eventName === 'pull_request';
 let prArg = isPullRequest ? '-PullRequest' : '';
-let branchName = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.ref : github.context.ref;
+let branchName = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.base.ref : github.context.ref;
 if (branchName.indexOf('refs/heads/') > -1) {
     branchName = branchName.slice('refs/heads/'.length);
 }
