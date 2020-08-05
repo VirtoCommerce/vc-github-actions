@@ -11,7 +11,7 @@ if (branchName.indexOf('refs/heads/') > -1) {
 let repoName = process.env.GITHUB_REPOSITORY.slice('VirtoCommerce/'.length);
 if(isPullRequest)
 {
-    process.env.CHANGE_TARGET = github.context.ref.slice('refs/heads/'.length);//github.context.payload.pull_request.head.ref;
+    process.env.CHANGE_TARGET = github.context.payload.pull_request.head.ref;
     process.env.CHANGE_TITLE = github.context.payload.pull_request.title;
     process.env.CHANGE_ID = github.context.payload.pull_request.number;
 }
