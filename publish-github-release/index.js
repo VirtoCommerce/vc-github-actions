@@ -4,6 +4,18 @@ const exec = require('@actions/exec');
 const glob = require('glob').Glob;
 const path = require('path');
 
+async function findArtifact(pattern)
+{
+    await glob(pattern, (err, matches) => {
+        if(err != null || matches.length < 1)
+        {
+            core.setFailed(err);
+            process.exit(1);
+        }
+        return matches[0];
+    });
+}
+
 async function run()
 {
     let branchName = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.ref : github.context.ref;
@@ -14,16 +26,11 @@ async function run()
     if(branchName === 'dev')
     {
         let blobUrl = `https://vc3prerelease.blob.core.windows.net/packages${process.env.BLOB_SAS}`;
-        let artifactPath = "";
-        await glob("artifacts/*.zip", (err, matches) => {
-            if(err != null || matches.length < 1)
-            {
-                core.setFailed(err);
-                process.exit(1);
-            }
-            artifactPath = matches[0];
-        });
+        let artifactPath = await findArtifact("artifacts/*.zip");
+        console.log(artifactPath);
+        
         let artifactFileName = artifactPath.split(path.sep).pop();
+        console.log(artifactFileName);
         let downloadUrl = `https://vc3prerelease.blob.core.windows.net/packages/${artifactFileName}`;
         await exec.exec(`azcopy10 copy ${artifactPath} ${blobUrl}`).catch(reason => {
             console.log(reason);
