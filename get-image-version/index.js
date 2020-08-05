@@ -37,7 +37,7 @@ function findFile(base, name, files, result) {
 function getPackage(dir) {
     let packageJsonPath = 'package.json';
     packageJsonPath = dir? `${dir}/${packageJsonPath}`: packageJsonPath;
-    let rawData = fs.readFileSync();
+    let rawData = fs.readFileSync(packageJsonPath);
     let package = JSON.parse(rawData);
     return package;
 }
