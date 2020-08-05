@@ -6,7 +6,7 @@ const path = require('path');
 
 async function findArtifact(pattern)
 {
-    await glob(pattern, (err, matches) => {
+    await glob(pattern, {}, (err, matches) => {
         if(err != null || matches.length < 1)
         {
             core.setFailed(err);
