@@ -52,10 +52,10 @@ function tryGetInfoFromPackageJson() {
     let result = false;
     let packageJsonPath = "package.json";    
     adjustPath(packageJsonPath);   
-    console.log(packageJsonPath);
+    console.log("package.json path: " + packageJsonPath);
     if( !fs.existsSync(packageJsonPath) )
     {
-        let package = getPackage();
+        let package = getPackage(packageJsonPath);
         prefix = package.version;
         result = true;
     }
