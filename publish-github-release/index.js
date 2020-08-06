@@ -1,20 +1,14 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const exec = require('@actions/exec');
-const glob = require('glob').Glob;
+const glob = require('glob');
 const path = require('path');
 
 async function findArtifact(pattern)
 {
-    let globResult = await glob(pattern, {}, (err, matches) => {
-        if(err != null || matches.length < 1)
-        {
-            core.setFailed(err);
-            process.exit(1);
-        }
-        return matches[0];
-    });
+    let globResult = glob.sync(pattern);
     console.log(globResult);
+    return globResult[0];
 }
 
 async function run()
