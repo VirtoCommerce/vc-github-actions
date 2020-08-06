@@ -43,15 +43,17 @@ function getPackage(packageJsonPath) {
 }
 
 function adjustPath(pathToAdjusting) {
+    let result = pathToAdjusting;
     if(baseDir) {
-        pathToAdjusting = path.join(baseDir, pathToAdjusting);
+        result = path.join(baseDir, pathToAdjusting);
     }
+    return result;
 }
 
 function tryGetInfoFromPackageJson() {
     let result = false;
     let packageJsonPath = "package.json";    
-    adjustPath(packageJsonPath);   
+    packageJsonPath = adjustPath(packageJsonPath);   
     console.log("package.json path: " + packageJsonPath);
     if( !fs.existsSync(packageJsonPath) )
     {
@@ -66,7 +68,7 @@ function tryGetInfoFromPackageJson() {
 function tryGetInfoFromModuleManifest() {
     result = false;
     let pathToFind = "src";
-    adjustPath(pathToFind);
+    pathToFind = adjustPath(pathToFind);
     let files = findFile(pathToFind, "module.manifest");
     if (files.length > 0) {
         let manifestPath = files[0];
@@ -94,10 +96,10 @@ function tryGetInfoFromModuleManifest() {
 function tryGetInfoFromDirectoryBuildProps() {    
     let result = false;
     let buildPropsFile = 'Directory.Build.Props';
-    adjustPath(buildPropsFile);
+    buildPropsFile = adjustPath(buildPropsFile);
     if (!fs.existsSync(buildPropsFile)) {
         buildPropsFile = 'Directory.Build.props';
-        adjustPath(buildPropsFile);
+        buildPropsFile = adjustPath(buildPropsFile);
     }
 
     if(fs.existsSync(buildPropsFile)) {
