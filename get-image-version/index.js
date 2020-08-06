@@ -11,7 +11,7 @@ const parser = new xml2js.Parser();
 
 const src = __dirname;
 
-const baseDir = core.getInput('path2');
+const baseDir = core.getInput('path');
 
 function findFile(base, name, files, result) {
     var result = [];
@@ -36,8 +36,7 @@ function findFile(base, name, files, result) {
     return result;
 }
 
-function getPackage(dir) {    
-    const packageJsonPath = path.join(dir, 'package.json');
+function getPackage(packageJsonPath) {        
     let rawData = fs.readFileSync(packageJsonPath);
     let package = JSON.parse(rawData);
     return package;
