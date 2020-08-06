@@ -55,7 +55,7 @@ function tryGetInfoFromPackageJson() {
     let packageJsonPath = "package.json";    
     packageJsonPath = adjustPath(packageJsonPath);   
     console.log("package.json path: " + packageJsonPath);
-    if( !fs.existsSync(packageJsonPath) )
+    if(fs.existsSync(packageJsonPath))
     {
         let package = getPackage(packageJsonPath);
         prefix = package.version;
