@@ -57,6 +57,8 @@ async function run()
     {
         await exec.exec(`git config --global user.email "ci@virtocommerce.com"`);
         await exec.exec(`git config --global user.name "vc-ci"`);
+        await exec.exec('git clone https://github.com/VirtoCommerce/vc-modules.git artifacts/vc-modules');
+        await exec.exec('ls artifacts -al');
         await exec.exec(`vc-build PublishModuleManifest ${customModuleDownloadUrl}`).then(exitCode => {
             if(exitCode != 0 || exitCode != 423)
             {
