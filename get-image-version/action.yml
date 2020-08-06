@@ -1,5 +1,9 @@
 name: 'Get Image Version'
-description: 'This action grabs Version and Version suffix from Directory.Build.Props. If Version suffix not present calculate it as a branch commits count'
+description: 'This action grabs Version and Version suffix from Directory.Build.Props or package.json file. If Version suffix not present calculate it as a branch commits count'
+inputs:
+  path:  # id of input
+    description: 'Path to directory that contains Directory.Build.Props or package.json'
+    required: false    
 outputs:
   branchName:
     description: 'Triggered branch name'
