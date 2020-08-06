@@ -34,8 +34,10 @@ function findFile(base, name, files, result) {
     return result;
 }
 
-function getPackage() {
-    let rawData = fs.readFileSync('package.json');
+function getPackage(dir) {
+    let packageJsonPath = 'package.json';
+    packageJsonPath = dir? `${dir}/${packageJsonPath}`: packageJsonPath;
+    let rawData = fs.readFileSync(packageJsonPath);
     let package = JSON.parse(rawData);
     return package;
 }
@@ -129,6 +131,11 @@ if (files.length > 0) {
 else if(fs.existsSync("package.json"))
 {
     let package = getPackage();
+    prefix = package.version;
+}
+else if(fs.existsSync("client-app/package.json"))
+{
+    let package = getPackage("client-app");
     prefix = package.version;
 }
 else {
