@@ -11,7 +11,7 @@ const parser = new xml2js.Parser();
 
 const src = __dirname;
 
-const baseDir = core.getInput('path');
+const baseDir = core.getInput('path2');
 
 function findFile(base, name, files, result) {
     var result = [];
