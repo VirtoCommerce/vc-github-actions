@@ -57,8 +57,7 @@ async function run()
     {
         await exec.exec(`git config --global user.email "ci@virtocommerce.com"`);
         await exec.exec(`git config --global user.name "vc-ci"`);
-        await exec.exec(`git config --global user.password ${process.env.GITHUB_TOKEN}`);
-        process.env['GIT_USER'] = `vc-ci:${process.env.GITHUB_TOKEN}`;
+        await exec.exec(`echo ::set-env name GIT_USER::vc-ci:${process.env.GITHUB_TOKEN}`);
         await exec.exec('git clone https://github.com/VirtoCommerce/vc-modules.git artifacts/vc-modules');
         await exec.exec('ls artifacts -al');
         await exec.exec(`vc-build PublishModuleManifest ${customModuleDownloadUrl}`).then(exitCode => {
