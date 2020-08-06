@@ -53,7 +53,7 @@ function tryGetInfoFromPackageJson() {
     let result = false;
     let packageJsonPath = "package.json";    
     adjustPath(packageJsonPath);   
-
+    console.log(packageJsonPath);
     if( !fs.existsSync(packageJsonPath) )
     {
         let package = getPackage();
