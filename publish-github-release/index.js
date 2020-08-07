@@ -77,6 +77,8 @@ async function run()
 
     if(branchName === 'dev' || branchName === 'master')
     {
+        await exec.exec(`git config --global user.email "ci@virtocommerce.com"`);
+        await exec.exec(`git config --global user.name "vc-ci"`);
         await setupCredentials('vc-ci', process.env.GITHUB_TOKEN);
         await exec.exec(`vc-build PublishModuleManifest ${customModuleDownloadUrl}`).then(exitCode => {
             if(exitCode != 0 || exitCode != 423)
@@ -88,4 +90,6 @@ async function run()
     }
 }
 
-run();
+run().catch(error => {
+	core.setFailed(error.message);
+});
