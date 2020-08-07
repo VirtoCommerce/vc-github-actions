@@ -54,7 +54,7 @@ function tryGetInfoFromPackageJson() {
     return new Promise((resolve) => {
         let packageJsonPath = "package.json";
         packageJsonPath = adjustPath(packageJsonPath);
-        console.log("package.json path: " + packageJsonPath);
+                
         if (fs.existsSync(packageJsonPath)) {
             let package = getPackage(packageJsonPath);
             prefix = package.version;
