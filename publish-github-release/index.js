@@ -26,7 +26,7 @@ async function setupCredentials(user, pass)
     let githubCreds = `https://${user}:${pass}@github.com`;
     let configHome = await getConfigHome();
     await fs.mkdir(`${configHome}/git`, { recursive: true });
-    await fs.watchFile(`${configHome}/git/credentials`, githubCreds, { flag: 'a', mode: 0o600 });
+    await fs.writeFile(`${configHome}/git/credentials`, githubCreds, { flag: 'a', mode: 0o600 });
 
     await exec('git', ['config', '--global', 'credential.helper', 'store']);
 	await exec('git', ['config', '--global', '--replace-all', 'url.https://github.com/.insteadOf', 'ssh://git@github.com/']);
