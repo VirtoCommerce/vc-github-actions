@@ -28,9 +28,9 @@ async function setupCredentials(user, pass)
     await fs.mkdirSync(`${configHome}/git`, { recursive: true });
     await fs.writeFileSync(`${configHome}/git/credentials`, githubCreds, { flag: 'a', mode: 0o600 });
 
-    await exec('git', ['config', '--global', 'credential.helper', 'store']);
-	await exec('git', ['config', '--global', '--replace-all', 'url.https://github.com/.insteadOf', 'ssh://git@github.com/']);
-	await exec('git', ['config', '--global', '--add', 'url.https://github.com/.insteadOf', 'git@github.com:']);
+    await exec.exec('git', ['config', '--global', 'credential.helper', 'store']);
+	await exec.exec('git', ['config', '--global', '--replace-all', 'url.https://github.com/.insteadOf', 'ssh://git@github.com/']);
+	await exec.exec('git', ['config', '--global', '--add', 'url.https://github.com/.insteadOf', 'git@github.com:']);
 }
 
 async function run()
