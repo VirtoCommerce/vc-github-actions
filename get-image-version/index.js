@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path')
 const xml2js = require('xml2js');
 const { CONNREFUSED } = require('dns');
-const { basename } = require('path');
+const { basename, resolve } = require('path');
 const { Console } = require('console');
 const parser = new xml2js.Parser();
 
@@ -51,79 +51,85 @@ function adjustPath(pathToAdjusting) {
 }
 
 function tryGetInfoFromPackageJson() {
-    let result = false;
-    let packageJsonPath = "package.json";    
-    packageJsonPath = adjustPath(packageJsonPath);   
-    console.log("package.json path: " + packageJsonPath);
-    if(fs.existsSync(packageJsonPath))
-    {
-        let package = getPackage(packageJsonPath);
-        prefix = package.version;
-        result = true;
-    }
-
-    return result;
+    return new Promise((resolve) => {
+        let packageJsonPath = "package.json";
+        packageJsonPath = adjustPath(packageJsonPath);
+        console.log("package.json path: " + packageJsonPath);
+        if (fs.existsSync(packageJsonPath)) {
+            let package = getPackage(packageJsonPath);
+            prefix = package.version;
+            resolve(true);
+        } else {
+            resolve(false);
+        }
+    });
 }
 
 function tryGetInfoFromModuleManifest() {
-    result = false;
-    let pathToFind = "src";
-    pathToFind = adjustPath(pathToFind);
-    let files = findFile(pathToFind, "module.manifest");
-    if (files.length > 0) {
-        let manifestPath = files[0];
-    
-        fs.readFile(manifestPath, function (err, data) {
-            if (!err) {
-                parser.parseString(data, function (err, json) {
-                    if (!err) {
-                        moduleId = json.module.id[0].trim();
-                        prefix = json.module.version[0].trim();
-                        suffix = json.module["version-tag"][0].trim();
-                        result = true;
-                    }
-                });
-            }
-            else {
-                console.log(`Cannot load file ${manifestPath}`);
-            }
-        });
-    }
+    return new Promise((resolve) => {
+        let pathToFind = "src";
+        pathToFind = adjustPath(pathToFind);
+        let files = findFile(pathToFind, "module.manifest");
+        if (files.length > 0) {
+            let manifestPath = files[0];
 
-    return result;
+            fs.readFile(manifestPath, function (err, data) {
+                if (!err) {
+                    parser.parseString(data, function (err, json) {
+                        if (!err) {
+                            moduleId = json.module.id[0].trim();
+                            prefix = json.module.version[0].trim();
+                            suffix = json.module["version-tag"][0].trim();
+                            resolve(true);
+                        } else {
+                            reject(false);
+                        }
+                    });
+                } else {
+                    console.log(`Cannot load file ${manifestPath}`);
+                    reject(false);
+                }
+            });
+        } else {
+            resolve(false);
+        }
+    });
 }
 
-function tryGetInfoFromDirectoryBuildProps() {    
-    let result = false;
-    let buildPropsFile = 'Directory.Build.Props';
-    buildPropsFile = adjustPath(buildPropsFile);
-    if (!fs.existsSync(buildPropsFile)) {
-        buildPropsFile = 'Directory.Build.props';
+function tryGetInfoFromDirectoryBuildProps() {
+    return new Promise((resolve) => {
+        // let result = false;
+        let buildPropsFile = 'Directory.Build.Props';
         buildPropsFile = adjustPath(buildPropsFile);
-    }
+        if (!fs.existsSync(buildPropsFile)) {
+            buildPropsFile = 'Directory.Build.props';
+            buildPropsFile = adjustPath(buildPropsFile);
+        }
 
-    if(fs.existsSync(buildPropsFile)) {
-        fs.readFile(buildPropsFile, function (err, data) {
-            if (!err) {
-                parser.parseString(data, function (err, json) {
-                    if (!err) {
+        if (fs.existsSync(buildPropsFile)) {
+            fs.readFile(buildPropsFile, function (err, data) {
+                if (!err) {
+                    parser.parseString(data, function (err, json) {
+                        if (!err) {
+                            prefix = json.Project.PropertyGroup[1].VersionPrefix[0].trim();
+                            suffix = json.Project.PropertyGroup[1].VersionSuffix[0].trim();
+                            moduleId = "";
+                            resolve(true);
+                        } else {
+                            reject(false);
+                        }
 
-                        prefix = json.Project.PropertyGroup[1].VersionPrefix[0].trim();
-                        console.log("debug mark: " + prefix + "suffix: "+ suffix);
-                        suffix = json.Project.PropertyGroup[1].VersionSuffix[0].trim();
-                        console.log("debug mark: " + prefix + "suffix: "+ suffix);
-                        moduleId = "";
-                        result = true;
-                    }
-                });
-            }
-            else {
-                console.log(`Cannot load file ${buildPropsFile}`);
-            }
-        });
-    }
-    console.log("Result of tryGetInfoFromDirectoryBuildProps: " + result);
-    return result;
+                    });
+                }
+                else {
+                    console.log(`Cannot load file ${buildPropsFile}`);
+                    reject(false);
+                }
+            });
+        } else {
+            reject(false);
+        }
+    });
 }
 
 function pushOutputs(branchName, prefix, suffix, moduleId) {
@@ -193,20 +199,27 @@ let suffix = "";
 let moduleId = "";
 let branchName = "";
 
-// let files = findFile("src", "module.manifest");
-if (tryGetInfoFromModuleManifest()) {}
-else if(tryGetInfoFromPackageJson()) {}
-else if (tryGetInfoFromDirectoryBuildProps()) {}
-else {
-    core.setFailed("No one info file was found");
-}
-branchName = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.ref : github.context.ref;
-if (branchName.indexOf('refs/heads/') > -1) {
-    branchName = branchName.slice('refs/heads/'.length);
-}
 
-if (suffix === "") {
-    getCommitCount(branchName).then(result => { pushOutputs(branchName, prefix, `alpha.${result}`, moduleId); })
-} else {
-    pushOutputs(branchName, prefix, suffix, moduleId);
-}
+(async () => {
+    // let files = findFile("src", "module.manifest");
+    if (await tryGetInfoFromModuleManifest()) { }
+    else if (await tryGetInfoFromPackageJson()) { }
+    else if (await tryGetInfoFromDirectoryBuildProps()) { }
+    else {
+        core.setFailed("No one info file was found or file has wrong format");
+    }
+
+    branchName = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.ref : github.context.ref;
+    if (branchName.indexOf('refs/heads/') > -1) {
+        branchName = branchName.slice('refs/heads/'.length);
+    }
+
+    if (suffix === "") {
+        getCommitCount(branchName).then(result => { pushOutputs(branchName, prefix, `alpha.${result}`, moduleId); })
+    } else {
+        pushOutputs(branchName, prefix, suffix, moduleId);
+    }
+})();
+
+
+
