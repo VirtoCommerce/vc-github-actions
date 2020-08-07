@@ -47,7 +47,7 @@ if (branchName.indexOf('refs/heads/') > -1) {
 async function run()
 {
     const commitCount = await getCommitCount(branchName);
-    await exec.exec(`vc-build ChangeVersion -CustomVersionSuffix alpha.${commitCount}`).then(exitCode => {
+    await exec.exec(`vc-build ChangeVersion -CustomVersionSuffix \"alpha.${commitCount}\"`).then(exitCode => {
         if(exitCode != 0)
         {
             core.setFailed("vc-build ChangeVersion failed");

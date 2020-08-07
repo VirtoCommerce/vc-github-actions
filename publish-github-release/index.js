@@ -3,12 +3,34 @@ const github = require('@actions/github');
 const exec = require('@actions/exec');
 const glob = require('glob');
 const path = require('path');
+const os = require('os');
+const fs = require('fs');
 
 async function findArtifact(pattern)
 {
     let globResult = glob.sync(pattern);
     console.log(globResult);
     return globResult[0];
+}
+
+async function getConfigHome()
+{
+    const xdg_home =  process.env['XDG_CONFIG_HOME'];
+    if(xdg_home)
+        return xdg_home;
+    return `${os.homedir()}/.config`;
+}
+
+async function setupCredentials(user, pass)
+{
+    let githubCreds = `https://${user}:${pass}@github.com`;
+    let configHome = await getConfigHome();
+    await fs.mkdir(`${configHome}/git`, { recursive: true });
+    await fs.watchFile(`${configHome}/git/credentials`, githubCreds, { flag: 'a', mode: 0o600 });
+
+    await exec('git', ['config', '--global', 'credential.helper', 'store']);
+	await exec('git', ['config', '--global', '--replace-all', 'url.https://github.com/.insteadOf', 'ssh://git@github.com/']);
+	await exec('git', ['config', '--global', '--add', 'url.https://github.com/.insteadOf', 'git@github.com:']);
 }
 
 async function run()
@@ -55,11 +77,7 @@ async function run()
 
     if(branchName === 'dev' || branchName === 'master')
     {
-        await exec.exec(`git config --global user.email "ci@virtocommerce.com"`);
-        await exec.exec(`git config --global user.name "vc-ci"`);
-        await exec.exec(`echo ::set-env name=GIT_USER::vc-ci:${process.env.GITHUB_TOKEN}`);
-        await exec.exec('git clone https://github.com/VirtoCommerce/vc-modules.git artifacts/vc-modules');
-        await exec.exec('ls artifacts -al');
+        await setupCredentials('vc-ci', process.env.GITHUB_TOKEN);
         await exec.exec(`vc-build PublishModuleManifest ${customModuleDownloadUrl}`).then(exitCode => {
             if(exitCode != 0 || exitCode != 423)
             {
