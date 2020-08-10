@@ -175,7 +175,7 @@ async function getCommitCount(baseBranch) {
             }
         };
 
-        await exec.exec(`git rev-list --count origin/${baseBranch}`, [], options).then(exitCode => console.log(`git rev-list --count exitCode: ${exitCode}`));
+        await exec.exec(`git rev-list --count remotes/origin/${baseBranch}`, [], options).then(exitCode => console.log(`git rev-list --count exitCode: ${exitCode}`));
         const commitCount = output.trim();
 
         if (commitCount) {
