@@ -132,7 +132,14 @@ function tryGetInfoFromDirectoryBuildProps() {
     });
 }
 
+String.prototype.replaceAll = function (find, replace) 
+{
+    return this.split(find).join(replace);
+}
+
+
 function pushOutputs(branchName, prefix, suffix, moduleId) {
+    branchName = branchName.replaceAll('/','_')
     const sha = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.sha.substring(0, 8) : github.context.sha.substring(0, 8);
     const shortVersion = prefix + '-' + suffix;
     const tag = branchName + '-' + prefix + '-' + sha;
@@ -212,8 +219,8 @@ let branchName = "";
         branchName = branchName.slice('refs/heads/'.length);
     }
 
-    if (suffix === "" && github.context.eventName !== 'pull_request') {
-        getCommitCount(branchName).then(result => { pushOutputs(branchName, prefix, `alpha.${result}`, moduleId); })
+    if (suffix === "" ) {
+        getCommitCount(github.context.ref).then(result => { pushOutputs(branchName, prefix, `alpha.${result}`, moduleId); })
     } else {
         pushOutputs(branchName, prefix, suffix, moduleId);
     }
