@@ -209,6 +209,9 @@ let branchName = "";
 
     branchName = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.ref : github.context.ref;
     console.log (github.context.eventName);
+    console.log (github.context.payload.pull_request.head.ref);
+    console.log (github.context.ref);
+
     if (branchName.indexOf('refs/heads/') > -1) {
         branchName = branchName.slice('refs/heads/'.length);
     }
