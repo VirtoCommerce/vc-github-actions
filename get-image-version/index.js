@@ -215,12 +215,20 @@ let branchName = "";
     }
 
     branchName = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.ref : github.context.ref;
+    if (github.context.eventName === 'pull_request'){
+        branchName = github.context.payload.pull_request.head.ref;
+        suffix = 'pr-' + github.context.payload.pull_request.number;
+    }
+    else {
+        branchName = github.context.ref;
+    }
+
     if (branchName.indexOf('refs/heads/') > -1) {
         branchName = branchName.slice('refs/heads/'.length);
     }
 
     if (suffix === "" ) {
-        getCommitCount(github.context.ref).then(result => { pushOutputs(branchName, prefix, `alpha.${result}`, moduleId); })
+        getCommitCount(branchName).then(result => { pushOutputs(branchName, prefix, `alpha.${result}`, moduleId); })
     } else {
         pushOutputs(branchName, prefix, suffix, moduleId);
     }
