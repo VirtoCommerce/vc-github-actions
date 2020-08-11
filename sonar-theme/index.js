@@ -12,15 +12,6 @@ if (branchName.indexOf('refs/heads/') > -1) {
 }
 let repoName = process.env.GITHUB_REPOSITORY.slice('VirtoCommerce/'.length);
 let projectKey = process.env.GITHUB_REPOSITORY.replace('/', '_');
-if(isPullRequest)
-{
-    process.env.CHANGE_TARGET = github.context.payload.pull_request.base.ref;
-    process.env.CHANGE_TITLE = github.context.payload.pull_request.title;
-    process.env.CHANGE_ID = github.context.payload.pull_request.number;
-}
-let SonarAuthToken = process.env.SONAR_TOKEN;
-let sonarAuthArg = `-SonarAuthToken ${SonarAuthToken}`;
-let repoNameArg = `-RepoName ${repoName}`;
 
 async function run()
 {
