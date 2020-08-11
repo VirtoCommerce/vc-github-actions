@@ -80,13 +80,14 @@ async function run()
         await exec.exec(`git config --global user.email "ci@virtocommerce.com"`);
         await exec.exec(`git config --global user.name "vc-ci"`);
         await setupCredentials('vc-ci', process.env.GITHUB_TOKEN);
-        try {
-            await exec.exec(`vc-build PublishModuleManifest ${customModuleDownloadUrl}`);
-        } 
-        catch(err)
-        {
-            console.log(err.message);
-        }
+        await exec.exec(`vc-build PublishModuleManifest ${customModuleDownloadUrl}`).then(exitCode => {
+            if(exitCode != 0 || exitCode != 423)
+            {
+                console.log("Failed to update modules.json");
+            }
+        }).catch(err => {
+            console.log(`Error on line ${err.lineNumber}: ${err.message}`);
+        });
     }
 }
 
