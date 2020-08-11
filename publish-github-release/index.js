@@ -83,8 +83,7 @@ async function run()
         await exec.exec(`vc-build PublishModuleManifest ${customModuleDownloadUrl}`).then(exitCode => {
             if(exitCode != 0 || exitCode != 423)
             {
-                core.setFailed("Failed to update modules.json");
-                process.exit(exitCode);
+                console.log("Failed to update modules.json");
             }
         });
     }
