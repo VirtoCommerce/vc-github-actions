@@ -1,0 +1,5 @@
+name: 'sonar-theme'
+description: 'SonarQube Analisys'
+runs:
+  using: 'node12'
+  main: 'index.js'
