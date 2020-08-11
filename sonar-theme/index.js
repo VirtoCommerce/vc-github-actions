@@ -17,9 +17,9 @@ async function run()
 {
     if(isPullRequest)
     {
-        await exec.exec(`sonar-scanner -Dsonar.projectKey= -Dsonar.organization=virto-commerce -Dsonar.login=${process.env.SONAR_TOKEN} -Dsonar.host.url=https://sonarcloud.io -Dsonar.pullrequest.base=${github.context.payload.pull_request.base.ref} -Dsonar.pullrequest.branch=${github.context.payload.pull_request.title} -Dsonar.pullrequest.key=${github.context.payload.pull_request.number}`);
+        await exec.exec(`sonar-scanner -Dsonar.projectKey=${projectKey} -Dsonar.organization=virto-commerce -Dsonar.login=${process.env.SONAR_TOKEN} -Dsonar.host.url=https://sonarcloud.io -Dsonar.pullrequest.base=\"${github.context.payload.pull_request.base.ref}\" -Dsonar.pullrequest.branch=\"${github.context.payload.pull_request.title}\" -Dsonar.pullrequest.key=\"${github.context.payload.pull_request.number}\"`);
     } else {
-        await exec.exec(`sonar-scanner -Dsonar.projectKey= -Dsonar.organization=virto-commerce -Dsonar.login=${process.env.SONAR_TOKEN} -Dsonar.host.url=https://sonarcloud.io -Dsonar.branch.name=${branchName}`);
+        await exec.exec(`sonar-scanner -Dsonar.projectKey=${projectKey} -Dsonar.organization=virto-commerce -Dsonar.login=${process.env.SONAR_TOKEN} -Dsonar.host.url=https://sonarcloud.io -Dsonar.branch.name=${branchName}`);
     }
 }
 
