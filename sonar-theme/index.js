@@ -1,4 +1,4 @@
-const { github, context } = require('@actions/github');
+const github = require('@actions/github');
 const core = require('@actions/core');
 const exec = require('@actions/exec');
 const { runInContext } = require('vm');
