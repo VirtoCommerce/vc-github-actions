@@ -1,6 +1,7 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const exec = require('@actions/exec');
+const path = require('path');
 const glob = require('glob');
 
 async function findArtifact(pattern)
@@ -18,7 +19,7 @@ async function run()
     }
     let artifactPath = await findArtifact("artifacts/*.zip");
     console.log(artifactPath);
-    let artifactFileName = artifactPath.split(artifactPath.sep).pop();
+    let artifactFileName = artifactPath.split(path.sep).pop();
     console.log(artifactFileName);
     core.setOutput('artifactPath', artifactPath);
     core.setOutput('artifactName', artifactFileName);
