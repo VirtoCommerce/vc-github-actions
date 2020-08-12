@@ -4,6 +4,9 @@ inputs:
   changelog:
     description: "Commit's messages since the latest release"
     required: true
+outputs:
+  blobUrl:
+    description: There will be a blob url in case of prerelease
 runs:
   using: 'node12'
   main: 'index.js'

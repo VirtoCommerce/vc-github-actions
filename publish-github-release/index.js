@@ -49,6 +49,8 @@ async function run()
         let artifactFileName = artifactPath.split(path.sep).pop();
         console.log(artifactFileName);
         let downloadUrl = `https://vc3prerelease.blob.core.windows.net/packages/${artifactFileName}`;
+        console.log(`Download url: ${downloadUrl}`);
+        core.setOutput("blobUrl", downloadUrl);
         await exec.exec(`azcopy10 copy ${artifactPath} ${blobUrl}`, [], { ignoreReturnCode: true, failOnStdErr: false }).catch(reason => {
             console.log(reason);
             process.exit(1);
