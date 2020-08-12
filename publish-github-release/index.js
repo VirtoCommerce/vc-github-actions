@@ -67,7 +67,7 @@ async function run()
         let changelog = core.getInput('changelog');
         let releaseNotesArg = `-ReleaseNotes ${changelog}`;
         await exec.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip Clean+Restore+Compile+Test`).then(exitCode => {
-            if(exitCode != 0 || exitCode != 422)
+            if(exitCode != 0 && exitCode != 422)
             {
                 core.setFailed("Failed to release");
                 process.exit(exitCode);
@@ -82,10 +82,9 @@ async function run()
         await setupCredentials('vc-ci', process.env.GITHUB_TOKEN);
         await exec.exec(`vc-build PublishModuleManifest ${customModuleDownloadUrl}`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
             console.log(`Exit code: ${exitCode}`);
-            if(exitCode != 0 || exitCode != 423)
+            if(exitCode != 0 && exitCode != 423 && exitCode != 167)
             {
-                console.log("Failed to update modules.json");
-
+                core.setFailed("Failed to update modules.json");
             }
         }).catch(err => {
             console.log(`Error: ${err.message}`);
