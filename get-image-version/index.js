@@ -205,7 +205,8 @@ let moduleId = "";
 let branchName = "";
 
 
-(async () => {
+async function run() 
+{
     // let files = findFile("src", "module.manifest");
     if (await tryGetInfoFromModuleManifest()) { }
     else if (await tryGetInfoFromPackageJson()) { }
@@ -232,7 +233,9 @@ let branchName = "";
     } else {
         pushOutputs(branchName, prefix, suffix, moduleId);
     }
-})();
+}
+
+run().catch(err => core.setFailed(err.message));
 
 
 

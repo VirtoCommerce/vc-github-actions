@@ -70,4 +70,6 @@ async function run()
     core.setOutput("changelog", commitMessages);
 }
 
-run();
+run().catch(err => {
+    core.setFailed(err.message);
+});

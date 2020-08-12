@@ -20,4 +20,9 @@ let SonarAuthToken = process.env.SONAR_TOKEN;
 let sonarAuthArg = `-SonarAuthToken ${SonarAuthToken}`;
 let repoNameArg = `-RepoName ${repoName}`;
 
-exec.exec(`vc-build SonarQubeStart ${prArg} ${sonarAuthArg} ${repoNameArg}`);
+async function run()
+{
+    exec.exec(`vc-build SonarQubeStart ${prArg} ${sonarAuthArg} ${repoNameArg}`);
+}
+
+run().catch(err => core.setFailed(err.message));
