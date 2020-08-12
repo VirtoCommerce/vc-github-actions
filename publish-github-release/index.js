@@ -49,7 +49,7 @@ async function run()
         let artifactFileName = artifactPath.split(path.sep).pop();
         console.log(artifactFileName);
         let downloadUrl = `https://vc3prerelease.blob.core.windows.net/packages/${artifactFileName}`;
-        await exec.exec(`azcopy10 copy ${artifactPath} ${blobUrl}`).catch(reason => {
+        await exec.exec(`azcopy10 copy ${artifactPath} ${blobUrl}`, [], { ignoreReturnCode: true, failOnStdErr: false }).catch(reason => {
             console.log(reason);
             process.exit(1);
         }).then( exitCode => {
@@ -66,7 +66,7 @@ async function run()
         let orgName = process.env.GITHUB_REPOSITORY.split('/')[0];
         let changelog = core.getInput('changelog');
         let releaseNotesArg = `-ReleaseNotes ${changelog}`;
-        await exec.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip Clean+Restore+Compile+Test`).then(exitCode => {
+        await exec.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip Clean+Restore+Compile+Test`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
             if(exitCode != 0 && exitCode != 422)
             {
                 core.setFailed("Failed to release");
