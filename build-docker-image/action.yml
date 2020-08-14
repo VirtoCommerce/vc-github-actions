@@ -1,0 +1,12 @@
+name: 'build-docker-image'
+description: 'Build docker image'
+inputs:
+  tag:
+    description: "Tag of Docker Image"
+    required: true
+outputs:
+  imageName: 
+    description: "Name of Docker Image"
+runs:
+  using: 'node12'
+  main: 'index.js'
