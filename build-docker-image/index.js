@@ -8,8 +8,16 @@ let branchName = github.context.eventName === 'pull_request' ? github.context.pa
 if (branchName.indexOf('refs/heads/') > -1) {
     branchName = branchName.slice('refs/heads/'.length);
 }
-const dockerfileUrl = "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/Dockerfile";
+const platformDockerfileUrl = "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/Dockerfile";
 const waitScriptUrl = "https://github.com/VirtoCommerce/vc-docker/blob/master/linux/platform/wait-for-it.sh";
+const storefrontDockerfileUrl = "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/storefront/Dockerfile";
+
+async function getProjectType()
+{
+    let repoName = process.env.GITHUB_REPOSITORY.split("/")[1];
+    let projectType = repoName.split("-")[1];
+    return projectType;
+}
 
 async function downloadFile(url, outPath)
 {
@@ -21,14 +29,23 @@ async function downloadFile(url, outPath)
 
 async function prepareDockerfile()
 {
-    await downloadFile(dockerfileUrl, "artifacts/Dockerfile");
-    await downloadFile(waitScriptUrl, "artifacts/wait-for-it.sh");
+    let projectType = await getProjectType();
+    if(projectType === 'platform')
+    {
+        await downloadFile(platformDockerfileUrl, "artifacts/Dockerfile");
+        await downloadFile(waitScriptUrl, "artifacts/wait-for-it.sh");
+    }
+    else if(projectType === 'storefront')
+    {
+        await downloadFile(storefrontDockerfileUrl, "artifacts/Dockerfile")
+    }
 }
 
 async function buildImage(tag)
 {
     let repo = process.env.GITHUB_REPOSITORY.toLowerCase();
-    let imageName = `docker.pkg.github.com/${repo}/platform`;
+    let projectType = await getProjectType();
+    let imageName = `docker.pkg.github.com/${repo}/${projectType}`;
     core.setOutput("imageName", imageName);
     let command = `docker build artifacts --build-arg SOURCE=. --tag "${imageName}:${tag}"`;
     await exec.exec(command);
