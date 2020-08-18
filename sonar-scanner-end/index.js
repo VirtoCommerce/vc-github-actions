@@ -5,7 +5,8 @@ const exec = require('@actions/exec');
 async function run()
 {
     //vc-build SonarQubeEnd -SonarAuthToken ${{ secrets.SONAR_TOKEN }} -skip
-    process.env["JAVA_TOOL_OPTIONS"] = "";
+    delete process.env.JAVA_TOOL_OPTIONS;
+    process.env
     await exec.exec(`vc-build SonarQubeEnd -SonarAuthToken ${process.env.SONAR_TOKEN} -skip`)
 }
 
