@@ -22,7 +22,6 @@ let repoNameArg = `-RepoName ${repoName}`;
 
 async function run()
 {
-    await exec.exec("set -n JAVA_TOOL_OPTIONS");
     await exec.exec(`vc-build SonarQubeStart ${prArg} ${sonarAuthArg} ${repoNameArg}`);
 }
 
