@@ -22,8 +22,8 @@ let repoNameArg = `-RepoName ${repoName}`;
 
 async function run()
 {
-    process.env['JAVA_TOOL_OPTIONS'] = "";
-    exec.exec(`vc-build SonarQubeStart ${prArg} ${sonarAuthArg} ${repoNameArg}`);
+    await exec.exec("set -n JAVA_TOOL_OPTIONS");
+    await exec.exec(`vc-build SonarQubeStart ${prArg} ${sonarAuthArg} ${repoNameArg}`);
 }
 
 run().catch(err => core.setFailed(err.message));
