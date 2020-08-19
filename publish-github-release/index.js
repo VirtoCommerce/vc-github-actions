@@ -6,6 +6,13 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 
+async function getProjectType()
+{
+    let repoName = process.env.GITHUB_REPOSITORY.split("/")[1];
+    let projectType = repoName.split("-")[1];
+    return projectType;
+}
+
 async function findArtifact(pattern)
 {
     let globResult = glob.sync(pattern);
@@ -77,7 +84,9 @@ async function run()
         });
     }
 
-    if(branchName === 'dev' || branchName === 'master')
+    let projectType = await getProjectType();
+
+    if((branchName === 'dev' || branchName === 'master') && projectType == 'module')
     {
         await exec.exec(`git config --global user.email "ci@virtocommerce.com"`);
         await exec.exec(`git config --global user.name "vc-ci"`);
