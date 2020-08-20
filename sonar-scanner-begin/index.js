@@ -1,15 +1,13 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const exec = require('@actions/exec');
+const utils = require('@krankenbro/virto-actions-lib');
 
-let isPullRequest = github.context.eventName === 'pull_request';
+let isPullRequest = await utils.isPullRequest(github);
 
 let prArg = isPullRequest ? '-PullRequest' : '';
-let branchName = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.base.ref : github.context.ref;
-if (branchName.indexOf('refs/heads/') > -1) {
-    branchName = branchName.slice('refs/heads/'.length);
-}
-let repoName = process.env.GITHUB_REPOSITORY.slice('VirtoCommerce/'.length);
+let branchName = await utils.getBranchName(github);
+let repoName = await utils.getRepoName();
 if(isPullRequest)
 {
     process.env.CHANGE_TARGET = github.context.payload.pull_request.base.ref;
