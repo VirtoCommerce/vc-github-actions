@@ -5,6 +5,14 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 const utils = require('@krankenbro/virto-actions-lib');
+const tc = require('@actions/tool-cache');
+
+async function installGithubRelease()
+{
+    const ghReleaseUrl = "github.com/github-release/github-release";
+    await exec.exec(`go get ${ghReleaseUrl}`);
+    process.env.PATH = `${process.env.PATH}:${process.env.GOPATH}/bin`;
+}
 
 async function getConfigHome()
 {
@@ -55,6 +63,7 @@ async function run()
     } 
     else if(branchName === 'master')
     {
+        await installGithubRelease();
         let orgName = process.env.GITHUB_REPOSITORY.split('/')[0];
         let changelog = core.getInput('changelog');
         let releaseNotesArg = `-ReleaseNotes "${changelog}"`;
