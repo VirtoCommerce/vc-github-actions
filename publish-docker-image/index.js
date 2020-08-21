@@ -1,14 +1,7 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const exec = require('@actions/exec');
-
-let isPullRequest = github.context.eventName === 'pull_request';
-
-let prArg = isPullRequest ? '-PullRequest' : '';
-let branchName = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.base.ref : github.context.ref;
-if (branchName.indexOf('refs/heads/') > -1) {
-    branchName = branchName.slice('refs/heads/'.length);
-}
+const utils = require('@krankenbro/virto-actions-lib');
 
 async function pushImage(image, tag)
 {
@@ -34,6 +27,10 @@ async function dockerHubAuth(user, pass)
 
 async function run()
 {
+    
+    let isPullRequest = await utils.isPullRequest(github);
+    let prArg = isPullRequest ? '-PullRequest' : '';
+    let branchName = await utils.getBranchName(github);
     const imageName = core.getInput("imageName");
     const tag = core.getInput("tag");
     const dockerUser = core.getInput("docker_user");

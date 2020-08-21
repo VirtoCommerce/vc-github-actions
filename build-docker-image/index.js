@@ -1,43 +1,23 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const exec = require('@actions/exec');
-const http = require('http');
-const fs = require('fs');
+const utils = require('@krankenbro/virto-actions-lib');
 
-let branchName = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.ref : github.context.ref;
-if (branchName.indexOf('refs/heads/') > -1) {
-    branchName = branchName.slice('refs/heads/'.length);
-}
 const platformDockerfileUrl = "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/Dockerfile";
 const waitScriptUrl = "https://github.com/VirtoCommerce/vc-docker/blob/master/linux/platform/wait-for-it.sh";
 const storefrontDockerfileUrl = "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/storefront/Dockerfile";
 
-async function getProjectType()
-{
-    let repoName = process.env.GITHUB_REPOSITORY.split("/")[1];
-    let projectType = repoName.split("-")[1];
-    return projectType;
-}
-
-async function downloadFile(url, outPath)
-{
-    const file = fs.createWriteStream(outPath);
-    const request = http.get(url, function(response) {
-        response.pipe(file);
-    });
-}
-
 async function prepareDockerfile()
 {
-    let projectType = await getProjectType();
+    let projectType = await utils.getProjectType();
     if(projectType === 'platform')
     {
-        await downloadFile(platformDockerfileUrl, "artifacts/Dockerfile");
-        await downloadFile(waitScriptUrl, "artifacts/wait-for-it.sh");
+        await utils.downloadFile(platformDockerfileUrl, "artifacts/Dockerfile");
+        await utils.downloadFile(waitScriptUrl, "artifacts/wait-for-it.sh");
     }
     else if(projectType === 'storefront')
     {
-        await downloadFile(storefrontDockerfileUrl, "artifacts/Dockerfile")
+        await utils.downloadFile(storefrontDockerfileUrl, "artifacts/Dockerfile")
     }
 }
 
@@ -53,12 +33,13 @@ async function buildImage(tag)
 
 async function run()
 {
-    await prepareDockerfile();
-    let dockerTag = core.getInput("tag");
-    await buildImage(dockerTag)
+    let branchName = await utils.getBranchName(github);
+    if(branchName === 'master' || branchName === 'dev')
+    {
+        await prepareDockerfile();
+        let dockerTag = core.getInput("tag");
+        await buildImage(dockerTag)
+    }
 }
 
-if(branchName === 'master' || branchName === 'dev')
-{
-    run().catch(err => core.setFailed(err.message));
-}
+run().catch(err => core.setFailed(err.message));

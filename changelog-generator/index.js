@@ -1,27 +1,7 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const exec = require('@actions/exec');
-const { request } = require("@octokit/request");
-
-async function getLatestRelease(repo)
-{
-    const repoUrl = `/repos/${repo}/releases`;
-    const result = await request(`GET ${repoUrl}`, {
-        headers: {
-            authorization: process.env.GITHUB_TOKEN
-        }
-    });
-    releases = result.data;
-    console.log(releases);
-    for(let release of releases)
-    {
-        if(!release.name.startsWith("v2") && release.prerelease === false)
-        {
-            return release;
-        }
-    }
-    throw new exception("No github releases found");
-}
+const utils = require('@krankenbro/virto-actions-lib');
 
 async function getCommitMessages(since)
 {
@@ -62,7 +42,7 @@ String.prototype.replaceAll = function (find, replace)
 
 async function run()
 {
-    let latestRelease = await getLatestRelease(process.env.GITHUB_REPOSITORY);
+    let latestRelease = await utils.getLatestRelease(process.env.GITHUB_REPOSITORY);
     let commitMessages = await getCommitMessages(latestRelease.published_at);
     commitMessages = await cleanMessages(commitMessages);
 

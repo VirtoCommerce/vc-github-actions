@@ -1,6 +1,7 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const exec = require('@actions/exec');
+const utils = require('@krankenbro/virto-actions-lib');
 
 async function getCommitCount(baseBranch) {
     let result;
@@ -38,26 +39,21 @@ async function getCommitCount(baseBranch) {
     return result;
 }
 
-let branchName = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.ref : github.context.ref;
-let customModuleDownloadUrl = ""
-if (branchName.indexOf('refs/heads/') > -1) {
-    branchName = branchName.slice('refs/heads/'.length);
-}
-
 async function run()
 {
-    const commitCount = await getCommitCount(branchName);
-    await exec.exec(`vc-build ChangeVersion -CustomVersionSuffix \"alpha.${commitCount}\"`).then(exitCode => {
-        if(exitCode != 0)
-        {
-            core.setFailed("vc-build ChangeVersion failed");
-        }
-    });
+    let branchName = await utils.getBranchName(github);
+    if(branchName === 'dev')
+    {
+        const commitCount = await getCommitCount(branchName);
+        await exec.exec(`vc-build ChangeVersion -CustomVersionSuffix \"alpha.${commitCount}\"`).then(exitCode => {
+            if(exitCode != 0)
+            {
+                core.setFailed("vc-build ChangeVersion failed");
+            }
+        });
+    }
 }
 
-if(branchName === 'dev')
-{
-    run().catch(err => {
-        core.setFailed(err.message);
-    });
-}
+run().catch(err => {
+    core.setFailed(err.message);
+});

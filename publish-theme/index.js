@@ -2,24 +2,12 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const exec = require('@actions/exec');
 const path = require('path');
-const glob = require('glob');
-
-let branchName = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.ref : github.context.ref;
-if (branchName.indexOf('refs/heads/') > -1) {
-    branchName = branchName.slice('refs/heads/'.length);
-}
-
-async function findArtifact(pattern)
-{
-    let globResult = glob.sync(pattern);
-    console.log(globResult);
-    return globResult[0];
-}
+const utils = require('@krankenbro/virto-actions-lib');
 
 async function run()
 {
-    
-    let artifactPath = await findArtifact("artifacts/*.zip");
+    let branchName = await utils.getBranchName(github);
+    let artifactPath = await utils.findArtifact("artifacts/*.zip");
     console.log(artifactPath);
     let artifactFileName = artifactPath.split(path.sep).pop();
     console.log(artifactFileName);
@@ -43,7 +31,4 @@ async function run()
     }
 }
 
-if(branchName === 'dev')
-{
-    run().catch(err => core.setFailed(err.message));
-}
+run().catch(err => core.setFailed(err.message));

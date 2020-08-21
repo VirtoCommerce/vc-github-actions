@@ -1,24 +1,10 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const exec = require('@actions/exec');
-const glob = require('glob');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
-
-async function getProjectType()
-{
-    let repoName = process.env.GITHUB_REPOSITORY.split("/")[1];
-    let projectType = repoName.split("-")[1];
-    return projectType;
-}
-
-async function findArtifact(pattern)
-{
-    let globResult = glob.sync(pattern);
-    console.log(globResult);
-    return globResult[0];
-}
+const utils = require('@krankenbro/virto-actions-lib');
 
 async function getConfigHome()
 {
@@ -42,15 +28,12 @@ async function setupCredentials(user, pass)
 
 async function run()
 {
-    let branchName = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.ref : github.context.ref;
-    let customModuleDownloadUrl = ""
-    if (branchName.indexOf('refs/heads/') > -1) {
-        branchName = branchName.slice('refs/heads/'.length);
-    }
+    let branchName = await utils.getBranchName(github);
+    let customModuleDownloadUrl = "";
     if(branchName === 'dev')
     {
         let blobUrl = `https://vc3prerelease.blob.core.windows.net/packages${process.env.BLOB_SAS}`;
-        let artifactPath = await findArtifact("artifacts/*.zip");
+        let artifactPath = await utils.findArtifact("artifacts/*.zip");
         console.log(artifactPath);
         
         let artifactFileName = artifactPath.split(path.sep).pop();
@@ -74,7 +57,7 @@ async function run()
     {
         let orgName = process.env.GITHUB_REPOSITORY.split('/')[0];
         let changelog = core.getInput('changelog');
-        let releaseNotesArg = `-ReleaseNotes ${changelog}`;
+        let releaseNotesArg = `-ReleaseNotes "${changelog}"`;
         await exec.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip Clean+Restore+Compile+Test`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
             if(exitCode != 0 && exitCode != 422)
             {
@@ -84,7 +67,7 @@ async function run()
         });
     }
 
-    let projectType = await getProjectType();
+    let projectType = await utils.getProjectType();
 
     if((branchName === 'dev' || branchName === 'master') && projectType == 'module')
     {
