@@ -12,6 +12,8 @@ async function installGithubRelease()
     const ghReleaseUrl = "github.com/github-release/github-release";
     await exec.exec(`go get ${ghReleaseUrl}`);
     process.env.PATH = `${process.env.PATH}:${process.env.GOPATH}/bin`;
+    console.log(process.env.PATH);
+    console.log(process.env.GOPATH);
 }
 
 async function getConfigHome()
