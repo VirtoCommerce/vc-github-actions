@@ -5,6 +5,7 @@ const exec = require('@actions/exec');
 async function restoreDependencies()
 {
     await exec.exec('npm install');
+    await exec.exec('npm run postinstall');
 }
 
 async function buildTheme()
