@@ -34,7 +34,7 @@ git clone https://${GITHUB_TOKEN}@github.com/${USER}/${REPOSITORY} ../${REPOSITO
 
 cd ../${REPOSITORY}
 
-git checkout ${DEVELOPMENT_BRANCH}
+git checkout ${TARGET_BRANCH}
 
 git checkout -b ${GHA_DEPLOY_BRANCH_NAME}
 
@@ -53,7 +53,7 @@ git commit -m "${COMMIT_MESSAGE}"
 git push origin ${GHA_DEPLOY_BRANCH_NAME}
 
 # Create pull request from new branch into development branch
-RESPONSE=$(curl -s -H "${HEADER_AUTH_TOKEN}" -d '{"title":"Update Github Actions workflow, merge '${GHA_DEPLOY_BRANCH_NAME}' into '${DEVELOPMENT_BRANCH}'","base":"'${DEVELOPMENT_BRANCH}'", "head":"'${GHA_DEPLOY_BRANCH_NAME}'"}' "https://api.github.com/repos/${USER}/${REPOSITORY}/pulls")
+RESPONSE=$(curl -s -H "${HEADER_AUTH_TOKEN}" -d '{"title":"Update Github Actions workflow, merge '${GHA_DEPLOY_BRANCH_NAME}' into '${TARGET_BRANCH}'","base":"'${TARGET_BRANCH}'", "head":"'${GHA_DEPLOY_BRANCH_NAME}'"}' "https://api.github.com/repos/${USER}/${REPOSITORY}/pulls")
 
  # Check the status of the pull request
 PR_STATUS=$(echo ${RESPONSE} | jq '.state')
