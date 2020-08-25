@@ -19,7 +19,8 @@ echo $CURRENT_REPO_FOLDER
 # Github Credentials
 git config --local user.email "gha@gha"
 git config --local user.name "GHA"
-if [-z "$XDG_CONFIG_HOME"] then
+if [-z "$XDG_CONFIG_HOME"] 
+then
     XDG_CONFIG_HOME="$HOME/.config"
 fi
 mkdir $XDG_CONFIG_HOME/git -p
