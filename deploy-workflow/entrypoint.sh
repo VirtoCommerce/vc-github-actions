@@ -17,8 +17,8 @@ CURRENT_REPO_FOLDER=${PWD##*/}
 echo $CURRENT_REPO_FOLDER
 
 # Github Credentials
-git config --local user.email "gha@gha"
-git config --local user.name "GHA"
+git config --local user.email "ci@virtocommerce.com"
+git config --local user.name "vc-ci"
 if [-z "$XDG_CONFIG_HOME"] 
 then
     XDG_CONFIG_HOME="$HOME/.config"
