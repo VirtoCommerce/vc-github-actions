@@ -19,7 +19,7 @@ echo $CURRENT_REPO_FOLDER
 # Github Credentials
 git config --global user.email "ci@virtocommerce.com"
 git config --global user.name "vc-ci"
-if [-z "$XDG_CONFIG_HOME"] 
+if [ -z "$XDG_CONFIG_HOME" ] 
 then
     export XDG_CONFIG_HOME="$HOME/.config"
 fi
