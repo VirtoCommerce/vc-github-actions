@@ -21,8 +21,9 @@ git config --global user.email "ci@virtocommerce.com"
 git config --global user.name "vc-ci"
 if [-z "$XDG_CONFIG_HOME"] 
 then
-    XDG_CONFIG_HOME="$HOME/.config"
+    export XDG_CONFIG_HOME="$HOME/.config"
 fi
+echo $XDG_CONFIG_HOME
 mkdir $XDG_CONFIG_HOME/git -p
 echo "https://$USER:$GITHUB_TOKEN@github.com" > $XDG_CONFIG_HOME/git/credentials
 
