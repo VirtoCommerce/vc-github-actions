@@ -23,7 +23,7 @@ if [ -z "$XDG_CONFIG_HOME" ]
 then
     export XDG_CONFIG_HOME="$HOME/.config"
 fi
-echo $XDG_CONFIG_HOME
+echo "$XDG_CONFIG_HOME"
 mkdir $XDG_CONFIG_HOME/git -p
 echo "https://$USER:$GITHUB_TOKEN@github.com" > $XDG_CONFIG_HOME/git/credentials
 
