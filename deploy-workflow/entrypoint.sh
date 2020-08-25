@@ -36,6 +36,11 @@ git clone https://${GITHUB_TOKEN}@github.com/${USER}/${REPOSITORY} ../${REPOSITO
 
 cd ../${REPOSITORY}
 
+if [ -z "$TARGET_BRANCH" ]
+then
+    export TARGET_BRANCH="dev"
+fi
+
 git checkout ${TARGET_BRANCH}
 
 git checkout -b ${GHA_DEPLOY_BRANCH_NAME}
