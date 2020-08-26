@@ -10,6 +10,10 @@ HEADER_SHA="Accept: application/vnd.github.v3.sha"
 if [ -z "$GHA_DEPLOY_BRANCH_NAME" ]; then
     GHA_DEPLOY_BRANCH_NAME="update_gha_source"
 fi
+# Set default user
+if [ -z "$USER" ]; then
+    USER="VirtoCommerce"
+fi
 
 # Save current folder
 CURRENT_REPO_FOLDER=${PWD##*/}
