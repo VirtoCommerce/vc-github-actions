@@ -36,6 +36,9 @@ async function run()
     const dockerUser = core.getInput("docker_user");
     const dockerToken = core.getInput("docker_token");
 
+    //!!!
+    dockerUser = 'virtocommerce';
+
     await pushImage(imageName, tag); //github
     
     let newTag = '';
@@ -58,8 +61,7 @@ async function run()
     //hub.docker
     let splitedImageName = imageName.split("/");
     let projectType = splitedImageName[splitedImageName.length-1];
-    //let dockerImageName = `${dockerUser}/${projectType}`;
-    let dockerImageName = `virtocommerce/${projectType}`;
+    let dockerImageName = `${dockerUser}/${projectType}`;
     let dockerImageTag =  branchName === 'master' ? "linux-experimental" : "dev-linux-experimental"
     await renameImage(imageName, tag, dockerImageName, dockerImageTag);
     await dockerHubAuth(dockerUser, dockerToken);
