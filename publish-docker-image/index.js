@@ -62,7 +62,7 @@ async function run()
     let dockerImageTag =  branchName === 'master' ? "linux-experimental" : "dev-linux-experimental"
     await renameImage(imageName, tag, dockerImageName, dockerImageTag);
     await dockerHubAuth(dockerUser, dockerToken);
-    await pushImage(newImageName, dockerImageTag);
+    await pushImage(dockerImageName, dockerImageTag);
 }
 
 run().catch(err => core.setFailed(err));
