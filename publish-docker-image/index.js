@@ -31,7 +31,7 @@ async function run()
     let isPullRequest = await utils.isPullRequest(github);
     let prArg = isPullRequest ? '-PullRequest' : '';
     let branchName = await utils.getBranchName(github);
-    const imageName = core.getInput("imageName");
+    const imageName = core.getInput("image");
     const tag = core.getInput("tag");
     const dockerUser = core.getInput("docker_user");
     const dockerToken = core.getInput("docker_token");
