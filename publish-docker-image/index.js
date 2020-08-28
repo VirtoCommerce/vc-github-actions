@@ -33,11 +33,8 @@ async function run()
     let branchName = await utils.getBranchName(github);
     const imageName = core.getInput("image");
     const tag = core.getInput("tag");
-    const dockerUser = core.getInput("docker_user");
+    const dockerUser = 'virtocommerce';//core.getInput("docker_user");
     const dockerToken = core.getInput("docker_token");
-
-    //!!!
-    dockerUser = 'virtocommerce';
 
     await pushImage(imageName, tag); //github
     
