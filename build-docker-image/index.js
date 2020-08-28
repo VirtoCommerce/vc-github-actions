@@ -3,9 +3,9 @@ const github = require('@actions/github');
 const exec = require('@actions/exec');
 const utils = require('@krankenbro/virto-actions-lib');
 
-const platformDockerfileUrl = "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/Dockerfile";
-const waitScriptUrl = "https://github.com/VirtoCommerce/vc-docker/blob/master/linux/platform/wait-for-it.sh";
-const storefrontDockerfileUrl = "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/storefront/Dockerfile";
+const platformDockerfileUrl = "http://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/Dockerfile";
+const waitScriptUrl = "http://github.com/VirtoCommerce/vc-docker/blob/master/linux/platform/wait-for-it.sh";
+const storefrontDockerfileUrl = "http://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/storefront/Dockerfile";
 
 async function prepareDockerfile()
 {
