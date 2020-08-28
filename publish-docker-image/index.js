@@ -58,7 +58,8 @@ async function run()
     //hub.docker
     let splitedImageName = imageName.split("/");
     let projectType = splitedImageName[splitedImageName.length-1];
-    let dockerImageName = `${dockerUser}/${projectType}`;
+    //let dockerImageName = `${dockerUser}/${projectType}`;
+    let dockerImageName = `virtocommerce/${projectType}`;
     let dockerImageTag =  branchName === 'master' ? "linux-experimental" : "dev-linux-experimental"
     await renameImage(imageName, tag, dockerImageName, dockerImageTag);
     await dockerHubAuth(dockerUser, dockerToken);
