@@ -1,0 +1,43 @@
+name: 'Docker Environment'
+description: 'Runs Docker Environment'
+inputs:
+  dockerTag:
+    description: 'Docker Tag'
+    required: false
+  platformImage:
+    description: 'Platform Docker Image'
+    required: false
+  storefrontImage:
+    description: 'Storefront Docker Image'
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Start containers
+      env:
+        PLATFORM_IMAGE: ${{ inputs.platformImage }}
+        STOREFRONT_IMAGE: ${{ inputs.storefrontImage }}
+        DOCKER_TAG: ${{ inputs.dockerTag }}
+      shell: pwsh
+      working-directory: ${{ github.action_path }}
+      run: docker-compose up -d
+
+    - name: Install Modules
+      working-directory: ${{ github.action_path }}
+      shell: pwsh
+      run: |
+        scripts/setup-modules.ps1 -ApiUrl http://localhost:8090 -NeedRestart -ContainerId virtocommerce_vc-platform-web_1 -Verbose -Debug
+        scripts/check-installed-modules.ps1 -ApiUrl http://localhost:8090 -Verbose -Debug
+
+    - name: Install Sample Data
+      working-directory: ${{ github.action_path }}
+      shell: pwsh
+      run: scripts/setup-sampledata.ps1 -ApiUrl http://localhost:8090 -Verbose -Debug
+
+    - name: Swagger Schema Validation
+      working-directory: ${{ github.action_path }}
+      shell: pwsh
+      run: |
+        scripts/vc-get-swagger.ps1 -ApiUrl http://localhost:8090 -OutFile swaggerSchema.json -Verbose -Debug
+        vc-build ValidateSwaggerSchema -SwaggerSchemaPath swaggerSchema.json
