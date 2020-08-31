@@ -21,7 +21,9 @@ runs:
         DOCKER_TAG: ${{ inputs.dockerTag }}
       shell: pwsh
       working-directory: ${{ github.action_path }}
-      run: docker-compose up -d
+      run: |
+        docker-compose pull
+        docker-compose up -d
 
     - name: Install Modules
       working-directory: ${{ github.action_path }}
