@@ -22,6 +22,7 @@ runs:
       shell: pwsh
       working-directory: ${{ github.action_path }}
       run: |
+        docker login -u $GITHUB_ACTOR -p ${{ secrets.REPO_TOKEN }}
         docker-compose pull
         docker-compose up -d
 
