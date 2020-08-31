@@ -1,6 +1,12 @@
 name: 'Docker Environment'
 description: 'Runs Docker Environment'
 inputs:
+  githubUser:
+    description: 'User for github packages'
+    required: true
+  githubToken:
+    description: 'Token for github packages'
+    required: true
   dockerTag:
     description: 'Docker Tag'
     required: false
@@ -22,8 +28,7 @@ runs:
       shell: pwsh
       working-directory: ${{ github.action_path }}
       run: |
-        docker login -u $env:GITHUB_ACTOR -p $env:GITHUB_TOKEN
-        docker-compose pull
+        docker login -u ${{ inputs.githubUser }} -p ${{ inputs.githubToken }}
         docker-compose up -d
 
     - name: Install Modules
