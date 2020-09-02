@@ -52,21 +52,26 @@ async function buildTheme()
 async function run()
 {
     let versionSuffix = "";
-    if(utils.getBranchName(github) === 'dev')
+    let branchName = await utils.getBranchName(github);
+    console.log(`Branch: ${branchName}`);
+    if(branchName === 'dev')
     {
         let commitNumber = await getCommitCount('dev');
         versionSuffix = `-alpha.${commitNumber}`;
+        console.log(`Version suffix: ${versionSuffix}`);
     }
 
     await restoreDependencies();
     await buildTheme();
 
-    if(utils.getBranchName(github) === 'dev')
+    if(branchName === 'dev')
     {
         let artifactPath = await utils.findArtifact("artifacts/*.zip");
         let artifactName = path.parse(artifactPath).name;
         let newArtifactName = `${artifactName}${versionSuffix}`;
         let newArtifactPath = artifactPath.replace(artifactName, newArtifactName);
+        console.log(`Path: ${artifactPath}`);
+        console.log(`New Path: ${newArtifactPath}`);
         fs.renameSync(artifactPath, newArtifactPath);
     }
 }
