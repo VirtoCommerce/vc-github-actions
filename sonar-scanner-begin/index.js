@@ -20,7 +20,7 @@ async function run()
     let sonarAuthArg = `-SonarAuthToken ${SonarAuthToken}`;
     let repoNameArg = `-RepoName ${repoName}`;
 
-    await exec.exec(`vc-build SonarQubeStart ${prArg} ${sonarAuthArg} ${repoNameArg}`);
+    await exec.exec(`vc-build SonarQubeStart -SonarBranchName ${branchName} ${prArg} ${sonarAuthArg} ${repoNameArg}`);
 }
 
 run().catch(err => core.setFailed(err.message));
