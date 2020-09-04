@@ -31,7 +31,7 @@ foreach($module in $modulesJson)
             Write-Output $repoName
             $content = @"
     - name: $repoName
-      uses: VirtoCommerce/vc-github-actions/deploy-workflow@dev
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
       env:
         GITHUB_TOKEN: `${{ secrets.REPO_TOKEN }}
         USER: `${{ env.GITHUB_USER }}
@@ -48,7 +48,7 @@ foreach($module in $modulesJson)
 $storefrontRepo = "vc-storefront"
 $storefrontStep = @"
     - name: $storefrontRepo
-      uses: VirtoCommerce/vc-github-actions/deploy-workflow@dev
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
       env:
         GITHUB_TOKEN: `${{ secrets.REPO_TOKEN }}
         USER: `${{ env.GITHUB_USER }}
@@ -62,7 +62,7 @@ Add-Content -Path $workflowName -Value $storefrontStep
 $platformRepo = "vc-platform"
 $platformStep = @"
     - name: $platformRepo
-      uses: VirtoCommerce/vc-github-actions/deploy-workflow@dev
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
       env:
         GITHUB_TOKEN: `${{ secrets.REPO_TOKEN }}
         USER: `${{ env.GITHUB_USER }}
