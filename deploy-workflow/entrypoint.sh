@@ -20,8 +20,6 @@ CURRENT_REPO_FOLDER=${PWD##*/}
 
 echo $CURRENT_REPO_FOLDER
 
-ls ../ -al
-
 # Github Credentials
 git config --global user.email "ci@virtocommerce.com"
 git config --global user.name "vc-ci"
@@ -53,7 +51,7 @@ git checkout -b ${GHA_DEPLOY_BRANCH_NAME}
 
 
 # Copy updated Github Action workflow files to the repo
-cp -r ../${CURRENT_REPO_FOLDER}/${GHA_DEPLOYMENT_FOLDER}/.github/ .
+cp -r /workflows/${GHA_DEPLOYMENT_FOLDER}/.github/ .
 
 git add .github/*
 
