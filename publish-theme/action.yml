@@ -1,0 +1,10 @@
+name: 'publish-theme'
+description: 'Publishes Theme to Azure blob or Github Release'
+outputs:
+  artifactPath:
+    description: 'Path to artifact'
+  artifactName:
+    description: 'Name of artifact'
+runs:
+  using: 'node12'
+  main: 'index.js'

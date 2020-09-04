@@ -1,0 +1,35 @@
+name: Deploy Github Actions
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  build:  
+    runs-on: ubuntu-latest
+    
+    steps:
+
+    - name: vc-module-experience-api
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        USER: ${{ env.GITHUB_USER }}
+        GHA_DEPLOYMENT_FOLDER: "modules"
+        REPOSITORY: "vc-module-experience-api"
+
+    - name: vc-storefront
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        USER: ${{ env.GITHUB_USER }}
+        GHA_DEPLOYMENT_FOLDER: "storefront"
+        REPOSITORY: "vc-storefront"
+
+    - name: vc-platform
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        USER: ${{ env.GITHUB_USER }}
+        GHA_DEPLOYMENT_FOLDER: "platform"
+        REPOSITORY: "vc-platform"

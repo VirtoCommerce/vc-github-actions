@@ -1,0 +1,5 @@
+name: 'add-version-suffix'
+description: 'Adds version suffix in Directory.Build.Props and [module.manifest] for prerelease'
+runs:
+  using: 'node12'
+  main: 'index.js'

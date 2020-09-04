@@ -1,0 +1,5 @@
+name: 'build-theme'
+description: 'Builds theme'
+runs:
+  using: 'node12'
+  main: 'index.js'

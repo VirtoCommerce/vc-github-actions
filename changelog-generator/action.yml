@@ -1,0 +1,8 @@
+name: 'changelog-generator'
+description: 'Generates changelog'
+outputs:
+  changelog:
+    description: 'Result'
+runs:
+  using: 'node12'
+  main: 'index.js'

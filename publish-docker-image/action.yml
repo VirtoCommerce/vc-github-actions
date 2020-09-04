@@ -1,0 +1,18 @@
+name: 'publish-docker-image'
+description: 'Publish docker image'
+inputs:
+  image: 
+    description: "Name of Docker Image"
+    required: true
+  tag:
+    description: "Tag of Docker Image"
+    required: true
+  docker_user:
+    description: "Docker Hub User"
+    required: true
+  docker_token:
+    description: "Docker Hub Token"
+    required: true
+runs:
+  using: 'node12'
+  main: 'index.js'

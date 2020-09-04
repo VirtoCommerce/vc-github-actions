@@ -4,7 +4,9 @@ This action grabs Version and Version suffix from Directory.Build.Props (for Pla
 
 ## Inputs
 
-No inputs required
+### `path`
+
+Path to directory that contains module.manifest, package.json or Directory.Build.Props
 
 ## Outputs
 
