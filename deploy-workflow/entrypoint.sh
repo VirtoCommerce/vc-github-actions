@@ -20,7 +20,7 @@ CURRENT_REPO_FOLDER=${PWD##*/}
 
 echo $CURRENT_REPO_FOLDER
 
-ls -al
+ls ../ -al
 
 # Github Credentials
 git config --global user.email "ci@virtocommerce.com"
