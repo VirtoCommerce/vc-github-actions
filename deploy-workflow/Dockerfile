@@ -9,7 +9,6 @@ RUN apt update \
     && apt autoclean \
     && apt clean
 
-ADD workflows /workflows
 ADD entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]

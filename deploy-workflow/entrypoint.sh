@@ -51,7 +51,7 @@ git checkout -b ${GHA_DEPLOY_BRANCH_NAME}
 
 
 # Copy updated Github Action workflow files to the repo
-cp -r /workflows/${GHA_DEPLOYMENT_FOLDER}/.github/ .
+cp -r ../${CURRENT_REPO_FOLDER}/${GHA_DEPLOYMENT_FOLDER}/.github/ .
 
 git add .github/*
 
@@ -59,7 +59,9 @@ if [ -z "$COMMIT_MESSAGE" ]; then
     COMMIT_MESSAGE="Updating Github Action workflows."
 fi
 
-git diff-index --quiet HEAD || git commit -m "${COMMIT_MESSAGE}" || git push origin ${GHA_DEPLOY_BRANCH_NAME}
+git commit -m "${COMMIT_MESSAGE}"
+
+git push origin ${GHA_DEPLOY_BRANCH_NAME}
 
 # Create pull request from new branch into development branch
 RESPONSE=$(curl -s -H "${HEADER_AUTH_TOKEN}" -d '{"title":"Update Github Actions workflow, merge '${GHA_DEPLOY_BRANCH_NAME}' into '${TARGET_BRANCH}'","base":"'${TARGET_BRANCH}'", "head":"'${GHA_DEPLOY_BRANCH_NAME}'"}' "https://api.github.com/repos/${USER}/${REPOSITORY}/pulls")

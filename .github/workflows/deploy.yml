@@ -11,7 +11,7 @@ jobs:
     steps:
 
     - name: vc-module-experience-api
-      uses: VirtoCommerce/vc-github-actions/deploy-workflow@dev
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
       env:
         GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
         USER: ${{ env.GITHUB_USER }}
