@@ -17,11 +17,11 @@ async function run()
     let prProviderArg = "";
     if(isPullRequest)
     {
-        prBaseArg = `-SonarPRBase ${github.context.payload.pull_request.base.ref}`;
-        prBranchArg = `-SonarPRBranch ${github.context.payload.pull_request.title}`;
-        prKeyArg = `-SonarPRNumber ${github.context.payload.pull_request.number}`;
-        ghRepoArg = `-SonarGithubRepo ${process.env.GITHUB_REPOSITORY}`;
-        prProviderArg = `-SonarPRProvider GitHub`
+        prBaseArg = `-SonarPRBase "${github.context.payload.pull_request.base.ref}"`;
+        prBranchArg = `-SonarPRBranch "${github.context.payload.pull_request.title}"`;
+        prKeyArg = `-SonarPRNumber "${github.context.payload.pull_request.number}"`;
+        ghRepoArg = `-SonarGithubRepo "${process.env.GITHUB_REPOSITORY}"`;
+        prProviderArg = `-SonarPRProvider "GitHub"`
     }
     let SonarAuthToken = process.env.SONAR_TOKEN;
     let sonarAuthArg = `-SonarAuthToken ${SonarAuthToken}`;
