@@ -49,11 +49,9 @@ git checkout ${TARGET_BRANCH}
 
 git checkout -b ${GHA_DEPLOY_BRANCH_NAME}
 
-ls -al
 # Copy updated Github Action workflow files to the repo
-rm -rf ../${CURRENT_REPO_FOLDER}/${GHA_DEPLOYMENT_FOLDER}/.github
-cp -rf ../${CURRENT_REPO_FOLDER}/${GHA_DEPLOYMENT_FOLDER}/.github/ .
-ls .github/ -al
+rm -rf .github/
+cp -rf ../${CURRENT_REPO_FOLDER}/workflows/${GHA_DEPLOYMENT_FOLDER}/.github .
 ls .github/workflows -al
 git add .github/*
 
