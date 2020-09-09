@@ -19,7 +19,7 @@ jobs:
         REPOSITORY: "vc-module-experience-api"
 
     - name: vc-storefront
-      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@dev
       env:
         GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
         USER: ${{ env.GITHUB_USER }}
@@ -27,7 +27,7 @@ jobs:
         REPOSITORY: "vc-storefront"
 
     - name: vc-platform
-      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@dev
       env:
         GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
         USER: ${{ env.GITHUB_USER }}
