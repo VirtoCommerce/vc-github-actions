@@ -10,46 +10,6 @@ jobs:
     
     steps:
 
-    - name: vc-module-core
-      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-        USER: ${{ env.GITHUB_USER }}
-        GHA_DEPLOYMENT_FOLDER: "modules"
-        REPOSITORY: "vc-module-core"
-
-    - name: vc-module-azure-search
-      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-        USER: ${{ env.GITHUB_USER }}
-        GHA_DEPLOYMENT_FOLDER: "modules"
-        REPOSITORY: "vc-module-azure-search"
-
-    - name: vc-module-cart
-      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-        USER: ${{ env.GITHUB_USER }}
-        GHA_DEPLOYMENT_FOLDER: "modules"
-        REPOSITORY: "vc-module-cart"
-
-    - name: vc-module-catalog
-      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-        USER: ${{ env.GITHUB_USER }}
-        GHA_DEPLOYMENT_FOLDER: "modules"
-        REPOSITORY: "vc-module-catalog"
-
-    - name: vc-module-content
-      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-        USER: ${{ env.GITHUB_USER }}
-        GHA_DEPLOYMENT_FOLDER: "modules"
-        REPOSITORY: "vc-module-content"
-
     - name: vc-module-customer
       uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
       env:
@@ -113,14 +73,6 @@ jobs:
         USER: ${{ env.GITHUB_USER }}
         GHA_DEPLOYMENT_FOLDER: "modules"
         REPOSITORY: "vc-module-notification"
-
-    - name: vc-module-order
-      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-        USER: ${{ env.GITHUB_USER }}
-        GHA_DEPLOYMENT_FOLDER: "modules"
-        REPOSITORY: "vc-module-order"
 
     - name: vc-module-payment
       uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
@@ -242,14 +194,6 @@ jobs:
         GHA_DEPLOYMENT_FOLDER: "modules"
         REPOSITORY: "vc-module-catalog-csv-import"
 
-    - name: vc-module-contentful
-      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-        USER: ${{ env.GITHUB_USER }}
-        GHA_DEPLOYMENT_FOLDER: "modules"
-        REPOSITORY: "vc-module-contentful"
-
     - name: vc-module-bulk-actions
       uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
       env:
@@ -273,14 +217,6 @@ jobs:
         USER: ${{ env.GITHUB_USER }}
         GHA_DEPLOYMENT_FOLDER: "modules"
         REPOSITORY: "vc-module-dynamic-associations"
-
-    - name: vc-module-experience-api
-      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-        USER: ${{ env.GITHUB_USER }}
-        GHA_DEPLOYMENT_FOLDER: "modules"
-        REPOSITORY: "vc-module-experience-api"
 
     - name: vc-module-google-ecommerce-analytics
       uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
