@@ -8,7 +8,7 @@ HEADER_SHA="Accept: application/vnd.github.v3.sha"
 
 # Set new branch name
 if [ -z "$GHA_DEPLOY_BRANCH_NAME" ]; then
-    GHA_DEPLOY_BRANCH_NAME="update_gha_source"
+    GHA_DEPLOY_BRANCH_NAME="workflow-update"
 fi
 # Set default user
 if [ -z "$USER" ]; then
@@ -64,7 +64,7 @@ git commit -m "${COMMIT_MESSAGE}"
 git push origin ${GHA_DEPLOY_BRANCH_NAME}
 
 # Create pull request from new branch into development branch
-RESPONSE=$(curl -s -H "${HEADER_AUTH_TOKEN}" -d '{"title":"Update Github Actions workflow, merge '${GHA_DEPLOY_BRANCH_NAME}' into '${TARGET_BRANCH}'","base":"'${TARGET_BRANCH}'", "head":"'${GHA_DEPLOY_BRANCH_NAME}'"}' "https://api.github.com/repos/${USER}/${REPOSITORY}/pulls")
+RESPONSE=$(curl -s -H "${HEADER_AUTH_TOKEN}" -d '{"title":"Update Github Actions workflow","base":"'${TARGET_BRANCH}'", "head":"'${GHA_DEPLOY_BRANCH_NAME}'"}' "https://api.github.com/repos/${USER}/${REPOSITORY}/pulls")
 
  # Check the status of the pull request
 PR_STATUS=$(echo ${RESPONSE} | jq '.state')
