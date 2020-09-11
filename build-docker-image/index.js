@@ -8,7 +8,7 @@ async function prepareDockerfile(urls)
     console.log(urls.toString());
     for(let url in urls)
     {
-        if(url != 0)
+        if(url)
         {
             let filename = url.substring(url.lastIndexOf('/')+1);
             console.log(`Filename: ${filename}`);
