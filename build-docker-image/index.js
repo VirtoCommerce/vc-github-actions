@@ -8,7 +8,7 @@ async function prepareDockerfile(urls)
     for(let url in urls)
     {
         let filename = url.substring(url.lastIndexOf('/')+1);
-        await utils.downloadFile(file, `artifacts/${filename}`);
+        await utils.downloadFile(url, `artifacts/${filename}`);
     }
 }
 
