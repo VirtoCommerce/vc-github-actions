@@ -43,7 +43,7 @@ String.prototype.replaceAll = function (find, replace)
 async function run()
 {
     let latestRelease = await utils.getLatestRelease(process.env.GITHUB_REPOSITORY);
-    let commitMessages;
+    let commitMessages = "";
     if(latestRelease != null)
     {
         commitMessages = await getCommitMessages(latestRelease.published_at);
