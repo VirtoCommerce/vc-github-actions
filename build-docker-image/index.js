@@ -15,10 +15,9 @@ async function prepareDockerfile(urls)
 async function buildImage(imageName, tag)
 {
     let repo = process.env.GITHUB_REPOSITORY.toLowerCase();
-    let projectType = await utils.getProjectType();
-    let imageName = `docker.pkg.github.com/${repo}/${projectType}`;
-    core.setOutput("imageName", imageName);
-    let command = `docker build artifacts --build-arg SOURCE=. --tag "${imageName}:${tag}"`;
+    let imageFullName = `docker.pkg.github.com/${repo}/${imageName}`;
+    core.setOutput("imageName", imageFullName);
+    let command = `docker build artifacts --build-arg SOURCE=. --tag "${imageFullName}:${tag}"`;
     await exec.exec(command);
 }
 
