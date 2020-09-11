@@ -11,6 +11,7 @@ async function prepareDockerfile(urls)
         if(url != 0)
         {
             let filename = url.substring(url.lastIndexOf('/')+1);
+            console.log(`Filename: ${filename}`);
             let outName = `artifacts/${filename}`;
             console.log(outName);
             await utils.downloadFile(url, outName);
