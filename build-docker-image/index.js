@@ -6,7 +6,7 @@ const utils = require('@krankenbro/virto-actions-lib');
 async function prepareDockerfile(urls)
 {
     console.log(urls);
-    for(let url in urls.split(';'))
+    for(let url of urls.split(';'))
     {
         if(url)
         {
