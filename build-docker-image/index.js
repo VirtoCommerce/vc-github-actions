@@ -3,25 +3,16 @@ const github = require('@actions/github');
 const exec = require('@actions/exec');
 const utils = require('@krankenbro/virto-actions-lib');
 
-const platformDockerfileUrl = "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/Dockerfile";
-const waitScriptUrl = "https://github.com/VirtoCommerce/vc-docker/blob/master/linux/platform/wait-for-it.sh";
-const storefrontDockerfileUrl = "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/storefront/Dockerfile";
-
-async function prepareDockerfile()
+async function prepareDockerfile(urls)
 {
-    let projectType = await utils.getProjectType();
-    if(projectType === 'platform')
+    for(let url in urls)
     {
-        await utils.downloadFile(platformDockerfileUrl, "artifacts/Dockerfile");
-        await utils.downloadFile(waitScriptUrl, "artifacts/wait-for-it.sh");
-    }
-    else if(projectType === 'storefront')
-    {
-        await utils.downloadFile(storefrontDockerfileUrl, "artifacts/Dockerfile")
+        let filename = url.substring(url.lastIndexOf('/')+1);
+        await utils.downloadFile(file, `artifacts/${filename}`);
     }
 }
 
-async function buildImage(tag)
+async function buildImage(imageName, tag)
 {
     let repo = process.env.GITHUB_REPOSITORY.toLowerCase();
     let projectType = await utils.getProjectType();
@@ -36,9 +27,11 @@ async function run()
     let branchName = await utils.getBranchName(github);
     if(branchName === 'master' || branchName === 'dev')
     {
-        await prepareDockerfile();
         let dockerTag = core.getInput("tag");
-        await buildImage(dockerTag)
+        let imageName = core.getInput("imageName");
+        let dockerfiles = core.getInput("dockerFiles");
+        await prepareDockerfile(dockerfiles.split(";"));
+        await buildImage(imageName, dockerTag)
     }
 }
 
