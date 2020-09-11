@@ -5,8 +5,8 @@ const utils = require('@krankenbro/virto-actions-lib');
 
 async function prepareDockerfile(urls)
 {
-    console.log(urls.toString());
-    for(let url in urls)
+    console.log(urls);
+    for(let url in urls.split(';'))
     {
         if(url)
         {
@@ -36,7 +36,7 @@ async function run()
         let dockerTag = core.getInput("tag");
         let imageName = core.getInput("imageName");
         let dockerfiles = core.getInput("dockerFiles");
-        await prepareDockerfile(dockerfiles.split(";"));
+        await prepareDockerfile(dockerfiles);
         await buildImage(imageName, dockerTag)
     }
 }
