@@ -10,7 +10,6 @@ jobs:
     
     steps:
 
-    - name: vc-module-customer
       uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
       env:
         GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
@@ -217,6 +216,14 @@ jobs:
         USER: ${{ env.GITHUB_USER }}
         GHA_DEPLOYMENT_FOLDER: "modules"
         REPOSITORY: "vc-module-dynamic-associations"
+
+    - name: vc-module-google-ecommerce-analytics
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        USER: ${{ env.GITHUB_USER }}
+        GHA_DEPLOYMENT_FOLDER: "modules"
+        REPOSITORY: "vc-module-google-ecommerce-analytics"
 
     - name: vc-module-google-ecommerce-analytics
       uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
