@@ -55,14 +55,18 @@ async function run()
     await changeTag(imageName, tag, newTag);
     await pushImage(imageName, newTag); //github
     
-    //hub.docker
-    let splitedImageName = imageName.split("/");
-    let projectType = splitedImageName[splitedImageName.length-1];
-    let dockerImageName = `${dockerUser}/${projectType}`;
-    let dockerImageTag =  branchName === 'master' ? "linux-experimental" : "dev-linux-experimental"
-    await renameImage(imageName, tag, dockerImageName, dockerImageTag);
-    await dockerHubAuth(dockerUser, dockerToken);
-    await pushImage(dockerImageName, dockerImageTag);
+    let repoName = await utils.getRepoName();
+    if(repoName === 'vc-storefront' || repoName === 'vc-platform')
+    {
+        //hub.docker
+        let splitedImageName = imageName.split("/");
+        let projectType = splitedImageName[splitedImageName.length-1];
+        let dockerImageName = `${dockerUser}/${projectType}`;
+        let dockerImageTag =  branchName === 'master' ? "linux-experimental" : "dev-linux-experimental"
+        await renameImage(imageName, tag, dockerImageName, dockerImageTag);
+        await dockerHubAuth(dockerUser, dockerToken);
+        await pushImage(dockerImageName, dockerImageTag);
+    }
 }
 
 run().catch(err => core.setFailed(err));
