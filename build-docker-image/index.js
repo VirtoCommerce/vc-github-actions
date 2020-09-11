@@ -8,9 +8,11 @@ async function prepareDockerfile(urls)
     console.log(urls.toString());
     for(let url in urls)
     {
-        console.log(url);
-        let filename = url.substring(url.lastIndexOf('/')+1);
-        await utils.downloadFile(url, `artifacts/${filename}`);
+        if(url != 0)
+        {
+            let filename = url.substring(url.lastIndexOf('/')+1);
+            await utils.downloadFile(url, `artifacts/${filename}`);
+        }
     }
 }
 
