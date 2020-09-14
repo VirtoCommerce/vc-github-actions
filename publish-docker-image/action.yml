@@ -13,6 +13,10 @@ inputs:
   docker_token:
     description: "Docker Hub Token"
     required: true
+  docker_hub:
+    description: "Publish image to hub.docker.com"
+    required: false
+    default: true
 runs:
   using: 'node12'
   main: 'index.js'

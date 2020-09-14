@@ -35,6 +35,7 @@ async function run()
     const tag = core.getInput("tag");
     const dockerUser = core.getInput("docker_user");
     const dockerToken = core.getInput("docker_token");
+    const dockerHub = core.getInput("docker_hub");
 
     await pushImage(imageName, tag); //github
     
@@ -55,14 +56,17 @@ async function run()
     await changeTag(imageName, tag, newTag);
     await pushImage(imageName, newTag); //github
     
-    //hub.docker
-    let splitedImageName = imageName.split("/");
-    let projectType = splitedImageName[splitedImageName.length-1];
-    let dockerImageName = `${dockerUser}/${projectType}`;
-    let dockerImageTag =  branchName === 'master' ? "linux-experimental" : "dev-linux-experimental"
-    await renameImage(imageName, tag, dockerImageName, dockerImageTag);
-    await dockerHubAuth(dockerUser, dockerToken);
-    await pushImage(dockerImageName, dockerImageTag);
+    if(dockerHub === 'true')
+    {
+        //hub.docker
+        let splitedImageName = imageName.split("/");
+        let projectType = splitedImageName[splitedImageName.length-1];
+        let dockerImageName = `${dockerUser}/${projectType}`;
+        let dockerImageTag =  branchName === 'master' ? "linux-experimental" : "dev-linux-experimental"
+        await renameImage(imageName, tag, dockerImageName, dockerImageTag);
+        await dockerHubAuth(dockerUser, dockerToken);
+        await pushImage(dockerImageName, dockerImageTag);
+    }
 }
 
 run().catch(err => core.setFailed(err));

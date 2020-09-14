@@ -1,4 +1,5 @@
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const { request } = require("@octokit/request");
 const glob = require('glob');
@@ -27,7 +28,8 @@ async function getLatestRelease(repo)
             return release;
         }
     }
-    throw new exception("No github releases found");
+    console.log("No github releases found");
+    return null;
 }
 
 async function getBranchName(github)
@@ -54,7 +56,7 @@ async function getProjectType()
 async function downloadFile(url, outPath)
 {
     const file = fs.createWriteStream(outPath);
-    const request = http.get(url, function(response) {
+    const request = (url.substr(0, 5) === 'https' ? https : http).get(url, function(response) {
         response.pipe(file);
     });
 }

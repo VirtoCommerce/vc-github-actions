@@ -5,10 +5,17 @@ const utils = require('@krankenbro/virto-actions-lib');
 
 async function prepareDockerfile(urls)
 {
-    for(let url in urls)
+    console.log(urls);
+    for(let url of urls.split(';'))
     {
-        let filename = url.substring(url.lastIndexOf('/')+1);
-        await utils.downloadFile(file, `artifacts/${filename}`);
+        if(url)
+        {
+            let filename = url.substring(url.lastIndexOf('/')+1);
+            console.log(`Filename: ${filename}`);
+            let outName = `artifacts/${filename}`;
+            console.log(outName);
+            await utils.downloadFile(url, outName);
+        }
     }
 }
 
@@ -29,7 +36,7 @@ async function run()
         let dockerTag = core.getInput("tag");
         let imageName = core.getInput("imageName");
         let dockerfiles = core.getInput("dockerFiles");
-        await prepareDockerfile(dockerfiles.split(";"));
+        await prepareDockerfile(dockerfiles);
         await buildImage(imageName, dockerTag)
     }
 }
