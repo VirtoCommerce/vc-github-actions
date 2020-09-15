@@ -6,7 +6,6 @@ const { runInContext } = require('vm');
 
 let isPullRequest = await utils.isPullRequest(github);
 
-let prArg = isPullRequest ? '-PullRequest' : '';
 let branchName = await utils.getBranchName(github);
 let repoName = await utils.getRepoName();
 let projectKey = process.env.GITHUB_REPOSITORY.replace('/', '_');
@@ -23,5 +22,4 @@ async function run()
 
 run().catch(err => {
     core.setFailed(err.message);
-    process.exit(1);
 });
