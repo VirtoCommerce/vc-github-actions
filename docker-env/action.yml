@@ -46,5 +46,5 @@ runs:
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
-        scripts/vc-get-swagger.ps1 -ApiUrl http://localhost:8090 -OutFile swaggerSchema.json -Verbose -Debug
+        scripts/get-swagger.ps1 -ApiUrl http://localhost:8090 -OutFile swaggerSchema.json -Verbose -Debug
         vc-build ValidateSwaggerSchema -SwaggerSchemaPath swaggerSchema.json
