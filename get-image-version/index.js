@@ -229,13 +229,10 @@ async function run()
     }
 
     if (suffix === "" ) {
-        getCommitCount(branchName).then(result => { pushOutputs(branchName, prefix, `alpha.${result}`, moduleId); })
+        getCommitCount(branchName).then(result => { pushOutputs(branchName, prefix, branchName === 'master' ? result : `alpha.${result}`, moduleId); })
     } else {
         pushOutputs(branchName, prefix, suffix, moduleId);
     }
 }
 
 run().catch(err => core.setFailed(err.message));
-
-
-

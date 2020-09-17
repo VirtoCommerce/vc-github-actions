@@ -28,8 +28,7 @@ runs:
       shell: pwsh
       working-directory: ${{ github.action_path }}
       run: |
-        docker login -u ${{ inputs.githubUser }} -p ${{ inputs.githubToken }}
-        docker-compose up -d
+        docker-compose --project-name virtocommerce up -d 
 
     - name: Install Modules
       working-directory: ${{ github.action_path }}
@@ -47,5 +46,5 @@ runs:
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
-        scripts/vc-get-swagger.ps1 -ApiUrl http://localhost:8090 -OutFile swaggerSchema.json -Verbose -Debug
+        scripts/get-swagger.ps1 -ApiUrl http://localhost:8090 -OutFile swaggerSchema.json -Verbose -Debug
         vc-build ValidateSwaggerSchema -SwaggerSchemaPath swaggerSchema.json
