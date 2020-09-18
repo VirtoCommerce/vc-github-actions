@@ -1,0 +1,25 @@
+name: Publish npm modules
+on:
+    workflow_dispatch:
+    push:
+        branches: [ master ]
+        paths:
+            - 'vc-actions-lib/**'
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+
+        steps:
+        - uses: actions/checkout@v2
+
+        - name: Publish vc-actions-lib
+          env:
+              NPM_AUTH_TOKEN: ${{ secrets.npm_token }}
+              NPM_EMAIL: ${{ secrets.npm_email }}
+          shell: bash
+          working-directory: vc-actions-lib
+          run: |
+            echo "_auth = $NPM_AUTH_TOKEN" > ~/.npmrc
+            echo "email = $NPM_EMAIL" >> ~/.npmrc
+            npm publish --access public
