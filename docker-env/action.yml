@@ -43,8 +43,9 @@ runs:
       run: scripts/setup-sampledata.ps1 -ApiUrl http://localhost:8090 -Verbose -Debug
 
     - name: Swagger Schema Validation
-      working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
-        scripts/get-swagger.ps1 -ApiUrl http://localhost:8090 -OutFile swaggerSchema.json -Verbose -Debug
-        vc-build ValidateSwaggerSchema -SwaggerSchemaPath swaggerSchema.json
+        ${{ github.action_path }}/scripts/get-swagger.ps1 -ApiUrl http://localhost:8090 -OutFile ${{ github.action_path }}/swaggerSchema.json -Verbose -Debug
+        Get-ChildItem
+        Get-ChildItem ${{ github.action_path }}
+        vc-build ValidateSwaggerSchema -SwaggerSchemaPath ${{ github.action_path }}/swaggerSchema.json -SwaggerValidatorUri https://validator.swagger.io/validator/debug
