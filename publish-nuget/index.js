@@ -8,7 +8,7 @@ async function run()
     let branchName = await utils.getBranchName(github);
     if(branchName === 'dev' || branchName === 'master')
     {
-        exec.exec(`vc-build PublishPackages -ApiKey ${process.env.NUGET_KEY} -skip Clean+Restore+Compile+Test`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
+        await exec.exec(`vc-build PublishPackages -ApiKey ${process.env.NUGET_KEY} -skip Clean+Restore+Compile+Test`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
             if(exitCode != 0 && exitCode != 409)
             {
                 core.setFailed("Failed to publish nugets");
