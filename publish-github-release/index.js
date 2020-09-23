@@ -44,7 +44,7 @@ async function run()
     const modulesJsonUrl = core.getInput("modulesJsonUrl");
     console.log(`modulesJsonUrl: ${modulesJsonUrl}`);
     const modulesJsonPath = "modules_v3.json";
-    const modulesJsonFile = fs.createWriteStream(outPath);
+    const modulesJsonFile = fs.createWriteStream(modulesJsonPath);
     https.get(modulesJsonUrl, function(response){
         response.pipe(modulesJsonFile);
     });
