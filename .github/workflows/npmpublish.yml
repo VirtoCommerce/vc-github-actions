@@ -15,8 +15,8 @@ jobs:
 
         - name: Publish vc-actions-lib
           env:
-              NPM_AUTH_TOKEN: ${{ secrets.npm_token }}
-              NPM_EMAIL: ${{ secrets.npm_email }}
+              NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+              NPM_EMAIL: ${{ secrets.NPM_EMAIL }}
           shell: bash
           working-directory: vc-actions-lib
           run: |

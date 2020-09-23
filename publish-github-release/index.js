@@ -6,6 +6,8 @@ const os = require('os');
 const fs = require('fs');
 const utils = require('@krankenbro/virto-actions-lib');
 const tc = require('@actions/tool-cache');
+const { parseString } = require('xml2js');
+const xmlParseString = require("xml2js").parseString;
 
 async function installGithubRelease()
 {
@@ -38,20 +40,23 @@ async function setupCredentials(user, pass)
 
 async function run()
 {
+    const modulesJsonUrl = core.getInput("modulesJsonUrl");
     let branchName = await utils.getBranchName(github);
     let customModuleDownloadUrl = "";
+    let prereleasePackageUrl = "";
+    let blobUrl = core.getInput("blobUrl");
     if(branchName === 'dev')
     {
-        let blobUrl = `https://vc3prerelease.blob.core.windows.net/packages${process.env.BLOB_SAS}`;
+        let blobUrlWithSAS = `${blobUrl}${process.env.BLOB_SAS}`;
         let artifactPath = await utils.findArtifact("artifacts/*.zip");
         console.log(artifactPath);
         
         let artifactFileName = artifactPath.split(path.sep).pop();
         console.log(artifactFileName);
-        let downloadUrl = `https://vc3prerelease.blob.core.windows.net/packages/${artifactFileName}`;
+        let downloadUrl = `${blobUrl}/${artifactFileName}`;
         console.log(`Download url: ${downloadUrl}`);
         core.setOutput("blobUrl", downloadUrl);
-        await exec.exec(`azcopy10 copy ${artifactPath} ${blobUrl}`, [], { ignoreReturnCode: true, failOnStdErr: false }).catch(reason => {
+        await exec.exec(`azcopy10 copy ${artifactPath} ${blobUrlWithSAS}`, [], { ignoreReturnCode: true, failOnStdErr: false }).catch(reason => {
             console.log(reason);
             process.exit(1);
         }).then( exitCode => {
@@ -61,6 +66,7 @@ async function run()
                 process.exit(exitCode);
             }
         });
+        prereleasePackageUrl = downloadUrl;
         customModuleDownloadUrl = `-CustomModulePackageUri ${downloadUrl}`;
     } 
     else if(branchName === 'master')
@@ -94,6 +100,42 @@ async function run()
         }).catch(err => {
             console.log(`Error: ${err.message}`);
         });
+        const modulesJsonPath = "modules_v3.json";
+        const repoName = await utils.getRepoName();
+        await utils.downloadFile(modulesJsonUrl, modulesJsonPath);
+        const modulesJson = JSON.parse(fs.readFileSync(modulesJsonPath));
+        let moduleId = (await utils.findArtifact("artifacts/VirtoCommerce.*[^\.zip]")).split("/")[1];
+        let isModulesJsonUpdated = false;
+        let manifestFile = await utils.findArtifact("artifacts/*/module.manifest");
+
+        for(let module of modulesJson)
+        {
+            if(module["Id"] === moduleId)
+            {
+                for(let versionInfo of module["Versions"])
+                {
+                    if(branchName === 'dev')
+                    {
+                        if(versionInfo["PackageUrl"] === prereleasePackageUrl)
+                        {
+                            isModulesJsonUpdated = true;
+                        }
+                    }
+                    if(branchName === 'master')
+                    {
+                        xmlParseString(fs.readFileSync(manifestFile), function(err, result) {
+                            if(versionInfo["Version"]===result.module.version[0] && !versionInfo["VersionTag"]){
+                                isModulesJsonUpdated = true;
+                            }
+                        });
+                    }
+                }
+            }
+        }
+        if(!isModulesJsonUpdated)
+        {
+            core.setFailed("Failed to update modules.json");
+        }
     }
 }
 

@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-
+    - name: vc-module-customer
       uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
       env:
         GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
