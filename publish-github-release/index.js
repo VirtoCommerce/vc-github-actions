@@ -8,6 +8,7 @@ const utils = require('@krankenbro/virto-actions-lib');
 const tc = require('@actions/tool-cache');
 const { parseString } = require('xml2js');
 const xmlParseString = require("xml2js").parseString;
+const https = require('https')
 
 async function installGithubRelease()
 {
@@ -40,8 +41,13 @@ async function setupCredentials(user, pass)
 
 async function run()
 {
-    const modulesJsonUrl = core.getInput("modulesJsonUrl").trim();
+    const modulesJsonUrl = core.getInput("modulesJsonUrl");
     console.log(`modulesJsonUrl: ${modulesJsonUrl}`);
+    const modulesJsonPath = "modules_v3.json";
+    const modulesJsonFile = fs.createWriteStream(outPath);
+    https.get(modulesJsonUrl, function(response){
+        response.pipe(modulesJsonFile);
+    });
     let branchName = await utils.getBranchName(github);
     let customModuleDownloadUrl = "";
     let prereleasePackageUrl = "";
@@ -101,7 +107,6 @@ async function run()
         }).catch(err => {
             console.log(`Error: ${err.message}`);
         });
-        const modulesJsonPath = "modules_v3.json";
         const repoName = await utils.getRepoName();
         await utils.downloadFile(modulesJsonUrl, modulesJsonPath);
         const modulesJson = JSON.parse(fs.readFileSync(modulesJsonPath));
