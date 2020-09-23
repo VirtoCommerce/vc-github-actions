@@ -40,7 +40,7 @@ async function setupCredentials(user, pass)
 
 async function run()
 {
-    const modulesJsonUrl = core.getInput("modulesJsonUrl");
+    const modulesJsonUrl = core.getInput("modulesJsonUrl").trim();
     let branchName = await utils.getBranchName(github);
     let customModuleDownloadUrl = "";
     let prereleasePackageUrl = "";
