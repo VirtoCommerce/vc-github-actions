@@ -108,7 +108,6 @@ async function run()
             console.log(`Error: ${err.message}`);
         });
         const repoName = await utils.getRepoName();
-        await utils.downloadFile(modulesJsonUrl, modulesJsonPath);
         const modulesJson = JSON.parse(fs.readFileSync(modulesJsonPath));
         let moduleId = (await utils.findArtifact("artifacts/VirtoCommerce.*[^\.zip]")).split("/")[1];
         let isModulesJsonUpdated = false;
