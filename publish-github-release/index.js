@@ -41,6 +41,7 @@ async function setupCredentials(user, pass)
 async function run()
 {
     const modulesJsonUrl = core.getInput("modulesJsonUrl").trim();
+    console.log(`modulesJsonUrl: ${modulesJsonUrl}`);
     let branchName = await utils.getBranchName(github);
     let customModuleDownloadUrl = "";
     let prereleasePackageUrl = "";
