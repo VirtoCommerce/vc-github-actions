@@ -40,22 +40,23 @@ async function setupCredentials(user, pass)
 
 async function run()
 {
-    const modulesJsonUrl = "https://raw.githubusercontent.com/VirtoCommerce/vc-modules/master/modules_v3.json";
+    const modulesJsonUrl = core.getInput("modulesJsonUrl");
     let branchName = await utils.getBranchName(github);
     let customModuleDownloadUrl = "";
     let prereleasePackageUrl = "";
+    let blobUrl = core.getInput("blobUrl");
     if(branchName === 'dev')
     {
-        let blobUrl = `https://vc3prerelease.blob.core.windows.net/packages${process.env.BLOB_SAS}`;
+        let blobUrlWithSAS = `${blobUrl}${process.env.BLOB_SAS}`;
         let artifactPath = await utils.findArtifact("artifacts/*.zip");
         console.log(artifactPath);
         
         let artifactFileName = artifactPath.split(path.sep).pop();
         console.log(artifactFileName);
-        let downloadUrl = `https://vc3prerelease.blob.core.windows.net/packages/${artifactFileName}`;
+        let downloadUrl = `${blobUrl}/${artifactFileName}`;
         console.log(`Download url: ${downloadUrl}`);
         core.setOutput("blobUrl", downloadUrl);
-        await exec.exec(`azcopy10 copy ${artifactPath} ${blobUrl}`, [], { ignoreReturnCode: true, failOnStdErr: false }).catch(reason => {
+        await exec.exec(`azcopy10 copy ${artifactPath} ${blobUrlWithSAS}`, [], { ignoreReturnCode: true, failOnStdErr: false }).catch(reason => {
             console.log(reason);
             process.exit(1);
         }).then( exitCode => {

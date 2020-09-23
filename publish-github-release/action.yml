@@ -4,6 +4,14 @@ inputs:
   changelog:
     description: "Commit's messages since the latest release"
     required: true
+  modulesJsonUrl:
+    description: "Url to modules.json"
+    default: "https://raw.githubusercontent.com/VirtoCommerce/vc-modules/master/modules_v3.json"
+    required: false
+  blobUrl:
+    description: "Url to Azure Blob"
+    default: "https://vc3prerelease.blob.core.windows.net/packages"
+    required: false
 outputs:
   blobUrl:
     description: There will be a blob url in case of prerelease
