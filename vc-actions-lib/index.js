@@ -56,7 +56,7 @@ async function getProjectType()
 async function downloadFile(url, outPath)
 {
     const file = fs.createWriteStream(outPath);
-    const request = (url.substr(0, 5) === 'https' ? https : http).get(url, function(response) {
+    const request = (url.substr(0, 5) == 'https' ? https : http).get(url, function(response) {
         response.pipe(file);
     });
 }

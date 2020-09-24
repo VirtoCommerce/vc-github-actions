@@ -22,4 +22,5 @@ jobs:
           run: |
             echo "_auth = $NPM_AUTH_TOKEN" > ~/.npmrc
             echo "email = $NPM_EMAIL" >> ~/.npmrc
+            npm config set scope @virtocommerce --global
             npm publish --access public
