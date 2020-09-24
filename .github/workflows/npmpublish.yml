@@ -22,4 +22,3 @@ jobs:
           run: |
             npm install -g @jsdevtools/npm-publish
             npm-publish --token $NPM_AUTH_TOKEN
-            npm publish --access public
