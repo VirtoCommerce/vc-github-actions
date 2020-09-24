@@ -121,7 +121,7 @@ async function run()
                 {
                     if(branchName === 'dev')
                     {
-                        if(versionInfo["PackageUrl"] === prereleasePackageUrl)
+                        if(versionInfo["PackageUrl"] == prereleasePackageUrl)
                         {
                             isModulesJsonUpdated = true;
                         }
