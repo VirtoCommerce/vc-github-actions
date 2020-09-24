@@ -20,7 +20,6 @@ jobs:
           shell: bash
           working-directory: vc-actions-lib
           run: |
-            echo "_auth = $NPM_AUTH_TOKEN" > ~/.npmrc
-            echo "email = $NPM_EMAIL" >> ~/.npmrc
-            echo "scope=virtocommerce" >> ~/.npmrc
+            npm install -g @jsdevtools/npm-publish
+            npm-publish --token $NPM_AUTH_TOKEN
             npm publish --access public
