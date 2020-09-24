@@ -109,9 +109,12 @@ async function run()
         });
         const repoName = await utils.getRepoName();
         const modulesJson = JSON.parse(fs.readFileSync(modulesJsonPath));
-        let moduleId = (await utils.findArtifact("artifacts/VirtoCommerce.*[^\.zip]")).split("/")[1];
+        let moduleId = "";
         let isModulesJsonUpdated = false;
         let manifestFile = await utils.findArtifact("artifacts/*/module.manifest");
+        xmlParseString(fs.readFileSync(manifestFile), function(err, result) {
+            moduleId = result.module.id[0];
+        });
 
         for(let module of modulesJson)
         {
