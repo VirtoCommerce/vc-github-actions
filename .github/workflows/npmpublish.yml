@@ -18,3 +18,4 @@ jobs:
           with:
             token: ${{ secrets.NPM_TOKEN }}
             package: ./vc-actions-lib/package.json
+            check-version: false
