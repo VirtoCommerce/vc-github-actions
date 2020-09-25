@@ -81,7 +81,9 @@ async function run()
         await installGithubRelease();
         let orgName = process.env.GITHUB_REPOSITORY.split('/')[0];
         let changelog = core.getInput('changelog');
-        let releaseNotesArg = `-ReleaseNotes "${changelog}"`;
+        let changelogFilePath = `artifacts/changelog.txt`;
+        fs.writeFileSync(changelogFilePath, changelog);
+        let releaseNotesArg = `-ReleaseNotes "${changelogFilePath}"`;
         await exec.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip Clean+Restore+Compile+Test`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
             if(exitCode != 0 && exitCode != 422)
             {
