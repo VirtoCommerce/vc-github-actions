@@ -15,6 +15,7 @@
     "@actions/github": "^4.0.0",
     "@actions/tool-cache": "^1.6.0",
     "@krankenbro/virto-actions-lib": "^1.0.0",
+    "axios": "^0.20.0",
     "glob": "^7.1.6",
     "xml2js": "^0.4.23"
   }

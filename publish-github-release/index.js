@@ -39,6 +39,24 @@ async function setupCredentials(user, pass)
 	await exec.exec('git', ['config', '--global', '--add', 'url.https://github.com/.insteadOf', 'git@github.com:']);
 }
 
+async function downloadFile(url, outFile) {
+    const path = outFile;
+    const writer = fs.createWriteStream(path);
+  
+    const response = await Axios({
+      url,
+      method: 'GET',
+      responseType: 'stream'
+    })
+  
+    response.data.pipe(writer)
+  
+    return new Promise((resolve, reject) => {
+      writer.on('finish', resolve)
+      writer.on('error', reject)
+    })
+}
+
 async function run()
 {
     const modulesJsonUrl = core.getInput("modulesJsonUrl");
@@ -106,9 +124,7 @@ async function run()
         });
         const modulesJsonPath = "modules_v3.json";
         const modulesJsonFile = fs.createWriteStream(modulesJsonPath);
-        https.get(modulesJsonUrl, function(response){
-            response.pipe(modulesJsonFile);
-        });
+        await downloadFile(modulesJsonUrl, modulesJsonFile);
         const repoName = await utils.getRepoName();
         const modulesJson = JSON.parse(fs.readFileSync(modulesJsonPath));
         let moduleId = "";
