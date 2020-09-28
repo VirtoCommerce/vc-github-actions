@@ -43,11 +43,7 @@ async function run()
 {
     const modulesJsonUrl = core.getInput("modulesJsonUrl");
     console.log(`modulesJsonUrl: ${modulesJsonUrl}`);
-    const modulesJsonPath = "modules_v3.json";
-    const modulesJsonFile = fs.createWriteStream(modulesJsonPath);
-    https.get(modulesJsonUrl, function(response){
-        response.pipe(modulesJsonFile);
-    });
+    
     let branchName = await utils.getBranchName(github);
     let customModuleDownloadUrl = "";
     let prereleasePackageUrl = "";
@@ -107,6 +103,11 @@ async function run()
             }
         }).catch(err => {
             console.log(`Error: ${err.message}`);
+        });
+        const modulesJsonPath = "modules_v3.json";
+        const modulesJsonFile = fs.createWriteStream(modulesJsonPath);
+        https.get(modulesJsonUrl, function(response){
+            response.pipe(modulesJsonFile);
         });
         const repoName = await utils.getRepoName();
         const modulesJson = JSON.parse(fs.readFileSync(modulesJsonPath));
