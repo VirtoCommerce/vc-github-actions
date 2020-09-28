@@ -125,6 +125,7 @@ async function run()
                 {
                     if(branchName === 'dev')
                     {
+                        console.log(`${versionInfo["PackageUrl"]} == ${prereleasePackageUrl}`);
                         if(versionInfo["PackageUrl"] == prereleasePackageUrl)
                         {
                             isModulesJsonUpdated = true;
@@ -143,7 +144,7 @@ async function run()
         }
         if(!isModulesJsonUpdated)
         {
-            core.setFailed("Failed to update modules.json");
+            core.setFailed("modules.json has not been updated");
         }
     }
 }
