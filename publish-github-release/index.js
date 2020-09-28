@@ -9,6 +9,7 @@ const tc = require('@actions/tool-cache');
 const { parseString } = require('xml2js');
 const xmlParseString = require("xml2js").parseString;
 const https = require('https')
+const Axios = require('axios');
 
 async function installGithubRelease()
 {
