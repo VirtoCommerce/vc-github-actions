@@ -123,8 +123,7 @@ async function run()
             console.log(`Error: ${err.message}`);
         });
         const modulesJsonPath = "modules_v3.json";
-        const modulesJsonFile = fs.createWriteStream(modulesJsonPath);
-        await downloadFile(modulesJsonUrl, modulesJsonFile);
+        await downloadFile(modulesJsonUrl, modulesJsonPath);
         const repoName = await utils.getRepoName();
         const modulesJson = JSON.parse(fs.readFileSync(modulesJsonPath));
         let moduleId = "";
