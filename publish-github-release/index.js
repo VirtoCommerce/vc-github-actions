@@ -151,7 +151,7 @@ async function run()
                     if(branchName === 'master')
                     {
                         xmlParseString(fs.readFileSync(manifestFile), function(err, result) {
-                            if(versionInfo["Version"]===result.module.version[0] && !versionInfo["VersionTag"]){
+                            if(versionInfo["Version"]==result.module.version[0] && !versionInfo["VersionTag"]){
                                 isModulesJsonUpdated = true;
                             }
                         });
