@@ -74,15 +74,15 @@ function downloadFile(url, outFile) {
 function run() {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
-        let downloadUrl = core.getInput('downloadUrl');
-        let customModuleDownloadUrl = downloadUrl ? `-CustomModulePackageUri ${downloadUrl}` : "";
+        let packageUrl = core.getInput('packageUrl');
+        let customModulepackageUrl = packageUrl ? `-CustomModulePackageUri ${packageUrl}` : "";
         let gitUserEmail = core.getInput("gitUserEmail");
         let gitUserName = core.getInput("gitUserName");
         let githubToken = (_a = core.getInput("githubToken")) !== null && _a !== void 0 ? _a : process.env.GITHUB_TOKEN;
         yield exec.exec(`git config --global user.email "${gitUserEmail}"`);
         yield exec.exec(`git config --global user.name "${gitUserName}"`);
         yield setupCredentials(gitUserName, githubToken);
-        yield exec.exec(`vc-build PublishModuleManifest ${customModuleDownloadUrl}`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
+        yield exec.exec(`vc-build PublishModuleManifest ${customModulepackageUrl}`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
             console.log(`Exit code: ${exitCode}`);
             if (exitCode != 0 && exitCode != 423 && exitCode != 167) {
                 core.setFailed("Failed to update modules.json");

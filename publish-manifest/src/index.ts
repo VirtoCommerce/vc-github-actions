@@ -46,15 +46,15 @@ async function downloadFile(url: string, outFile: string) {
 }
 
 async function run(): Promise<void> {
-    let downloadUrl = core.getInput('downloadUrl');
-    let customModuleDownloadUrl = downloadUrl ? `-CustomModulePackageUri ${downloadUrl}` : "";
+    let packageUrl = core.getInput('packageUrl');
+    let customModulepackageUrl = packageUrl ? `-CustomModulePackageUri ${packageUrl}` : "";
     let gitUserEmail = core.getInput("gitUserEmail");
     let gitUserName = core.getInput("gitUserName");
     let githubToken = core.getInput("githubToken") ?? process.env.GITHUB_TOKEN;
     await exec.exec(`git config --global user.email "${gitUserEmail}"`);
     await exec.exec(`git config --global user.name "${gitUserName}"`);
     await setupCredentials(gitUserName,  githubToken);
-    await exec.exec(`vc-build PublishModuleManifest ${customModuleDownloadUrl}`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
+    await exec.exec(`vc-build PublishModuleManifest ${customModulepackageUrl}`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
     console.log(`Exit code: ${exitCode}`);
     if(exitCode != 0 && exitCode != 423 && exitCode != 167)
     {

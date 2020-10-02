@@ -16,6 +16,10 @@ inputs:
   githubToken:
     description: "GitHub Token"
     required: false
+  packageUrl:
+    description: "Package Url for modules.json"
+    default: ""
+    required: false
 runs:
   using: 'node12'
   main: 'dist/index.js' 
