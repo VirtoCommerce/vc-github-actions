@@ -1,0 +1,21 @@
+name: 'publish-munifest'
+description: 'Publishes modules.json'
+inputs:
+  modulesJsonUrl:
+    description: "Url to modules.json"
+    default: "https://raw.githubusercontent.com/VirtoCommerce/vc-modules/master/modules_v3.json"
+    required: false
+  gitUserEmail:
+    description: "git config user.email"
+    required: false
+    default: "ci@virtocommerce.com"
+  gitUserName:
+    description: "git config user.name"
+    default: "vc-ci"
+    required: false
+  githubToken:
+    description: "GitHub Token"
+    required: false
+runs:
+  using: 'node12'
+  main: 'dist/index.js' 
