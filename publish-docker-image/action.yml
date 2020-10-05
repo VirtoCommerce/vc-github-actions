@@ -16,7 +16,7 @@ inputs:
   docker_hub:
     description: "Publish image to hub.docker.com"
     required: false
-    default: true
+    default: "true"
 runs:
   using: 'node12'
   main: 'index.js'
