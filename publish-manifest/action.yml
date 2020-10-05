@@ -5,21 +5,25 @@ inputs:
     description: "Url to modules.json"
     default: "https://raw.githubusercontent.com/VirtoCommerce/vc-modules/master/modules_v3.json"
     required: false
-  gitUserEmail:
-    description: "git config user.email"
-    required: false
-    default: "ci@virtocommerce.com"
-  gitUserName:
-    description: "git config user.name"
-    default: "vc-ci"
-    required: false
-  githubToken:
-    description: "GitHub Token"
-    required: false
   packageUrl:
     description: "Package Url for modules.json"
     default: ""
     required: false
+  pushChanges: 
+    description: "push changed modules.json to github"
+    default: "true"
+    required: false
+  modulesJsonName:
+    description: "Name of modules manifest file"
+    required: false
+    default: "modules_v3.json"
+  modulesJsonRepo:
+    description: "Repo url"
+    required: false
+    default: "https://github.com/VirtoCommerce/vc-modules.git"
+outputs:
+  modulesJsonPath:
+    description: "Path to updated modules.json"
 runs:
   using: 'node12'
   main: 'dist/index.js' 

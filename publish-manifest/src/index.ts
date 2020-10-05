@@ -15,18 +15,6 @@ async function getConfigHome()
     return `${os.homedir()}/.config`;
 }
 
-async function setupCredentials(user: string, pass: string)
-{
-    let githubCreds = `https://${user}:${pass}@github.com`;
-    let configHome = await getConfigHome();
-    await fs.mkdirSync(`${configHome}/git`, { recursive: true });
-    await fs.writeFileSync(`${configHome}/git/credentials`, githubCreds, { flag: 'a', mode: 0o600 });
-
-    await exec.exec('git', ['config', '--global', 'credential.helper', 'store']);
-	await exec.exec('git', ['config', '--global', '--replace-all', 'url.https://github.com/.insteadOf', 'ssh://git@github.com/']);
-	await exec.exec('git', ['config', '--global', '--add', 'url.https://github.com/.insteadOf', 'git@github.com:']);
-}
-
 async function downloadFile(url: string, outFile: string) {
     const path = outFile;
     const writer = fs.createWriteStream(path);
@@ -47,14 +35,11 @@ async function downloadFile(url: string, outFile: string) {
 
 async function run(): Promise<void> {
     let packageUrl = core.getInput('packageUrl');
+    let pushChanges = core.getInput("pushChanges");
+    let modulesJsonName = core.getInput("modulesJsonName");
+    let modulesJsonRepo = core.getInput("modulesJsonRepo");
     let customModulepackageUrl = packageUrl ? `-CustomModulePackageUri ${packageUrl}` : "";
-    let gitUserEmail = core.getInput("gitUserEmail");
-    let gitUserName = core.getInput("gitUserName");
-    let githubToken = core.getInput("githubToken") ?? process.env.GITHUB_TOKEN;
-    await exec.exec(`git config --global user.email "${gitUserEmail}"`);
-    await exec.exec(`git config --global user.name "${gitUserName}"`);
-    await setupCredentials(gitUserName,  githubToken);
-    await exec.exec(`vc-build PublishModuleManifest ${customModulepackageUrl}`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
+    await exec.exec(`vc-build PublishModuleManifest ${customModulepackageUrl} -PushChanges ${pushChanges} -ModulesJsonRepoUrl ${modulesJsonRepo} -ModulesJsonName ${modulesJsonName}`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
     console.log(`Exit code: ${exitCode}`);
     if(exitCode != 0 && exitCode != 423 && exitCode != 167)
     {
@@ -63,6 +48,9 @@ async function run(): Promise<void> {
     }).catch(err => {
         console.log(`Error: ${err.message}`);
     });
+
+    let modulesJsonPath =  await utils.findArtifact(`artifacts/*/${modulesJsonName}`);
+    core.setOutput("modulesJsonPath", modulesJsonPath)
 
     // const modulesJsonPath = "modules_v3.json";
     // await downloadFile(modulesJsonUrl, modulesJsonPath);

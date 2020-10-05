@@ -35,6 +35,7 @@ const core = __importStar(require("@actions/core"));
 const exec = __importStar(require("@actions/exec"));
 const fs_1 = __importDefault(require("fs"));
 const os_1 = __importDefault(require("os"));
+const utils = __importStar(require("@krankenbro/virto-actions-lib"));
 const axios_1 = __importDefault(require("axios"));
 function getConfigHome() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -42,17 +43,6 @@ function getConfigHome() {
         if (xdg_home)
             return xdg_home;
         return `${os_1.default.homedir()}/.config`;
-    });
-}
-function setupCredentials(user, pass) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let githubCreds = `https://${user}:${pass}@github.com`;
-        let configHome = yield getConfigHome();
-        yield fs_1.default.mkdirSync(`${configHome}/git`, { recursive: true });
-        yield fs_1.default.writeFileSync(`${configHome}/git/credentials`, githubCreds, { flag: 'a', mode: 0o600 });
-        yield exec.exec('git', ['config', '--global', 'credential.helper', 'store']);
-        yield exec.exec('git', ['config', '--global', '--replace-all', 'url.https://github.com/.insteadOf', 'ssh://git@github.com/']);
-        yield exec.exec('git', ['config', '--global', '--add', 'url.https://github.com/.insteadOf', 'git@github.com:']);
     });
 }
 function downloadFile(url, outFile) {
@@ -72,17 +62,13 @@ function downloadFile(url, outFile) {
     });
 }
 function run() {
-    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         let packageUrl = core.getInput('packageUrl');
+        let pushChanges = core.getInput("pushChanges");
+        let modulesJsonName = core.getInput("modulesJsonName");
+        let modulesJsonRepo = core.getInput("modulesJsonRepo");
         let customModulepackageUrl = packageUrl ? `-CustomModulePackageUri ${packageUrl}` : "";
-        let gitUserEmail = core.getInput("gitUserEmail");
-        let gitUserName = core.getInput("gitUserName");
-        let githubToken = (_a = core.getInput("githubToken")) !== null && _a !== void 0 ? _a : process.env.GITHUB_TOKEN;
-        yield exec.exec(`git config --global user.email "${gitUserEmail}"`);
-        yield exec.exec(`git config --global user.name "${gitUserName}"`);
-        yield setupCredentials(gitUserName, githubToken);
-        yield exec.exec(`vc-build PublishModuleManifest ${customModulepackageUrl}`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
+        yield exec.exec(`vc-build PublishModuleManifest ${customModulepackageUrl} -PushChanges ${pushChanges} -ModulesJsonRepoUrl ${modulesJsonRepo} -ModulesJsonName ${modulesJsonName}`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
             console.log(`Exit code: ${exitCode}`);
             if (exitCode != 0 && exitCode != 423 && exitCode != 167) {
                 core.setFailed("Failed to update modules.json");
@@ -90,6 +76,8 @@ function run() {
         }).catch(err => {
             console.log(`Error: ${err.message}`);
         });
+        let modulesJsonPath = yield utils.findArtifact(`artifacts/*/${modulesJsonName}`);
+        core.setOutput("modulesJsonPath", modulesJsonPath);
     });
 }
 run().catch(error => core.setFailed(error.message));
