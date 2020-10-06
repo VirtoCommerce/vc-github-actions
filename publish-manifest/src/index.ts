@@ -52,46 +52,16 @@ async function run(): Promise<void> {
     let modulesJsonPath =  await utils.findArtifact(`artifacts/*/${modulesJsonName}`);
     core.setOutput("modulesJsonPath", modulesJsonPath)
 
-    // const modulesJsonPath = "modules_v3.json";
-    // await downloadFile(modulesJsonUrl, modulesJsonPath);
-    // let modulesJsonRawContent = fs.readFileSync(modulesJsonPath).toString();
-    // const modulesJson = JSON.parse(modulesJsonRawContent);
-    // let moduleId = "";
-    // let isModulesJsonUpdated = false;
-    // let manifestFile = await utils.findArtifact("artifacts/*/module.manifest");
-    // xmlParseString(fs.readFileSync(manifestFile), function(err: Error, result: any) {
-    //     moduleId = result.module.id[0];
-    // });
-
-    // for(let module of modulesJson)
-    // {
-    //     if(module["Id"] === moduleId)
-    //     {
-    //         for(let versionInfo of module["Versions"])
-    //         {
-    //             if(branchName === 'dev')
-    //             {
-    //                 console.log(`${versionInfo["PackageUrl"]} == ${prereleasePackageUrl}`);
-    //                 if(versionInfo["PackageUrl"] == prereleasePackageUrl)
-    //                 {
-    //                     isModulesJsonUpdated = true;
-    //                 }
-    //             }
-    //             if(branchName === 'master')
-    //             {
-    //                 xmlParseString(fs.readFileSync(manifestFile), function(err, result) {
-    //                     if(versionInfo["Version"]===result.module.version[0] && !versionInfo["VersionTag"]){
-    //                         isModulesJsonUpdated = true;
-    //                     }
-    //                 });
-    //             }
-    //         }
-    //     }
-    // }
-    // if(!isModulesJsonUpdated)
-    // {
-    //     core.setFailed("modules.json has not been updated");
-    // }
+    // Check modules.json in repo
+    const modulesJsonFromRepoFileName = "modules_v3.json";
+    let modulesJsonUrl = core.getInput("modulesJsonUrl");
+    await downloadFile(modulesJsonUrl, modulesJsonFromRepoFileName);
+    let modulesJsonRepoBuffer = fs.readFileSync(modulesJsonFromRepoFileName);
+    let modulesJsonLocalBuffer = fs.readFileSync(modulesJsonPath);
+    if(!modulesJsonRepoBuffer.equals(modulesJsonLocalBuffer))
+    {
+        core.setFailed("modules.json has not been updated");
+    }
 }
 
 run().catch(error => core.setFailed(error.message));
