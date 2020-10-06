@@ -85,6 +85,7 @@ function run() {
             let modulesJsonRepoBuffer = fs_1.default.readFileSync(modulesJsonFromRepoFileName);
             let modulesJsonLocalBuffer = fs_1.default.readFileSync(modulesJsonPath);
             if (!modulesJsonRepoBuffer.equals(modulesJsonLocalBuffer)) {
+                console.log(`Buffers length(local, repo): ${modulesJsonLocalBuffer.length}, ${modulesJsonRepoBuffer.length}`);
                 core.setFailed("modules.json has not been updated");
             }
         }

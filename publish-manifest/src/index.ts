@@ -62,6 +62,7 @@ async function run(): Promise<void> {
         let modulesJsonLocalBuffer = fs.readFileSync(modulesJsonPath);
         if(!modulesJsonRepoBuffer.equals(modulesJsonLocalBuffer))
         {
+            console.log(`Buffers length(local, repo): ${modulesJsonLocalBuffer.length}, ${modulesJsonRepoBuffer.length}`);
             core.setFailed("modules.json has not been updated");
         }
     }
