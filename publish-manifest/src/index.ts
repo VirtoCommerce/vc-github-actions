@@ -53,14 +53,17 @@ async function run(): Promise<void> {
     core.setOutput("modulesJsonPath", modulesJsonPath)
 
     // Check modules.json in repo
-    const modulesJsonFromRepoFileName = "modules_v3.json";
-    let modulesJsonUrl = core.getInput("modulesJsonUrl");
-    await downloadFile(modulesJsonUrl, modulesJsonFromRepoFileName);
-    let modulesJsonRepoBuffer = fs.readFileSync(modulesJsonFromRepoFileName);
-    let modulesJsonLocalBuffer = fs.readFileSync(modulesJsonPath);
-    if(!modulesJsonRepoBuffer.equals(modulesJsonLocalBuffer))
+    if(pushChanges === "true")
     {
-        core.setFailed("modules.json has not been updated");
+        const modulesJsonFromRepoFileName = "modules_v3.json";
+        let modulesJsonUrl = core.getInput("modulesJsonUrl");
+        await downloadFile(modulesJsonUrl, modulesJsonFromRepoFileName);
+        let modulesJsonRepoBuffer = fs.readFileSync(modulesJsonFromRepoFileName);
+        let modulesJsonLocalBuffer = fs.readFileSync(modulesJsonPath);
+        if(!modulesJsonRepoBuffer.equals(modulesJsonLocalBuffer))
+        {
+            core.setFailed("modules.json has not been updated");
+        }
     }
 }
 
