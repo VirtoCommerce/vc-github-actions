@@ -65,3 +65,4 @@ function run() {
         yield setupCredentials(gitUserName, githubToken);
     });
 }
+run().catch(error => core.setFailed(error.message));

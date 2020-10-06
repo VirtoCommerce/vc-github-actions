@@ -1,5 +1,4 @@
 import * as core from '@actions/core'
-import * as github from '@actions/github'
 import * as exec from '@actions/exec'
 import fs from 'fs'
 import os from 'os'
@@ -32,3 +31,5 @@ async function run(): Promise<void> {
     await exec.exec(`git config --global user.name "${gitUserName}"`);
     await setupCredentials(gitUserName,  githubToken);
 }
+
+run().catch(error =>core.setFailed(error.message));
