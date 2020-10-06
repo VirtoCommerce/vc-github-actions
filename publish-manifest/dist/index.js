@@ -78,13 +78,15 @@ function run() {
         });
         let modulesJsonPath = yield utils.findArtifact(`artifacts/*/${modulesJsonName}`);
         core.setOutput("modulesJsonPath", modulesJsonPath);
-        const modulesJsonFromRepoFileName = "modules_v3.json";
-        let modulesJsonUrl = core.getInput("modulesJsonUrl");
-        yield downloadFile(modulesJsonUrl, modulesJsonFromRepoFileName);
-        let modulesJsonRepoBuffer = fs_1.default.readFileSync(modulesJsonFromRepoFileName);
-        let modulesJsonLocalBuffer = fs_1.default.readFileSync(modulesJsonPath);
-        if (!modulesJsonRepoBuffer.equals(modulesJsonLocalBuffer)) {
-            core.setFailed("modules.json has not been updated");
+        if (pushChanges === "true") {
+            const modulesJsonFromRepoFileName = "modules_v3.json";
+            let modulesJsonUrl = core.getInput("modulesJsonUrl");
+            yield downloadFile(modulesJsonUrl, modulesJsonFromRepoFileName);
+            let modulesJsonRepoBuffer = fs_1.default.readFileSync(modulesJsonFromRepoFileName);
+            let modulesJsonLocalBuffer = fs_1.default.readFileSync(modulesJsonPath);
+            if (!modulesJsonRepoBuffer.equals(modulesJsonLocalBuffer)) {
+                core.setFailed("modules.json has not been updated");
+            }
         }
     });
 }
