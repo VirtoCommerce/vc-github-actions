@@ -54,9 +54,9 @@ async function run()
     let versionSuffix = "";
     let branchName = await utils.getBranchName(github);
     console.log(`Branch: ${branchName}`);
-    if(branchName === 'dev')
+    if(branchName !== 'dev')
     {
-        let commitNumber = await getCommitCount('dev');
+        let commitNumber = await getCommitCount(branchName);
         versionSuffix = `-alpha.${commitNumber}`;
         console.log(`Version suffix: ${versionSuffix}`);
     }
@@ -64,7 +64,7 @@ async function run()
     await restoreDependencies();
     await buildTheme();
 
-    if(branchName === 'dev')
+    if(branchName !== 'dev')
     {
         let artifactPath = await utils.findArtifact("artifacts/*.zip");
         let artifactName = path.parse(artifactPath).name;
