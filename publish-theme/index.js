@@ -15,20 +15,18 @@ async function run()
     console.log(`Blob url: ${blobUrl}`);
     core.setOutput('artifactPath', artifactPath);
     core.setOutput('artifactName', artifactFileName);
-    if(branchName === 'dev')
-    {
-        let blobUrl = `https://vc3prerelease.blob.core.windows.net/packages${process.env.BLOB_SAS}`;
-        await exec.exec(`azcopy10 copy ${artifactPath} ${blobUrl}`).catch(err => {
-            console.log(err.message);
-            process.exit(1);
-        }).then( exitCode => {
-            if(exitCode != 0)
-            {
-                core.setFailed("azcopy failed");
-                process.exit(exitCode);
-            }
-        });
-    }
+    blobUrl = `https://vc3prerelease.blob.core.windows.net/packages${process.env.BLOB_SAS}`;
+    await exec.exec(`azcopy10 copy ${artifactPath} ${blobUrl}`).catch(err => {
+        console.log(err.message);
+        process.exit(1);
+    }).then( exitCode => {
+        if(exitCode != 0)
+        {
+            core.setFailed("azcopy failed");
+            process.exit(exitCode);
+        }
+    });
+
 }
 
 run().catch(err => core.setFailed(err.message));
