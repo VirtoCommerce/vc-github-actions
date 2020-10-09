@@ -37,7 +37,7 @@ const http_1 = __importDefault(require("http"));
 const url_1 = __importDefault(require("url"));
 const fs_1 = __importDefault(require("fs"));
 const debug = require('debug')('sonarqube:verify:status');
-const REPORT_FILE = '.sonarqube/report-task.txt';
+const REPORT_FILE = '.sonarqube/out/.sonar/report-task.txt';
 const DEFAULT_DELAY = 5;
 function checkQualityGateStatus(login, password, sonarHost, projectKey) {
     return __awaiter(this, void 0, void 0, function* () {

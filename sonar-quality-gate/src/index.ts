@@ -5,7 +5,7 @@ import url from 'url';
 import fs from 'fs';
 const debug = require('debug')('sonarqube:verify:status');
 
-const REPORT_FILE = '.sonarqube/report-task.txt';
+const REPORT_FILE = '.sonarqube/out/.sonar/report-task.txt';
 const DEFAULT_DELAY = 5;
 
 async function checkQualityGateStatus(login: string, password: string, sonarHost: string, projectKey: string) {
