@@ -1,5 +1,11 @@
 name: 'build-theme'
 description: 'Builds theme'
+inputs:
+  release_type: 
+    description: "Theme release type. Allowed values release or alpha"
+    required: true
+    default: "alpha"
+
 runs:
   using: 'node12'
   main: 'index.js'
