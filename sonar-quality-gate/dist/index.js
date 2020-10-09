@@ -162,7 +162,7 @@ function addAuthHeader(options, login, password) {
         let auth = null;
         if (login !== '' && login !== undefined) {
             debug('Authentication active');
-            auth = 'Basic ' + new Buffer(login + ':' + password).toString('base64');
+            auth = 'Basic ' + Buffer.from(login + ':' + password).toString('base64');
         }
         else {
             debug('No authentication active');
