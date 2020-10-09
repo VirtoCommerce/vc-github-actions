@@ -51,10 +51,13 @@ async function buildTheme()
 
 async function run()
 {
+    const releaseBranch = core.getInput("release_branch").toLowerCase();
     let versionSuffix = "";
     let branchName = await utils.getBranchName(github);
     console.log(`Branch: ${branchName}`);
-    if(branchName !== 'dev')
+
+// Alpha version should be created in any case except branchName is equal to releaseBranch
+    if(branchName !== releaseBranch)
     {
         let commitNumber = await getCommitCount(branchName);
         versionSuffix = `-alpha.${commitNumber}`;
@@ -64,7 +67,8 @@ async function run()
     await restoreDependencies();
     await buildTheme();
 
-    if(branchName !== 'dev')
+// Alpha version should be created in any case except branchName is equal to releaseBranch
+    if(branchName !== releaseBranch)
     {
         let artifactPath = await utils.findArtifact("artifacts/*.zip");
         let artifactName = path.parse(artifactPath).name;
