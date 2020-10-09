@@ -1,4 +1,23 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -12,8 +31,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const exec_1 = __importDefault(require("@actions/exec"));
-const core_1 = __importDefault(require("@actions/core"));
+const exec = __importStar(require("@actions/exec"));
+const core = __importStar(require("@actions/core"));
 const http_1 = __importDefault(require("http"));
 const url_1 = __importDefault(require("url"));
 const fs_1 = __importDefault(require("fs"));
@@ -82,8 +101,8 @@ function checkReportStatus(login, password = '', delayBetweenChecksInSecs = DEFA
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
             var _a;
-            yield exec_1.default.exec("ls -al");
-            yield exec_1.default.exec("ls -al .scannerwork");
+            yield exec.exec("ls -al");
+            yield exec.exec("ls -al .scannerwork");
             const reportInfo = fs_1.default.readFileSync(REPORT_FILE, 'utf8');
             const taskUrl = (_a = reportInfo.match(/ceTaskUrl=(.*)/)) === null || _a === void 0 ? void 0 : _a[1];
             if (taskUrl == null) {
@@ -162,11 +181,11 @@ function delay(t) {
 }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        let login = core_1.default.getInput("login");
-        let password = core_1.default.getInput("password");
-        let sonarHost = core_1.default.getInput("sonarHost");
-        let projectKey = core_1.default.getInput("projectKey");
+        let login = core.getInput("login");
+        let password = core.getInput("password");
+        let sonarHost = core.getInput("sonarHost");
+        let projectKey = core.getInput("projectKey");
         yield checkQualityGateStatus(login, password, sonarHost, projectKey);
     });
 }
-run().catch(error => core_1.default.setFailed(error.message));
+run().catch(error => core.setFailed(error.message));

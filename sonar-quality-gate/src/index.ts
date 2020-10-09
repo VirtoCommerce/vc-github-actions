@@ -1,5 +1,5 @@
-import exec from '@actions/exec'
-import core from '@actions/core'
+import * as exec from '@actions/exec'
+import * as core from '@actions/core'
 import http from 'http';
 import url from 'url';
 import fs from 'fs';
