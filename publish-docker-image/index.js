@@ -25,36 +25,46 @@ async function dockerHubAuth(user, pass)
     await exec.exec(`docker login -u ${user} -p ${pass}`);
 }
 
+String.prototype.replaceAll = function (find, replace) 
+{
+    return this.split(find).join(replace);
+}
+
 async function run()
 {
     
     let isPullRequest = await utils.isPullRequest(github);
     let prArg = isPullRequest ? '-PullRequest' : '';
     let branchName = await utils.getBranchName(github);
-    const imageName = core.getInput("image");
-    const tag = core.getInput("tag");
-    const dockerUser = core.getInput("docker_user");
-    const dockerToken = core.getInput("docker_token");
-    const dockerHub = core.getInput("docker_hub");
+    const imageName = core.getInput("image").toLocaleLowerCase();
+    const tag = core.getInput("tag").toLocaleLowerCase();
+    const dockerUser = core.getInput("docker_user").toLocaleLowerCase();
+    const dockerToken = core.getInput("docker_token").toLocaleLowerCase();
+    const dockerHub = core.getInput("docker_hub").toLocaleLowerCase();
+    const releaseBranch = core.getInput("release_branch").toLocaleLowerCase();
+    const updateLatest = core.getInput("update_latest").toLocaleLowerCase();
 
     await pushImage(imageName, tag); //github
     
     let newTag = '';
-    if(branchName === 'master')
+    if (updateLatest === 'true')
     {
-        newTag = 'linux-latest';
+        if(branchName === releaseBranch)
+        {
+            newTag = 'linux-latest';
+        }
+        else if(isPullRequest)
+        {
+            let prNumber = github.context.payload.pull_request.number;
+            newTag = `pr${prNumber}`;
+        }
+        else 
+        {
+            newTag = `${branchName.replaceAll('/','_')}-linux-latest`;
+        }
+        await changeTag(imageName, tag, newTag);
+        await pushImage(imageName, newTag); //github
     }
-    else if(isPullRequest)
-    {
-        let prNumber = github.context.payload.pull_request.number;
-        newTag = `pr${prNumber}`;
-    }
-    else 
-    {
-        newTag = `${branchName}-linux-latest`;
-    }
-    await changeTag(imageName, tag, newTag);
-    await pushImage(imageName, newTag); //github
     
     if(dockerHub === 'true')
     {
