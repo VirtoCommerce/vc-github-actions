@@ -5,7 +5,7 @@ import url from 'url';
 import fs from 'fs';
 const debug = require('debug')('sonarqube:verify:status');
 
-const REPORT_FILE = '.scannerwork/report-task.txt';
+const REPORT_FILE = '.sonarqube/report-task.txt';
 const DEFAULT_DELAY = 5;
 
 async function checkQualityGateStatus(login: string, password: string, sonarHost: string, projectKey: string) {
@@ -81,7 +81,7 @@ async function checkReportStatus(
 ): Promise<any> {
   return new Promise(async (resolve, reject) => {
     await exec.exec("ls -al");
-    await exec.exec("ls -al .scannerwork");
+    await exec.exec("ls -al .sonarqube");
     const reportInfo = fs.readFileSync(REPORT_FILE, 'utf8');
     const taskUrl = reportInfo.match(/ceTaskUrl=(.*)/)?.[1];
     if(taskUrl == null)

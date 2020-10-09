@@ -37,7 +37,7 @@ const http_1 = __importDefault(require("http"));
 const url_1 = __importDefault(require("url"));
 const fs_1 = __importDefault(require("fs"));
 const debug = require('debug')('sonarqube:verify:status');
-const REPORT_FILE = '.scannerwork/report-task.txt';
+const REPORT_FILE = '.sonarqube/report-task.txt';
 const DEFAULT_DELAY = 5;
 function checkQualityGateStatus(login, password, sonarHost, projectKey) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -102,7 +102,7 @@ function checkReportStatus(login, password = '', delayBetweenChecksInSecs = DEFA
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
             var _a;
             yield exec.exec("ls -al");
-            yield exec.exec("ls -al .scannerwork");
+            yield exec.exec("ls -al .sonarqube");
             const reportInfo = fs_1.default.readFileSync(REPORT_FILE, 'utf8');
             const taskUrl = (_a = reportInfo.match(/ceTaskUrl=(.*)/)) === null || _a === void 0 ? void 0 : _a[1];
             if (taskUrl == null) {
