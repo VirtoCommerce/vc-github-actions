@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const exec_1 = __importDefault(require("@actions/exec"));
 const core_1 = __importDefault(require("@actions/core"));
 const http_1 = __importDefault(require("http"));
 const url_1 = __importDefault(require("url"));
@@ -19,8 +20,6 @@ const fs_1 = __importDefault(require("fs"));
 const debug = require('debug')('sonarqube:verify:status');
 const REPORT_FILE = '.scannerwork/report-task.txt';
 const DEFAULT_DELAY = 5;
-module.exports.reportFile = REPORT_FILE;
-module.exports.checkQualityGateStatus = checkQualityGateStatus;
 function checkQualityGateStatus(login, password, sonarHost, projectKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const gateUrl = sonarHost +
@@ -83,6 +82,8 @@ function checkReportStatus(login, password = '', delayBetweenChecksInSecs = DEFA
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
             var _a;
+            yield exec_1.default.exec("ls -al");
+            yield exec_1.default.exec("ls -al .scannerwork");
             const reportInfo = fs_1.default.readFileSync(REPORT_FILE, 'utf8');
             const taskUrl = (_a = reportInfo.match(/ceTaskUrl=(.*)/)) === null || _a === void 0 ? void 0 : _a[1];
             if (taskUrl == null) {
