@@ -6,7 +6,6 @@ const utils = require('@krankenbro/virto-actions-lib');
 async function pushImage(image, tag)
 {
     let command = `docker push ${image}:${tag}`;
-    console.log('Command is' + command);
     await exec.exec(command);
 }
 
@@ -37,20 +36,16 @@ async function run()
     let isPullRequest = await utils.isPullRequest(github);
     let prArg = isPullRequest ? '-PullRequest' : '';
     let branchName = await utils.getBranchName(github);
-    const imageName = core.getInput("image").toLocaleLowerCase();
-    const tag = core.getInput("tag").toLocaleLowerCase();
+    const imageName = core.getInput("image");
+    const tag = core.getInput("tag");
     const dockerUser = core.getInput("docker_user").toLocaleLowerCase();
     const dockerToken = core.getInput("docker_token").toLocaleLowerCase();
     const dockerHub = core.getInput("docker_hub").toLocaleLowerCase();
     const releaseBranch = core.getInput("release_branch").toLocaleLowerCase();
     const updateLatest = core.getInput("update_latest").toLocaleLowerCase();
 
-    console.log('PushImage start')
-
     await pushImage(imageName, tag); //github
-    
-    console.log('PushImage done')
-    
+
     let newTag = '';
     if (updateLatest === 'true')
     {
@@ -68,9 +63,7 @@ async function run()
             newTag = `${branchName.replaceAll('/','_')}-linux-latest`;
         }
         await changeTag(imageName, tag, newTag);
-        console.log('changeTag done')
         await pushImage(imageName, newTag); //github
-        console.log('push new tag done')
     }
     
     if(dockerHub === 'true')
