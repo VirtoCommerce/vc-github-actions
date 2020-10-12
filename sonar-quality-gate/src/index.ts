@@ -2,7 +2,7 @@ import * as exec from '@actions/exec'
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 import * as utils from '@virtocommerce/vc-actions-lib'
-import http from 'http';
+import https from 'https'
 import url from 'url';
 import fs from 'fs';
 const debug = require('debug')('sonarqube:verify:status');
@@ -27,7 +27,7 @@ async function checkQualityGateStatus(login: string, password: string, sonarHost
     };
     await addAuthHeader(options, login, password);
     return new Promise((resolve, reject) => {
-      const req = http.request(options, response => {
+      const req = https.request(options, response => {
         if (response.statusCode !== 200) {
           console.error('Error requesting the Report status');
           reject('SonarQube replied the status code ' + response.statusCode);
@@ -82,8 +82,6 @@ async function checkReportStatus(
   delayBetweenChecksInSecs: number = DEFAULT_DELAY
 ): Promise<any> {
   return new Promise(async (resolve, reject) => {
-    await exec.exec("ls -al");
-    await exec.exec("ls -al .sonarqube");
     const reportInfo = fs.readFileSync(REPORT_FILE, 'utf8');
     const taskUrl = reportInfo.match(/ceTaskUrl=(.*)/)?.[1];
     if(taskUrl == null)
@@ -98,7 +96,7 @@ async function checkReportStatus(
     };
     await addAuthHeader(options, login, password);
 
-    const req = http.request(options, response => {
+    const req = https.request(options, response => {
       if (response.statusCode !== 200) {
         console.error('Error requesting the Report status');
         reject('SonarQube replied the status code ' + response.statusCode);
@@ -140,7 +138,7 @@ async function checkReportStatus(
   });
 }
 
-async function addAuthHeader(options: http.RequestOptions, login: string, password: string) {
+async function addAuthHeader(options: https.RequestOptions, login: string, password: string) {
   let auth = null;
   if (login !== '' && login !== undefined) {
     debug('Authentication active');
