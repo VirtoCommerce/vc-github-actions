@@ -6,6 +6,7 @@ const utils = require('@krankenbro/virto-actions-lib');
 async function pushImage(image, tag)
 {
     let command = `docker push ${image}:${tag}`;
+    console.log('Command is' + command);
     await exec.exec(command);
 }
 
