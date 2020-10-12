@@ -31,11 +31,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const exec = __importStar(require("@actions/exec"));
 const core = __importStar(require("@actions/core"));
 const github = __importStar(require("@actions/github"));
 const utils = __importStar(require("@virtocommerce/vc-actions-lib"));
-const http_1 = __importDefault(require("http"));
+const https_1 = __importDefault(require("https"));
 const url_1 = __importDefault(require("url"));
 const fs_1 = __importDefault(require("fs"));
 const debug = require('debug')('sonarqube:verify:status');
@@ -56,7 +55,7 @@ function checkQualityGateStatus(login, password, sonarHost, projectKey) {
             };
             yield addAuthHeader(options, login, password);
             return new Promise((resolve, reject) => {
-                const req = http_1.default.request(options, response => {
+                const req = https_1.default.request(options, response => {
                     if (response.statusCode !== 200) {
                         console.error('Error requesting the Report status');
                         reject('SonarQube replied the status code ' + response.statusCode);
@@ -103,8 +102,6 @@ function checkReportStatus(login, password = '', delayBetweenChecksInSecs = DEFA
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
             var _a;
-            yield exec.exec("ls -al");
-            yield exec.exec("ls -al .sonarqube");
             const reportInfo = fs_1.default.readFileSync(REPORT_FILE, 'utf8');
             const taskUrl = (_a = reportInfo.match(/ceTaskUrl=(.*)/)) === null || _a === void 0 ? void 0 : _a[1];
             if (taskUrl == null) {
@@ -117,7 +114,7 @@ function checkReportStatus(login, password = '', delayBetweenChecksInSecs = DEFA
                 path: srvUrl.path
             };
             yield addAuthHeader(options, login, password);
-            const req = http_1.default.request(options, response => {
+            const req = https_1.default.request(options, response => {
                 if (response.statusCode !== 200) {
                     console.error('Error requesting the Report status');
                     reject('SonarQube replied the status code ' + response.statusCode);
@@ -183,6 +180,9 @@ function delay(t) {
 }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
+        if (yield utils.isPullRequest(github)) {
+            return;
+        }
         let login = core.getInput("login");
         let password = core.getInput("password");
         let sonarHost = core.getInput("sonarHost");
@@ -190,6 +190,4 @@ function run() {
         yield checkQualityGateStatus(login, password, sonarHost, projectKey);
     });
 }
-if (!utils.isPullRequest(github)) {
-    run().catch(error => core.setFailed(error.message));
-}
+run().catch(error => core.setFailed(error.message));
