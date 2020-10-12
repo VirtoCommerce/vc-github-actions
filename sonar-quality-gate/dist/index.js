@@ -183,6 +183,9 @@ function delay(t) {
 }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
+        if (yield utils.isPullRequest(github)) {
+            return;
+        }
         let login = core.getInput("login");
         let password = core.getInput("password");
         let sonarHost = core.getInput("sonarHost");
@@ -190,6 +193,4 @@ function run() {
         yield checkQualityGateStatus(login, password, sonarHost, projectKey);
     });
 }
-if (!utils.isPullRequest(github)) {
-    run().catch(error => core.setFailed(error.message));
-}
+run().catch(error => core.setFailed(error.message));

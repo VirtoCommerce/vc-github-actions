@@ -163,6 +163,10 @@ function delay(t: number) {
 }
 
 async function run(): Promise<void> {
+  if(await utils.isPullRequest(github))
+  {
+    return;
+  }
   let login = core.getInput("login");
   let password = core.getInput("password");
   let sonarHost = core.getInput("sonarHost");
@@ -171,7 +175,4 @@ async function run(): Promise<void> {
   await checkQualityGateStatus(login, password, sonarHost, projectKey);
 }
 
-if(!utils.isPullRequest(github))
-{
-  run().catch(error => core.setFailed(error.message))
-}
+run().catch(error => core.setFailed(error.message))
