@@ -46,6 +46,8 @@ async function run()
 
     await pushImage(imageName, tag); //github
     
+    console.log('PushImage done')
+    
     let newTag = '';
     if (updateLatest === 'true')
     {
@@ -63,7 +65,9 @@ async function run()
             newTag = `${branchName.replaceAll('/','_')}-linux-latest`;
         }
         await changeTag(imageName, tag, newTag);
+        console.log('cangeTag done')
         await pushImage(imageName, newTag); //github
+        console.log('push new tag done')
     }
     
     if(dockerHub === 'true')
