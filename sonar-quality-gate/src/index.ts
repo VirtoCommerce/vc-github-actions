@@ -1,5 +1,7 @@
 import * as exec from '@actions/exec'
 import * as core from '@actions/core'
+import * as github from '@actions/github'
+import * as utils from '@virtocommerce/vc-actions-lib'
 import http from 'http';
 import url from 'url';
 import fs from 'fs';
@@ -169,4 +171,7 @@ async function run(): Promise<void> {
   await checkQualityGateStatus(login, password, sonarHost, projectKey);
 }
 
-run().catch(error => core.setFailed(error.message))
+if(!utils.isPullRequest(github))
+{
+  run().catch(error => core.setFailed(error.message))
+}

@@ -33,6 +33,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const exec = __importStar(require("@actions/exec"));
 const core = __importStar(require("@actions/core"));
+const github = __importStar(require("@actions/github"));
+const utils = __importStar(require("@virtocommerce/vc-actions-lib"));
 const http_1 = __importDefault(require("http"));
 const url_1 = __importDefault(require("url"));
 const fs_1 = __importDefault(require("fs"));
@@ -188,4 +190,6 @@ function run() {
         yield checkQualityGateStatus(login, password, sonarHost, projectKey);
     });
 }
-run().catch(error => core.setFailed(error.message));
+if (!utils.isPullRequest(github)) {
+    run().catch(error => core.setFailed(error.message));
+}
