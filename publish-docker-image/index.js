@@ -65,7 +65,7 @@ async function run()
             newTag = `${branchName.replaceAll('/','_')}-linux-latest`;
         }
         await changeTag(imageName, tag, newTag);
-        console.log('cangeTag done')
+        console.log('changeTag done')
         await pushImage(imageName, newTag); //github
         console.log('push new tag done')
     }
