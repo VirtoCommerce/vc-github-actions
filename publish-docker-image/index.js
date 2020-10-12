@@ -44,6 +44,8 @@ async function run()
     const releaseBranch = core.getInput("release_branch").toLocaleLowerCase();
     const updateLatest = core.getInput("update_latest").toLocaleLowerCase();
 
+    console.log('PushImage start')
+
     await pushImage(imageName, tag); //github
     
     console.log('PushImage done')
