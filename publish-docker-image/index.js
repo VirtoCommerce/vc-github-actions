@@ -18,7 +18,7 @@ async function changeTag(image, oldTag, newTag)
 async function renameImage(oldName, oldTag, newName, newTag)
 {
     let command = `docker tag ${oldName}:${oldTag} ${newName}:${newTag}`;
-    await exec.exec(command);
+    await exec.exec (command);
 }
 
 async function dockerHubAuth(user, pass)
