@@ -48,12 +48,12 @@ function installGithubRelease() {
 function run() {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
-        const modulesJsonUrl = core_1.default.getInput("modulesJsonUrl");
+        const modulesJsonUrl = core_1.getInput("modulesJsonUrl");
         console.log(`modulesJsonUrl: ${modulesJsonUrl}`);
         let branchName = yield utils.getBranchName(github_1.default);
         yield installGithubRelease();
-        let orgName = (_a = core_1.default.getInput("organization")) !== null && _a !== void 0 ? _a : (_b = process.env.GITHUB_REPOSITORY) === null || _b === void 0 ? void 0 : _b.split('/')[0];
-        let changelog = core_1.default.getInput('changelog');
+        let orgName = (_a = core_1.getInput("organization")) !== null && _a !== void 0 ? _a : (_b = process.env.GITHUB_REPOSITORY) === null || _b === void 0 ? void 0 : _b.split('/')[0];
+        let changelog = core_1.getInput('changelog');
         let changelogFilePath = `artifacts/changelog.txt`;
         fs_1.default.writeFileSync(changelogFilePath, changelog);
         let releaseNotesArg = `-ReleaseNotes "${changelogFilePath}"`;
