@@ -65,5 +65,5 @@ function run() {
     });
 }
 run().catch(error => {
-    core_1.default.setFailed(error.message);
+    core_1.setFailed(error.message);
 });
