@@ -55,7 +55,7 @@ function run() {
         let orgName = (_a = core_1.getInput("organization")) !== null && _a !== void 0 ? _a : (_b = process.env.GITHUB_REPOSITORY) === null || _b === void 0 ? void 0 : _b.split('/')[0];
         let changelog = core_1.getInput('changelog');
         let changelogFilePath = `artifacts/changelog.txt`;
-        fs_1.writeFileSync(changelogFilePath, changelog);
+        fs_1.default.writeFileSync(changelogFilePath, changelog);
         let releaseNotesArg = `-ReleaseNotes "${changelogFilePath}"`;
         yield exec_1.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip Clean+Restore+Compile+Test`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
             if (exitCode != 0 && exitCode != 422) {
