@@ -39,7 +39,7 @@ const utils = __importStar(require("@krankenbro/virto-actions-lib"));
 function installGithubRelease() {
     return __awaiter(this, void 0, void 0, function* () {
         const ghReleaseUrl = "github.com/github-release/github-release";
-        yield exec_1.default.exec(`go get ${ghReleaseUrl}`);
+        yield exec_1.exec(`go get ${ghReleaseUrl}`);
         process.env.PATH = `${process.env.PATH}:${process.env.HOME}/go/bin`;
         console.log(process.env.PATH);
         console.log(process.env.HOME);
@@ -50,14 +50,14 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         const modulesJsonUrl = core_1.getInput("modulesJsonUrl");
         console.log(`modulesJsonUrl: ${modulesJsonUrl}`);
-        let branchName = yield utils.getBranchName(github_1.default);
+        let branchName = yield utils.getBranchName(github_1);
         yield installGithubRelease();
         let orgName = (_a = core_1.getInput("organization")) !== null && _a !== void 0 ? _a : (_b = process.env.GITHUB_REPOSITORY) === null || _b === void 0 ? void 0 : _b.split('/')[0];
         let changelog = core_1.getInput('changelog');
         let changelogFilePath = `artifacts/changelog.txt`;
-        fs_1.default.writeFileSync(changelogFilePath, changelog);
+        fs_1.writeFileSync(changelogFilePath, changelog);
         let releaseNotesArg = `-ReleaseNotes "${changelogFilePath}"`;
-        yield exec_1.default.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip Clean+Restore+Compile+Test`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
+        yield exec_1.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip Clean+Restore+Compile+Test`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
             if (exitCode != 0 && exitCode != 422) {
                 console.log(`vc-build Release exit code: ${exitCode}`);
             }
