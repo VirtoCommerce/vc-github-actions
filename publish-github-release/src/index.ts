@@ -1,7 +1,7 @@
-import github from '@actions/github'
-import core from '@actions/core'
-import exec from '@actions/exec'
-import fs from 'fs'
+import * as github from '@actions/github'
+import * as core from '@actions/core'
+import * as exec from '@actions/exec'
+import * as fs from 'fs'
 import * as utils from '@krankenbro/virto-actions-lib'
 
 async function installGithubRelease()

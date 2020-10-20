@@ -27,19 +27,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const github_1 = __importDefault(require("@actions/github"));
-const core_1 = __importDefault(require("@actions/core"));
-const exec_1 = __importDefault(require("@actions/exec"));
-const fs_1 = __importDefault(require("fs"));
+const github = __importStar(require("@actions/github"));
+const core = __importStar(require("@actions/core"));
+const exec = __importStar(require("@actions/exec"));
+const fs = __importStar(require("fs"));
 const utils = __importStar(require("@krankenbro/virto-actions-lib"));
 function installGithubRelease() {
     return __awaiter(this, void 0, void 0, function* () {
         const ghReleaseUrl = "github.com/github-release/github-release";
-        yield exec_1.exec(`go get ${ghReleaseUrl}`);
+        yield exec.exec(`go get ${ghReleaseUrl}`);
         process.env.PATH = `${process.env.PATH}:${process.env.HOME}/go/bin`;
         console.log(process.env.PATH);
         console.log(process.env.HOME);
@@ -48,16 +45,16 @@ function installGithubRelease() {
 function run() {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
-        const modulesJsonUrl = core_1.getInput("modulesJsonUrl");
+        const modulesJsonUrl = core.getInput("modulesJsonUrl");
         console.log(`modulesJsonUrl: ${modulesJsonUrl}`);
-        let branchName = yield utils.getBranchName(github_1);
+        let branchName = yield utils.getBranchName(github);
         yield installGithubRelease();
-        let orgName = (_a = core_1.getInput("organization")) !== null && _a !== void 0 ? _a : (_b = process.env.GITHUB_REPOSITORY) === null || _b === void 0 ? void 0 : _b.split('/')[0];
-        let changelog = core_1.getInput('changelog');
+        let orgName = (_a = core.getInput("organization")) !== null && _a !== void 0 ? _a : (_b = process.env.GITHUB_REPOSITORY) === null || _b === void 0 ? void 0 : _b.split('/')[0];
+        let changelog = core.getInput('changelog');
         let changelogFilePath = `artifacts/changelog.txt`;
-        fs_1.default.writeFileSync(changelogFilePath, changelog);
+        fs.writeFileSync(changelogFilePath, changelog);
         let releaseNotesArg = `-ReleaseNotes "${changelogFilePath}"`;
-        yield exec_1.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip Clean+Restore+Compile+Test`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
+        yield exec.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip Clean+Restore+Compile+Test`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
             if (exitCode != 0 && exitCode != 422) {
                 console.log(`vc-build Release exit code: ${exitCode}`);
             }
@@ -65,5 +62,5 @@ function run() {
     });
 }
 run().catch(error => {
-    core_1.setFailed(error.message);
+    core.setFailed(error.message);
 });
