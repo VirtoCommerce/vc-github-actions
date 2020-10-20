@@ -39,7 +39,12 @@ async function run(): Promise<void> {
     let modulesJsonName = core.getInput("modulesJsonName");
     let modulesJsonRepo = core.getInput("modulesJsonRepo");
     let customModulepackageUrl = packageUrl ? `-CustomModulePackageUri ${packageUrl}` : "";
-    await exec.exec(`vc-build PublishModuleManifest ${customModulepackageUrl} -PushChanges ${pushChanges} -ModulesJsonRepoUrl ${modulesJsonRepo} -ModulesJsonName ${modulesJsonName}`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
+    let skipParam = "";
+    if(pushChanges === "true")
+    {
+        skipParam = "-skip PublishManifestGit";
+    }
+    await exec.exec(`vc-build PublishModuleManifest ${customModulepackageUrl} -ModulesJsonRepoUrl ${modulesJsonRepo} -ModulesJsonName ${modulesJsonName} ${skipParam}`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
     console.log(`Exit code: ${exitCode}`);
     if(exitCode != 0 && exitCode != 423 && exitCode != 167)
     {
