@@ -27,16 +27,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const github = __importStar(require("@actions/github"));
 const utils = __importStar(require("@virtocommerce/vc-actions-lib"));
-const https_1 = __importDefault(require("https"));
-const url_1 = __importDefault(require("url"));
-const fs_1 = __importDefault(require("fs"));
+const https = __importStar(require("https"));
+const url = __importStar(require("url"));
+const fs = __importStar(require("fs"));
 const debug = require('debug')('sonarqube:verify:status');
 const REPORT_FILE = '.sonarqube/out/.sonar/report-task.txt';
 const DEFAULT_DELAY = 5;
@@ -48,14 +45,14 @@ function checkQualityGateStatus(login, password, sonarHost, projectKey) {
         return yield checkReportStatus(login, password).then((reportStatus) => __awaiter(this, void 0, void 0, function* () {
             debug('reportStatus : ' + reportStatus);
             console.log('Check the Quality gate ' + gateUrl);
-            const srvUrl = url_1.default.parse(gateUrl);
+            const srvUrl = url.parse(gateUrl);
             const options = {
                 host: srvUrl.hostname,
                 path: srvUrl.path
             };
             yield addAuthHeader(options, login, password);
             return new Promise((resolve, reject) => {
-                const req = https_1.default.request(options, response => {
+                const req = https.request(options, response => {
                     if (response.statusCode !== 200) {
                         console.error('Error requesting the Report status');
                         reject('SonarQube replied the status code ' + response.statusCode);
@@ -102,19 +99,19 @@ function checkReportStatus(login, password = '', delayBetweenChecksInSecs = DEFA
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
             var _a;
-            const reportInfo = fs_1.default.readFileSync(REPORT_FILE, 'utf8');
+            const reportInfo = fs.readFileSync(REPORT_FILE, 'utf8');
             const taskUrl = (_a = reportInfo.match(/ceTaskUrl=(.*)/)) === null || _a === void 0 ? void 0 : _a[1];
             if (taskUrl == null) {
                 throw new Error("");
             }
             console.log('Report Status Url : ' + taskUrl);
-            const srvUrl = url_1.default.parse(taskUrl);
+            const srvUrl = url.parse(taskUrl);
             const options = {
                 host: srvUrl.hostname,
                 path: srvUrl.path
             };
             yield addAuthHeader(options, login, password);
-            const req = https_1.default.request(options, response => {
+            const req = https.request(options, response => {
                 if (response.statusCode !== 200) {
                     console.error('Error requesting the Report status');
                     reject('SonarQube replied the status code ' + response.statusCode);
@@ -179,6 +176,7 @@ function delay(t) {
     });
 }
 function run() {
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         if (yield utils.isPullRequest(github)) {
             return;
@@ -187,6 +185,9 @@ function run() {
         let password = core.getInput("password");
         let sonarHost = core.getInput("sonarHost");
         let projectKey = core.getInput("projectKey");
+        if (projectKey === "") {
+            projectKey = (_b = (_a = process.env.GITHUB_REPOSITORY) === null || _a === void 0 ? void 0 : _a.replace("/", "_")) !== null && _b !== void 0 ? _b : "None";
+        }
         yield checkQualityGateStatus(login, password, sonarHost, projectKey);
     });
 }

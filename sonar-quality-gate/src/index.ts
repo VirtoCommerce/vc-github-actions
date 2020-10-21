@@ -2,9 +2,9 @@ import * as exec from '@actions/exec'
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 import * as utils from '@virtocommerce/vc-actions-lib'
-import https from 'https'
-import url from 'url';
-import fs from 'fs';
+import * as https from 'https'
+import * as url from 'url';
+import * as fs from 'fs';
 const debug = require('debug')('sonarqube:verify:status');
 
 const REPORT_FILE = '.sonarqube/out/.sonar/report-task.txt';
@@ -169,6 +169,10 @@ async function run(): Promise<void> {
   let password = core.getInput("password");
   let sonarHost = core.getInput("sonarHost");
   let projectKey = core.getInput("projectKey");
+  if(projectKey === "")
+  {
+    projectKey = process.env.GITHUB_REPOSITORY?.replace("/", "_") ?? "None";
+  }
 
   await checkQualityGateStatus(login, password, sonarHost, projectKey);
 }

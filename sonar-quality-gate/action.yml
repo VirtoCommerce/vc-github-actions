@@ -14,7 +14,7 @@ inputs:
       required: false
     projectKey:
       description: "Project key"
-      required: true
+      required: false
 runs:
   using: 'node12'
   main: 'dist/index.js'
