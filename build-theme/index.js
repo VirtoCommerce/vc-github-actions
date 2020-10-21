@@ -53,7 +53,7 @@ async function run()
 {
     const releaseBranch = core.getInput("release_branch").toLowerCase();
     let versionSuffix = "";
-    let branchName = await utils.getBranchName(github);
+    let branchName = await utils.getBranchName(github).toLowerCase();
     console.log(`Branch: ${branchName}`);
 
 // Alpha version should be created in any case except branchName is equal to releaseBranch
@@ -70,9 +70,10 @@ async function run()
 // Alpha version should be created in any case except branchName is equal to releaseBranch
     if(branchName !== releaseBranch)
     {
+        let versionPrefix = branchName.substring(branchName.lastIndexOf('/'),branchName.length) + '-';
         let artifactPath = await utils.findArtifact("artifacts/*.zip");
         let artifactName = path.parse(artifactPath).name;
-        let newArtifactName = `${artifactName}${versionSuffix}`;
+        let newArtifactName = `${versionPrefix}${artifactName}${versionSuffix}`;
         let newArtifactPath = artifactPath.replace(artifactName, newArtifactName);
         console.log(`Path: ${artifactPath}`);
         console.log(`New Path: ${newArtifactPath}`);
