@@ -51,9 +51,9 @@ async function buildTheme()
 
 async function run()
 {
-    const releaseBranch = core.getInput("release_branch").toLowerCase();
+    const releaseBranch = core.getInput("release_branch");
     let versionSuffix = "";
-    let branchName = await utils.getBranchName(github).toLowerCase();
+    let branchName = await utils.getBranchName(github);
     console.log(`Branch: ${branchName}`);
 
 // Alpha version should be created in any case except branchName is equal to releaseBranch
@@ -70,7 +70,7 @@ async function run()
 // Alpha version should be created in any case except branchName is equal to releaseBranch
     if(branchName !== releaseBranch)
     {
-        let versionPrefix = branchName.substring(branchName.lastIndexOf('/'),branchName.length) + '-';
+        let versionPrefix = branchName.substring(branchName.lastIndexOf('/'),branchName.length).toLowerCase() + '-';
         let artifactPath = await utils.findArtifact("artifacts/*.zip");
         let artifactName = path.parse(artifactPath).name;
         let newArtifactName = `${versionPrefix}${artifactName}${versionSuffix}`;
