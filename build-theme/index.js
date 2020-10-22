@@ -29,7 +29,7 @@ async function run()
 // Alpha version should be created in any case except branchName is equal to releaseBranch
     if(branchName !== releaseBranch)
     {
-        versionSuffix = core.getInput("versionSuffix");
+        versionSuffix = `-${core.getInput("versionSuffix")}`;
         let versionPrefix = branchName.substring(branchName.lastIndexOf('/'),branchName.length).toLowerCase() + '-';
         let artifactPath = await utils.findArtifact("artifacts/*.zip");
         let artifactName = path.parse(artifactPath).name;
