@@ -3,7 +3,12 @@ description: 'This action grabs Version and Version suffix from module.manifest,
 inputs:
   path:
     description: 'Path to directory that contains module.manifest, package.json or Directory.Build.Props'
-    required: false    
+    required: false
+  release_branch: 
+    description: "Branch support preparation of a new production release"
+    required: true
+    default: "master"
+
 outputs:
   branchName:
     description: 'Triggered branch name'

@@ -202,6 +202,7 @@ let branchName = "";
 async function run() 
 {
     // let files = findFile("src", "module.manifest");
+    const releaseBranch = core.getInput("release_branch");
     if (await tryGetInfoFromModuleManifest()) { }
     else if (await tryGetInfoFromPackageJson()) { }
     else if (await tryGetInfoFromDirectoryBuildProps()) { }
@@ -223,7 +224,7 @@ async function run()
     }
 
     if (suffix === "" ) {
-        getCommitCount(branchName).then(result => { pushOutputs(branchName, prefix, branchName === 'master' ? result : `alpha.${result}`, moduleId); })
+        getCommitCount(branchName).then(result => { pushOutputs(branchName, prefix, branchName === releaseBranch ? result : `alpha.${result}`, moduleId); })
     } else {
         pushOutputs(branchName, prefix, suffix, moduleId);
     }

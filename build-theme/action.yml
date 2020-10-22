@@ -2,7 +2,7 @@ name: 'build-theme'
 description: 'Builds theme'
 inputs:
    release_branch: 
-    description: "Branche support preparation of a new production release"
+    description: "Branch support preparation of a new production release"
     required: true
     default: "master"
 
