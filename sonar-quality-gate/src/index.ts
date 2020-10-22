@@ -69,13 +69,6 @@ async function processGateResponse(body: string, resolve: any, reject: any) {
   resolve('OK');
 }
 
-// TODO : max checks ?
-/**
- *
- * @param {*} login login to the SonarQube API. Use it too for tokens. Let it empty or undefined if no authentication is required.
- * @param {*} password password to the SonarQube API. Use empty value for tokens.
- * @param {*} delayBetweenChecksInSecs Defaults to 5
- */
 async function checkReportStatus(
   login: string,
   password: string = '',
@@ -153,7 +146,6 @@ async function addAuthHeader(options: https.RequestOptions, login: string, passw
   }
 }
 
-// Add delay in the promise chain
 function delay(t: number) {
   return new Promise(function(resolve) {
     setTimeout(resolve, t);
