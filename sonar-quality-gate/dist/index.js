@@ -85,12 +85,6 @@ function processGateResponse(body, resolve, reject) {
         console.log('QUALITY GATE STATUS : ' + status);
         if (status != 'OK' && status != 'WARN') {
             console.error('QUALITY GATE HAS FAILED');
-            const errors = gateResponse.projectStatus.conditions
-                .filter((cond) => cond.status == 'ERROR')
-                .map((cond) => `[${cond.metricKey}]: ${cond.actualValue} ${cond.comparator} ${cond.errorThreshold}`)
-                .join(', ');
-            debug(errors);
-            reject(errors);
         }
         resolve('OK');
     });
