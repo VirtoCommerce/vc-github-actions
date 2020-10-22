@@ -6,10 +6,6 @@ set -x
 HEADER_AUTH_TOKEN="Authorization: token ${GITHUB_TOKEN}"
 HEADER_SHA="Accept: application/vnd.github.v3.sha"
 
-# Set new branch name
-if [ -z "$GHA_DEPLOY_BRANCH_NAME" ]; then
-    GHA_DEPLOY_BRANCH_NAME="workflow-update"
-fi
 # Set default user
 if [ -z "$USER" ]; then
     USER="VirtoCommerce"
@@ -47,8 +43,6 @@ fi
 
 git checkout ${TARGET_BRANCH}
 
-git checkout -b ${GHA_DEPLOY_BRANCH_NAME}
-
 # Copy updated Github Action workflow files to the repo
 rm -rf .github/
 cp -rf /workflows/${GHA_DEPLOYMENT_FOLDER}/.github .
@@ -61,16 +55,6 @@ fi
 
 git commit -m "${COMMIT_MESSAGE}"
 
-git push origin ${GHA_DEPLOY_BRANCH_NAME}
-
-# Create pull request from new branch into development branch
-RESPONSE=$(curl -s -H "${HEADER_AUTH_TOKEN}" -d '{"title":"VP-4796: Update Github Actions workflow","base":"'${TARGET_BRANCH}'", "head":"'${GHA_DEPLOY_BRANCH_NAME}'"}' "https://api.github.com/repos/${USER}/${REPOSITORY}/pulls")
-
- # Check the status of the pull request
-PR_STATUS=$(echo ${RESPONSE} | jq '.state')
-if [[ $PR_STATUS != *"open"* ]]; then
-    # Exit upon pull request failure. Would need further investigation into the offending repo.
-    exit 1
-fi
+git push origin ${TARGET_BRANCH}
 
 set +x 

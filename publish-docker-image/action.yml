@@ -16,7 +16,7 @@ inputs:
   docker_hub:
     description: "Publish image to hub.docker.com"
     required: false
-    default: true
+    default: "true"
   release_branch: 
     description: "Branche support preparation of a new production release"
     required: true
@@ -24,7 +24,7 @@ inputs:
   update_latest: 
     description: "Update *linux-latest image"
     required: true
-    default: true
+    default: "true"
 
 
 runs:
