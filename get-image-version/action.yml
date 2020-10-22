@@ -1,8 +1,8 @@
 name: 'Get Image Version'
-description: 'This action grabs Version and Version suffix from module.manifest, package.json or Directory.Build.Props file. If Version suffix not present calculate it as a branch commits count'
+description: 'This action grabs Version and Version suffix from module.manifest, package.json or Directory.Build.props file. If Version suffix not present calculate it as a branch commits count'
 inputs:
   path:
-    description: 'Path to directory that contains module.manifest, package.json or Directory.Build.Props'
+    description: 'Path to directory that contains module.manifest, package.json or Directory.Build.props'
     required: false
   release_branch: 
     description: "Branch support preparation of a new production release"
