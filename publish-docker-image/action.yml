@@ -19,7 +19,7 @@ inputs:
     default: "true"
   release_branch: 
     description: "Branche support preparation of a new production release"
-    required: true
+    required: false
     default: "master"
   update_latest: 
     description: "Update *linux-latest image"

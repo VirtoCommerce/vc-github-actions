@@ -72,7 +72,7 @@ async function run()
         let splitedImageName = imageName.split("/");
         let projectType = splitedImageName[splitedImageName.length-1];
         let dockerImageName = `${dockerUser}/${projectType}`;
-        let dockerImageTag =  branchName === 'master' ? "latest" : "dev-linux-experimental"
+        let dockerImageTag =  releaseBranch.localeCompare(branchName) === 0 ? "latest" : "dev-linux-experimental";
         await renameImage(imageName, tag, dockerImageName, dockerImageTag);
         await dockerHubAuth(dockerUser, dockerToken);
         await pushImage(dockerImageName, dockerImageTag);

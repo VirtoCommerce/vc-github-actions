@@ -3,7 +3,7 @@ description: 'Publishes Theme to Azure blob or Github Release'
 inputs:
   release_branch: 
     description: 'Branche support preparation of a new production release'
-    required: true
+    required: false
     default: "master"
 outputs:
   artifactPath:

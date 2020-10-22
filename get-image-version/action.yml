@@ -6,7 +6,7 @@ inputs:
     required: false
   release_branch: 
     description: "Branch support preparation of a new production release"
-    required: true
+    required: false
     default: "master"
 
 outputs:
