@@ -30,19 +30,15 @@ async function buildImage(imageName, tag)
 
 async function run()
 {
-    let branchName = await utils.getBranchName(github);
-    if(branchName === 'master' || branchName === 'dev')
+    let dockerTag = core.getInput("tag");
+    let imageName = core.getInput("imageName");
+    let dockerfiles = core.getInput("dockerFiles");
+    if(!imageName)
     {
-        let dockerTag = core.getInput("tag");
-        let imageName = core.getInput("imageName");
-        let dockerfiles = core.getInput("dockerFiles");
-        if(!imageName)
-        {
-            imageName = await utils.getProjectType();
-        }
-        await prepareDockerfile(dockerfiles);
-        await buildImage(imageName, dockerTag)
+        imageName = await utils.getProjectType();
     }
+    await prepareDockerfile(dockerfiles);
+    await buildImage(imageName, dockerTag)
 }
 
 run().catch(err => core.setFailed(err.message));
