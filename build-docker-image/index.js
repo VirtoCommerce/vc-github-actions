@@ -38,7 +38,7 @@ async function run()
         let dockerfiles = core.getInput("dockerFiles");
         if(!imageName)
         {
-            imageName = await utils.getRepoName();
+            imageName = await utils.getProjectType();
         }
         await prepareDockerfile(dockerfiles);
         await buildImage(imageName, dockerTag)
