@@ -4,7 +4,7 @@ import * as exec from '@actions/exec'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import * as utils from '@krankenbro/virto-actions-lib'
+import * as utils from '@virtocommerce/vc-actions-lib'
 
 // async function installGithubRelease()
 // {

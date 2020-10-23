@@ -2,7 +2,7 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const exec = require('@actions/exec');
 const path = require('path');
-const utils = require('@krankenbro/virto-actions-lib');
+const utils = require('@virtocommerce/vc-actions-lib');
 
 async function run()
 {

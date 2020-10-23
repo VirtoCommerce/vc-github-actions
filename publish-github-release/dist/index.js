@@ -32,7 +32,7 @@ const github = __importStar(require("@actions/github"));
 const core = __importStar(require("@actions/core"));
 const exec = __importStar(require("@actions/exec"));
 const fs = __importStar(require("fs"));
-const utils = __importStar(require("@krankenbro/virto-actions-lib"));
+const utils = __importStar(require("@virtocommerce/vc-actions-lib"));
 function installGithubRelease() {
     return __awaiter(this, void 0, void 0, function* () {
         const ghReleaseUrl = "github.com/github-release/github-release";

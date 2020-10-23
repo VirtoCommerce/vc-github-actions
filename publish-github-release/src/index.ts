@@ -2,7 +2,7 @@ import * as github from '@actions/github'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as fs from 'fs'
-import * as utils from '@krankenbro/virto-actions-lib'
+import * as utils from '@virtocommerce/vc-actions-lib'
 
 async function installGithubRelease()
 {

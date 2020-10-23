@@ -3,7 +3,7 @@ import * as github from '@actions/github'
 import * as exec from '@actions/exec'
 import fs from 'fs'
 import os from 'os'
-import * as utils from '@krankenbro/virto-actions-lib'
+import * as utils from '@virtocommerce/vc-actions-lib'
 import Axios from 'axios'
 import { parseString as xmlParseString } from 'xml2js'
 

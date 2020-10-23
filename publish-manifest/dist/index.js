@@ -35,7 +35,7 @@ const core = __importStar(require("@actions/core"));
 const exec = __importStar(require("@actions/exec"));
 const fs_1 = __importDefault(require("fs"));
 const os_1 = __importDefault(require("os"));
-const utils = __importStar(require("@krankenbro/virto-actions-lib"));
+const utils = __importStar(require("@virtocommerce/vc-actions-lib"));
 const axios_1 = __importDefault(require("axios"));
 function getConfigHome() {
     return __awaiter(this, void 0, void 0, function* () {

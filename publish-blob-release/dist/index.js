@@ -61,7 +61,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var core = __importStar(require("@actions/core"));
 var exec = __importStar(require("@actions/exec"));
 var path_1 = __importDefault(require("path"));
-var utils = __importStar(require("@krankenbro/virto-actions-lib"));
+var utils = __importStar(require("@virtocommerce/vc-actions-lib"));
 function run() {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
