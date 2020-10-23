@@ -133,7 +133,7 @@ function tryGetInfoFromDirectoryBuildProps() {
 }
 
 function pushOutputs(branchName, prefix, suffix, moduleId) {
-    branchName.substring(branchName.lastIndexOf('/'),branchName.length).toLowerCase();
+    branchName = branchName.substring(branchName.lastIndexOf('/') + 1, branchName.length).toLowerCase();
     const sha = github.context.eventName.startsWith('pull_request') ? github.context.payload.pull_request.head.sha.substring(0, 8) : github.context.sha.substring(0, 8);
     const shortVersion = prefix + '-' + suffix;
     const tag = branchName + '-' + prefix + '-' + sha;
