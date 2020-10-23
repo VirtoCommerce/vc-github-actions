@@ -135,14 +135,16 @@ function tryGetInfoFromDirectoryBuildProps() {
 function pushOutputs(branchName, prefix, suffix, moduleId) {
     branchName = branchName.substring(branchName.lastIndexOf('/') + 1, branchName.length).toLowerCase();
     const sha = github.context.eventName.startsWith('pull_request') ? github.context.payload.pull_request.head.sha.substring(0, 8) : github.context.sha.substring(0, 8);
+    const fullSuffix = suffix + '-' + branchName;
     const shortVersion = prefix + '-' + suffix;
     const tag = prefix + '-' + branchName + '-' + sha;
-    const fullVersion = prefix + '-' +  suffix + '-' + branchName;
-    const taggedVersion = prefix + '-' +  suffix + '-' + branchName + '-' + sha;
+    const fullVersion = prefix + '-' + fullSuffix;
+    const taggedVersion = prefix + '-' + fullSuffix + '-' + sha;
 
     core.setOutput("branchName", branchName);
     core.setOutput("prefix", prefix);
     core.setOutput("suffix", suffix);
+    core.setOutput("fullSuffix", fullSuffix);
     core.setOutput("moduleId", moduleId);
     core.setOutput("sha", sha);
     core.setOutput("shortVersion", shortVersion);
@@ -153,6 +155,7 @@ function pushOutputs(branchName, prefix, suffix, moduleId) {
     console.log(`Branch name is: ${branchName}`);
     console.log(`Version prefix is: ${prefix}`);
     console.log(`Version suffix is: ${suffix}`);
+    console.log(`Version fullSuffix is: ${fullSuffix}`);
     console.log(`Module Id is: ${moduleId}`);
     console.log(`SHA is: ${sha}`);
     console.log(`Short version is: ${shortVersion}`);
