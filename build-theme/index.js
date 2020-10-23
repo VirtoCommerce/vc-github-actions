@@ -30,10 +30,9 @@ async function run()
     if(branchName !== releaseBranch)
     {
         versionSuffix = `-${core.getInput("versionSuffix")}`;
-        let versionPrefix = branchName.substring(branchName.lastIndexOf('/'),branchName.length).toLowerCase() + '-';
         let artifactPath = await utils.findArtifact("artifacts/*.zip");
         let artifactName = path.parse(artifactPath).name;
-        let newArtifactName = `${versionPrefix}${artifactName}${versionSuffix}`;
+        let newArtifactName = `${artifactName}${versionSuffix}`;
         let newArtifactPath = artifactPath.replace(artifactName, newArtifactName);
         console.log(`Path: ${artifactPath}`);
         console.log(`New Path: ${newArtifactPath}`);
