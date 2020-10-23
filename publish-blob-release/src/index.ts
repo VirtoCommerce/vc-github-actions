@@ -41,20 +41,4 @@ async function run() {
     core.setOutput("packageUrl", downloadUrl);
 }
 
-// async function run() {
-//     await installGithubRelease();
-//     let orgName = process.env.GITHUB_REPOSITORY?.split('/')[0];
-//     let changelog = core.getInput('changelog');
-//     let changelogFilePath = `artifacts/changelog.txt`;
-//     let branchName = await utils.getBranchName(github);
-//     fs.writeFileSync(changelogFilePath, changelog);
-//     let releaseNotesArg = `-ReleaseNotes "${changelogFilePath}"`;
-//     await exec.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip Clean+Restore+Compile+Test`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
-//         if(exitCode != 0 && exitCode != 422)
-//         {
-//             console.log(`vc-build Release exit code: ${exitCode}`);
-//         }
-//     });
-// }
-
-run();
+run().catch(error => core.setFailed(error.message));

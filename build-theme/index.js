@@ -18,7 +18,7 @@ async function buildTheme()
 
 async function run()
 {
-    const releaseBranch = core.getInput("release_branch");
+    const releaseBranch = core.getInput("releaseBranch");
     let versionSuffix = "";
     let branchName = await utils.getBranchName(github);
     console.log(`Branch: ${branchName}`);

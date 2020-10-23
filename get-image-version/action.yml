@@ -4,7 +4,7 @@ inputs:
   path:
     description: 'Path to directory that contains module.manifest, package.json or Directory.Build.props'
     required: false
-  release_branch: 
+  releaseBranch: 
     description: "Branch support preparation of a new production release"
     required: false
     default: "master"

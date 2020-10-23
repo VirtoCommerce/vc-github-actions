@@ -79,8 +79,11 @@ jobs:
       uses: VirtoCommerce/vc-github-actions/build-docker-image@master
       with:
         tag: ${{ steps.image.outputs.taggedVersion }}
+        imageName: "platform"
+        dockerFiles: "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh"
           
     - name: Publish Nuget
+      if: ${{ github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'}}
       uses: VirtoCommerce/vc-github-actions/publish-nuget@master
 
     - name: Publish to Blob

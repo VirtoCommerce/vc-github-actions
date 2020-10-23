@@ -205,7 +205,7 @@ let branchName = "";
 async function run() 
 {
     // let files = findFile("src", "module.manifest");
-    const releaseBranch = core.getInput("release_branch");
+    const releaseBranch = core.getInput("releaseBranch");
     if (await tryGetInfoFromModuleManifest()) { }
     else if (await tryGetInfoFromPackageJson()) { }
     else if (await tryGetInfoFromDirectoryBuildProps()) { }

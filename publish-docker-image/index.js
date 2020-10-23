@@ -17,7 +17,7 @@ async function changeTag(image, oldTag, newTag)
 async function renameImage(oldName, oldTag, newName, newTag)
 {
     let command = `docker tag ${oldName}:${oldTag} ${newName}:${newTag}`;
-    await exec.exec (command);
+    await exec.exec(command);
 }
 
 async function dockerHubAuth(user, pass)
@@ -38,10 +38,10 @@ async function run()
     let branchName = await utils.getBranchName(github);
     const imageName = core.getInput("image");
     const tag = core.getInput("tag");
-    const dockerUser = core.getInput("docker_user").toLocaleLowerCase();
-    const dockerToken = core.getInput("docker_token").toLocaleLowerCase();
-    const dockerHub = core.getInput("docker_hub").toLocaleLowerCase();
-    const releaseBranch = core.getInput("release_branch").toLocaleLowerCase();
+    const dockerUser = core.getInput("docker_user");
+    const dockerToken = core.getInput("docker_token");
+    const dockerHub = core.getInput("docker_hub");
+    const releaseBranch = core.getInput("release_branch");
     const updateLatest = core.getInput("update_latest").toLocaleLowerCase();
 
     await pushImage(imageName, tag); //github

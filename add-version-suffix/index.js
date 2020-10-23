@@ -42,8 +42,13 @@ async function getCommitCount(baseBranch) {
 async function run()
 {
     let branchName = await utils.getBranchName(github);
-    const commitCount = await getCommitCount(branchName);
-    await exec.exec(`vc-build ChangeVersion -CustomVersionSuffix \"alpha.${commitCount}\"`).then(exitCode => {
+    let versionSuffix = core.getInput("versionSuffix");
+    if(!versionSuffix)
+    {
+        const commitCount = await getCommitCount(branchName);
+        versionSuffix = `alpha.${commitCount}`;
+    }
+    await exec.exec(`vc-build ChangeVersion -CustomVersionSuffix \"${versionSuffix}\"`).then(exitCode => {
         if(exitCode != 0)
         {
             core.setFailed("vc-build ChangeVersion failed");
