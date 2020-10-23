@@ -34,7 +34,7 @@ async function run()
     if(branchName === 'master' || branchName === 'dev')
     {
         let dockerTag = core.getInput("tag");
-        let imageName = core.getInput("imageName");
+        let imageName = core.getInput("imageName") ?? await utils.getRepoName();
         let dockerfiles = core.getInput("dockerFiles");
         await prepareDockerfile(dockerfiles);
         await buildImage(imageName, dockerTag)
