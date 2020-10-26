@@ -1,7 +1,7 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const exec = require('@actions/exec');
-const utils = require('@krankenbro/virto-actions-lib');
+const utils = require('@virtocommerce/vc-actions-lib');
 
 async function pushImage(image, tag)
 {
@@ -25,6 +25,11 @@ async function dockerHubAuth(user, pass)
     await exec.exec(`docker login -u ${user} -p ${pass}`);
 }
 
+String.prototype.replaceAll = function (find, replace) 
+{
+    return this.split(find).join(replace);
+}
+
 async function run()
 {
     
@@ -36,25 +41,30 @@ async function run()
     const dockerUser = core.getInput("docker_user");
     const dockerToken = core.getInput("docker_token");
     const dockerHub = core.getInput("docker_hub");
+    const releaseBranch = core.getInput("release_branch");
+    const updateLatest = core.getInput("update_latest").toLocaleLowerCase();
 
     await pushImage(imageName, tag); //github
-    
+
     let newTag = '';
-    if(branchName === 'master')
+    if (updateLatest === 'true')
     {
-        newTag = 'linux-latest';
+        if(branchName === releaseBranch)
+        {
+            newTag = 'linux-latest';
+        }
+        else if(isPullRequest)
+        {
+            let prNumber = github.context.payload.pull_request.number;
+            newTag = `pr${prNumber}`;
+        }
+        else 
+        {
+            newTag = `${branchName.replaceAll('/','_')}-linux-latest`;
+        }
+        await changeTag(imageName, tag, newTag);
+        await pushImage(imageName, newTag); //github
     }
-    else if(isPullRequest)
-    {
-        let prNumber = github.context.payload.pull_request.number;
-        newTag = `pr${prNumber}`;
-    }
-    else 
-    {
-        newTag = `${branchName}-linux-latest`;
-    }
-    await changeTag(imageName, tag, newTag);
-    await pushImage(imageName, newTag); //github
     
     if(dockerHub === 'true')
     {
@@ -62,7 +72,7 @@ async function run()
         let splitedImageName = imageName.split("/");
         let projectType = splitedImageName[splitedImageName.length-1];
         let dockerImageName = `${dockerUser}/${projectType}`;
-        let dockerImageTag =  branchName === 'master' ? "latest" : "dev-linux-experimental"
+        let dockerImageTag =  releaseBranch.localeCompare(branchName) === 0 ? "latest" : "dev-linux-experimental";
         await renameImage(imageName, tag, dockerImageName, dockerImageTag);
         await dockerHubAuth(dockerUser, dockerToken);
         await pushImage(dockerImageName, dockerImageTag);

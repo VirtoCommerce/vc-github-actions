@@ -8,7 +8,7 @@ This action runs on each push to dev and syncs GitHub Workflows from the vc-modu
 
 Personal github access with public_repo and workflow scopes. GITHUB_TOKEN doesn't work due to it doesn't have workflow scope.
 
-## Example usage
+## Example of usage
 ```
 - name: Sync modules workflows
     uses: VirtoCommerce/vc-github-actions/sync-module-cicd@master

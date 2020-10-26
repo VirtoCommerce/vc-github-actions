@@ -1,9 +1,14 @@
 name: 'Get Image Version'
-description: 'This action grabs Version and Version suffix from module.manifest, package.json or Directory.Build.Props file. If Version suffix not present calculate it as a branch commits count'
+description: 'This action grabs Version and Version suffix from module.manifest, package.json or Directory.Build.props file. If Version suffix not present calculate it as a branch commits count'
 inputs:
   path:
-    description: 'Path to directory that contains module.manifest, package.json or Directory.Build.Props'
-    required: false    
+    description: 'Path to directory that contains module.manifest, package.json or Directory.Build.props'
+    required: false
+  releaseBranch: 
+    description: "Branch support preparation of a new production release"
+    required: false
+    default: "master"
+
 outputs:
   branchName:
     description: 'Triggered branch name'
@@ -11,6 +16,8 @@ outputs:
     description: 'Version prefix value'
   suffix:
     description: 'Version suffix value'
+  fullSuffix:
+    description: 'Version suffix value formatted as suffix-branch-name'
   moduleId:
     description: 'Module Id value'
   sha:
@@ -18,11 +25,11 @@ outputs:
   shortVersion:
     description: 'Version value formatted as prefix-suffix'
   tag:
-    description: 'Version value formatted as branchName-prefix-sha'
+    description: 'Version value formatted as prefix-branchName-sha'
   fullVersion:
-    description: 'Version value formatted as branchName-prefix-suffix'
+    description: 'Version value formatted as prefix-fullSuffix'
   taggedVersion:
-    description: 'Version value formatted as branchName-prefix-suffix-sha'
+    description: 'Version value formatted as prefix-fullSuffix-sha'
 
 
 runs:
