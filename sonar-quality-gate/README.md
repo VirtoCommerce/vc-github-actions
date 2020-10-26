@@ -16,3 +16,11 @@ Prepares parameters for vc-build SonarQubeStart
       description: "Project key"
       default: ""
       required: false
+
+## Example usage
+```
+- name: Quality Gate
+  uses: VirtoCommerce/vc-github-actions/sonar-quality-gate@master
+  with:
+    login: ${{secrets.SONAR_TOKEN}}
+```

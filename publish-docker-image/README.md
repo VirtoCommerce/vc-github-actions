@@ -25,3 +25,15 @@ Publish docker image
     description: "Update *linux-latest image"
     required: true
     default: "true"
+
+## Example usage
+```
+- name: Publish Docker Image
+  if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev' }}
+  uses: VirtoCommerce/vc-github-actions/publish-docker-image@master
+  with:
+    image: ${{ steps.dockerBuild.outputs.imageName }}
+    tag: ${{ steps.image.outputs.taggedVersion }}
+    docker_user: ${{ secrets.DOCKER_USERNAME }}
+    docker_token: ${{ secrets.DOCKER_TOKEN }}
+```

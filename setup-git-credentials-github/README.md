@@ -12,3 +12,12 @@ Setups credentials for git
 ### githubToken:
     description: "GitHub Token"
     required: false
+
+## Example usage
+```
+- name: Setup Git Credentials
+  if: ${{ github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'}}
+  uses: VirtoCommerce/vc-github-actions/setup-git-credentials-github@master
+  with: 
+    githubToken: ${{ secrets.REPO_TOKEN }}
+```

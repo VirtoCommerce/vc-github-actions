@@ -6,3 +6,9 @@ Adds version suffix in Directory.Build.props and [module.manifest] for prereleas
     description: "Version suffix"
     required: false
     default: ""
+
+## Example usage
+```
+- name: Add version suffix
+  uses: VirtoCommerce/vc-github-actions/add-version-suffix@master
+```
