@@ -40,7 +40,7 @@ async function run(): Promise<void> {
     let modulesJsonRepo = core.getInput("modulesJsonRepo");
     let customModulepackageUrl = packageUrl ? `-CustomModulePackageUri ${packageUrl}` : "";
     let skipParam = "";
-    if(pushChanges === "true")
+    if(pushChanges !== "true")
     {
         skipParam = "-skip PublishManifestGit";
     }
