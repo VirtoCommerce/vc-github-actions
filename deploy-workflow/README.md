@@ -29,3 +29,14 @@ Deploys workflows for platform, storefront, modules, themes
     default: "update_gha_source"
     description: "Name of the branch to be created. Default branch name: update_gha_source."
     required: false
+
+## Example of usage
+```
+- name: vc-module-elastic-search
+  uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+  env:
+    GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+    USER: ${{ env.GITHUB_USER }}
+    GHA_DEPLOYMENT_FOLDER: "modules"
+    REPOSITORY: "vc-module-elastic-search"
+```

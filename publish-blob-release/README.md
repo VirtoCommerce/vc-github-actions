@@ -13,3 +13,13 @@ Publishes release artifact to Azure Blob
 ## outputs:
 ### packageUrl:
     description: "Package url"
+
+## Example of usage
+```
+- name: Publish to Blob
+  if: ${{ github.ref == 'refs/heads/dev' }}
+  id: blobRelease
+  uses: VirtoCommerce/vc-github-actions/publish-blob-release@master
+  with:
+    blobSAS: ${{ secrets.BLOB_TOKEN }}
+```

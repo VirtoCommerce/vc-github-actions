@@ -24,3 +24,12 @@ Publishes modules.json
 ## outputs:
 ### modulesJsonPath:
     description: "Path to updated modules.json"
+
+## Example of usage
+```
+- name: Publish Manifest
+  if: ${{ github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'}}
+  uses: VirtoCommerce/vc-github-actions/publish-manifest@master
+  with:
+    packageUrl: ${{ steps.blobRelease.outputs.packageUrl }}
+```
