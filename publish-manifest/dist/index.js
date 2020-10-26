@@ -69,7 +69,7 @@ function run() {
         let modulesJsonRepo = core.getInput("modulesJsonRepo");
         let customModulepackageUrl = packageUrl ? `-CustomModulePackageUri ${packageUrl}` : "";
         let skipParam = "";
-        if (pushChanges === "true") {
+        if (pushChanges !== "true") {
             skipParam = "-skip PublishManifestGit";
         }
         yield exec.exec(`vc-build PublishModuleManifest ${customModulepackageUrl} -ModulesJsonRepoUrl ${modulesJsonRepo} -ModulesJsonName ${modulesJsonName} ${skipParam}`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
