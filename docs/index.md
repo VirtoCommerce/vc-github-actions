@@ -2,7 +2,7 @@
 
 ## Overview
 
-Virto Commerce continuous integration based on GitHub Actions feature. It contain:
+Virto Commerce continuous integration based on [GitHub Actions feature](https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/introduction-to-github-actions). It contain:
 
 * yaml workflows, placed in Platform, Modules, Storefront repositories;
 * special actions, placed in [VirtoCommerce/vc-github-actions](https://github.com/VirtoCommerce/vc-github-actions) repository;
@@ -60,7 +60,7 @@ Create GitHub organization level secrets:
 * NUGET_KEY - Nuget repository key;
 * SONAR_TOKEN - SonarCloud access token, with Execute Analysis and Create Project privileges.
 
-## How to enable workflows in a new repository
+## How to enable workflow in a new repository
 
-1. Enable Github Actions feature.
-
+1. Create `.github/workflows` folder in your repository.
+1. Copy workflow from [templates folder](https://github.com/VirtoCommerce/vc-github-actions/tree/master/deploy-workflow/workflows) to `.github/workflows` folder in your repository
