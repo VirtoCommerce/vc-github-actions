@@ -1,5 +1,5 @@
-name: 'sonar-scanner-begin'
-description: 'Prepares parameters for vc-build SonarQubeStart'
+name: 'sonar-quality-gate'
+description: 'Check SonarQube quality gate status after project scan'
 inputs:
     login:
       description: "Username or Token"
