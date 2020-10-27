@@ -1,7 +1,7 @@
 name: 'publish-docker-image'
 description: 'Publish docker image'
 inputs:
-  image: 
+  image:
     description: "Name of Docker Image"
     required: true
   tag:
@@ -16,6 +16,14 @@ inputs:
   docker_hub:
     description: "Publish image to hub.docker.com"
     required: false
+    default: "true"
+  release_branch: 
+    description: "Branch support preparation of a new production release"
+    required: false
+    default: "master"
+  update_latest: 
+    description: "Update *linux-latest image"
+    required: true
     default: "true"
 runs:
   using: 'node12'

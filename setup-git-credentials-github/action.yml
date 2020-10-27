@@ -1,0 +1,17 @@
+name: 'setup-git-credentials-github'
+description: 'Setups credentials for git'
+inputs:
+  gitUserEmail:
+    description: "git config user.email"
+    required: false
+    default: "ci@virtocommerce.com"
+  gitUserName:
+    description: "git config user.name"
+    default: "vc-ci"
+    required: false
+  githubToken:
+    description: "GitHub Token"
+    required: false
+runs:
+  using: 'node12'
+  main: 'dist/index.js'

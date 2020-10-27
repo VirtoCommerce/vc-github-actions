@@ -47,7 +47,7 @@ Module Id value.
 Version value formatted as branchName-prefix-suffix-sha
 
 
-## Example usage
+## Example of usage
 
 ```
 - name: Get Image version

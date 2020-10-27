@@ -1,7 +1,7 @@
 const github = require('@actions/github');
 const core = require('@actions/core');
 const exec = require('@actions/exec');
-const utils = require('@krankenbro/virto-actions-lib');
+const utils = require('@virtocommerce/vc-actions-lib');
 const { runInContext } = require('vm');
 
 async function run()

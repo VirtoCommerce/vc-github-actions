@@ -2,10 +2,11 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const exec = require('@actions/exec');
 const path = require('path');
-const utils = require('@krankenbro/virto-actions-lib');
+const utils = require('@virtocommerce/vc-actions-lib');
 
 async function run()
 {
+    const releaseBranch = core.getInput("release_branch").toLowerCase();
     let branchName = await utils.getBranchName(github);
     let artifactPath = await utils.findArtifact("artifacts/*.zip");
     console.log(artifactPath);
@@ -15,9 +16,9 @@ async function run()
     console.log(`Blob url: ${blobUrl}`);
     core.setOutput('artifactPath', artifactPath);
     core.setOutput('artifactName', artifactFileName);
-    if(branchName === 'dev')
+    if(branchName !== releaseBranch)
     {
-        let blobUrl = `https://vc3prerelease.blob.core.windows.net/packages${process.env.BLOB_SAS}`;
+        blobUrl = `https://vc3prerelease.blob.core.windows.net/packages${process.env.BLOB_SAS}`;
         await exec.exec(`azcopy10 copy ${artifactPath} ${blobUrl}`).catch(err => {
             console.log(err.message);
             process.exit(1);

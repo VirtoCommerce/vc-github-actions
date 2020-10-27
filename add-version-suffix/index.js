@@ -1,7 +1,7 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const exec = require('@actions/exec');
-const utils = require('@krankenbro/virto-actions-lib');
+const utils = require('@virtocommerce/vc-actions-lib');
 
 async function getCommitCount(baseBranch) {
     let result;
@@ -42,16 +42,19 @@ async function getCommitCount(baseBranch) {
 async function run()
 {
     let branchName = await utils.getBranchName(github);
-    if(branchName === 'dev')
+    let versionSuffix = core.getInput("versionSuffix");
+    if(!versionSuffix)
     {
         const commitCount = await getCommitCount(branchName);
-        await exec.exec(`vc-build ChangeVersion -CustomVersionSuffix \"alpha.${commitCount}\"`).then(exitCode => {
-            if(exitCode != 0)
-            {
-                core.setFailed("vc-build ChangeVersion failed");
-            }
-        });
+        versionSuffix = `alpha.${commitCount}`;
     }
+    await exec.exec(`vc-build ChangeVersion -CustomVersionSuffix \"${versionSuffix}\"`).then(exitCode => {
+        if(exitCode != 0)
+        {
+            core.setFailed("vc-build ChangeVersion failed");
+        }
+    });
+
 }
 
 run().catch(err => {

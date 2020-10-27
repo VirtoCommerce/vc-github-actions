@@ -132,23 +132,19 @@ function tryGetInfoFromDirectoryBuildProps() {
     });
 }
 
-String.prototype.replaceAll = function (find, replace) 
-{
-    return this.split(find).join(replace);
-}
-
-
 function pushOutputs(branchName, prefix, suffix, moduleId) {
-    branchName = branchName.replaceAll('/','_')
-    const sha = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.sha.substring(0, 8) : github.context.sha.substring(0, 8);
+    branchName = branchName.substring(branchName.lastIndexOf('/') + 1, branchName.length).toLowerCase();
+    const sha = github.context.eventName.startsWith('pull_request') ? github.context.payload.pull_request.head.sha.substring(0, 8) : github.context.sha.substring(0, 8);
+    const fullSuffix = suffix + '-' + branchName;
     const shortVersion = prefix + '-' + suffix;
-    const tag = branchName + '-' + prefix + '-' + sha;
-    const fullVersion = branchName + '-' + prefix + '-' + suffix;
-    const taggedVersion = branchName + '-' + prefix + '-' + suffix+ '-' + sha;;
+    const tag = prefix + '-' + branchName + '-' + sha;
+    const fullVersion = prefix + '-' + fullSuffix;
+    const taggedVersion = prefix + '-' + fullSuffix + '-' + sha;
 
     core.setOutput("branchName", branchName);
     core.setOutput("prefix", prefix);
     core.setOutput("suffix", suffix);
+    core.setOutput("fullSuffix", fullSuffix);
     core.setOutput("moduleId", moduleId);
     core.setOutput("sha", sha);
     core.setOutput("shortVersion", shortVersion);
@@ -159,6 +155,7 @@ function pushOutputs(branchName, prefix, suffix, moduleId) {
     console.log(`Branch name is: ${branchName}`);
     console.log(`Version prefix is: ${prefix}`);
     console.log(`Version suffix is: ${suffix}`);
+    console.log(`Version fullSuffix is: ${fullSuffix}`);
     console.log(`Module Id is: ${moduleId}`);
     console.log(`SHA is: ${sha}`);
     console.log(`Short version is: ${shortVersion}`);
@@ -208,6 +205,7 @@ let branchName = "";
 async function run() 
 {
     // let files = findFile("src", "module.manifest");
+    const releaseBranch = core.getInput("releaseBranch");
     if (await tryGetInfoFromModuleManifest()) { }
     else if (await tryGetInfoFromPackageJson()) { }
     else if (await tryGetInfoFromDirectoryBuildProps()) { }
@@ -215,8 +213,8 @@ async function run()
         core.setFailed("No one info file was found or file has wrong format");
     }
 
-    branchName = github.context.eventName === 'pull_request' ? github.context.payload.pull_request.head.ref : github.context.ref;
-    if (github.context.eventName === 'pull_request'){
+    branchName = github.context.eventName.startsWith('pull_request') ? github.context.payload.pull_request.head.ref : github.context.ref;
+    if (github.context.eventName.startsWith('pull_request')){
         branchName = github.context.payload.pull_request.head.ref;
         suffix = 'pr-' + github.context.payload.pull_request.number;
     }
@@ -229,7 +227,7 @@ async function run()
     }
 
     if (suffix === "" ) {
-        getCommitCount(branchName).then(result => { pushOutputs(branchName, prefix, branchName === 'master' ? result : `alpha.${result}`, moduleId); })
+        getCommitCount(branchName).then(result => { pushOutputs(branchName, prefix, branchName === releaseBranch ? result : `alpha.${result}`, moduleId); })
     } else {
         pushOutputs(branchName, prefix, suffix, moduleId);
     }
