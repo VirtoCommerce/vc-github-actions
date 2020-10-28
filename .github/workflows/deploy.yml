@@ -161,6 +161,15 @@ jobs:
         GHA_DEPLOYMENT_FOLDER: "modules"
         REPOSITORY: "vc-module-avatax"
 
+    - name: vc-module-catalog
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        USER: ${{ env.GITHUB_USER }}
+        GHA_DEPLOYMENT_FOLDER: "modules"
+        REPOSITORY: "vc-module-catalog"
+
+
     - name: vc-module-catalog-personalization
       uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
       env:
