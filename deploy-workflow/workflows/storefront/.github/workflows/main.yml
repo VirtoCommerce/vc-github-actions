@@ -53,6 +53,8 @@ jobs:
     - name: Add version suffix
       if: ${{ github.ref != 'refs/heads/master' }}
       uses: VirtoCommerce/vc-github-actions/add-version-suffix@master
+      with:
+        versionSuffix: ${{ steps.image.outputs.suffix }}
 
     - name: SonarCloud Begin
       uses: VirtoCommerce/vc-github-actions/sonar-scanner-begin@master
