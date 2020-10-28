@@ -233,45 +233,45 @@ jobs:
         GHA_DEPLOYMENT_FOLDER: "modules"
         REPOSITORY: "vc-module-google-ecommerce-analytics"
 
-    - name: vc-storefront
-      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-        USER: ${{ env.GITHUB_USER }}
-        GHA_DEPLOYMENT_FOLDER: "storefront"
-        REPOSITORY: "vc-storefront"
+    # - name: vc-storefront
+    #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+    #     USER: ${{ env.GITHUB_USER }}
+    #     GHA_DEPLOYMENT_FOLDER: "storefront"
+    #     REPOSITORY: "vc-storefront"
 
-    - name: vc-platform
-      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-        USER: ${{ env.GITHUB_USER }}
-        GHA_DEPLOYMENT_FOLDER: "platform"
-        REPOSITORY: "vc-platform"
+    # - name: vc-platform
+    #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+    #     USER: ${{ env.GITHUB_USER }}
+    #     GHA_DEPLOYMENT_FOLDER: "platform"
+    #     REPOSITORY: "vc-platform"
 
-    - name: vc-theme-default
-      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-        USER: ${{ env.GITHUB_USER }}
-        GHA_DEPLOYMENT_FOLDER: "themes"
-        REPOSITORY: "vc-theme-default"
+    # - name: vc-theme-default
+    #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+    #     USER: ${{ env.GITHUB_USER }}
+    #     GHA_DEPLOYMENT_FOLDER: "themes"
+    #     REPOSITORY: "vc-theme-default"
 
-    - name: vc-theme-b2b
-      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-        USER: ${{ env.GITHUB_USER }}
-        GHA_DEPLOYMENT_FOLDER: "themes"
-        REPOSITORY: "vc-theme-b2b"
+    # - name: vc-theme-b2b
+    #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+    #     USER: ${{ env.GITHUB_USER }}
+    #     GHA_DEPLOYMENT_FOLDER: "themes"
+    #     REPOSITORY: "vc-theme-b2b"
 
-    - name: vc-theme-material
-      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-        USER: ${{ env.GITHUB_USER }}
-        GHA_DEPLOYMENT_FOLDER: "themes"
-        REPOSITORY: "vc-theme-material"
+    # - name: vc-theme-material
+    #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+    #     USER: ${{ env.GITHUB_USER }}
+    #     GHA_DEPLOYMENT_FOLDER: "themes"
+    #     REPOSITORY: "vc-theme-material"
 
     # - name: vc-module-demo-features
     #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
