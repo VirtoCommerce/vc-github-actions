@@ -51,6 +51,7 @@ jobs:
       uses: VirtoCommerce/vc-github-actions/changelog-generator@master
 
     - name: Add version suffix
+      if: ${{ github.ref != 'refs/heads/master' }}
       uses: VirtoCommerce/vc-github-actions/add-version-suffix@master
 
     - name: SonarCloud Begin
