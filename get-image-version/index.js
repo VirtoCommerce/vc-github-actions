@@ -226,8 +226,8 @@ async function run()
         branchName = branchName.slice('refs/heads/'.length);
     }
 
-    if (suffix === "" ) {
-        getCommitCount(branchName).then(result => { pushOutputs(branchName, prefix, branchName === releaseBranch ? result : `alpha.${result}`, moduleId); })
+    if (suffix === "" && releaseBranch !== branchName) {
+        getCommitCount(branchName).then(result => { pushOutputs(branchName, prefix, `alpha.${result}`, moduleId); })
     } else {
         pushOutputs(branchName, prefix, suffix, moduleId);
     }
