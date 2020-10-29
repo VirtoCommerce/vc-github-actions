@@ -51,6 +51,8 @@ jobs:
     - name: Build
       if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev' }}
       uses: VirtoCommerce/vc-github-actions/build-theme@master
+      with:
+        versionSuffix: ${{ steps.image.outputs.suffix }}
 
     - name: Publish
       if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev' }}
