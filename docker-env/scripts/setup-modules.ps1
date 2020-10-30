@@ -29,7 +29,7 @@ function Get-AuthToken {
     }
 }   
 
-# docker restart $ContainerId
+docker restart $ContainerId
 Write-Output "Pause"
 Start-Sleep -Seconds 60
 # Initialize paths used by the script
