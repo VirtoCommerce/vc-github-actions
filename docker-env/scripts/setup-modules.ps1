@@ -29,9 +29,9 @@ function Get-AuthToken {
     }
 }   
 
-docker restart $ContainerId
-Write-Output "Pause"
-Start-Sleep -Seconds 90
+# docker restart $ContainerId
+# Write-Output "Pause"
+# Start-Sleep -Seconds 90
 # Initialize paths used by the script
 Write-Output "Initialize paths used by the script"
 $modulesStateUrl = "$ApiUrl/api/platform/pushnotifications"
@@ -43,7 +43,7 @@ $appAuthUrl = "$ApiUrl/connect/token"
 Write-Output "Call homepage, to make sure site is compiled"
 docker logs $ContainerId
 try {
-    $initResult = Invoke-WebRequest $ApiUrl -UseBasicParsing -SkipCertificateCheck -RetryIntervalSec 5 -MaximumRetryCount 5
+    $initResult = Invoke-WebRequest $ApiUrl -UseBasicParsing -SkipCertificateCheck -RetryIntervalSec 10 -MaximumRetryCount 5
     if ($initResult.StatusCode -ne 200) {
         # throw exception when site can't be opened
         Write-Output "Can't open admin site homepage"
@@ -61,7 +61,7 @@ $authToken = (Get-AuthToken $appAuthUrl $Username $Password)[1]
 $headers = @{}
 $headers.Add("Authorization", "Bearer $authToken")
 Write-Output "Initiate modules installation"
-$moduleImportResult = Invoke-RestMethod $modulesInstallUrl -Method Post -Headers $headers -ErrorAction Stop -SkipCertificateCheck -MaximumRetryCount 5 -RetryIntervalSec 5
+$moduleImportResult = Invoke-RestMethod $modulesInstallUrl -Method Post -Headers $headers -ErrorAction Stop -SkipCertificateCheck -MaximumRetryCount 5 -RetryIntervalSec 10
 Write-Output $moduleImportResult
 Start-Sleep -s 1
 
