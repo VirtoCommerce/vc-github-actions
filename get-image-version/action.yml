@@ -5,9 +5,9 @@ inputs:
     description: 'Path to directory that contains module.manifest, package.json or Directory.Build.props'
     required: false
   releaseBranch: 
-    description: "Branch support preparation of a new production release"
+    description: 'Branch support preparation of a new production release'
     required: false
-    default: "master"
+    default: 'master'
 
 outputs:
   branchName:
