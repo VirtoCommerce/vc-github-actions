@@ -19,7 +19,7 @@ function Get-AuthToken {
 
     $body = @{username=$username; password=$password; grant_type=$grant_type}
     try {
-        $response = Invoke-WebRequest -Uri $appAuthUrl -Method Post -ContentType $content_type -Body $body -SkipCertificateCheck -MaximumRetryCount 5 -RetryIntervalSec 5
+        $response = Invoke-WebRequest -Uri $appAuthUrl -Method Post -ContentType $content_type -Body $body -SkipCertificateCheck -MaximumRetryCount 10 -RetryIntervalSec 10 -SkipCertificateCheck
         $responseContent = $response.Content | ConvertFrom-Json
         return $responseContent.access_token
     }
@@ -43,7 +43,7 @@ $appAuthUrl = "$ApiUrl/connect/token"
 Write-Output "Call homepage, to make sure site is compiled"
 docker logs $ContainerId
 try {
-    $initResult = Invoke-WebRequest $ApiUrl -UseBasicParsing -SkipCertificateCheck -RetryIntervalSec 10 -MaximumRetryCount 5 -SkipHttpErrorCheck
+    $initResult = Invoke-WebRequest $ApiUrl -UseBasicParsing -SkipCertificateCheck -RetryIntervalSec 10 -MaximumRetryCount 5
     if ($initResult.StatusCode -ne 200) {
         # throw exception when site can't be opened
         Write-Output "Can't open admin site homepage"
@@ -61,7 +61,7 @@ $authToken = (Get-AuthToken $appAuthUrl $Username $Password)[1]
 $headers = @{}
 $headers.Add("Authorization", "Bearer $authToken")
 Write-Output "Initiate modules installation"
-$moduleImportResult = Invoke-RestMethod $modulesInstallUrl -Method Post -Headers $headers -ErrorAction Stop -SkipCertificateCheck -MaximumRetryCount 5 -RetryIntervalSec 10 -SkipHttpErrorCheck
+$moduleImportResult = Invoke-RestMethod $modulesInstallUrl -Method Post -Headers $headers -ErrorAction Stop -SkipCertificateCheck -MaximumRetryCount 5 -RetryIntervalSec 10
 Write-Output $moduleImportResult
 Start-Sleep -s 1
 
