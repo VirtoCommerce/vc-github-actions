@@ -1,4 +1,4 @@
-# v1
+# v1.1.1
 name: Storefront Release alpha CI
 
 on:
@@ -27,9 +27,13 @@ jobs:
       - name: Get Image Version
         uses: VirtoCommerce/vc-github-actions/get-image-version@master
         id: image
+        with:
+           releaseBranch: '' #Always creates tags for alpha version regardless of the forced branch
 
       - name: Add version suffix
         uses: VirtoCommerce/vc-github-actions/add-version-suffix@master
+        with:
+          versionSuffix: ${{ steps.image.outputs.suffix }}
 
       - name: SonarCloud Begin
         uses: VirtoCommerce/vc-github-actions/sonar-scanner-begin@master
