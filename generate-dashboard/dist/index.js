@@ -40,7 +40,8 @@ function run() {
         let octokit = github.getOctokit(GITHUB_TOKEN);
         let repos = yield octokit.repos.listForOrg({
             org: ORGANIZATION,
-            type: "all"
+            type: "all",
+            per_page: 100
         });
         let table = "<table>";
         for (let repo of repos.data) {
