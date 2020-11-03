@@ -34,6 +34,10 @@ async function run(): Promise<void> {
             owner: ORGANIZATION,
             repo: repo.name
         });
+        if(workflows.data.total_count === 0)
+        {
+            continue;
+        }
         let tableRow = `<tr><td><a href="${repo.url}">${repo.name}</a></td><td>`;
         for(let workflow of workflows.data.workflows as Workflow[])
         {
