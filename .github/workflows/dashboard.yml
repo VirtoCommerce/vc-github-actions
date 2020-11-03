@@ -1,4 +1,4 @@
-name: Publish npm modules
+name: Dashboard Update
 on:
     workflow_dispatch:
 jobs:
