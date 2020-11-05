@@ -21,14 +21,19 @@ async function run(): Promise<void> {
     const PAGE_NAME = core.getInput("pageName");
     let octokit = github.getOctokit(GITHUB_TOKEN);
 
-    let repos = await octokit.repos.listForOrg({
+    let reposResponse = await octokit.repos.listForOrg({
         org: ORGANIZATION,
         type: "all",
         per_page: 100
     });
 
     let table = "<table>";
-    for(let repo of repos.data)
+    let repos = reposResponse.data;
+    repos.sort(function(a, b){
+        return a.updated_at.localeCompare(b.updated_at);        
+    });
+
+    for(let repo of repos)
     {
         let workflows = await octokit.actions.listRepoWorkflows({
             owner: ORGANIZATION,
@@ -38,7 +43,7 @@ async function run(): Promise<void> {
         {
             continue;
         }
-        let tableRow = `<tr><td><a href="${repo.url}">${repo.name}</a></td><td>`;
+        let tableRow = `<tr><td><a href="${repo.git_url}">${repo.name}</a></td><td>`;
         for(let workflow of workflows.data.workflows as Workflow[])
         {
             tableRow += `<img src="${workflow.badge_url}" />`;
