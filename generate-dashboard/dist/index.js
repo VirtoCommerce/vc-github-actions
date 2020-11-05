@@ -38,13 +38,17 @@ function run() {
         const ORGANIZATION = core.getInput("organization");
         const PAGE_NAME = core.getInput("pageName");
         let octokit = github.getOctokit(GITHUB_TOKEN);
-        let repos = yield octokit.repos.listForOrg({
+        let reposResponse = yield octokit.repos.listForOrg({
             org: ORGANIZATION,
             type: "all",
             per_page: 100
         });
         let table = "<table>";
-        for (let repo of repos.data) {
+        let repos = reposResponse.data;
+        repos.sort(function (a, b) {
+            return a.updated_at.localeCompare(b.updated_at);
+        });
+        for (let repo of repos) {
             let workflows = yield octokit.actions.listRepoWorkflows({
                 owner: ORGANIZATION,
                 repo: repo.name
@@ -52,7 +56,7 @@ function run() {
             if (workflows.data.total_count === 0) {
                 continue;
             }
-            let tableRow = `<tr><td><a href="${repo.url}">${repo.name}</a></td><td>`;
+            let tableRow = `<tr><td><a href="${repo.html_url}">${repo.name}</a></td><td>`;
             for (let workflow of workflows.data.workflows) {
                 tableRow += `<img src="${workflow.badge_url}" />`;
             }
