@@ -46,7 +46,7 @@ async function run(): Promise<void> {
         let tableRow = `<tr><td><a href="${repo.html_url}">${repo.name}</a></td><td>`;
         for(let workflow of workflows.data.workflows as Workflow[])
         {
-            tableRow += `<a href="${workflow.html_url}"><img src="${workflow.badge_url}" /></a>`;
+            tableRow += `<a href="${workflow.url}"><img src="${workflow.badge_url}" /></a>`;
         }
         tableRow += "</td></tr>";
         table += tableRow;
