@@ -111,8 +111,8 @@ function tryGetInfoFromDirectoryBuildProps() {
                 if (!err) {
                     parser.parseString(data, function (err, json) {
                         if (!err) {
-                            prefix = json.Project.PropertyGroup[1].VersionPrefix[0].trim();
-                            suffix = json.Project.PropertyGroup[1].VersionSuffix[0].trim();
+                            prefix = (json.Project.PropertyGroup[1] ?? json.Project.PropertyGroup[0]).VersionPrefix[0].trim();
+                            suffix = (json.Project.PropertyGroup[1] ?? json.Project.PropertyGroup[0]).VersionSuffix[0].trim();
                             moduleId = "";
                             resolve(true);
                         } else {
