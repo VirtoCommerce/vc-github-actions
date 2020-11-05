@@ -43,7 +43,7 @@ async function run(): Promise<void> {
         {
             continue;
         }
-        let tableRow = `<tr><td><a href="${repo.git_url}">${repo.name}</a></td><td>`;
+        let tableRow = `<tr><td><a href="${repo.html_url}">${repo.name}</a></td><td>`;
         for(let workflow of workflows.data.workflows as Workflow[])
         {
             tableRow += `<img src="${workflow.badge_url}" />`;
