@@ -8,7 +8,6 @@ jobs:
 
     steps:
       - name: Docker Login
-        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/dev-dockerenv' }}
         uses: azure/docker-login@v1
         with:
           login-server: docker.pkg.github.com
