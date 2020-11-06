@@ -25,6 +25,7 @@ jobs:
           dockerTag: dev-linux-latest
           platformImage: docker.pkg.github.com/virtocommerce/vc-platform/platform
           storefrontImage: docker.pkg.github.com/virtocommerce/vc-storefront/storefront
+          validateSwagger: 'false'
 
       - name: Getting tests
         shell: sh
