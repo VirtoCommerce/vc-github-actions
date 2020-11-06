@@ -111,8 +111,8 @@ function tryGetInfoFromDirectoryBuildProps() {
                 if (!err) {
                     parser.parseString(data, function (err, json) {
                         if (!err) {
-                            prefix = json.Project.PropertyGroup[1].VersionPrefix[0].trim();
-                            suffix = json.Project.PropertyGroup[1].VersionSuffix[0].trim();
+                            prefix = (json.Project.PropertyGroup[1] || json.Project.PropertyGroup[0]).VersionPrefix[0].trim();
+                            suffix = (json.Project.PropertyGroup[1] || json.Project.PropertyGroup[0]).VersionSuffix[0].trim();
                             moduleId = "";
                             resolve(true);
                         } else {
@@ -135,7 +135,7 @@ function tryGetInfoFromDirectoryBuildProps() {
 function pushOutputs(branchName, prefix, suffix, moduleId) {
     branchName = branchName.substring(branchName.lastIndexOf('/') + 1, branchName.length).toLowerCase();
     const sha = github.context.eventName.startsWith('pull_request') ? github.context.payload.pull_request.head.sha.substring(0, 8) : github.context.sha.substring(0, 8);
-    const fullSuffix = suffix + '-' + branchName;
+    const fullSuffix = (suffix) ? suffix + '-' + branchName : branchName;
     const shortVersion = prefix + '-' + suffix;
     const tag = prefix + '-' + branchName + '-' + sha;
     const fullVersion = prefix + '-' + fullSuffix;
@@ -226,8 +226,8 @@ async function run()
         branchName = branchName.slice('refs/heads/'.length);
     }
 
-    if (suffix === "" ) {
-        getCommitCount(branchName).then(result => { pushOutputs(branchName, prefix, branchName === releaseBranch ? result : `alpha.${result}`, moduleId); })
+    if (suffix === "" && releaseBranch !== branchName) {
+        getCommitCount(branchName).then(result => { pushOutputs(branchName, prefix, `alpha.${result}`, moduleId); })
     } else {
         pushOutputs(branchName, prefix, suffix, moduleId);
     }

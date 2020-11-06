@@ -1,0 +1,38 @@
+name: Docker Environment + E2E
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install VirtoCommerce.GlobalTool
+        run: dotnet tool install --global VirtoCommerce.GlobalTool
+
+      - name: Docker Login
+        uses: azure/docker-login@v1
+        with:
+          login-server: docker.pkg.github.com
+          username: $GITHUB_ACTOR
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker Env
+        uses: VirtoCommerce/vc-github-actions/docker-env@master
+        with:
+          githubUser: ${{ env.GITHUB_ACTOR }}
+          githubToken: ${{ env.GITHUB_TOKEN }}
+          dockerTag: dev-linux-latest
+          platformImage: docker.pkg.github.com/virtocommerce/vc-platform/platform
+          storefrontImage: docker.pkg.github.com/virtocommerce/vc-storefront/storefront
+
+      - name: Getting tests
+        shell: sh
+        run: git clone https://github.com/VirtoCommerce/vc-quality-gate-katalon.git
+
+      - name: Katalon Studio Github Action
+        uses: katalon-studio/katalon-studio-github-action@v2
+        with:
+          version: '7.5.5'
+          projectPath: '${{ github.workspace }}'
+          args: '-noSplash -retry=0 projectPath="vc-quality-gate-katalon/platform_storefront.prj" -testSuiteCollectionPath="Test Suites/UI-CommonTests" -apiKey= ${{ secrets.KATALON_API_KEY }} -g_StoreURL="http://localhost:8080" -executionProfile="default"' 

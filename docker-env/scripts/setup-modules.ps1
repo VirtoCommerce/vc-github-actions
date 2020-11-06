@@ -31,7 +31,7 @@ function Get-AuthToken {
 
 docker restart $ContainerId
 Write-Output "Pause"
-Start-Sleep -Seconds 90
+Start-Sleep -Seconds 60
 # Initialize paths used by the script
 Write-Output "Initialize paths used by the script"
 $modulesStateUrl = "$ApiUrl/api/platform/pushnotifications"

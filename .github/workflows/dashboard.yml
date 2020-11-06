@@ -1,0 +1,31 @@
+name: Dashboard Update
+on:
+    workflow_dispatch:
+    schedule:
+      - cron: '0 0 * * *'
+jobs:
+  update_wiki:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup Git Credentials
+        uses: VirtoCommerce/vc-github-actions/setup-git-credentials-github@master
+        with: 
+          githubToken: ${{ secrets.REPO_TOKEN }} 
+
+      - name: Generate Dashboard
+        id: dashboard
+        uses: VirtoCommerce/vc-github-actions/generate-dashboard@master
+        with:
+          githubToken: ${{ secrets.REPO_TOKEN }}
+
+      - name: Update Dashboard
+        shell: sh
+        run: |
+          git clone https://github.com/VirtoCommerce/vc-github-actions.wiki.git
+          cd vc-github-actions.wiki
+          rm -f Home.md
+          cp -f ${{ steps.dashboard.outputs.result }} .
+          git add .
+          git commit -m "Update Dashboard"
+          git push origin master
