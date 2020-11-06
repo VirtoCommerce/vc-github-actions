@@ -60,8 +60,13 @@ Create GitHub organization level secrets:
 * NUGET_KEY - Nuget repository key;
 * SONAR_TOKEN - SonarCloud access token, with Execute Analysis and Create Project privileges.
 
-## How to enable workflow in a new repository
+## How to enable workflow in a repository
 
-1. Create `.github/workflows` folder in your repository.
-1. Copy workflow from [templates folder](https://github.com/VirtoCommerce/vc-github-actions/tree/master/deploy-workflow/workflows) to `.github/workflows` folder in your repository.
+1. Navigate to the main page of the repository.
+1. Click **Actions**.
+![Actions](media/activate-actions.png)
+1. If your repository already has existing workflows click **New workflow**.
+![New workflow](media/new-workflow.png)
+1. Choose template you'd like to use in the "Workflows created by Virto Commerce" section. Click **Set up this workflow**.
+![Set up workflow](media/setup-this-workflow.png)
 1. For private repository create [Secrets](#Secrets) on repository level.
