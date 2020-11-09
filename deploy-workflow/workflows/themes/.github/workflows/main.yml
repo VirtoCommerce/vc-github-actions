@@ -47,6 +47,8 @@ jobs:
 
     - name: SonarCloud Scan
       uses: VirtoCommerce/vc-github-actions/sonar-theme@master
+      with:
+        projectVersion: ${{ steps.image.outputs.fullVersion }}
 
     - name: Build
       if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev' }}
