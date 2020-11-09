@@ -35,5 +35,5 @@ jobs:
         uses: katalon-studio/katalon-studio-github-action@v2
         with:
           version: '7.5.5'
-          projectPath: '${{ github.workspace }}'
-          args: '-noSplash -retry=0 projectPath="vc-quality-gate-katalon/platform_storefront.prj" -testSuiteCollectionPath="Test Suites/UI-CommonTests" -apiKey= ${{ secrets.KATALON_API_KEY }} -g_StoreURL="http://localhost:8080" -executionProfile="default"' 
+          projectPath: '${{ github.workspace }}/vc-quality-gate-katalon/platform_storefront.prj'
+          args: '-noSplash -retry=0 -testSuiteCollectionPath="Test Suites/UI-CommonTests" -apiKey= ${{ secrets.KATALON_API_KEY }} -g_StoreURL="http://localhost:8080" -executionProfile="default"' 
