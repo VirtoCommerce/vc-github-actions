@@ -52,7 +52,7 @@ async function run(): Promise<void> {
                 workflow_id: workflow.id,
                 per_page: 1
             });
-            tableRow += `<a href="${runs.data.workflow_runs[0].jobs_url}"><img src="${workflow.badge_url}" /></a>`;
+            tableRow += `<a href="${runs.data.workflow_runs[0]?.jobs_url}"><img src="${workflow.badge_url}" /></a>`;
         }
         tableRow += "</td></tr>";
         table += tableRow;
