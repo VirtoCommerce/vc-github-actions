@@ -46,7 +46,13 @@ async function run(): Promise<void> {
         let tableRow = `<tr><td><a href="${repo.html_url}">${repo.name}</a></td><td>`;
         for(let workflow of workflows.data.workflows as Workflow[])
         {
-            tableRow += `<a href="${workflow.url}"><img src="${workflow.badge_url}" /></a>`;
+            let runs = await octokit.actions.listWorkflowRuns({
+                owner: ORGANIZATION,
+                repo: repo.name,
+                workflow_id: workflow.id,
+                per_page: 1
+            });
+            tableRow += `<a href="${runs.data.workflow_runs[0].jobs_url}"><img src="${workflow.badge_url}" /></a>`;
         }
         tableRow += "</td></tr>";
         table += tableRow;
