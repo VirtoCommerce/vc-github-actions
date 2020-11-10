@@ -65,7 +65,7 @@ function run() {
                     workflow_id: workflow.id,
                     per_page: 1
                 });
-                tableRow += `<a href="${(_a = runs.data.workflow_runs[0]) === null || _a === void 0 ? void 0 : _a.jobs_url}"><img src="${workflow.badge_url}" /></a>`;
+                tableRow += `<a href="${(_a = runs.data.workflow_runs[0]) === null || _a === void 0 ? void 0 : _a.html_url}"><img src="${workflow.badge_url}" /></a>`;
             }
             tableRow += "</td></tr>";
             table += tableRow;
