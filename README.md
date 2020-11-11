@@ -21,5 +21,6 @@ VirtoCommerce specific GitHub actions and actions common components lib.
 * [SonarQube .net Analysis start](/sonar-scanner-begin/README.md)
 * [SonarQube .net Analysis finish](/sonar-scanner-end/README.md)
 * [SonarQube Theme Analysis](/sonar-theme/README.md)
+* [Swagger validation](/docker-env/README.md)
 * [Sync Modules Workflows](/sync-module-cicd/README.md)
 * [Actions components lib](/vc-actions-lib/README.md)
