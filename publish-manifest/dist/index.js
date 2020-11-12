@@ -61,6 +61,17 @@ function downloadFile(url, outFile) {
         });
     });
 }
+function findModuleId(repoName, modulesManifest) {
+    return __awaiter(this, void 0, void 0, function* () {
+        for (let module of modulesManifest) {
+            for (let versionInfo of module.Versions) {
+                if (versionInfo.PackageUrl.includes(`/${repoName}/`)) {
+                    return module.Id;
+                }
+            }
+        }
+    });
+}
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         let packageUrl = core.getInput('packageUrl');
@@ -92,12 +103,14 @@ function run() {
             let isManifestUpdated = false;
             let repoName = yield utils.getRepoName();
             console.log(`Module version: ${moduleVersion}`);
+            let moduleId = yield findModuleId(repoName, modulesManifest);
             for (let module of modulesManifest) {
-                for (let versionInfo of module.Versions) {
-                    if (versionInfo.PackageUrl.includes(repoName)) {
+                if (moduleId === module.Id) {
+                    for (let versionInfo of module.Versions) {
                         let versionArr = [];
                         versionArr.push(versionInfo.Version);
-                        versionArr.push(versionInfo.VersionTag);
+                        if (versionInfo.VersionTag)
+                            versionArr.push(versionInfo.VersionTag);
                         let manifestVersion = versionArr.join("-");
                         console.log(`Module ${module.Id} found, version: ${manifestVersion}`);
                         if (moduleVersion === manifestVersion) {

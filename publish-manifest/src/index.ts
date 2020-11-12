@@ -33,6 +33,19 @@ async function downloadFile(url: string, outFile: string) {
     })
 }
 
+async function findModuleId(repoName: string, modulesManifest: any) {
+    for(let module of modulesManifest)
+    {
+        for(let versionInfo of module.Versions)
+        {
+            if(versionInfo.PackageUrl.includes(`/${repoName}/`))
+            {
+                return module.Id;
+            }
+        }
+    }
+}
+
 async function run(): Promise<void> {
     let packageUrl = core.getInput('packageUrl');
     let pushChanges = core.getInput("pushChanges");
@@ -69,15 +82,16 @@ async function run(): Promise<void> {
         let isManifestUpdated = false;
         let repoName = await utils.getRepoName();
         console.log(`Module version: ${moduleVersion}`);
+        let moduleId = await findModuleId(repoName, modulesManifest);
         for(let module of modulesManifest)
         {
-            for(let versionInfo of module.Versions)
+            if(moduleId === module.Id)
             {
-                if(versionInfo.PackageUrl.includes(repoName))
+                for(let versionInfo of module.Versions)
                 {
                     let versionArr = [];
                     versionArr.push(versionInfo.Version);
-                    versionArr.push(versionInfo.VersionTag);
+                    if(versionInfo.VersionTag) versionArr.push(versionInfo.VersionTag);
                     let manifestVersion = versionArr.join("-");
                     console.log(`Module ${module.Id} found, version: ${manifestVersion}`);
                     if(moduleVersion === manifestVersion)
