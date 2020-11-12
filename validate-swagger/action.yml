@@ -1,0 +1,15 @@
+name: 'validate-swagger'
+description: 'Validates swagger schema'
+inputs:
+  url:
+    description: "Url of swagger schema"
+    default: ""
+    required: true
+  validatorUrl: 
+    description: "Url of swagger validator"
+    default: "https://validator.swagger.io/validator/debug"
+    required: false
+
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
