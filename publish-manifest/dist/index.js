@@ -95,9 +95,12 @@ function run() {
             for (let module of modulesManifest) {
                 for (let versionInfo of module.Versions) {
                     if (versionInfo.PackageUrl.includes(repoName)) {
-                        console.log(`Module ${module.Id} found, version: ${versionInfo.Version}`);
-                        if (versionInfo.PackageUrl.includes(repoName) && moduleVersion === versionInfo.Version) {
-                            console.log(`${moduleVersion} === ${versionInfo.Version}`);
+                        let versionArr = [];
+                        versionArr.push(versionInfo.Version);
+                        versionArr.push(versionInfo.VersionTag);
+                        let manifestVersion = versionArr.join("-");
+                        console.log(`Module ${module.Id} found, version: ${manifestVersion}`);
+                        if (moduleVersion === manifestVersion) {
                             isManifestUpdated = true;
                         }
                     }

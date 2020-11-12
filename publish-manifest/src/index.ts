@@ -75,10 +75,13 @@ async function run(): Promise<void> {
             {
                 if(versionInfo.PackageUrl.includes(repoName))
                 {
-                    console.log(`Module ${module.Id} found, version: ${versionInfo.Version}`);
-                    if(versionInfo.PackageUrl.includes(repoName) && moduleVersion === versionInfo.Version)
+                    let versionArr = [];
+                    versionArr.push(versionInfo.Version);
+                    versionArr.push(versionInfo.VersionTag);
+                    let manifestVersion = versionArr.join("-");
+                    console.log(`Module ${module.Id} found, version: ${manifestVersion}`);
+                    if(moduleVersion === manifestVersion)
                     {
-                        console.log(`${moduleVersion} === ${versionInfo.Version}`);
                         isManifestUpdated = true;
                     }
                 }
