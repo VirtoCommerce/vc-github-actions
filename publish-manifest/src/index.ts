@@ -60,15 +60,33 @@ async function run(): Promise<void> {
     // Check modules.json in repo
     if(pushChanges === "true")
     {
-        const modulesJsonFromRepoFileName = "modules_v3.json";
         let modulesJsonUrl = core.getInput("modulesJsonUrl");
-        await downloadFile(modulesJsonUrl, modulesJsonFromRepoFileName);
-        let modulesJsonRepoBuffer = fs.readFileSync(modulesJsonFromRepoFileName);
-        let modulesJsonLocalBuffer = fs.readFileSync(modulesJsonPath);
-        if(!modulesJsonRepoBuffer.equals(modulesJsonLocalBuffer))
+        await downloadFile(modulesJsonUrl, modulesJsonName);
+        let modulesJsonRepoBuffer = fs.readFileSync(modulesJsonName);
+        let modulesManifest = JSON.parse(modulesJsonRepoBuffer.toString());
+        let propsPath = "Directory.Build.props";
+        let moduleVersion = await utils.getVersionFromDirectoryBuildProps(propsPath);
+        let isManifestUpdated = false;
+        let repoName = await utils.getRepoName();
+        console.log(`Module version: ${moduleVersion}`);
+        for(let module of modulesManifest)
         {
-            console.log(`Buffers length(local, repo): ${modulesJsonLocalBuffer.length}, ${modulesJsonRepoBuffer.length}`);
-            core.setFailed("modules.json has not been updated");
+            for(let versionInfo of module.Versions)
+            {
+                if(versionInfo.PackageUrl.includes(repoName))
+                {
+                    console.log(`Module ${module.Id} found, version: ${versionInfo.Version}`);
+                    if(versionInfo.PackageUrl.includes(repoName) && moduleVersion === versionInfo.Version)
+                    {
+                        console.log(`${moduleVersion} === ${versionInfo.Version}`);
+                        isManifestUpdated = true;
+                    }
+                }
+            }
+        }
+        if(!isManifestUpdated)
+        {
+            core.setFailed(`${modulesJsonName} is not updated`);
         }
     }
 }
