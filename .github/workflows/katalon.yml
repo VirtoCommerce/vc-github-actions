@@ -1,6 +1,11 @@
 name: Docker Environment + E2E
 on:
   workflow_dispatch:
+    inputs:
+      testSuite:
+        description: "Test Suite"
+        required: false
+        default: "Test Suites/Platform_start"
 
 jobs:
   publish:
@@ -36,4 +41,4 @@ jobs:
         with:
           version: '7.5.5'
           projectPath: '${{ github.workspace }}/vc-quality-gate-katalon/platform_storefront.prj'
-          args: '-noSplash -retry=0 -testSuitePath="Test Suites/Platform_start" -browserType="Chrome" -apiKey= ${{ secrets.KATALON_API_KEY }} -g_urlBack="http://localhost:8090" -executionProfile="default"' 
+          args: '-noSplash -retry=0 -testSuitePath="${{ github.event.inputs.testSuite }}" -browserType="Chrome" -apiKey= ${{ secrets.KATALON_API_KEY }} -g_urlBack="http://localhost:8090" -executionProfile="default"' 
