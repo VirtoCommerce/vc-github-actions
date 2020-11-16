@@ -2,135 +2,7 @@ const core = require('@actions/core');
 const exec = require('@actions/exec');
 const github = require('@actions/github');
 const fs = require('fs');
-const path = require('path')
-const xml2js = require('xml2js');
-const { CONNREFUSED } = require('dns');
-const { basename, resolve } = require('path');
-const { Console } = require('console');
-const parser = new xml2js.Parser();
-
-const src = __dirname;
-
-const baseDir = core.getInput('path');
-
-function findFile(base, name, files, result) {
-    var result = [];
-    if (fs.existsSync(base)) {
-        files = files || fs.readdirSync(base)
-        result = result || []
-
-        files.forEach(
-            function (file) {
-                var newBase = path.join(base, file)
-                if (fs.statSync(newBase).isDirectory()) {
-                    result = findFile(newBase, name, fs.readdirSync(newBase), result)
-                }
-                else {
-                    if (file == name) {
-                        result.push(newBase)
-                    }
-                }
-            }
-        )
-    }
-    return result;
-}
-
-function getPackage(packageJsonPath) {        
-    let rawData = fs.readFileSync(packageJsonPath);
-    let package = JSON.parse(rawData);
-    return package;
-}
-
-function adjustPath(pathToAdjusting) {
-    let result = pathToAdjusting;
-    if(baseDir) {
-        result = path.join(baseDir, pathToAdjusting);
-    }
-    return result;
-}
-
-function tryGetInfoFromPackageJson() {
-    return new Promise((resolve) => {
-        let packageJsonPath = "package.json";
-        packageJsonPath = adjustPath(packageJsonPath);
-                
-        if (fs.existsSync(packageJsonPath)) {
-            let package = getPackage(packageJsonPath);
-            prefix = package.version;
-            resolve(true);
-        } else {
-            resolve(false);
-        }
-    });
-}
-
-function tryGetInfoFromModuleManifest() {
-    return new Promise((resolve) => {
-        let pathToFind = "src";
-        pathToFind = adjustPath(pathToFind);
-        let files = findFile(pathToFind, "module.manifest");
-        if (files.length > 0) {
-            let manifestPath = files[0];
-
-            fs.readFile(manifestPath, function (err, data) {
-                if (!err) {
-                    parser.parseString(data, function (err, json) {
-                        if (!err) {
-                            moduleId = json.module.id[0].trim();
-                            prefix = json.module.version[0].trim();
-                            suffix = json.module["version-tag"][0].trim();
-                            resolve(true);
-                        } else {
-                            reject(false);
-                        }
-                    });
-                } else {
-                    console.log(`Cannot load file ${manifestPath}`);
-                    reject(false);
-                }
-            });
-        } else {
-            resolve(false);
-        }
-    });
-}
-
-function tryGetInfoFromDirectoryBuildProps() {
-    return new Promise((resolve) => {
-        // let result = false;
-        let buildPropsFile = 'Directory.Build.Props';
-        buildPropsFile = adjustPath(buildPropsFile);
-        if (!fs.existsSync(buildPropsFile)) {
-            buildPropsFile = 'Directory.Build.props';
-            buildPropsFile = adjustPath(buildPropsFile);
-        }
-
-        if (fs.existsSync(buildPropsFile)) {
-            fs.readFile(buildPropsFile, function (err, data) {
-                if (!err) {
-                    parser.parseString(data, function (err, json) {
-                        if (!err) {
-                            prefix = (json.Project.PropertyGroup[1] || json.Project.PropertyGroup[0]).VersionPrefix[0].trim();
-                            suffix = (json.Project.PropertyGroup[1] || json.Project.PropertyGroup[0]).VersionSuffix[0].trim();
-                            moduleId = "";
-                            resolve(true);
-                        } else {
-                            reject(false);
-                        }
-
-                    });
-                }
-                else {
-                    console.log(`Cannot load file ${buildPropsFile}`);
-                    reject(false);
-                }
-            });
-        } else {
-            reject(false);
-        }
-    });
-}
+const utils = require('@virtocommerce/vc-actions-lib');
 
 function pushOutputs(branchName, prefix, suffix, moduleId) {
     branchName = branchName.substring(branchName.lastIndexOf('/') + 1, branchName.length).toLowerCase();
@@ -196,21 +68,49 @@ async function getCommitCount(baseBranch) {
     return result;
 }
 
-let prefix = "";
-let suffix = "";
-let moduleId = "";
-let branchName = "";
+async function getProjectType()
+{
+    let propsExists = fs.existsSync("Directory.Build.props");
+    let manifestExists = utils.findFiles("src/*/module.manifest").length > 0;
+    if(!propsExists)
+    {
+        return "theme";
+    }
+    if(manifestExists)
+    {
+        return "module";
+    }
+    if(propsExists && !manifestExists)
+    {
+        return "platform"; //or storefront
+    }
+}
 
 
 async function run() 
 {
-    // let files = findFile("src", "module.manifest");
     const releaseBranch = core.getInput("releaseBranch");
-    if (await tryGetInfoFromModuleManifest()) { }
-    else if (await tryGetInfoFromPackageJson()) { }
-    else if (await tryGetInfoFromDirectoryBuildProps()) { }
-    else {
-        core.setFailed("No one info file was found or file has wrong format");
+    let prefix = "";
+    let suffix = "";
+    let moduleId = "";
+    let branchName = "";
+    let projectType = await getProjectType();
+    let manifestPath = utils.findFiles("src/*/module.manifest")[0];
+    switch(projectType) {
+        case "theme":
+            prefix = utils.getInfoFromPackageJson("package.json").version;
+            break;
+        case "module":
+            let versionInfo = utils.getInfoFromModuleManifest(manifestPath);
+            prefix = versionInfo.prefix;
+            suffix = versionInfo.suffix;
+            moduleId = versionInfo.moduleId;
+            break;
+        case "platform":
+            let versionInfo = utils.getInfoFromDirectoryBuildProps("Directory.Build.props");
+            prefix = versionInfo.prefix;
+            suffix = versionInfo.suffix; 
+            break;
     }
 
     branchName = github.context.eventName.startsWith('pull_request') ? github.context.payload.pull_request.head.ref : github.context.ref;
