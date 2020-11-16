@@ -1,0 +1,17 @@
+{
+  "name": "@virtocommerce/validate-swagger",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Alexander Morogov",
+  "license": "ISC",
+  "dependencies": {
+    "@actions/core": "^1.2.6",
+    "@actions/exec": "^1.0.4",
+    "@virtocommerce/vc-actions-lib": "^1.1.0"
+  }
+}

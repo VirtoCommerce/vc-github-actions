@@ -1,6 +1,11 @@
 name: Docker Environment + E2E
 on:
   workflow_dispatch:
+    inputs:
+      testSuite:
+        description: "Test Suite"
+        required: false
+        default: "Test Suites/Platform_start"
 
 jobs:
   publish:
@@ -25,6 +30,7 @@ jobs:
           dockerTag: dev-linux-latest
           platformImage: docker.pkg.github.com/virtocommerce/vc-platform/platform
           storefrontImage: docker.pkg.github.com/virtocommerce/vc-storefront/storefront
+          validateSwagger: 'false'
 
       - name: Getting tests
         shell: sh
@@ -34,5 +40,5 @@ jobs:
         uses: katalon-studio/katalon-studio-github-action@v2
         with:
           version: '7.5.5'
-          projectPath: '${{ github.workspace }}'
-          args: '-noSplash -retry=0 projectPath="vc-quality-gate-katalon/platform_storefront.prj" -testSuiteCollectionPath="Test Suites/UI-CommonTests" -apiKey= ${{ secrets.KATALON_API_KEY }} -g_StoreURL="http://localhost:8080" -executionProfile="default"' 
+          projectPath: '${{ github.workspace }}/vc-quality-gate-katalon/platform_storefront.prj'
+          args: '-noSplash -retry=0 -testSuitePath="${{ github.event.inputs.testSuite }}" -browserType="Chrome" -apiKey= ${{ secrets.KATALON_API_KEY }} -g_urlBack="http://localhost:8090" -executionProfile="default"' 

@@ -3,12 +3,20 @@ const https = require('https');
 const fs = require('fs');
 const { request } = require("@octokit/request");
 const glob = require('glob');
+const xml2js = require('xml2js');
 
 async function findArtifact(pattern)
 {
     let globResult = glob.sync(pattern);
     console.log(globResult);
     return globResult[0];
+}
+
+async function findFiles(pattern)
+{
+    let globResult = glob.sync(pattern);
+    console.log(globResult);
+    return globResult;
 }
 
 async function getLatestRelease(repo)
@@ -66,10 +74,119 @@ async function isPullRequest(github)
     return github.context.eventName === 'pull_request';
 }
 
+function getVersionFromDirectoryBuildProps(path) {
+    return new Promise((resolve) => {
+        let buildPropsFile = path;
+    
+        if (fs.existsSync(buildPropsFile)) {
+            let propsFileContent = fs.readFileSync(buildPropsFile); 
+            xml2js.parseString(propsFileContent, function (err, json) {
+                if (!err) {
+                    let prefix = (json.Project.PropertyGroup[1] || json.Project.PropertyGroup[0]).VersionPrefix[0].trim();
+                    let suffix = (json.Project.PropertyGroup[1] || json.Project.PropertyGroup[0]).VersionSuffix[0].trim();
+                    let result = [];
+                    result.push(prefix);
+                    if(suffix) result.push(suffix);
+                    resolve(result.join("-"));
+                } else {
+                    console.log(err.message);
+                    reject("");
+                }
+            });
+        }
+    });
+}
+
+function getInfoFromDirectoryBuildProps(path)
+{
+    return new Promise((resolve) => {
+        let buildPropsFile = path;
+    
+        if (fs.existsSync(buildPropsFile)) {
+            let propsFileContent = fs.readFileSync(buildPropsFile); 
+            xml2js.parseString(propsFileContent, function (err, json) {
+                if (!err) {
+                    let prefix = (json.Project.PropertyGroup[1] || json.Project.PropertyGroup[0]).VersionPrefix[0].trim();
+                    let suffix = (json.Project.PropertyGroup[1] || json.Project.PropertyGroup[0]).VersionSuffix[0].trim();
+                    let version = [];
+                    version.push(prefix);
+                    if(suffix) version.push(suffix);
+                    var result = {
+                        prefix: prefix,
+                        suffix: suffix,
+                        version: version.join("-")
+                    }
+                    resolve(result);
+                } else {
+                    console.log(err.message);
+                    reject(err);
+                }
+            });
+        }
+    });
+}
+
+function getInfoFromPackageJson(path) {
+    return new Promise((resolve) => {
+        let packageJsonPath = path;
+                
+        if (fs.existsSync(packageJsonPath)) {
+            let buffer = fs.readFileSync(packageJsonPath);
+            let package = JSON.parse(buffer.toString());
+            let result = { 
+                version: package.version
+            };
+            resolve(result);
+        } else {
+            let message = `${path} does not exists.`
+            resolve(new Error(message));
+        }
+    });
+}
+
+function getInfoFromModuleManifest(path) {
+    return new Promise((resolve) => {
+        let manifestPath = path;
+
+        fs.readFile(manifestPath, function (err, data) {
+            if (!err) {
+                parser.parseString(data, function (err, json) {
+                    if (!err) {
+                        let moduleId = json.module.id[0].trim();
+                        let prefix = json.module.version[0].trim();
+                        let suffix = json.module["version-tag"][0].trim();
+                        let version = [];
+                        version.push(prefix);
+                        if(suffix) version.push(suffix);
+                        var result = {
+                            moduleId: moduleId,
+                            prefix: prefix,
+                            suffix: suffix,
+                            version: version.join("-")
+                        };
+                        resolve(result);
+                    } else {
+                        reject(err);
+                    }
+                });
+            } else {
+                let message = `Cannot load file ${manifestPath}`;
+                console.log(message);
+                reject(new Error(message));
+            }
+        });
+    });
+}
+
 module.exports.findArtifact = findArtifact;
+module.exports.findFiles = findFiles;
 module.exports.getLatestRelease = getLatestRelease;
 module.exports.getBranchName = getBranchName;
 module.exports.getRepoName = getRepoName;
 module.exports.getProjectType = getProjectType;
 module.exports.downloadFile = downloadFile;
 module.exports.isPullRequest = isPullRequest;
+module.exports.getVersionFromDirectoryBuildProps = getVersionFromDirectoryBuildProps;
+module.exports.getInfoFromDirectoryBuildProps = getInfoFromDirectoryBuildProps;
+module.exports.getInfoFromModuleManifest = getInfoFromModuleManifest;
+module.exports.getInfoFromPackageJson = getInfoFromPackageJson;

@@ -16,6 +16,10 @@ inputs:
   storefrontImage:
     description: 'Storefront Docker Image'
     required: false
+  validateSwagger:
+    description: 'Enable or disable swagger validation'
+    required: false
+    default: 'true'
 
 runs:
   using: "composite"
@@ -45,6 +49,10 @@ runs:
     - name: Swagger Schema Validation
       shell: pwsh
       run: |
+        if("${{ inputs.validateSwagger }}" -ne "true")
+        {
+          exit 0
+        }
         ${{ github.action_path }}/scripts/get-swagger.ps1 -ApiUrl http://localhost:8090 -OutFile ${{ github.action_path }}/swaggerSchema.json -Verbose -Debug
         Get-ChildItem
         Get-ChildItem ${{ github.action_path }}

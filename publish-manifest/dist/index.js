@@ -61,6 +61,17 @@ function downloadFile(url, outFile) {
         });
     });
 }
+function findModuleId(repoName, modulesManifest) {
+    return __awaiter(this, void 0, void 0, function* () {
+        for (let module of modulesManifest) {
+            for (let versionInfo of module.Versions) {
+                if (versionInfo.PackageUrl.includes(`/${repoName}/`)) {
+                    return module.Id;
+                }
+            }
+        }
+    });
+}
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         let packageUrl = core.getInput('packageUrl');
@@ -83,14 +94,33 @@ function run() {
         let modulesJsonPath = yield utils.findArtifact(`artifacts/*/${modulesJsonName}`);
         core.setOutput("modulesJsonPath", modulesJsonPath);
         if (pushChanges === "true") {
-            const modulesJsonFromRepoFileName = "modules_v3.json";
             let modulesJsonUrl = core.getInput("modulesJsonUrl");
-            yield downloadFile(modulesJsonUrl, modulesJsonFromRepoFileName);
-            let modulesJsonRepoBuffer = fs_1.default.readFileSync(modulesJsonFromRepoFileName);
-            let modulesJsonLocalBuffer = fs_1.default.readFileSync(modulesJsonPath);
-            if (!modulesJsonRepoBuffer.equals(modulesJsonLocalBuffer)) {
-                console.log(`Buffers length(local, repo): ${modulesJsonLocalBuffer.length}, ${modulesJsonRepoBuffer.length}`);
-                core.setFailed("modules.json has not been updated");
+            yield downloadFile(modulesJsonUrl, modulesJsonName);
+            let modulesJsonRepoBuffer = fs_1.default.readFileSync(modulesJsonName);
+            let modulesManifest = JSON.parse(modulesJsonRepoBuffer.toString());
+            let propsPath = "Directory.Build.props";
+            let moduleVersion = yield utils.getVersionFromDirectoryBuildProps(propsPath);
+            let isManifestUpdated = false;
+            let repoName = yield utils.getRepoName();
+            console.log(`Module version: ${moduleVersion}`);
+            let moduleId = yield findModuleId(repoName, modulesManifest);
+            for (let module of modulesManifest) {
+                if (moduleId === module.Id) {
+                    for (let versionInfo of module.Versions) {
+                        let versionArr = [];
+                        versionArr.push(versionInfo.Version);
+                        if (versionInfo.VersionTag)
+                            versionArr.push(versionInfo.VersionTag);
+                        let manifestVersion = versionArr.join("-");
+                        console.log(`Module ${module.Id} found, version: ${manifestVersion}`);
+                        if (moduleVersion === manifestVersion) {
+                            isManifestUpdated = true;
+                        }
+                    }
+                }
+            }
+            if (!isManifestUpdated) {
+                core.setFailed(`${modulesJsonName} is not updated`);
             }
         }
     });

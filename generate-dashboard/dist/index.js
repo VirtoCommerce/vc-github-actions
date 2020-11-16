@@ -33,6 +33,7 @@ const github = __importStar(require("@actions/github"));
 const fs = __importStar(require("fs"));
 ;
 function run() {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         const GITHUB_TOKEN = core.getInput("githubToken");
         const ORGANIZATION = core.getInput("organization");
@@ -58,7 +59,13 @@ function run() {
             }
             let tableRow = `<tr><td><a href="${repo.html_url}">${repo.name}</a></td><td>`;
             for (let workflow of workflows.data.workflows) {
-                tableRow += `<a href="${workflow.url}"><img src="${workflow.badge_url}" /></a>`;
+                let runs = yield octokit.actions.listWorkflowRuns({
+                    owner: ORGANIZATION,
+                    repo: repo.name,
+                    workflow_id: workflow.id,
+                    per_page: 1
+                });
+                tableRow += `<a href="${(_a = runs.data.workflow_runs[0]) === null || _a === void 0 ? void 0 : _a.html_url}"><img src="${workflow.badge_url}" /></a>`;
             }
             tableRow += "</td></tr>";
             table += tableRow;

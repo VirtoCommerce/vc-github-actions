@@ -1,5 +1,10 @@
 name: 'sonar-theme'
 description: 'SonarQube Analisys'
+inputs:
+  projectVersion:
+    default: ""
+    required: false
+    description: "Theme verison"
 runs:
   using: 'node12'
   main: 'index.js'
