@@ -16,6 +16,7 @@ async function run()
     console.log(`Blob url: ${blobUrl}`);
     core.setOutput('artifactPath', artifactPath);
     core.setOutput('artifactName', artifactFileName);
+    core.setOutput('blobUrl', blobUrl);
     if(branchName !== releaseBranch)
     {
         blobUrl = `https://vc3prerelease.blob.core.windows.net/packages${process.env.BLOB_SAS}`;

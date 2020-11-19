@@ -20,11 +20,15 @@ Publishes Theme to Azure blob or Github Release
 
     description: 'Name of artifact'
 
+### blobUrl:
+
+    description: 'URL to artifact'
+
 ## Example of usage
 
 ```
 - name: Publish
-  if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev' }}
+  if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master')}}
   id: publish
   uses: VirtoCommerce/vc-github-actions/publish-theme@master
 ```
