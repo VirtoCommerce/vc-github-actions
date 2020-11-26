@@ -6,6 +6,7 @@ import os from 'os'
 import * as utils from '@virtocommerce/vc-actions-lib'
 import Axios from 'axios'
 import { parseString as xmlParseString } from 'xml2js'
+import * as rimraf from 'rimraf'
 
 async function getConfigHome()
 {
@@ -108,4 +109,9 @@ async function run(): Promise<void> {
     }
 }
 
-run().catch(error => core.setFailed(error.message));
+run().catch(error => {
+    console.log(error.message);
+    console.log("Retry");
+    rimraf.sync("./artifacts/vc-modules");
+    run().catch(err => core.setFailed(err.message));
+});
