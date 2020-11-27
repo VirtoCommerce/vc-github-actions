@@ -8,7 +8,7 @@ function pushOutputs(branchName, prefix, suffix, moduleId) {
     branchName = branchName.substring(branchName.lastIndexOf('/') + 1, branchName.length).toLowerCase();
     const sha = github.context.eventName.startsWith('pull_request') ? github.context.payload.pull_request.head.sha.substring(0, 8) : github.context.sha.substring(0, 8);
     const fullSuffix = (suffix) ? suffix + '-' + branchName : branchName;
-    const shortVersion = prefix + '-' + suffix;
+    const shortVersion = (suffix) ? prefix + '-' + suffix : prefix;
     const tag = prefix + '-' + branchName + '-' + sha;
     const fullVersion = prefix + '-' + fullSuffix;
     const taggedVersion = prefix + '-' + fullSuffix + '-' + sha;

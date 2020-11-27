@@ -37,6 +37,7 @@ const fs_1 = __importDefault(require("fs"));
 const os_1 = __importDefault(require("os"));
 const utils = __importStar(require("@virtocommerce/vc-actions-lib"));
 const axios_1 = __importDefault(require("axios"));
+const rimraf = __importStar(require("rimraf"));
 function getConfigHome() {
     return __awaiter(this, void 0, void 0, function* () {
         const xdg_home = process.env['XDG_CONFIG_HOME'];
@@ -125,4 +126,9 @@ function run() {
         }
     });
 }
-run().catch(error => core.setFailed(error.message));
+run().catch(error => {
+    console.log(error.message);
+    console.log("Retry");
+    rimraf.sync("./artifacts/vc-modules");
+    run().catch(err => core.setFailed(err.message));
+});
