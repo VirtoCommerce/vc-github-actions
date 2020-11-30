@@ -59,11 +59,9 @@ async function getCommitCount(baseBranch) {
             result = commitCount;
         } else {
             core.setFailed(err);
-            process.exit(1);
         }
     } catch (err) {
         core.setFailed(`Could not get commit counts because: ${err.message}`);
-        process.exit(1);
     }
     return result;
 }
