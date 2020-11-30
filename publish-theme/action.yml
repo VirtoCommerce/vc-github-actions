@@ -5,11 +5,17 @@ inputs:
     description: 'Branche support preparation of a new production release'
     required: false
     default: "master"
-outputs:
   artifactPath:
     description: 'Path to artifact'
+    required: false
   artifactName:
     description: 'Name of artifact'
+    required: false
+  blobUrl:
+    description: 'Blob Url'
+    required: false
+    default: 'https://vc3prerelease.blob.core.windows.net/packages'
+outputs:
   blobUrl:
     description: 'URL to artifact'
 
