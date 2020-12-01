@@ -75,7 +75,8 @@ async function run(): Promise<void> {
     if(pushChanges === "true")
     {
         let modulesJsonUrl = core.getInput("modulesJsonUrl");
-        await downloadFile(modulesJsonUrl, modulesJsonName);
+        let epoch = new Date().getTime();
+        await downloadFile(`${modulesJsonUrl}?v=${epoch}`, modulesJsonName);
         let modulesJsonRepoBuffer = fs.readFileSync(modulesJsonName);
         let modulesManifest = JSON.parse(modulesJsonRepoBuffer.toString());
         let propsPath = "Directory.Build.props";

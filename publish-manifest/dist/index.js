@@ -96,7 +96,8 @@ function run() {
         core.setOutput("modulesJsonPath", modulesJsonPath);
         if (pushChanges === "true") {
             let modulesJsonUrl = core.getInput("modulesJsonUrl");
-            yield downloadFile(modulesJsonUrl, modulesJsonName);
+            let epoch = new Date().getTime();
+            yield downloadFile(`${modulesJsonUrl}?v=${epoch}`, modulesJsonName);
             let modulesJsonRepoBuffer = fs_1.default.readFileSync(modulesJsonName);
             let modulesManifest = JSON.parse(modulesJsonRepoBuffer.toString());
             let propsPath = "Directory.Build.props";
