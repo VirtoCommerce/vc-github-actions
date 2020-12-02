@@ -73,6 +73,11 @@ function findModuleId(repoName, modulesManifest) {
         }
     });
 }
+function sleep(ms) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         let packageUrl = core.getInput('packageUrl');
@@ -96,8 +101,8 @@ function run() {
         core.setOutput("modulesJsonPath", modulesJsonPath);
         if (pushChanges === "true") {
             let modulesJsonUrl = core.getInput("modulesJsonUrl");
-            let epoch = new Date().getTime();
-            yield downloadFile(`${modulesJsonUrl}?v=${epoch}`, modulesJsonName);
+            yield sleep(3000);
+            yield downloadFile(modulesJsonUrl, modulesJsonName);
             let modulesJsonRepoBuffer = fs_1.default.readFileSync(modulesJsonName);
             let modulesManifest = JSON.parse(modulesJsonRepoBuffer.toString());
             let propsPath = "Directory.Build.props";
