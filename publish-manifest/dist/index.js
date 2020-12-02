@@ -101,7 +101,9 @@ function run() {
         core.setOutput("modulesJsonPath", modulesJsonPath);
         if (pushChanges === "true") {
             let modulesJsonUrl = core.getInput("modulesJsonUrl");
-            yield sleep(3000);
+            console.log(new Date().getTime());
+            yield sleep(10000);
+            console.log(new Date().getTime());
             yield downloadFile(modulesJsonUrl, modulesJsonName);
             let modulesJsonRepoBuffer = fs_1.default.readFileSync(modulesJsonName);
             let modulesManifest = JSON.parse(modulesJsonRepoBuffer.toString());

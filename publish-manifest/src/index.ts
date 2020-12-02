@@ -81,7 +81,9 @@ async function run(): Promise<void> {
     if(pushChanges === "true")
     {
         let modulesJsonUrl = core.getInput("modulesJsonUrl");
-        await sleep(3000);
+        console.log(new Date().getTime());
+        await sleep(10000);
+        console.log(new Date().getTime());
         await downloadFile(modulesJsonUrl, modulesJsonName);
         let modulesJsonRepoBuffer = fs.readFileSync(modulesJsonName);
         let modulesManifest = JSON.parse(modulesJsonRepoBuffer.toString());
