@@ -50,6 +50,7 @@ function run() {
             return b.updated_at.localeCompare(a.updated_at);
         });
         for (let repo of repos) {
+            console.log(repo);
             let workflows = yield octokit.actions.listRepoWorkflows({
                 owner: ORGANIZATION,
                 repo: repo.name

@@ -35,7 +35,7 @@ async function run(): Promise<void> {
 
     for(let repo of repos)
     {
-        console.log('test');
+        console.log(repo);
         let workflows = await octokit.actions.listRepoWorkflows({
             owner: ORGANIZATION,
             repo: repo.name
