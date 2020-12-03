@@ -23,7 +23,6 @@ async function run(): Promise<void> {
 
     let reposResponse = await octokit.repos.listForOrg({
         org: ORGANIZATION,
-        type: "all",
         per_page: 100,
         sort: "updated"
     });
@@ -56,7 +55,13 @@ async function run(): Promise<void> {
                     workflow_id: workflow.id,
                     per_page: 1
                 });
+                let workflowUsage = await octokit.actions.getWorkflowRunUsage({
+                    owner: ORGANIZATION,
+                    repo: repo.name,
+                    run_id: runs.data.workflow_runs[0]?.id
+                  });
                 tableRow += `<a href="${runs.data.workflow_runs[0]?.html_url}"><img src="${workflow.badge_url}" /></a>`;
+                tableRow += `<a "${workflowUsage.data.run_duration_ms}" /></a>`;
                 tableRow += "</td></tr>";
                 table += tableRow;
             }

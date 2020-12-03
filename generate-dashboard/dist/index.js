@@ -33,7 +33,7 @@ const github = __importStar(require("@actions/github"));
 const fs = __importStar(require("fs"));
 ;
 function run() {
-    var _a;
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         const GITHUB_TOKEN = core.getInput("githubToken");
         const ORGANIZATION = core.getInput("organization");
@@ -41,7 +41,6 @@ function run() {
         let octokit = github.getOctokit(GITHUB_TOKEN);
         let reposResponse = yield octokit.repos.listForOrg({
             org: ORGANIZATION,
-            type: "all",
             per_page: 100,
             sort: "updated"
         });
@@ -53,7 +52,6 @@ function run() {
                 owner: ORGANIZATION,
                 repo: repo.name
             });
-            console.log(repo.name);
             if (workflows.data.total_count === 0) {
                 continue;
             }
@@ -66,7 +64,13 @@ function run() {
                         workflow_id: workflow.id,
                         per_page: 1
                     });
-                    tableRow += `<a href="${(_a = runs.data.workflow_runs[0]) === null || _a === void 0 ? void 0 : _a.html_url}"><img src="${workflow.badge_url}" /></a>`;
+                    let workflowUsage = yield octokit.actions.getWorkflowRunUsage({
+                        owner: ORGANIZATION,
+                        repo: repo.name,
+                        run_id: (_a = runs.data.workflow_runs[0]) === null || _a === void 0 ? void 0 : _a.id
+                    });
+                    tableRow += `<a href="${(_b = runs.data.workflow_runs[0]) === null || _b === void 0 ? void 0 : _b.html_url}"><img src="${workflow.badge_url}" /></a>`;
+                    tableRow += `<a "${workflowUsage.data.run_duration_ms}" /></a>`;
                     tableRow += "</td></tr>";
                     table += tableRow;
                 }
