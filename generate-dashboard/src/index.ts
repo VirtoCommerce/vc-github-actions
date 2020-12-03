@@ -24,7 +24,8 @@ async function run(): Promise<void> {
     let reposResponse = await octokit.repos.listForOrg({
         org: ORGANIZATION,
         type: "all",
-        per_page: 100
+        per_page: 100,
+        page: 2
     });
 
     let table = "<table>";
