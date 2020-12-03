@@ -42,16 +42,15 @@ function run() {
         let reposResponse = yield octokit.repos.listForOrg({
             org: ORGANIZATION,
             type: "all",
-            per_page: 100,
-            page: 2
+            per_page: 100
         });
+        console.log(reposResponse);
         let table = "<table>";
         let repos = reposResponse.data;
         repos.sort(function (a, b) {
             return b.updated_at.localeCompare(a.updated_at);
         });
         for (let repo of repos) {
-            console.log(repo.name);
             let workflows = yield octokit.actions.listRepoWorkflows({
                 owner: ORGANIZATION,
                 repo: repo.name

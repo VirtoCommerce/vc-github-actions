@@ -24,10 +24,11 @@ async function run(): Promise<void> {
     let reposResponse = await octokit.repos.listForOrg({
         org: ORGANIZATION,
         type: "all",
-        per_page: 100,
-        page: 2
+        per_page: 100
     });
 
+    console.log(reposResponse);
+    
     let table = "<table>";
     let repos = reposResponse.data;
     repos.sort(function(a, b){
@@ -36,7 +37,6 @@ async function run(): Promise<void> {
 
     for(let repo of repos)
     {
-        console.log(repo.name);
         let workflows = await octokit.actions.listRepoWorkflows({
             owner: ORGANIZATION,
             repo: repo.name
