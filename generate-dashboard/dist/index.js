@@ -59,7 +59,7 @@ function run() {
             }
             for (let workflow of workflows.data.workflows) {
                 if (workflowsArray.includes(workflow.name)) {
-                    tableRow = `|[${repo.html_url}](${repo.name})|`;
+                    tableRow = `|[${repo.name}](${repo.html_url})|`;
                     let runs = yield octokit.actions.listWorkflowRuns({
                         owner: ORGANIZATION,
                         repo: repo.name,
@@ -67,7 +67,7 @@ function run() {
                         per_page: 1
                     });
                     console.log(repo.name);
-                    tableRow += `[${(_a = runs.data.workflow_runs[0]) === null || _a === void 0 ? void 0 : _a.html_url}](${workflow.badge_url})|`;
+                    tableRow += `[![Workflow badge](${workflow.badge_url})](${(_a = runs.data.workflow_runs[0]) === null || _a === void 0 ? void 0 : _a.html_url})|`;
                     if ((_b = runs.data.workflow_runs[0]) === null || _b === void 0 ? void 0 : _b.id) {
                         let workflowUsage = yield octokit.actions.getWorkflowRunUsage({
                             owner: ORGANIZATION,

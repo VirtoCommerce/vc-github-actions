@@ -51,7 +51,7 @@ async function run(): Promise<void> {
             if (workflowsArray.includes(workflow.name))
             {
                 
-                tableRow = `|[${repo.html_url}](${repo.name})|`;
+                tableRow = `|[${repo.name}](${repo.html_url})|`;
                 let runs = await octokit.actions.listWorkflowRuns({
                     owner: ORGANIZATION,
                     repo: repo.name,
@@ -59,7 +59,7 @@ async function run(): Promise<void> {
                     per_page: 1
                 });
                 console.log(repo.name);
-                tableRow += `[${runs.data.workflow_runs[0]?.html_url}](${workflow.badge_url})|`;
+                tableRow += `[![Workflow badge](${workflow.badge_url})](${runs.data.workflow_runs[0]?.html_url})|`;
                 if (runs.data.workflow_runs[0]?.id)
                 {
                     let workflowUsage = await octokit.actions.getWorkflowRunUsage({
