@@ -24,16 +24,14 @@ async function run(): Promise<void> {
     let reposResponse = await octokit.repos.listForOrg({
         org: ORGANIZATION,
         type: "all",
-        per_page: 100
+        per_page: 100,
+        sort: "updated"
     });
 
     console.log(reposResponse);
     
     let table = "<table>";
     let repos = reposResponse.data;
-    repos.sort(function(a, b){
-        return b.updated_at.localeCompare(a.updated_at);
-    });
 
     for(let repo of repos)
     {
