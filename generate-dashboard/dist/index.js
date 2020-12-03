@@ -57,9 +57,9 @@ function run() {
             if (workflows.data.total_count === 0) {
                 continue;
             }
-            let tableRow = `<tr><td><a href="${repo.html_url}">${repo.name}</a></td><td>`;
             for (let workflow of workflows.data.workflows) {
                 if (workflowsArray.includes(workflow.name)) {
+                    let tableRow = `<tr><td><a href="${repo.html_url}">${repo.name}</a></td><td>`;
                     let runs = yield octokit.actions.listWorkflowRuns({
                         owner: ORGANIZATION,
                         repo: repo.name,
@@ -67,10 +67,10 @@ function run() {
                         per_page: 1
                     });
                     tableRow += `<a href="${(_a = runs.data.workflow_runs[0]) === null || _a === void 0 ? void 0 : _a.html_url}"><img src="${workflow.badge_url}" /></a>`;
+                    tableRow += "</td></tr>";
+                    table += tableRow;
                 }
             }
-            tableRow += "</td></tr>";
-            table += tableRow;
         }
         table += "</table>";
         let pagePath = `${__dirname}/${PAGE_NAME}`;

@@ -40,16 +40,16 @@ async function run(): Promise<void> {
             owner: ORGANIZATION,
             repo: repo.name
         });
-        console.log(repo.name);
         if(workflows.data.total_count === 0)
         {
             continue;
         }
-        let tableRow = `<tr><td><a href="${repo.html_url}">${repo.name}</a></td><td>`;
+     
         for(let workflow of workflows.data.workflows as Workflow[])
         {
             if (workflowsArray.includes(workflow.name))
             {
+                let tableRow = `<tr><td><a href="${repo.html_url}">${repo.name}</a></td><td>`;
                 let runs = await octokit.actions.listWorkflowRuns({
                     owner: ORGANIZATION,
                     repo: repo.name,
@@ -57,10 +57,10 @@ async function run(): Promise<void> {
                     per_page: 1
                 });
                 tableRow += `<a href="${runs.data.workflow_runs[0]?.html_url}"><img src="${workflow.badge_url}" /></a>`;
+                tableRow += "</td></tr>";
+                table += tableRow;
             }
         }
-        tableRow += "</td></tr>";
-        table += tableRow;
     }
     table += "</table>";
     
