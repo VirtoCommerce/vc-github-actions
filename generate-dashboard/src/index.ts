@@ -28,8 +28,7 @@ async function run(): Promise<void> {
         sort: "updated"
     });
 
-    console.log(reposResponse);
-    
+
     let table = "<table>";
     let repos = reposResponse.data;
 
@@ -39,6 +38,7 @@ async function run(): Promise<void> {
             owner: ORGANIZATION,
             repo: repo.name
         });
+        console.log(repo.name);
         if(workflows.data.total_count === 0)
         {
             continue;
