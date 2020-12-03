@@ -28,7 +28,9 @@ async function run(): Promise<void> {
     });
 
 
-    let table = "<table>";
+    let table = `|Repo name| Workwlow status | Duration |\n`;
+    table += `|---|---|---|\n`;
+    let tableRow;
     let repos = reposResponse.data;
 
     let workflowsArray = ["Module CI", "Platform CI","Storefront CI", "Theme CI", "Build CI"]
@@ -48,7 +50,8 @@ async function run(): Promise<void> {
         {
             if (workflowsArray.includes(workflow.name))
             {
-                let tableRow = `<tr><td><a href="${repo.html_url}">${repo.name}</a></td><td>`;
+                
+                tableRow = `|[${repo.html_url}](${repo.name})|`;
                 let runs = await octokit.actions.listWorkflowRuns({
                     owner: ORGANIZATION,
                     repo: repo.name,
@@ -56,7 +59,7 @@ async function run(): Promise<void> {
                     per_page: 1
                 });
                 console.log(repo.name);
-                tableRow += `<a href="${runs.data.workflow_runs[0]?.html_url}"><img src="${workflow.badge_url}" /></a>`;
+                tableRow += `[${runs.data.workflow_runs[0]?.html_url}](${workflow.badge_url})|`;
                 if (runs.data.workflow_runs[0]?.id)
                 {
                     let workflowUsage = await octokit.actions.getWorkflowRunUsage({
@@ -65,14 +68,16 @@ async function run(): Promise<void> {
                         run_id: runs.data.workflow_runs[0]?.id
                       });
                     console.log(workflowUsage.data);
-                    tableRow += `<a "${workflowUsage.data.run_duration_ms}" /></a>`;
+                    tableRow += `${workflowUsage.data.run_duration_ms}|\n`;
                 }
-                tableRow += "</td></tr>";
+                else 
+                {
+                    tableRow += `|\n`;
+                }
                 table += tableRow;
             }
         }
     }
-    table += "</table>";
     
     let pagePath = `${__dirname}/${PAGE_NAME}`;
     fs.writeFileSync(pagePath, table);

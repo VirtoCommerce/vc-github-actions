@@ -44,7 +44,9 @@ function run() {
             per_page: 100,
             sort: "updated"
         });
-        let table = "<table>";
+        let table = `|Repo name| Workwlow status | Duration |\n`;
+        table += `|---|---|---|\n`;
+        let tableRow;
         let repos = reposResponse.data;
         let workflowsArray = ["Module CI", "Platform CI", "Storefront CI", "Theme CI", "Build CI"];
         for (let repo of repos) {
@@ -57,7 +59,7 @@ function run() {
             }
             for (let workflow of workflows.data.workflows) {
                 if (workflowsArray.includes(workflow.name)) {
-                    let tableRow = `<tr><td><a href="${repo.html_url}">${repo.name}</a></td><td>`;
+                    tableRow = `|[${repo.html_url}](${repo.name})|`;
                     let runs = yield octokit.actions.listWorkflowRuns({
                         owner: ORGANIZATION,
                         repo: repo.name,
@@ -65,7 +67,7 @@ function run() {
                         per_page: 1
                     });
                     console.log(repo.name);
-                    tableRow += `<a href="${(_a = runs.data.workflow_runs[0]) === null || _a === void 0 ? void 0 : _a.html_url}"><img src="${workflow.badge_url}" /></a>`;
+                    tableRow += `[${(_a = runs.data.workflow_runs[0]) === null || _a === void 0 ? void 0 : _a.html_url}](${workflow.badge_url})|`;
                     if ((_b = runs.data.workflow_runs[0]) === null || _b === void 0 ? void 0 : _b.id) {
                         let workflowUsage = yield octokit.actions.getWorkflowRunUsage({
                             owner: ORGANIZATION,
@@ -73,14 +75,15 @@ function run() {
                             run_id: (_c = runs.data.workflow_runs[0]) === null || _c === void 0 ? void 0 : _c.id
                         });
                         console.log(workflowUsage.data);
-                        tableRow += `<a "${workflowUsage.data.run_duration_ms}" /></a>`;
+                        tableRow += `${workflowUsage.data.run_duration_ms}|\n`;
                     }
-                    tableRow += "</td></tr>";
+                    else {
+                        tableRow += `|\n`;
+                    }
                     table += tableRow;
                 }
             }
         }
-        table += "</table>";
         let pagePath = `${__dirname}/${PAGE_NAME}`;
         fs.writeFileSync(pagePath, table);
         core.setOutput("result", pagePath);
