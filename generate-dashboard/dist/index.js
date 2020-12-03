@@ -64,13 +64,14 @@ function run() {
                         workflow_id: workflow.id,
                         per_page: 1
                     });
+                    console.log(repo.name);
                     let workflowUsage = yield octokit.actions.getWorkflowRunUsage({
                         owner: ORGANIZATION,
                         repo: repo.name,
                         run_id: (_a = runs.data.workflow_runs[0]) === null || _a === void 0 ? void 0 : _a.id
                     });
+                    console.log(workflowUsage.data);
                     tableRow += `<a href="${(_b = runs.data.workflow_runs[0]) === null || _b === void 0 ? void 0 : _b.html_url}"><img src="${workflow.badge_url}" /></a>`;
-                    tableRow += `<a "${workflowUsage.data.run_duration_ms}" /></a>`;
                     tableRow += "</td></tr>";
                     table += tableRow;
                 }
