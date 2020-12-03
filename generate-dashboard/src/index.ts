@@ -32,6 +32,8 @@ async function run(): Promise<void> {
     let table = "<table>";
     let repos = reposResponse.data;
 
+    let workflowsArray = ["Module CI", "Platform CI","Storefront CI", "Theme CI", "Build CI"]
+
     for(let repo of repos)
     {
         let workflows = await octokit.actions.listRepoWorkflows({
@@ -46,13 +48,16 @@ async function run(): Promise<void> {
         let tableRow = `<tr><td><a href="${repo.html_url}">${repo.name}</a></td><td>`;
         for(let workflow of workflows.data.workflows as Workflow[])
         {
-            let runs = await octokit.actions.listWorkflowRuns({
-                owner: ORGANIZATION,
-                repo: repo.name,
-                workflow_id: workflow.id,
-                per_page: 1
-            });
-            tableRow += `<a href="${runs.data.workflow_runs[0]?.html_url}"><img src="${workflow.badge_url}" /></a>`;
+            if (workflowsArray.includes(workflow.name))
+            {
+                let runs = await octokit.actions.listWorkflowRuns({
+                    owner: ORGANIZATION,
+                    repo: repo.name,
+                    workflow_id: workflow.id,
+                    per_page: 1
+                });
+                tableRow += `<a href="${runs.data.workflow_runs[0]?.html_url}"><img src="${workflow.badge_url}" /></a>`;
+            }
         }
         tableRow += "</td></tr>";
         table += tableRow;

@@ -47,6 +47,7 @@ function run() {
         });
         let table = "<table>";
         let repos = reposResponse.data;
+        let workflowsArray = ["Module CI", "Platform CI", "Storefront CI", "Theme CI", "Build CI"];
         for (let repo of repos) {
             let workflows = yield octokit.actions.listRepoWorkflows({
                 owner: ORGANIZATION,
@@ -58,13 +59,15 @@ function run() {
             }
             let tableRow = `<tr><td><a href="${repo.html_url}">${repo.name}</a></td><td>`;
             for (let workflow of workflows.data.workflows) {
-                let runs = yield octokit.actions.listWorkflowRuns({
-                    owner: ORGANIZATION,
-                    repo: repo.name,
-                    workflow_id: workflow.id,
-                    per_page: 1
-                });
-                tableRow += `<a href="${(_a = runs.data.workflow_runs[0]) === null || _a === void 0 ? void 0 : _a.html_url}"><img src="${workflow.badge_url}" /></a>`;
+                if (workflowsArray.includes(workflow.name)) {
+                    let runs = yield octokit.actions.listWorkflowRuns({
+                        owner: ORGANIZATION,
+                        repo: repo.name,
+                        workflow_id: workflow.id,
+                        per_page: 1
+                    });
+                    tableRow += `<a href="${(_a = runs.data.workflow_runs[0]) === null || _a === void 0 ? void 0 : _a.html_url}"><img src="${workflow.badge_url}" /></a>`;
+                }
             }
             tableRow += "</td></tr>";
             table += tableRow;
