@@ -1,0 +1,32 @@
+name: Dashboard Update Test
+on:
+    workflow_dispatch:
+jobs:
+  update_wiki:
+    runs-on: ubuntu-latest
+    env: 
+      PAGE_NAME: "Workflow-status.md"
+
+    steps:
+      - name: Setup Git Credentials
+        uses: VirtoCommerce/vc-github-actions/setup-git-credentials-github@master
+        with: 
+          githubToken: ${{ secrets.REPO_TOKEN }} 
+
+      - name: Generate Dashboard
+        id: dashboard
+        uses: VirtoCommerce/vc-github-actions/generate-dashboard@master
+        with:
+          githubToken: ${{ secrets.REPO_TOKEN }}
+          pageName: ${{ env.PAGE_NAME }}
+
+      - name: Update Dashboard
+        shell: sh
+        run: |
+          git clone https://github.com/VirtoCommerce/vc-github-actions.wiki.git
+          cd vc-github-actions.wiki
+          rm -f ${{ env.PAGE_NAME }}
+          cp -f ${{ steps.dashboard.outputs.result }} .
+          git add .
+          git commit -m "Update Dashboard"
+          git push origin master
