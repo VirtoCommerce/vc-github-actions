@@ -33,7 +33,7 @@ const github = __importStar(require("@actions/github"));
 const fs = __importStar(require("fs"));
 ;
 function run() {
-    var _a, _b;
+    var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function* () {
         const GITHUB_TOKEN = core.getInput("githubToken");
         const ORGANIZATION = core.getInput("organization");
@@ -65,13 +65,16 @@ function run() {
                         per_page: 1
                     });
                     console.log(repo.name);
-                    let workflowUsage = yield octokit.actions.getWorkflowRunUsage({
-                        owner: ORGANIZATION,
-                        repo: repo.name,
-                        run_id: (_a = runs.data.workflow_runs[0]) === null || _a === void 0 ? void 0 : _a.id
-                    });
-                    console.log(workflowUsage.data);
-                    tableRow += `<a href="${(_b = runs.data.workflow_runs[0]) === null || _b === void 0 ? void 0 : _b.html_url}"><img src="${workflow.badge_url}" /></a>`;
+                    tableRow += `<a href="${(_a = runs.data.workflow_runs[0]) === null || _a === void 0 ? void 0 : _a.html_url}"><img src="${workflow.badge_url}" /></a>`;
+                    if ((_b = runs.data.workflow_runs[0]) === null || _b === void 0 ? void 0 : _b.id) {
+                        let workflowUsage = yield octokit.actions.getWorkflowRunUsage({
+                            owner: ORGANIZATION,
+                            repo: repo.name,
+                            run_id: (_c = runs.data.workflow_runs[0]) === null || _c === void 0 ? void 0 : _c.id
+                        });
+                        console.log(workflowUsage.data);
+                        tableRow += `<a "${workflowUsage.data.run_duration_ms}" /></a>`;
+                    }
                     tableRow += "</td></tr>";
                     table += tableRow;
                 }

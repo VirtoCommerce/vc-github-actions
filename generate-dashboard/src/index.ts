@@ -56,14 +56,17 @@ async function run(): Promise<void> {
                     per_page: 1
                 });
                 console.log(repo.name);
-                let workflowUsage = await octokit.actions.getWorkflowRunUsage({
-                    owner: ORGANIZATION,
-                    repo: repo.name,
-                    run_id: runs.data.workflow_runs[0]?.id
-                  });
-                console.log(workflowUsage.data);
                 tableRow += `<a href="${runs.data.workflow_runs[0]?.html_url}"><img src="${workflow.badge_url}" /></a>`;
-//                tableRow += `<a "${workflowUsage.data.run_duration_ms}" /></a>`;
+                if (runs.data.workflow_runs[0]?.id)
+                {
+                    let workflowUsage = await octokit.actions.getWorkflowRunUsage({
+                        owner: ORGANIZATION,
+                        repo: repo.name,
+                        run_id: runs.data.workflow_runs[0]?.id
+                      });
+                    console.log(workflowUsage.data);
+                    tableRow += `<a "${workflowUsage.data.run_duration_ms}" /></a>`;
+                }
                 tableRow += "</td></tr>";
                 table += tableRow;
             }
