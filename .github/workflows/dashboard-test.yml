@@ -15,7 +15,7 @@ jobs:
 
       - name: Generate Dashboard
         id: dashboard
-        uses: VirtoCommerce/vc-github-actions/generate-dashboard@VP6051
+        uses: VirtoCommerce/vc-github-actions/generate-dashboard@VP-6051
         with:
           githubToken: ${{ secrets.REPO_TOKEN }}
           pageName: ${{ env.PAGE_NAME }}
