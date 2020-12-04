@@ -37,7 +37,7 @@ jobs:
         run: git clone https://github.com/VirtoCommerce/vc-quality-gate-katalon.git
 
       - name: Katalon Studio Github Action
-        uses: katalon-studio/katalon-studio-github-action@v2
+        uses: katalon-studio/katalon-studio-github-action@v2.2
         with:
           version: '7.5.5'
           projectPath: '${{ github.workspace }}/vc-quality-gate-katalon/platform_storefront.prj'
