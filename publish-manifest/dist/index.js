@@ -62,6 +62,11 @@ function downloadFile(url, outFile) {
         });
     });
 }
+function cloneRepo(repoUrl, dest) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield exec.exec(`git clone ${repoUrl} ${dest}`, [], { failOnStdErr: false });
+    });
+}
 function findModuleId(repoName, modulesManifest) {
     return __awaiter(this, void 0, void 0, function* () {
         for (let module of modulesManifest) {
@@ -96,8 +101,10 @@ function run() {
         core.setOutput("modulesJsonPath", modulesJsonPath);
         if (pushChanges === "true") {
             let modulesJsonUrl = core.getInput("modulesJsonUrl");
-            yield downloadFile(modulesJsonUrl, modulesJsonName);
-            let modulesJsonRepoBuffer = fs_1.default.readFileSync(modulesJsonName);
+            let vcmodulesDir = "updated-vc-modules";
+            let updatedModulesJsonPath = `${vcmodulesDir}/${modulesJsonName}`;
+            yield cloneRepo(modulesJsonRepo, updatedModulesJsonPath);
+            let modulesJsonRepoBuffer = fs_1.default.readFileSync(updatedModulesJsonPath);
             let modulesManifest = JSON.parse(modulesJsonRepoBuffer.toString());
             let propsPath = "Directory.Build.props";
             let moduleVersion = yield utils.getVersionFromDirectoryBuildProps(propsPath);
