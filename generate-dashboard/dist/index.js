@@ -33,7 +33,7 @@ const github = __importStar(require("@actions/github"));
 const fs = __importStar(require("fs"));
 ;
 function run() {
-    var _a, _b, _c, _d;
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         const GITHUB_TOKEN = core.getInput("githubToken");
         const ORGANIZATION = core.getInput("organization");
@@ -44,11 +44,8 @@ function run() {
             per_page: 100,
             sort: "pushed"
         });
-        let table = `| Repo name | Workflow status | Runs at | Duration |\n`;
-        table += `|---|---|---|---|\n`;
-        let tableRow;
+        let table = "<table>";
         let repos = reposResponse.data;
-        let workflowsArray = ["Module CI", "Platform CI", "Storefront CI", "Theme CI", "Build CI"];
         for (let repo of repos) {
             let workflows = yield octokit.actions.listRepoWorkflows({
                 owner: ORGANIZATION,
@@ -57,33 +54,20 @@ function run() {
             if (workflows.data.total_count === 0) {
                 continue;
             }
+            let tableRow = `<tr><td><a href="${repo.html_url}">${repo.name}</a></td><td>`;
             for (let workflow of workflows.data.workflows) {
-                tableRow = `|[${repo.name}](${repo.html_url})|`;
                 let runs = yield octokit.actions.listWorkflowRuns({
                     owner: ORGANIZATION,
                     repo: repo.name,
                     workflow_id: workflow.id,
                     per_page: 1
                 });
-                tableRow += `[![Workflow badge](${workflow.badge_url})](${(_a = runs.data.workflow_runs[0]) === null || _a === void 0 ? void 0 : _a.html_url})|${(_b = runs.data.workflow_runs[0]) === null || _b === void 0 ? void 0 : _b.updated_at}|`;
-                if ((_c = runs.data.workflow_runs[0]) === null || _c === void 0 ? void 0 : _c.id) {
-                    let workflowUsage = yield octokit.actions.getWorkflowRunUsage({
-                        owner: ORGANIZATION,
-                        repo: repo.name,
-                        run_id: (_d = runs.data.workflow_runs[0]) === null || _d === void 0 ? void 0 : _d.id
-                    });
-                    var date = new Date(workflowUsage.data.run_duration_ms);
-                    var h = date.getHours();
-                    var m = date.getMinutes();
-                    var s = date.getSeconds();
-                    tableRow += `${h * 60 + m}m ${s}s|\n`;
-                }
-                else {
-                    tableRow += `|\n`;
-                }
-                table += tableRow;
+                tableRow += `<a href="${(_a = runs.data.workflow_runs[0]) === null || _a === void 0 ? void 0 : _a.html_url}"><img src="${workflow.badge_url}" /></a>`;
             }
+            tableRow += "</td></tr>";
+            table += tableRow;
         }
+        table += "</table>";
         let pagePath = `${__dirname}/${PAGE_NAME}`;
         fs.writeFileSync(pagePath, table);
         core.setOutput("result", pagePath);
