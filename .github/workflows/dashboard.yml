@@ -36,7 +36,7 @@ jobs:
       
       - name: Generate Duration Dashboard
         id: dashboard
-        uses: VirtoCommerce/vc-github-actions/generate-dashboard-durations@VP-6051
+        uses: VirtoCommerce/vc-github-actions/generate-dashboard-durations@master
         with:
           githubToken: ${{ secrets.REPO_TOKEN }}
           pageName: ${{ env.DURATION_PAGE_NAME }}
