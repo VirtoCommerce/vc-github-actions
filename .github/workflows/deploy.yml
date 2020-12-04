@@ -7,6 +7,14 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+    - name: vc-module-webhooks
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        USER: ${{ env.GITHUB_USER }}
+        GHA_DEPLOYMENT_FOLDER: "modules"
+        REPOSITORY: "vc-module-webhooks"
+
     # - name: vc-module-core
     #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
     #   env:
@@ -15,13 +23,13 @@ jobs:
     #     GHA_DEPLOYMENT_FOLDER: "modules"
     #     REPOSITORY: "vc-module-core"
 
-    - name: vc-module-order
-      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-        USER: ${{ env.GITHUB_USER }}
-        GHA_DEPLOYMENT_FOLDER: "modules"
-        REPOSITORY: "vc-module-order"
+    # - name: vc-module-order
+    #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+    #     USER: ${{ env.GITHUB_USER }}
+    #     GHA_DEPLOYMENT_FOLDER: "modules"
+    #     REPOSITORY: "vc-module-order"
         
     # - name: vc-module-customer
     #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
