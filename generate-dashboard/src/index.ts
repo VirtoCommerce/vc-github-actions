@@ -48,36 +48,34 @@ async function run(): Promise<void> {
      
         for(let workflow of workflows.data.workflows as Workflow[])
         {
-//            if (workflowsArray.includes(workflow.name))
+            tableRow = `|[${repo.name}](${repo.html_url})|`;
+            let runs = await octokit.actions.listWorkflowRuns({
+                owner: ORGANIZATION,
+                repo: repo.name,
+                workflow_id: workflow.id,
+                per_page: 1
+            });
+            
+            tableRow += `[![Workflow badge](${workflow.badge_url})](${runs.data.workflow_runs[0]?.html_url}) ${runs.data.workflow_runs[0]?.updated_at} |`;
+            if (runs.data.workflow_runs[0]?.id)
             {
-                
-                tableRow = `|[${repo.name}](${repo.html_url})|`;
-                let runs = await octokit.actions.listWorkflowRuns({
+                let workflowUsage = await octokit.actions.getWorkflowRunUsage({
                     owner: ORGANIZATION,
                     repo: repo.name,
-                    workflow_id: workflow.id,
-                    per_page: 1
-                });
-                tableRow += `[![Workflow badge](${workflow.badge_url})](${runs.data.workflow_runs[0]?.html_url})|`;
-                if (runs.data.workflow_runs[0]?.id)
-                {
-                    let workflowUsage = await octokit.actions.getWorkflowRunUsage({
-                        owner: ORGANIZATION,
-                        repo: repo.name,
-                        run_id: runs.data.workflow_runs[0]?.id
-                      });
-                      var date = new Date(workflowUsage.data.run_duration_ms);
-                      var h = date.getHours();
-                      var m = date.getMinutes();
-                      var s = date.getSeconds();
-                      tableRow += `${h * 60 + m}m ${s}s|\n`;
-                }
-                else 
-                {
-                    tableRow += `|\n`;
-                }
-                table += tableRow;
+                    run_id: runs.data.workflow_runs[0]?.id
+                    });
+                    var date = new Date(workflowUsage.data.run_duration_ms);
+                    var h = date.getHours();
+                    var m = date.getMinutes();
+                    var s = date.getSeconds();
+                    tableRow += `${h * 60 + m}m ${s}s|\n`;
             }
+            else 
+            {
+                tableRow += `|\n`;
+            }
+            table += tableRow;
+
         }
     }
     
