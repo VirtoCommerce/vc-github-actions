@@ -24,7 +24,7 @@ async function run(): Promise<void> {
     let reposResponse = await octokit.repos.listForOrg({
         org: ORGANIZATION,
         per_page: 100,
-        sort: "updated"
+        sort: "pushed"
     });
 
 

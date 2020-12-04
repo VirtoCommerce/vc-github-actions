@@ -42,7 +42,7 @@ function run() {
         let reposResponse = yield octokit.repos.listForOrg({
             org: ORGANIZATION,
             per_page: 100,
-            sort: "updated"
+            sort: "pushed"
         });
         let table = `| Repo name | Workflow status | Runs at | Duration |\n`;
         table += `|---|---|---|---|\n`;
