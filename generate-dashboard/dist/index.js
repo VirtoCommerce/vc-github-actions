@@ -44,7 +44,7 @@ function run() {
             per_page: 100,
             sort: "updated"
         });
-        let table = `|Repo name| Workwlow status | Duration |\n`;
+        let table = `| Repo name | Workflow status | Duration |\n`;
         table += `|---|---|---|\n`;
         let tableRow;
         let repos = reposResponse.data;
