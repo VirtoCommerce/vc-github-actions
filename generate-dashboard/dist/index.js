@@ -66,7 +66,6 @@ function run() {
                         workflow_id: workflow.id,
                         per_page: 1
                     });
-                    console.log(repo.name);
                     tableRow += `[![Workflow badge](${workflow.badge_url})](${(_a = runs.data.workflow_runs[0]) === null || _a === void 0 ? void 0 : _a.html_url})|`;
                     if ((_b = runs.data.workflow_runs[0]) === null || _b === void 0 ? void 0 : _b.id) {
                         let workflowUsage = yield octokit.actions.getWorkflowRunUsage({
@@ -74,8 +73,11 @@ function run() {
                             repo: repo.name,
                             run_id: (_c = runs.data.workflow_runs[0]) === null || _c === void 0 ? void 0 : _c.id
                         });
-                        console.log(workflowUsage.data);
-                        tableRow += `${workflowUsage.data.run_duration_ms}|\n`;
+                        var date = new Date(workflowUsage.data.run_duration_ms);
+                        var h = date.getHours();
+                        var m = date.getMinutes();
+                        var s = date.getSeconds();
+                        tableRow += `${h}:${m}:${s}|\n`;
                     }
                     else {
                         tableRow += `|\n`;

@@ -58,7 +58,6 @@ async function run(): Promise<void> {
                     workflow_id: workflow.id,
                     per_page: 1
                 });
-                console.log(repo.name);
                 tableRow += `[![Workflow badge](${workflow.badge_url})](${runs.data.workflow_runs[0]?.html_url})|`;
                 if (runs.data.workflow_runs[0]?.id)
                 {
@@ -67,8 +66,11 @@ async function run(): Promise<void> {
                         repo: repo.name,
                         run_id: runs.data.workflow_runs[0]?.id
                       });
-                    console.log(workflowUsage.data);
-                    tableRow += `${workflowUsage.data.run_duration_ms}|\n`;
+                      var date = new Date(workflowUsage.data.run_duration_ms);
+                      var h = date.getHours();
+                      var m = date.getMinutes();
+                      var s = date.getSeconds();
+                      tableRow += `${h}:${m}:${s}|\n`;
                 }
                 else 
                 {
