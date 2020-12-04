@@ -77,7 +77,7 @@ function run() {
                         var h = date.getHours();
                         var m = date.getMinutes();
                         var s = date.getSeconds();
-                        tableRow += `${h}:${m}:${s}|\n`;
+                        tableRow += `${h * 60 + m}:${s}|\n`;
                     }
                     else {
                         tableRow += `|\n`;
