@@ -78,6 +78,11 @@ function findModuleId(repoName, modulesManifest) {
         }
     });
 }
+function sleep(ms) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         let packageUrl = core.getInput('packageUrl');

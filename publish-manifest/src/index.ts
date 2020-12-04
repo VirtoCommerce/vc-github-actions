@@ -51,6 +51,12 @@ async function findModuleId(repoName: string, modulesManifest: any) {
     }
 }
 
+function sleep(ms: number) {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
+}
+
 async function run(): Promise<void> {
     let packageUrl = core.getInput('packageUrl');
     let pushChanges = core.getInput("pushChanges");
