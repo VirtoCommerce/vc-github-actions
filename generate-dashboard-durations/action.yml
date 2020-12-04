@@ -1,5 +1,5 @@
-name: 'generate-dashboard'
-description: 'Generates dashboard with workflows statuses'
+name: 'generate-dashboard-durations'
+description: 'Generates dashboard with workflows statuses and durations'
 inputs:
   githubToken:
     description: "Github Token"
