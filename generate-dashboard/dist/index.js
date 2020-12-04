@@ -44,8 +44,8 @@ function run() {
             per_page: 100,
             sort: "updated"
         });
-        let table = `| Repo name | Workflow status | Duration |\n`;
-        table += `|---|---|---|\n`;
+        let table = `| Repo name | Workflow status | Runs at | Duration |\n`;
+        table += `|---|---|---|---|\n`;
         let tableRow;
         let repos = reposResponse.data;
         let workflowsArray = ["Module CI", "Platform CI", "Storefront CI", "Theme CI", "Build CI"];
@@ -65,7 +65,7 @@ function run() {
                     workflow_id: workflow.id,
                     per_page: 1
                 });
-                tableRow += `[![Workflow badge](${workflow.badge_url})](${(_a = runs.data.workflow_runs[0]) === null || _a === void 0 ? void 0 : _a.html_url}) ${(_b = runs.data.workflow_runs[0]) === null || _b === void 0 ? void 0 : _b.updated_at} |`;
+                tableRow += `[![Workflow badge](${workflow.badge_url})](${(_a = runs.data.workflow_runs[0]) === null || _a === void 0 ? void 0 : _a.html_url})|${(_b = runs.data.workflow_runs[0]) === null || _b === void 0 ? void 0 : _b.updated_at}|`;
                 if ((_c = runs.data.workflow_runs[0]) === null || _c === void 0 ? void 0 : _c.id) {
                     let workflowUsage = yield octokit.actions.getWorkflowRunUsage({
                         owner: ORGANIZATION,

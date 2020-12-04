@@ -28,8 +28,8 @@ async function run(): Promise<void> {
     });
 
 
-    let table = `| Repo name | Workflow status | Duration |\n`;
-    table += `|---|---|---|\n`;
+    let table = `| Repo name | Workflow status | Runs at | Duration |\n`;
+    table += `|---|---|---|---|\n`;
     let tableRow;
     let repos = reposResponse.data;
 
@@ -56,7 +56,7 @@ async function run(): Promise<void> {
                 per_page: 1
             });
             
-            tableRow += `[![Workflow badge](${workflow.badge_url})](${runs.data.workflow_runs[0]?.html_url}) ${runs.data.workflow_runs[0]?.updated_at} |`;
+            tableRow += `[![Workflow badge](${workflow.badge_url})](${runs.data.workflow_runs[0]?.html_url})|${runs.data.workflow_runs[0]?.updated_at}|`;
             if (runs.data.workflow_runs[0]?.id)
             {
                 let workflowUsage = await octokit.actions.getWorkflowRunUsage({
