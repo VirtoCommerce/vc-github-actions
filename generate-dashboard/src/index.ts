@@ -48,7 +48,7 @@ async function run(): Promise<void> {
      
         for(let workflow of workflows.data.workflows as Workflow[])
         {
-            if (workflowsArray.includes(workflow.name))
+//            if (workflowsArray.includes(workflow.name))
             {
                 
                 tableRow = `|[${repo.name}](${repo.html_url})|`;

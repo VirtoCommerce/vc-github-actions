@@ -58,7 +58,7 @@ function run() {
                 continue;
             }
             for (let workflow of workflows.data.workflows) {
-                if (workflowsArray.includes(workflow.name)) {
+                {
                     tableRow = `|[${repo.name}](${repo.html_url})|`;
                     let runs = yield octokit.actions.listWorkflowRuns({
                         owner: ORGANIZATION,
