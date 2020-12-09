@@ -34,7 +34,7 @@ jobs:
 
       - name: Katalon Report
         if: ${{ success() || failure() }}
-        uses: VirtoCommerce/publish-katalon-report/docker-env@master
+        uses: VirtoCommerce/vc-github-actions/publish-katalon-report@master
 
       - name: Getting tests
         shell: sh
