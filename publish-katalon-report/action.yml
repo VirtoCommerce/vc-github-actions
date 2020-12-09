@@ -1,0 +1,11 @@
+name: 'publish-katalon-report'
+description: 'Publish katalon report'
+inputs:
+  testProjectPath:
+    description: "Path to Katalon Project"
+    required: false
+    default: ""
+
+runs:
+  using: 'node12'
+  main: 'dist/index.js'

@@ -32,6 +32,10 @@ jobs:
           storefrontImage: docker.pkg.github.com/virtocommerce/vc-storefront/storefront
           validateSwagger: 'false'
 
+      - name: Katalon Report
+        if: ${{ success() || failure() }}
+        uses: VirtoCommerce/publish-katalon-report/docker-env@master
+
       - name: Getting tests
         shell: sh
         run: git clone https://github.com/VirtoCommerce/vc-quality-gate-katalon.git

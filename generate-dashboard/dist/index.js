@@ -42,7 +42,8 @@ function run() {
         let reposResponse = yield octokit.repos.listForOrg({
             org: ORGANIZATION,
             type: "all",
-            per_page: 100
+            per_page: 100,
+            sort: "pushed"
         });
         let table = "<table>";
         let repos = reposResponse.data;
