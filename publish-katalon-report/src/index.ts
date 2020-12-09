@@ -44,7 +44,8 @@ async function getTestResult(reportPath:string): Promise<TestResult> {
 async function run(): Promise<void> {
     let katalonProjectDir = core.getInput("testProjectPath");
     let pattern = path.join(katalonProjectDir, "**/JUnit_Report.xml");
-    let junitReportPath = await utils.findFiles(pattern)[0];
+    let files = await utils.findFiles(pattern);
+    let junitReportPath = files[0];
     let testResult = await getTestResult(junitReportPath);
     console.log(`Test results: ${JSON.stringify(testResult)}`);
 }

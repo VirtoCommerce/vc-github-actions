@@ -60,7 +60,8 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         let katalonProjectDir = core.getInput("testProjectPath");
         let pattern = path.join(katalonProjectDir, "**/JUnit_Report.xml");
-        let junitReportPath = yield utils.findFiles(pattern)[0];
+        let files = yield utils.findFiles(pattern);
+        let junitReportPath = files[0];
         let testResult = yield getTestResult(junitReportPath);
         console.log(`Test results: ${JSON.stringify(testResult)}`);
     });
