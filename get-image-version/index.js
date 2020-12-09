@@ -69,7 +69,8 @@ async function getCommitCount(baseBranch) {
 async function getProjectType()
 {
     let propsExists = fs.existsSync("Directory.Build.props");
-    let manifestExists = utils.findFiles("src/*/module.manifest").length > 0;
+    let manifests = await utils.findFiles("src/*/module.manifest");
+    let manifestExists = manifests.length > 0;
     if(!propsExists)
     {
         return "theme";
@@ -98,16 +99,17 @@ async function run()
     console.log(`Project Type: ${projectType}`);
     switch(projectType) {
         case "theme":
-            prefix = utils.getInfoFromPackageJson("package.json").version;
+            versionInfo = await utils.getInfoFromPackageJson("package.json");
+            prefix = versionInfo.version;
             break;
         case "module":
-            versionInfo = utils.getInfoFromModuleManifest(manifestPath);
+            versionInfo = await utils.getInfoFromModuleManifest(manifestPath);
             prefix = versionInfo.prefix;
             suffix = versionInfo.suffix;
             moduleId = versionInfo.moduleId;
             break;
         case "platform":
-            versionInfo = utils.getInfoFromDirectoryBuildProps("Directory.Build.props");
+            versionInfo = await utils.getInfoFromDirectoryBuildProps("Directory.Build.props");
             prefix = versionInfo.prefix;
             suffix = versionInfo.suffix; 
             break;
