@@ -32,10 +32,6 @@ jobs:
           storefrontImage: docker.pkg.github.com/virtocommerce/vc-storefront/storefront
           validateSwagger: 'false'
 
-      - name: Katalon Report
-        if: ${{ success() || failure() }}
-        uses: VirtoCommerce/vc-github-actions/publish-katalon-report@master
-
       - name: Getting tests
         shell: sh
         run: git clone https://github.com/VirtoCommerce/vc-quality-gate-katalon.git
@@ -46,3 +42,9 @@ jobs:
           version: '7.5.5'
           projectPath: '${{ github.workspace }}/vc-quality-gate-katalon/platform_storefront.prj'
           args: '-noSplash -retry=0 -testSuitePath="${{ github.event.inputs.testSuite }}" -browserType="Chrome" -apiKey= ${{ secrets.KATALON_API_KEY }} -g_urlBack="http://localhost:8090" -g_urlFront="http://localhost:8080" -executionProfile="default"' 
+
+      - name: Katalon Report
+        if: ${{ success() || failure() }}
+        uses: VirtoCommerce/vc-github-actions/publish-katalon-report@master
+        with: 
+          testProjectPath: ${{ github.workspace }}

@@ -4,6 +4,7 @@ import * as exec from '@actions/exec'
 import * as fs from 'fs'
 import * as utils from '@virtocommerce/vc-actions-lib'
 import * as xml2js from 'xml2js'
+import * as path from 'path'
 
 //<testsuite name="DRAFT.Platform_Customer_Organization" tests="7" failures="0" errors="1" time="13.943" timestamp="2020-11-05 15:03:44" hostname="admin - FIX-PC" id="Test Suites/DRAFT/DRAFT.Platform_Customer_Organization">
 interface TestResult {
@@ -42,8 +43,8 @@ async function getTestResult(reportPath:string): Promise<TestResult> {
 
 async function run(): Promise<void> {
     let katalonProjectDir = core.getInput("testProjectPath");
-    if(katalonProjectDir) katalonProjectDir += "/"
-    let junitReportPath = await utils.findFiles(`${katalonProjectDir}/**/JUnit_Report.xml`)[0];
+    let pattern = path.join(katalonProjectDir, "**/JUnit_Report.xml");
+    let junitReportPath = await utils.findFiles(pattern)[0];
     let testResult = await getTestResult(junitReportPath);
     console.log(`Test results: ${JSON.stringify(testResult)}`);
 }

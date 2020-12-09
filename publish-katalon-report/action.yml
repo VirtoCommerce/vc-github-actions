@@ -4,7 +4,7 @@ inputs:
   testProjectPath:
     description: "Path to Katalon Project"
     required: false
-    default: ""
+    default: "./"
 
 runs:
   using: 'node12'

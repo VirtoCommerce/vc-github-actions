@@ -32,6 +32,7 @@ const core = __importStar(require("@actions/core"));
 const fs = __importStar(require("fs"));
 const utils = __importStar(require("@virtocommerce/vc-actions-lib"));
 const xml2js = __importStar(require("xml2js"));
+const path = __importStar(require("path"));
 function getTestResult(reportPath) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => {
@@ -58,9 +59,8 @@ function getTestResult(reportPath) {
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         let katalonProjectDir = core.getInput("testProjectPath");
-        if (katalonProjectDir)
-            katalonProjectDir += "/";
-        let junitReportPath = yield utils.findFiles(`${katalonProjectDir}/**/JUnit_Report.xml`)[0];
+        let pattern = path.join(katalonProjectDir, "**/JUnit_Report.xml");
+        let junitReportPath = yield utils.findFiles(pattern)[0];
         let testResult = yield getTestResult(junitReportPath);
         console.log(`Test results: ${JSON.stringify(testResult)}`);
     });
