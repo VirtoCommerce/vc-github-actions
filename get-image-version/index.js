@@ -94,7 +94,8 @@ async function run()
     let moduleId = "";
     let branchName = "";
     let projectType = await getProjectType();
-    let manifestPath = utils.findFiles("src/*/module.manifest")[0];
+    let manifests = await utils.findFiles("src/*/module.manifest");
+    let manifestPath = manifests[0];
     let versionInfo = null;
     console.log(`Project Type: ${projectType}`);
     switch(projectType) {
