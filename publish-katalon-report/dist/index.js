@@ -41,7 +41,7 @@ function getTestResult(reportPath) {
                 if (error) {
                     reject(error);
                 }
-                let suite = result.testsuites[0].testsuite;
+                let suite = result.testsuites.testsuite[0];
                 resolve({
                     id: suite.$.id,
                     name: suite.$.name,
