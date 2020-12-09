@@ -18,6 +18,10 @@ inputs:
 outputs:
   blobUrl:
     description: 'URL to artifact'
+  artifactPath:
+    description: 'Path to artifact'
+  artifactName:
+    description: 'Name of artifact'
 
 runs:
   using: 'node12'

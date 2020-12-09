@@ -18,6 +18,8 @@ async function run()
         artifactFileName = artifactPath.split(path.sep).pop();
         console.log(artifactFileName);
     }
+    core.setOutput("artifactPath", artifactPath);
+    core.setOutput("artifactName", artifactFileName);
     let blobUrl = `${blobDest}/${artifactFileName}`;
     console.log(`Blob url: ${blobUrl}`);
     core.setOutput('blobUrl', blobUrl);
