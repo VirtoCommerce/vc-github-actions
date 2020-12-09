@@ -150,7 +150,7 @@ function getInfoFromModuleManifest(path) {
 
         fs.readFile(manifestPath, function (err, data) {
             if (!err) {
-                parser.parseString(data, function (err, json) {
+                xml2js.parseString(data, function (err, json) {
                     if (!err) {
                         let moduleId = json.module.id[0].trim();
                         let prefix = json.module.version[0].trim();
