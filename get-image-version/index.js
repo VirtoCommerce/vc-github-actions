@@ -94,18 +94,19 @@ async function run()
     let branchName = "";
     let projectType = await getProjectType();
     let manifestPath = utils.findFiles("src/*/module.manifest")[0];
+    let versionInfo = null;
     switch(projectType) {
         case "theme":
             prefix = utils.getInfoFromPackageJson("package.json").version;
             break;
         case "module":
-            let versionInfo = utils.getInfoFromModuleManifest(manifestPath);
+            versionInfo = utils.getInfoFromModuleManifest(manifestPath);
             prefix = versionInfo.prefix;
             suffix = versionInfo.suffix;
             moduleId = versionInfo.moduleId;
             break;
         case "platform":
-            let versionInfo = utils.getInfoFromDirectoryBuildProps("Directory.Build.props");
+            versionInfo = utils.getInfoFromDirectoryBuildProps("Directory.Build.props");
             prefix = versionInfo.prefix;
             suffix = versionInfo.suffix; 
             break;
