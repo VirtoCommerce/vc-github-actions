@@ -34,6 +34,10 @@ async function downloadFile(url: string, outFile: string) {
     })
 }
 
+async function cloneRepo(repoUrl: string, dest: string) {
+    await exec.exec(`git clone ${repoUrl} ${dest}`, [], { failOnStdErr: false });
+}
+
 async function findModuleId(repoName: string, modulesManifest: any) {
     for(let module of modulesManifest)
     {
@@ -81,11 +85,10 @@ async function run(): Promise<void> {
     if(pushChanges === "true")
     {
         let modulesJsonUrl = core.getInput("modulesJsonUrl");
-        console.log(new Date().getTime());
-        await sleep(10000);
-        console.log(new Date().getTime());
-        await downloadFile(modulesJsonUrl, modulesJsonName);
-        let modulesJsonRepoBuffer = fs.readFileSync(modulesJsonName);
+        let vcmodulesDir = "updated-vc-modules";
+        let updatedModulesJsonPath = `${vcmodulesDir}/${modulesJsonName}`;
+        await cloneRepo(modulesJsonRepo, updatedModulesJsonPath);
+        let modulesJsonRepoBuffer = fs.readFileSync(updatedModulesJsonPath);
         let modulesManifest = JSON.parse(modulesJsonRepoBuffer.toString());
         let propsPath = "Directory.Build.props";
         let moduleVersion = await utils.getVersionFromDirectoryBuildProps(propsPath);
