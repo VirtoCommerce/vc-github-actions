@@ -95,6 +95,7 @@ async function run()
     let projectType = await getProjectType();
     let manifestPath = utils.findFiles("src/*/module.manifest")[0];
     let versionInfo = null;
+    console.log(`Project Type: ${projectType}`);
     switch(projectType) {
         case "theme":
             prefix = utils.getInfoFromPackageJson("package.json").version;
