@@ -125,5 +125,6 @@ run().catch(error => {
     console.log(error.message);
     console.log("Retry");
     rimraf.sync("./artifacts/vc-modules");
+    rimraf.sync("updated-vc-modules");
     run().catch(err => core.setFailed(err.message));
 });
