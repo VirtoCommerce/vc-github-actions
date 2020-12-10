@@ -108,7 +108,7 @@ function run() {
             let modulesJsonUrl = core.getInput("modulesJsonUrl");
             let vcmodulesDir = "updated-vc-modules";
             let updatedModulesJsonPath = `${vcmodulesDir}/${modulesJsonName}`;
-            yield cloneRepo(modulesJsonRepo, updatedModulesJsonPath);
+            yield cloneRepo(modulesJsonRepo, vcmodulesDir);
             let modulesJsonRepoBuffer = fs_1.default.readFileSync(updatedModulesJsonPath);
             let modulesManifest = JSON.parse(modulesJsonRepoBuffer.toString());
             let propsPath = "Directory.Build.props";

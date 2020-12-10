@@ -87,7 +87,7 @@ async function run(): Promise<void> {
         let modulesJsonUrl = core.getInput("modulesJsonUrl");
         let vcmodulesDir = "updated-vc-modules";
         let updatedModulesJsonPath = `${vcmodulesDir}/${modulesJsonName}`;
-        await cloneRepo(modulesJsonRepo, updatedModulesJsonPath);
+        await cloneRepo(modulesJsonRepo, vcmodulesDir);
         let modulesJsonRepoBuffer = fs.readFileSync(updatedModulesJsonPath);
         let modulesManifest = JSON.parse(modulesJsonRepoBuffer.toString());
         let propsPath = "Directory.Build.props";
