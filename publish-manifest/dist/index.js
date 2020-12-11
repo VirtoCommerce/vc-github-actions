@@ -62,6 +62,11 @@ function downloadFile(url, outFile) {
         });
     });
 }
+function cloneRepo(repoUrl, dest) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield exec.exec(`git clone ${repoUrl} ${dest}`, [], { failOnStdErr: false });
+    });
+}
 function findModuleId(repoName, modulesManifest) {
     return __awaiter(this, void 0, void 0, function* () {
         for (let module of modulesManifest) {
@@ -101,11 +106,10 @@ function run() {
         core.setOutput("modulesJsonPath", modulesJsonPath);
         if (pushChanges === "true") {
             let modulesJsonUrl = core.getInput("modulesJsonUrl");
-            console.log(new Date().getTime());
-            yield sleep(10000);
-            console.log(new Date().getTime());
-            yield downloadFile(modulesJsonUrl, modulesJsonName);
-            let modulesJsonRepoBuffer = fs_1.default.readFileSync(modulesJsonName);
+            let vcmodulesDir = "updated-vc-modules";
+            let updatedModulesJsonPath = `${vcmodulesDir}/${modulesJsonName}`;
+            yield cloneRepo(modulesJsonRepo, vcmodulesDir);
+            let modulesJsonRepoBuffer = fs_1.default.readFileSync(updatedModulesJsonPath);
             let modulesManifest = JSON.parse(modulesJsonRepoBuffer.toString());
             let propsPath = "Directory.Build.props";
             let moduleVersion = yield utils.getVersionFromDirectoryBuildProps(propsPath);
@@ -138,5 +142,6 @@ run().catch(error => {
     console.log(error.message);
     console.log("Retry");
     rimraf.sync("./artifacts/vc-modules");
+    rimraf.sync("updated-vc-modules");
     run().catch(err => core.setFailed(err.message));
 });

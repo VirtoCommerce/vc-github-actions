@@ -46,19 +46,10 @@ async function run()
 
     await pushImage(imageName, tag); //github
 
-    let newTag = '';
     if (updateLatest === 'true')
     {
-        if(branchName === releaseBranch)
-        {
-            newTag = 'linux-latest';
-        }
-        else if(isPullRequest)
-        {
-            let prNumber = github.context.payload.pull_request.number;
-            newTag = `pr${prNumber}`;
-        }
-        else 
+        let newTag = 'linux-latest';
+        if(branchName !== releaseBranch)
         {
             newTag = `${branchName.replaceAll('/','_')}-linux-latest`;
         }
@@ -68,14 +59,13 @@ async function run()
     
     if(dockerHub === 'true')
     {
-        //hub.docker
         let splitedImageName = imageName.split("/");
         let projectType = splitedImageName[splitedImageName.length-1];
         let dockerImageName = `${dockerUser}/${projectType}`;
         let dockerImageTag =  releaseBranch.localeCompare(branchName) === 0 ? "latest" : "dev-linux-experimental";
         await renameImage(imageName, tag, dockerImageName, dockerImageTag);
         await dockerHubAuth(dockerUser, dockerToken);
-        await pushImage(dockerImageName, dockerImageTag);
+        await pushImage(dockerImageName, dockerImageTag); //hub.docker
     }
 }
 
