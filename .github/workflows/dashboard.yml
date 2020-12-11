@@ -35,7 +35,7 @@ jobs:
           git push origin master
       
       - name: Generate Duration Dashboard
-        id: dashboard
+        id: dashboard-duration
         uses: VirtoCommerce/vc-github-actions/generate-dashboard-durations@master
         with:
           githubToken: ${{ secrets.REPO_TOKEN }}
