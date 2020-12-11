@@ -23,17 +23,6 @@ jobs:
           githubToken: ${{ secrets.REPO_TOKEN }}
           pageName: ${{ env.HOME_PAGE_NAME }}
 
-      - name: Update Dashboard
-        shell: sh
-        run: |
-          git clone https://github.com/VirtoCommerce/vc-github-actions.wiki.git
-          cd vc-github-actions.wiki
-          rm -f ${{ env.HOME_PAGE_NAME }}
-          cp -f ${{ steps.dashboard.outputs.result }} .
-          git add .
-          git commit -m "Update Dashboard"
-          git push origin master
-      
       - name: Generate Duration Dashboard
         id: dashboard-duration
         uses: VirtoCommerce/vc-github-actions/generate-dashboard-durations@master
@@ -46,8 +35,10 @@ jobs:
         run: |
           git clone https://github.com/VirtoCommerce/vc-github-actions.wiki.git
           cd vc-github-actions.wiki
+          rm -f ${{ env.HOME_PAGE_NAME }}
           rm -f ${{ env.DURATION_PAGE_NAME }}
           cp -f ${{ steps.dashboard.outputs.result }} .
+          cp -f ${{ steps.dashboard-duration.outputs.result }} .
           git add .
           git commit -m "Update Dashboard"
           git push origin master
