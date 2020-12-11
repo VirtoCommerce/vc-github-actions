@@ -105,7 +105,6 @@ function run() {
         let modulesJsonPath = yield utils.findArtifact(`artifacts/*/${modulesJsonName}`);
         core.setOutput("modulesJsonPath", modulesJsonPath);
         if (pushChanges === "true") {
-            let modulesJsonUrl = core.getInput("modulesJsonUrl");
             let vcmodulesDir = "updated-vc-modules";
             let updatedModulesJsonPath = `${vcmodulesDir}/${modulesJsonName}`;
             yield cloneRepo(modulesJsonRepo, vcmodulesDir);
@@ -117,6 +116,7 @@ function run() {
             let repoName = yield utils.getRepoName();
             console.log(`Module version: ${moduleVersion}`);
             let moduleId = yield findModuleId(repoName, modulesManifest);
+            console.log(`Module id: ${moduleId}`);
             for (let module of modulesManifest) {
                 if (moduleId === module.Id) {
                     for (let versionInfo of module.Versions) {

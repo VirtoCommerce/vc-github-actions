@@ -84,7 +84,6 @@ async function run(): Promise<void> {
     // Check modules.json in repo
     if(pushChanges === "true")
     {
-        let modulesJsonUrl = core.getInput("modulesJsonUrl");
         let vcmodulesDir = "updated-vc-modules";
         let updatedModulesJsonPath = `${vcmodulesDir}/${modulesJsonName}`;
         await cloneRepo(modulesJsonRepo, vcmodulesDir);
@@ -96,6 +95,7 @@ async function run(): Promise<void> {
         let repoName = await utils.getRepoName();
         console.log(`Module version: ${moduleVersion}`);
         let moduleId = await findModuleId(repoName, modulesManifest);
+        console.log(`Module id: ${moduleId}`);
         for(let module of modulesManifest)
         {
             if(moduleId === module.Id)
