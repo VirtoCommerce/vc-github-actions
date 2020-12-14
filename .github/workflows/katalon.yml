@@ -48,3 +48,4 @@ jobs:
         uses: VirtoCommerce/vc-github-actions/publish-katalon-report@master
         with: 
           testProjectPath: ${{ github.workspace }}
+          githubToken: ${{ secrets.GITHUB_TOKEN }}

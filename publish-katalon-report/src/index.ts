@@ -42,12 +42,23 @@ async function getTestResult(reportPath:string): Promise<TestResult> {
 }
 
 async function run(): Promise<void> {
+    let GITHUB_TOKEN = core.getInput("githubToken");
+    let repoOrg = core.getInput("repoOrg")
     let katalonProjectDir = core.getInput("testProjectPath");
     let pattern = path.join(katalonProjectDir, "**/JUnit_Report.xml");
     let files = await utils.findFiles(pattern);
     let junitReportPath = files[0];
     let testResult = await getTestResult(junitReportPath);
-    console.log(`Test results: ${JSON.stringify(testResult)}`);
+
+    let body = JSON.stringify(testResult);
+    console.log(`Test results: ${body}`);
+    let octokit = github.getOctokit(GITHUB_TOKEN);
+    octokit.pulls.createReview({
+        owner: repoOrg,
+        repo: "vc-github-actions",
+        pull_number: 44,
+        body: body
+    })
 }
 
 run().catch(error => core.setFailed(error.message));

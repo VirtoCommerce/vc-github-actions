@@ -28,6 +28,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const github = __importStar(require("@actions/github"));
 const core = __importStar(require("@actions/core"));
 const fs = __importStar(require("fs"));
 const utils = __importStar(require("@virtocommerce/vc-actions-lib"));
@@ -58,12 +59,22 @@ function getTestResult(reportPath) {
 }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
+        let GITHUB_TOKEN = core.getInput("githubToken");
+        let repoOrg = core.getInput("repoOrg");
         let katalonProjectDir = core.getInput("testProjectPath");
         let pattern = path.join(katalonProjectDir, "**/JUnit_Report.xml");
         let files = yield utils.findFiles(pattern);
         let junitReportPath = files[0];
         let testResult = yield getTestResult(junitReportPath);
-        console.log(`Test results: ${JSON.stringify(testResult)}`);
+        let body = JSON.stringify(testResult);
+        console.log(`Test results: ${body}`);
+        let octokit = github.getOctokit(GITHUB_TOKEN);
+        octokit.pulls.createReview({
+            owner: repoOrg,
+            repo: "vc-github-actions",
+            pull_number: 44,
+            body: body
+        });
     });
 }
 run().catch(error => core.setFailed(error.message));

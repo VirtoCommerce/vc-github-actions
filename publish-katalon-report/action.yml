@@ -5,6 +5,13 @@ inputs:
     description: "Path to Katalon Project"
     required: false
     default: "./"
+  githubToken:
+    description: "GitHub token"
+    required: true
+  repoOrg:
+    description: "repo org"
+    required: false
+    default: "VirtoCommerce"
 
 runs:
   using: 'node12'
