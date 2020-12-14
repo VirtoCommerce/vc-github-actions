@@ -73,7 +73,8 @@ function run() {
             owner: repoOrg,
             repo: "vc-github-actions",
             pull_number: 44,
-            body: body
+            body: body,
+            event: "COMMENT"
         });
     });
 }
