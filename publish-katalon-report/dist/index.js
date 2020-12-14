@@ -66,13 +66,13 @@ function run() {
         let files = yield utils.findFiles(pattern);
         let junitReportPath = files[0];
         let testResult = yield getTestResult(junitReportPath);
-        let body = JSON.stringify(testResult);
+        let body = `Test Suite: ${testResult.id}\nTests: ${testResult.tests}\nFailures: ${testResult.failures}\nErrors: ${testResult.errors}\nTime: ${testResult.time}\nTimestamp: ${testResult.timestamp}`;
         console.log(`Test results: ${body}`);
         let octokit = github.getOctokit(GITHUB_TOKEN);
         octokit.pulls.createReview({
             owner: repoOrg,
             repo: "vc-github-actions",
-            pull_number: 45,
+            pull_number: 46,
             body: body,
             event: "COMMENT"
         });
