@@ -72,7 +72,7 @@ function run() {
         octokit.pulls.createReview({
             owner: repoOrg,
             repo: "vc-github-actions",
-            pull_number: 44,
+            pull_number: 45,
             body: body,
             event: "COMMENT"
         });
