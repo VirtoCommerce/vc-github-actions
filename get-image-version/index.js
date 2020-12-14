@@ -67,9 +67,8 @@ async function getCommitCount(baseBranch) {
     return result;
 }
 
-async function getProjectType()
+async function getProjectType( path )
 {
-    const path = core.getInput("path");
     let propsExists = fs.existsSync(`${path}/Directory.Build.props`);
     let manifestPathTemplate = "src/*/module.manifest";
     if (path !== defaultPath) {
@@ -94,12 +93,13 @@ async function getProjectType()
 async function run() 
 {
     const releaseBranch = core.getInput("releaseBranch");
-    const path = core.getInput("path");
+    let path = core.getInput("path");
+    path = path.replace(/\/+$/, ''); // remove trailing slashes
     let prefix = "";
     let suffix = "";
     let moduleId = "";
     let branchName = "";
-    let projectType = await getProjectType();
+    let projectType = await getProjectType( path );
     let versionInfo = null;
     console.log(`Project Type: ${projectType}`);
     switch(projectType) {
