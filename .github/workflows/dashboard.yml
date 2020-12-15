@@ -6,6 +6,9 @@ on:
 jobs:
   update_wiki:
     runs-on: ubuntu-latest
+    env: 
+      HOME_PAGE_NAME: "Home.md"
+      DURATION_PAGE_NAME: "Workflow-status.md"
 
     steps:
       - name: Setup Git Credentials
@@ -18,14 +21,24 @@ jobs:
         uses: VirtoCommerce/vc-github-actions/generate-dashboard@master
         with:
           githubToken: ${{ secrets.REPO_TOKEN }}
+          pageName: ${{ env.HOME_PAGE_NAME }}
 
-      - name: Update Dashboard
+      - name: Generate Duration Dashboard
+        id: dashboard-duration
+        uses: VirtoCommerce/vc-github-actions/generate-dashboard-durations@master
+        with:
+          githubToken: ${{ secrets.REPO_TOKEN }}
+          pageName: ${{ env.DURATION_PAGE_NAME }}
+
+      - name: Update Duration Dashboard
         shell: sh
         run: |
           git clone https://github.com/VirtoCommerce/vc-github-actions.wiki.git
           cd vc-github-actions.wiki
-          rm -f Home.md
+          rm -f ${{ env.HOME_PAGE_NAME }}
+          rm -f ${{ env.DURATION_PAGE_NAME }}
           cp -f ${{ steps.dashboard.outputs.result }} .
+          cp -f ${{ steps.dashboard-duration.outputs.result }} .
           git add .
           git commit -m "Update Dashboard"
           git push origin master

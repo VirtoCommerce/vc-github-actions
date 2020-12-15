@@ -15,9 +15,11 @@
     "@actions/github": "^4.0.0",
     "@virtocommerce/vc-actions-lib": "^1.1.0",
     "axios": "^0.20.0",
+    "rimraf": "^3.0.2",
     "xml2js": "^0.4.23"
   },
   "devDependencies": {
+    "@types/rimraf": "^3.0.0",
     "@types/xml2js": "^0.4.5"
   }
 }

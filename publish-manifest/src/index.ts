@@ -6,6 +6,7 @@ import os from 'os'
 import * as utils from '@virtocommerce/vc-actions-lib'
 import Axios from 'axios'
 import { parseString as xmlParseString } from 'xml2js'
+import * as rimraf from 'rimraf'
 
 async function getConfigHome()
 {
@@ -33,6 +34,10 @@ async function downloadFile(url: string, outFile: string) {
     })
 }
 
+async function cloneRepo(repoUrl: string, dest: string) {
+    await exec.exec(`git clone ${repoUrl} ${dest}`, [], { failOnStdErr: false });
+}
+
 async function findModuleId(repoName: string, modulesManifest: any) {
     for(let module of modulesManifest)
     {
@@ -44,6 +49,12 @@ async function findModuleId(repoName: string, modulesManifest: any) {
             }
         }
     }
+}
+
+function sleep(ms: number) {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
 }
 
 async function run(): Promise<void> {
@@ -73,9 +84,10 @@ async function run(): Promise<void> {
     // Check modules.json in repo
     if(pushChanges === "true")
     {
-        let modulesJsonUrl = core.getInput("modulesJsonUrl");
-        await downloadFile(modulesJsonUrl, modulesJsonName);
-        let modulesJsonRepoBuffer = fs.readFileSync(modulesJsonName);
+        let vcmodulesDir = "updated-vc-modules";
+        let updatedModulesJsonPath = `${vcmodulesDir}/${modulesJsonName}`;
+        await cloneRepo(modulesJsonRepo, vcmodulesDir);
+        let modulesJsonRepoBuffer = fs.readFileSync(updatedModulesJsonPath);
         let modulesManifest = JSON.parse(modulesJsonRepoBuffer.toString());
         let propsPath = "Directory.Build.props";
         let moduleVersion = await utils.getVersionFromDirectoryBuildProps(propsPath);
@@ -83,6 +95,7 @@ async function run(): Promise<void> {
         let repoName = await utils.getRepoName();
         console.log(`Module version: ${moduleVersion}`);
         let moduleId = await findModuleId(repoName, modulesManifest);
+        console.log(`Module id: ${moduleId}`);
         for(let module of modulesManifest)
         {
             if(moduleId === module.Id)
@@ -108,4 +121,10 @@ async function run(): Promise<void> {
     }
 }
 
-run().catch(error => core.setFailed(error.message));
+run().catch(error => {
+    console.log(error.message);
+    console.log("Retry");
+    rimraf.sync("./artifacts/vc-modules");
+    rimraf.sync("updated-vc-modules");
+    run().catch(err => core.setFailed(err.message));
+});

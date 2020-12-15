@@ -37,6 +37,7 @@ const fs_1 = __importDefault(require("fs"));
 const os_1 = __importDefault(require("os"));
 const utils = __importStar(require("@virtocommerce/vc-actions-lib"));
 const axios_1 = __importDefault(require("axios"));
+const rimraf = __importStar(require("rimraf"));
 function getConfigHome() {
     return __awaiter(this, void 0, void 0, function* () {
         const xdg_home = process.env['XDG_CONFIG_HOME'];
@@ -61,6 +62,11 @@ function downloadFile(url, outFile) {
         });
     });
 }
+function cloneRepo(repoUrl, dest) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield exec.exec(`git clone ${repoUrl} ${dest}`, [], { failOnStdErr: false });
+    });
+}
 function findModuleId(repoName, modulesManifest) {
     return __awaiter(this, void 0, void 0, function* () {
         for (let module of modulesManifest) {
@@ -70,6 +76,11 @@ function findModuleId(repoName, modulesManifest) {
                 }
             }
         }
+    });
+}
+function sleep(ms) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
     });
 }
 function run() {
@@ -94,9 +105,10 @@ function run() {
         let modulesJsonPath = yield utils.findArtifact(`artifacts/*/${modulesJsonName}`);
         core.setOutput("modulesJsonPath", modulesJsonPath);
         if (pushChanges === "true") {
-            let modulesJsonUrl = core.getInput("modulesJsonUrl");
-            yield downloadFile(modulesJsonUrl, modulesJsonName);
-            let modulesJsonRepoBuffer = fs_1.default.readFileSync(modulesJsonName);
+            let vcmodulesDir = "updated-vc-modules";
+            let updatedModulesJsonPath = `${vcmodulesDir}/${modulesJsonName}`;
+            yield cloneRepo(modulesJsonRepo, vcmodulesDir);
+            let modulesJsonRepoBuffer = fs_1.default.readFileSync(updatedModulesJsonPath);
             let modulesManifest = JSON.parse(modulesJsonRepoBuffer.toString());
             let propsPath = "Directory.Build.props";
             let moduleVersion = yield utils.getVersionFromDirectoryBuildProps(propsPath);
@@ -104,6 +116,7 @@ function run() {
             let repoName = yield utils.getRepoName();
             console.log(`Module version: ${moduleVersion}`);
             let moduleId = yield findModuleId(repoName, modulesManifest);
+            console.log(`Module id: ${moduleId}`);
             for (let module of modulesManifest) {
                 if (moduleId === module.Id) {
                     for (let versionInfo of module.Versions) {
@@ -125,4 +138,10 @@ function run() {
         }
     });
 }
-run().catch(error => core.setFailed(error.message));
+run().catch(error => {
+    console.log(error.message);
+    console.log("Retry");
+    rimraf.sync("./artifacts/vc-modules");
+    rimraf.sync("updated-vc-modules");
+    run().catch(err => core.setFailed(err.message));
+});

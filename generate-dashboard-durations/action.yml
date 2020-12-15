@@ -1,0 +1,21 @@
+name: 'generate-dashboard-durations'
+description: 'Generates dashboard with workflows statuses and durations'
+inputs:
+  githubToken:
+    description: "Github Token"
+    required: true
+  pageName:
+    description: "Name of wiki page file"
+    default: "Home.md"
+    required: false
+  organization:
+    description: "Organization name"
+    default: "VirtoCommerce"
+    required: false
+outputs:
+  result:
+    description: "Path to the result file"
+
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
