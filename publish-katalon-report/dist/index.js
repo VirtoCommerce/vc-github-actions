@@ -73,16 +73,18 @@ function run() {
         octokit.pulls.createReview({
             owner: repoOrg,
             repo: "vc-github-actions",
-            pull_number: 47,
+            pull_number: 48,
             body: body,
             event: "COMMENT"
         });
         octokit.repos.createCommitStatus({
             owner: repoOrg,
             repo: "vc-github-actions",
-            sha: "658dc2ea2c4885fde06aab717e88e8257e557a84",
+            sha: "cab0a4f6a20b0f1725d235c38e2e4aa556f42448",
             state: testResult.errors > 0 || testResult.failures > 0 ? "failure" : "success",
-            description: "Katalon"
+            context: "E2E Testing",
+            description: `Tests: ${testResult.tests}. Failures: ${testResult.failures}. Errors: ${testResult.errors}`,
+            target_url: `https://github.com/${github.context.repo.owner}/${github.context.repo.repo}/actions/runs/${github.context.runId}`
         });
     });
 }
