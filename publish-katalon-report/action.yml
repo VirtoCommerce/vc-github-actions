@@ -7,7 +7,7 @@ inputs:
     default: "./"
   githubToken:
     description: "GitHub token"
-    required: true
+    required: false
   repoOrg:
     description: "repo org"
     required: false

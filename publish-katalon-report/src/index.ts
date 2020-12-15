@@ -42,8 +42,8 @@ async function getTestResult(reportPath:string): Promise<TestResult> {
 }
 
 async function run(): Promise<void> {
-    let GITHUB_TOKEN = core.getInput("githubToken");
-    let repoOrg = core.getInput("repoOrg")
+    let GITHUB_TOKEN = core.getInput("githubToken") ?? process.env.GITHUB_TOKEN;
+    let repoOrg = core.getInput("repoOrg");
     let katalonProjectDir = core.getInput("testProjectPath");
     let pattern = path.join(katalonProjectDir, "**/JUnit_Report.xml");
     let files = await utils.findFiles(pattern);
@@ -56,10 +56,17 @@ async function run(): Promise<void> {
     octokit.pulls.createReview({
         owner: repoOrg,
         repo: "vc-github-actions",
-        pull_number: 46,
+        pull_number: 47,
         body: body,
         event: "COMMENT"
-    })
+    });
+    octokit.repos.createCommitStatus({
+        owner: repoOrg,
+        repo: "vc-github-actions",
+        sha: "658dc2ea2c4885fde06aab717e88e8257e557a84",
+        state: testResult.errors > 0 || testResult.failures > 0 ? "failure" : "success",
+        description: "Katalon"
+    });
 }
 
 run().catch(error => core.setFailed(error.message));

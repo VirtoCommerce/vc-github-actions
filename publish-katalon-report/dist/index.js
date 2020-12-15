@@ -58,8 +58,9 @@ function getTestResult(reportPath) {
     });
 }
 function run() {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
-        let GITHUB_TOKEN = core.getInput("githubToken");
+        let GITHUB_TOKEN = (_a = core.getInput("githubToken")) !== null && _a !== void 0 ? _a : process.env.GITHUB_TOKEN;
         let repoOrg = core.getInput("repoOrg");
         let katalonProjectDir = core.getInput("testProjectPath");
         let pattern = path.join(katalonProjectDir, "**/JUnit_Report.xml");
@@ -72,9 +73,16 @@ function run() {
         octokit.pulls.createReview({
             owner: repoOrg,
             repo: "vc-github-actions",
-            pull_number: 46,
+            pull_number: 47,
             body: body,
             event: "COMMENT"
+        });
+        octokit.repos.createCommitStatus({
+            owner: repoOrg,
+            repo: "vc-github-actions",
+            sha: "658dc2ea2c4885fde06aab717e88e8257e557a84",
+            state: testResult.errors > 0 || testResult.failures > 0 ? "failure" : "success",
+            description: "Katalon"
         });
     });
 }
