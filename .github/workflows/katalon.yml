@@ -49,3 +49,4 @@ jobs:
         with: 
           testProjectPath: ${{ github.workspace }}
           githubToken: ${{ secrets.GITHUB_TOKEN }}
+          publishComment: 'false'
