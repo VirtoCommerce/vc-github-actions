@@ -12,6 +12,14 @@ inputs:
     description: "repo org"
     required: false
     default: "VirtoCommerce"
+  publishComment:
+    description: "Publish PR Comment"
+    required: false
+    default: "true"
+  publishStatus:
+    description: "Publish commit's status"
+    required: false
+    default: "false"
 
 runs:
   using: 'node12'

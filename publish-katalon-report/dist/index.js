@@ -58,34 +58,45 @@ function getTestResult(reportPath) {
     });
 }
 function run() {
-    var _a;
+    var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function* () {
         let GITHUB_TOKEN = (_a = core.getInput("githubToken")) !== null && _a !== void 0 ? _a : process.env.GITHUB_TOKEN;
         let repoOrg = core.getInput("repoOrg");
         let katalonProjectDir = core.getInput("testProjectPath");
+        let publishComment = core.getInput("publishComment") === "true";
+        let publishStatus = core.getInput("publishStatus") === "true";
         let pattern = path.join(katalonProjectDir, "**/JUnit_Report.xml");
         let files = yield utils.findFiles(pattern);
         let junitReportPath = files[0];
-        let testResult = yield getTestResult(junitReportPath);
-        let body = `Test Suite: ${testResult.id}\nTests: ${testResult.tests}\nFailures: ${testResult.failures}\nErrors: ${testResult.errors}\nTime: ${testResult.time}\nTimestamp: ${testResult.timestamp}`;
-        console.log(`Test results: ${body}`);
-        let octokit = github.getOctokit(GITHUB_TOKEN);
-        octokit.pulls.createReview({
-            owner: repoOrg,
-            repo: "vc-github-actions",
-            pull_number: 48,
-            body: body,
-            event: "COMMENT"
-        });
-        octokit.repos.createCommitStatus({
-            owner: repoOrg,
-            repo: "vc-github-actions",
-            sha: "cab0a4f6a20b0f1725d235c38e2e4aa556f42448",
-            state: testResult.errors > 0 || testResult.failures > 0 ? "failure" : "success",
-            context: "E2E Testing",
-            description: `Tests: ${testResult.tests}. Failures: ${testResult.failures}. Errors: ${testResult.errors}`,
-            target_url: `https://github.com/${github.context.repo.owner}/${github.context.repo.repo}/actions/runs/${github.context.runId}`
-        });
+        if (junitReportPath !== undefined) {
+            let testResult = yield getTestResult(junitReportPath);
+            let body = `Test Suite: ${testResult.id}\nTests: ${testResult.tests}\nFailures: ${testResult.failures}\nErrors: ${testResult.errors}\nTime: ${testResult.time}\nTimestamp: ${testResult.timestamp}`;
+            console.log(`Test results: ${body}`);
+            let octokit = github.getOctokit(GITHUB_TOKEN);
+            if (publishComment) {
+                octokit.pulls.createReview({
+                    owner: repoOrg,
+                    repo: github.context.repo.repo,
+                    pull_number: (_c = (_b = github.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.number) !== null && _c !== void 0 ? _c : github.context.issue.number,
+                    body: body,
+                    event: "COMMENT"
+                });
+            }
+            if (publishStatus) {
+                octokit.repos.createCommitStatus({
+                    owner: repoOrg,
+                    repo: github.context.repo.repo,
+                    sha: (_d = process.env.GITHUB_SHA) !== null && _d !== void 0 ? _d : github.context.sha,
+                    state: testResult.errors > 0 || testResult.failures > 0 ? "failure" : "success",
+                    context: "E2E Testing",
+                    description: `Tests: ${testResult.tests}. Failures: ${testResult.failures}. Errors: ${testResult.errors}`,
+                    target_url: `https://github.com/${github.context.repo.owner}/${github.context.repo.repo}/actions/runs/${github.context.runId}`
+                });
+            }
+        }
+        else {
+            console.log("Katalon report is not found");
+        }
     });
 }
 run().catch(error => core.setFailed(error.message));
