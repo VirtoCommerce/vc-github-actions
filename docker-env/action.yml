@@ -8,8 +8,16 @@ inputs:
     description: 'Token for github packages'
     required: true
   dockerTag:
-    description: 'Docker Tag'
+    description: 'Docker tag'
     required: false
+  platformDockerTag:
+    description: 'Platform Docker Tag'
+    required: false
+    default: 'dev-linux-latest'
+  storefrontDockerTag:
+    description: 'Storefront Docker Tag'
+    required: false
+    default: 'dev-linux-latest'
   platformImage:
     description: 'Platform Docker Image'
     required: false
@@ -28,7 +36,8 @@ runs:
       env:
         PLATFORM_IMAGE: ${{ inputs.platformImage }}
         STOREFRONT_IMAGE: ${{ inputs.storefrontImage }}
-        DOCKER_TAG: ${{ inputs.dockerTag }}
+        PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
+        STOREFRONT_DOCKER_TAG: ${{ inputs.storefrontDockerTag }}
       shell: pwsh
       working-directory: ${{ github.action_path }}
       run: |

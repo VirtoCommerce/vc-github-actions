@@ -30,7 +30,7 @@ services:
       - virto
 
   vc-platform-web:
-    image: ${PLATFORM_IMAGE:-virtocommerce/platform}:${DOCKER_TAG:-latest}
+    image: ${PLATFORM_IMAGE:-virtocommerce/platform}:${PLATFORM_DOCKER_TAG:-latest}
     ports:
       - "${DOCKER_PLATFORM_PORT:-8090}:80"
     environment:
@@ -50,7 +50,7 @@ services:
       - virto
 
   vc-storefront-web:
-    image: ${STOREFRONT_IMAGE:-virtocommerce/storefront}:${DOCKER_TAG:-latest}
+    image: ${STOREFRONT_IMAGE:-virtocommerce/storefront}:${STOREFRONT_DOCKER_TAG:-latest}
     ports:
       - "${DOCKER_STOREFRONT_PORT:-8080}:80"
     environment:
