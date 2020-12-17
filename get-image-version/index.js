@@ -3,6 +3,7 @@ const exec = require('@actions/exec');
 const github = require('@actions/github');
 const fs = require('fs');
 const utils = require('@virtocommerce/vc-actions-lib');
+const defaultPath = '.'
 
 function pushOutputs(branchName, prefix, suffix, moduleId) {
     branchName = branchName.substring(branchName.lastIndexOf('/') + 1, branchName.length).toLowerCase();
@@ -66,10 +67,14 @@ async function getCommitCount(baseBranch) {
     return result;
 }
 
-async function getProjectType()
+async function getProjectType( path )
 {
-    let propsExists = fs.existsSync("Directory.Build.props");
-    let manifests = await utils.findFiles("src/*/module.manifest");
+    let propsExists = fs.existsSync(`${path}/Directory.Build.props`);
+    let manifestPathTemplate = "src/*/module.manifest";
+    if (path !== defaultPath) {
+        manifestPathTemplate = `${path}/module.manifest`
+    }
+    let manifests = await utils.findFiles(manifestPathTemplate);
     let manifestExists = manifests.length > 0;
     if(!propsExists)
     {
@@ -85,32 +90,37 @@ async function getProjectType()
     }
 }
 
-
 async function run() 
 {
     const releaseBranch = core.getInput("releaseBranch");
+    let path = core.getInput("path");
+    path = path.replace(/\/+$/, ''); // remove trailing slashes
     let prefix = "";
     let suffix = "";
     let moduleId = "";
     let branchName = "";
-    let projectType = await getProjectType();
-    let manifests = await utils.findFiles("src/*/module.manifest");
-    let manifestPath = manifests[0];
+    let projectType = await getProjectType( path );
     let versionInfo = null;
     console.log(`Project Type: ${projectType}`);
     switch(projectType) {
         case "theme":
-            versionInfo = await utils.getInfoFromPackageJson("package.json");
+            versionInfo = await utils.getInfoFromPackageJson(`${path}/package.json`);
             prefix = versionInfo.version;
             break;
         case "module":
+            let manifestPathTemplate = "src/*/module.manifest";
+            if (path !== defaultPath) {
+                manifestPathTemplate = `${path}/module.manifest`
+            }
+            let manifests = await utils.findFiles(manifestPathTemplate);
+            let manifestPath = manifests[0];
             versionInfo = await utils.getInfoFromModuleManifest(manifestPath);
             prefix = versionInfo.prefix;
             suffix = versionInfo.suffix;
             moduleId = versionInfo.moduleId;
             break;
         case "platform":
-            versionInfo = await utils.getInfoFromDirectoryBuildProps("Directory.Build.props");
+            versionInfo = await utils.getInfoFromDirectoryBuildProps(`${path}/Directory.Build.props`);
             prefix = versionInfo.prefix;
             suffix = versionInfo.suffix; 
             break;
