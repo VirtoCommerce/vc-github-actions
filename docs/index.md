@@ -36,18 +36,9 @@ On Push to Master branch event workflows force code checks, creates artifacts fo
 
 ![Release flow](media/GitHub-Actions-flows-Release-Flow.png)
 
-### Release alpha version workflows
+### Release alpha version
 
-Release alpha workflows allow to crete artifacts for alpha version (pre-release).
-
-Release alpha version workflows:
-
-* Release alpha Module CI;
-* Release alpha Platform CI;
-* Release alpha Storefront CI;
-* Release alpha Theme CI.
-
-Workflows triggers manually from specified branch, create alpha version artifacts and publish it to GtHub packages (images for Platform and Storefront) or to Azure Blob Storage (zipped binaries for Modules or Themes).
+To crete artifacts for alpha version (pre-release)  trigger manually main workflow from specified branch. It create alpha version artifacts and publish it to GtHub packages (images for Platform and Storefront) or to Azure Blob Storage (zipped binaries for Modules or Themes).
 
 ## Secrets
 
