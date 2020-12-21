@@ -4,7 +4,7 @@
 
 VirtoCommerce continuous integration based on [GitHub Actions feature](https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/introduction-to-github-actions). It contain:
 
-* yaml workflows, placed in Platform, Modules, Storefront repositories;
+* yaml workflows, placed in Platform, Modules, Storefront and Themes repositories;
 * special actions, placed in [VirtoCommerce/vc-github-actions](https://github.com/VirtoCommerce/vc-github-actions) repository;
 * shared library, with common used in special actions components, placed in [@virtocommerce/vc-actions-lib](https://www.npmjs.com/package/@virtocommerce/vc-actions-lib)
 
