@@ -27,7 +27,8 @@ async function run(): Promise<void> {
         sort: "pushed"
     });
 
-    let table = "<table>";
+    let timestamp = new Date().toUTCString();
+    let table = `<p>Updated: ${timestamp}</p><table>`;
     let repos = reposResponse.data;
 
     for(let repo of repos)

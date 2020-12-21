@@ -44,7 +44,8 @@ function run() {
             per_page: 100,
             sort: "pushed"
         });
-        let table = "<table>";
+        let timestamp = new Date().toUTCString();
+        let table = `<p>Updated: ${timestamp}</p><table>`;
         let repos = reposResponse.data;
         for (let repo of repos) {
             let workflows = yield octokit.actions.listRepoWorkflows({
