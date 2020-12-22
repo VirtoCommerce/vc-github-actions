@@ -8,6 +8,7 @@ inputs:
   githubToken:
     description: "GitHub token"
     required: false
+    default: ""
   repoOrg:
     description: "repo org"
     required: false
