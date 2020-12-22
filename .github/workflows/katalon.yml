@@ -12,6 +12,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Cache tools
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-tools
+        with:
+          path: |
+            /home/runner/.katalon
+            ~/.dotnet/tools
+          key: ${{ runner.os }}-build-${{ env.cache-name }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}
+
       - name: Install VirtoCommerce.GlobalTool
         run: dotnet tool install --global VirtoCommerce.GlobalTool
 
