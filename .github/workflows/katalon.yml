@@ -25,7 +25,7 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}
 
       - name: Install VirtoCommerce.GlobalTool
-        run: dotnet tool install --global VirtoCommerce.GlobalTool
+        run: dotnet tool update --global VirtoCommerce.GlobalTool
 
       - name: Docker Login
         uses: azure/docker-login@v1
