@@ -58,9 +58,11 @@ function getTestResult(reportPath) {
     });
 }
 function run() {
-    var _a, _b, _c, _d;
+    var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function* () {
-        let GITHUB_TOKEN = (_a = core.getInput("githubToken")) !== null && _a !== void 0 ? _a : process.env.GITHUB_TOKEN;
+        let GITHUB_TOKEN = core.getInput("githubToken");
+        if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
+            GITHUB_TOKEN = process.env.GITHUB_TOKEN;
         let repoOrg = core.getInput("repoOrg");
         let katalonProjectDir = core.getInput("testProjectPath");
         let publishComment = core.getInput("publishComment") === "true";
@@ -77,7 +79,7 @@ function run() {
                 octokit.pulls.createReview({
                     owner: repoOrg,
                     repo: github.context.repo.repo,
-                    pull_number: (_c = (_b = github.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.number) !== null && _c !== void 0 ? _c : github.context.issue.number,
+                    pull_number: (_b = (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number) !== null && _b !== void 0 ? _b : github.context.issue.number,
                     body: body,
                     event: "COMMENT"
                 });
@@ -86,7 +88,7 @@ function run() {
                 octokit.repos.createCommitStatus({
                     owner: repoOrg,
                     repo: github.context.repo.repo,
-                    sha: (_d = process.env.GITHUB_SHA) !== null && _d !== void 0 ? _d : github.context.sha,
+                    sha: (_c = process.env.GITHUB_SHA) !== null && _c !== void 0 ? _c : github.context.sha,
                     state: testResult.errors > 0 || testResult.failures > 0 ? "failure" : "success",
                     context: "E2E Testing",
                     description: `Tests: ${testResult.tests}. Failures: ${testResult.failures}. Errors: ${testResult.errors}`,
