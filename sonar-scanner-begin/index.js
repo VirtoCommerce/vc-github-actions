@@ -18,7 +18,7 @@ async function run()
     if(isPullRequest)
     {
         prBaseArg = `-SonarPRBase "${github.context.payload.pull_request.base.ref}"`;
-        let prTitle = github.context.payload.pull_request.title.replaceAll("\"", "");
+        let prTitle = github.context.payload.pull_request.title.split("\"").join("");
         prBranchArg = `-SonarPRBranch \"${prTitle}\"`;
         prKeyArg = `-SonarPRNumber "${github.context.payload.pull_request.number}"`;
         ghRepoArg = `-SonarGithubRepo "${process.env.GITHUB_REPOSITORY}"`;
