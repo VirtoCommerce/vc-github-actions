@@ -64,11 +64,13 @@ runs:
           $artifacts = Get-ChildItem "$($workspace)/artifacts/*.zip"
           $moduleArtifactPath = "$($workspace)/artifacts/$($artifacts[0].Name)"
           $moduleDir = "${{ inputs.moduleId }}"
+          Write-Output $moduleDir
+          docker ps -a
           Expand-Archive -Path $moduleArtifactPath -DestinationPath ./$($moduleDir)
           $containerDest = "/opt/vc-platform/Modules"
           Write-Output "Remove previous module version"
-          docker exec $platformContainer sh -c "rm -f ${containerDest}/${moduleDir}"
-          docker cp "$($moduleDir)/." "$($platformContainer):$($containerDest)"
+          docker exec $platformContainer sh -c "rm -rf ${containerDest}/${moduleDir}"
+          docker cp ${moduleDir}/. ${platformContainer}:${containerDest}
           Write-Output "Start Restart: $($platformContainer)"
           docker restart $platformContainer
         }
