@@ -63,7 +63,7 @@ runs:
           Write-Output "Workspace: $workspace"
           $artifacts = Get-ChildItem "$($workspace)/artifacts/*.zip"
           $moduleArtifactPath = "$($workspace)/artifacts/$($artifacts[0].Name)"
-          $moduleDir = ${{ inputs.moduleId }}
+          $moduleDir = "${{ inputs.moduleId }}"
           Expand-Archive -Path $moduleArtifactPath -DestinationPath ./$($moduleDir)
           $containerDest = "/opt/vc-platform/Modules"
           Write-Output "Remove previous module version"
