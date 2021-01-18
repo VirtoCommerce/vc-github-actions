@@ -69,8 +69,6 @@ runs:
           Expand-Archive -Path $moduleArtifactPath -DestinationPath ./$($moduleDir)
           $containerDest = "/opt/virtocommerce/platform/Modules"
           Write-Output "Remove previous module version"
-          docker exec $platformContainer sh -c "ls /"
-          docker exec $platformContainer sh -c "ls /opt"
           docker exec $platformContainer sh -c "rm -rf ${containerDest}/${moduleDir}"
           docker cp ${moduleDir}/. ${platformContainer}:${containerDest}
           Write-Output "Start Restart: $($platformContainer)"
