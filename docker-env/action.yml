@@ -32,6 +32,9 @@ inputs:
     description: 'Boolean param. true - to install'
     required: false
     default: ''
+  moduleId:
+    description: 'Module id'
+    required: false
 
 runs:
   using: "composite"
@@ -60,14 +63,15 @@ runs:
           Write-Output "Workspace: $workspace"
           $artifacts = Get-ChildItem "$($workspace)/artifacts/*.zip"
           $moduleArtifactPath = "$($workspace)/artifacts/$($artifacts[0].Name)"
-          $moduleDir = [io.path]::GetFileNameWithoutExtension($moduleArtifactPath)
+          $moduleDir = ${{ inputs.moduleId }}
           Expand-Archive -Path $moduleArtifactPath -DestinationPath ./$($moduleDir)
           $containerDest = "/opt/vc-platform/Modules"
           Write-Output "Remove previous module version"
-          docker exec $platformContainer sh -c 'rm -f $($containerDest)/$($moduleDir)'
+          $rmCommand = "docker exec $($platformContainer) sh -c 'rm -f $($containerDest)/$($moduleDir)'"
+          & $rmCommand
           Write-Output "Stop Container: $platformContainer"
           docker stop $platformContainer
-          docker cp $($moduleDir)/. $($platformContainer):$($containerDest)
+          docker cp "$($moduleDir)/." "$($platformContainer):$($containerDest)"
           Write-Output "Start Container: $($platformContainer)"
           docker start $platformContainer
         }
