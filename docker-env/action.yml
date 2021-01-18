@@ -67,7 +67,7 @@ runs:
           Write-Output $moduleDir
           docker ps -a
           Expand-Archive -Path $moduleArtifactPath -DestinationPath ./$($moduleDir)
-          $containerDest = "/opt/vc-platform/Modules"
+          $containerDest = "/opt/virtocommerce/platform/Modules"
           Write-Output "Remove previous module version"
           docker exec $platformContainer sh -c "ls /"
           docker exec $platformContainer sh -c "ls /opt"
