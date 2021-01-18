@@ -65,9 +65,9 @@ runs:
           $moduleArtifactPath = "$($workspace)/artifacts/$($artifacts[0].Name)"
           $moduleDir = "${{ inputs.moduleId }}"
           Expand-Archive -Path $moduleArtifactPath -DestinationPath ./$($moduleDir)
-          $containerDest = "/opt/vc-platform/Modules"
+          $containerDest = "/vc-platform/Modules"
           Write-Output "Remove previous module version"
-          docker exec $platformContainer sh -c 'rm -f ${containerDest}/${moduleDir}'
+          docker exec $platformContainer sh -c "rm -f ${containerDest}/${moduleDir}"
           Write-Output "Stop Container: $platformContainer"
           docker stop $platformContainer
           docker cp "$($moduleDir)/." "$($platformContainer):$($containerDest)"
