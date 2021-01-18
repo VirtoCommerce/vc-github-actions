@@ -28,6 +28,10 @@ inputs:
     description: 'Enable or disable swagger validation'
     required: false
     default: 'true'
+  installModule:
+    description: 'Boolean param. true - to install'
+    required: false
+    default: ''
 
 runs:
   using: "composite"
@@ -47,9 +51,26 @@ runs:
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
-        scripts/setup-modules.ps1 -ApiUrl http://localhost:8090 -NeedRestart -ContainerId virtocommerce_vc-platform-web_1 -Verbose -Debug
+        $platformContainer = "virtocommerce_vc-platform-web_1"
+        scripts/setup-modules.ps1 -ApiUrl http://localhost:8090 -NeedRestart -ContainerId $platformContainer -Verbose -Debug
+        
+        if(${{ inputs.installModule }} -eq "true")
+        {
+          $artifacts = Get-ChildItem "${$env:GITHUB_WORKSPACE}/artifacts/*.zip"
+          $moduleArtifactPath = "${$env:GITHUB_WORKSPACE}/artifacts/${$artifacts[0].Name}"
+          $moduleDir = [io.path]::GetFileNameWithoutExtension($moduleArtifactPath)
+          Expand-Archive -Path $moduleArtifactPath -DestinationPath ./${moduleDir}
+          $containerDest = "/opt/vc-platform/Modules"
+          Write-Output "Remove previous module version"
+          docker exec $platformContainer sh -c 'rm -f ${containerDest}/${moduleDir}'
+          Write-Output "Stop Container: $platformContainer"
+          docker stop $platformContainer
+          docker cp ${moduleDir}/. ${platformContainer}:${containerDest}
+          Write-Output "Start Container: ${platformContainer}"
+          docker start $platformContainer
+        }
         scripts/check-installed-modules.ps1 -ApiUrl http://localhost:8090 -Verbose -Debug
-
+        
     - name: Install Sample Data
       working-directory: ${{ github.action_path }}
       shell: pwsh
