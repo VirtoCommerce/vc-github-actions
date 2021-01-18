@@ -56,8 +56,10 @@ runs:
         
         if("${{ inputs.installModule }}" -eq "true")
         {
-          $artifacts = Get-ChildItem "${$env:GITHUB_WORKSPACE}/artifacts/*.zip"
-          $moduleArtifactPath = "${$env:GITHUB_WORKSPACE}/artifacts/${$artifacts[0].Name}"
+          $workspace = $env:GITHUB_WORKSPACE
+          Write-Output "Workspace: $workspace"
+          $artifacts = Get-ChildItem "${$workspace}/artifacts/*.zip"
+          $moduleArtifactPath = "${$workspace}/artifacts/${$artifacts[0].Name}"
           $moduleDir = [io.path]::GetFileNameWithoutExtension($moduleArtifactPath)
           Expand-Archive -Path $moduleArtifactPath -DestinationPath ./${moduleDir}
           $containerDest = "/opt/vc-platform/Modules"
