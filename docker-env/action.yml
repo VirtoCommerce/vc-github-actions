@@ -54,7 +54,7 @@ runs:
         $platformContainer = "virtocommerce_vc-platform-web_1"
         scripts/setup-modules.ps1 -ApiUrl http://localhost:8090 -NeedRestart -ContainerId $platformContainer -Verbose -Debug
         
-        if(${{ inputs.installModule }} -eq "true")
+        if("${{ inputs.installModule }}" -eq "true")
         {
           $artifacts = Get-ChildItem "${$env:GITHUB_WORKSPACE}/artifacts/*.zip"
           $moduleArtifactPath = "${$env:GITHUB_WORKSPACE}/artifacts/${$artifacts[0].Name}"
