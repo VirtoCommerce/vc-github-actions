@@ -59,16 +59,16 @@ runs:
           $workspace = $env:GITHUB_WORKSPACE
           Write-Output "Workspace: $workspace"
           $artifacts = Get-ChildItem "$($workspace)/artifacts/*.zip"
-          $moduleArtifactPath = "$($workspace)/artifacts/${$artifacts[0].Name}"
+          $moduleArtifactPath = "$($workspace)/artifacts/$($artifacts[0].Name)"
           $moduleDir = [io.path]::GetFileNameWithoutExtension($moduleArtifactPath)
-          Expand-Archive -Path $moduleArtifactPath -DestinationPath ./${moduleDir}
+          Expand-Archive -Path $moduleArtifactPath -DestinationPath ./$($moduleDir)
           $containerDest = "/opt/vc-platform/Modules"
           Write-Output "Remove previous module version"
-          docker exec $platformContainer sh -c 'rm -f ${containerDest}/${moduleDir}'
+          docker exec $platformContainer sh -c 'rm -f $($containerDest)/$($moduleDir)'
           Write-Output "Stop Container: $platformContainer"
           docker stop $platformContainer
-          docker cp ${moduleDir}/. ${platformContainer}:${containerDest}
-          Write-Output "Start Container: ${platformContainer}"
+          docker cp $($moduleDir)/. $($platformContainer):$($containerDest)
+          Write-Output "Start Container: $($platformContainer)"
           docker start $platformContainer
         }
         scripts/check-installed-modules.ps1 -ApiUrl http://localhost:8090 -Verbose -Debug
