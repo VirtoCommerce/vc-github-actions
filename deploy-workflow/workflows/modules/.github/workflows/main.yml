@@ -3,6 +3,10 @@ name: Module CI
 
 on:
   workflow_dispatch:
+    hotfix:
+      description: "Is this a hotfix(y/N)"
+      default: "N"
+      required: false
   push:
     paths-ignore:
       - '.github/**'
@@ -107,19 +111,19 @@ jobs:
           blobSAS: ${{ secrets.BLOB_TOKEN }}
         
       - name: Publish Github Release
-        if: ${{ github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/master' || (github.event_name == 'workflow_dispatch' && github.event.inputs.hotfix == 'y') }}
         with:
           changelog: ${{ steps.changelog.outputs.changelog }}
         uses: VirtoCommerce/vc-github-actions/publish-github-release@master
 
       - name: Setup Git Credentials
-        if: ${{ (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master') && github.event_name != 'workflow_dispatch' }}
+        if: ${{ ((github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master') && github.event_name != 'workflow_dispatch') || (github.event_name == 'workflow_dispatch' && github.event.inputs.hotfix == 'y') }}
         uses: VirtoCommerce/vc-github-actions/setup-git-credentials-github@master
         with: 
           githubToken: ${{ secrets.REPO_TOKEN }}
         
       - name: Publish Manifest
-        if: ${{ (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master') && github.event_name != 'workflow_dispatch' }}
+        if: ${{ ((github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master') && github.event_name != 'workflow_dispatch') || (github.event_name == 'workflow_dispatch' && github.event.inputs.hotfix == 'y') }}
         uses: VirtoCommerce/vc-github-actions/publish-manifest@master
         with:
           packageUrl: ${{ steps.blobRelease.outputs.packageUrl }}

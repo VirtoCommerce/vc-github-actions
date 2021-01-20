@@ -5,6 +5,10 @@ name: Platform CI
 # events but only for the master branch
 on:
   workflow_dispatch:
+    hotfix:
+      description: "Is this a hotfix(y/N)"
+      default: "N"
+      required: false
   push:
     paths-ignore:
       - '.github/**'
@@ -144,7 +148,7 @@ jobs:
         blobSAS: ${{ secrets.BLOB_TOKEN }}
       
     - name: Publish Github Release
-      if: ${{ github.ref == 'refs/heads/master' }}
+      if: ${{ github.ref == 'refs/heads/master' || (github.event_name == 'workflow_dispatch' && github.event.inputs.hotfix == 'y') }}
       with:
         changelog: ${{ steps.changelog.outputs.changelog }}
       uses: VirtoCommerce/vc-github-actions/publish-github-release@master
