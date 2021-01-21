@@ -26,6 +26,7 @@ jobs:
 
       - name: Containers info
         id: containers
+        shell: pwsh
         run: |
           $platformIp = docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' virtocommerce_vc-platform-web_1
           $storefrontIp = docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' virtocommerce_vc-storefront-web_1
