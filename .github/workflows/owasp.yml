@@ -8,28 +8,36 @@ jobs:
 
     steps:
 
-      # - name: Docker Login
-      #   uses: azure/docker-login@v1
-      #   with:
-      #     login-server: docker.pkg.github.com
-      #     username: $GITHUB_ACTOR
-      #     password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Docker Login
+        uses: azure/docker-login@v1
+        with:
+          login-server: docker.pkg.github.com
+          username: $GITHUB_ACTOR
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      # - name: Docker Env
-      #   uses: VirtoCommerce/vc-github-actions/docker-env@master
-      #   with:
-      #     githubUser: ${{ env.GITHUB_ACTOR }}
-      #     githubToken: ${{ env.GITHUB_TOKEN }}
-      #     platformImage: docker.pkg.github.com/virtocommerce/vc-platform/platform
-      #     storefrontImage: docker.pkg.github.com/virtocommerce/vc-storefront/storefront
-      #     validateSwagger: 'false'
+      - name: Docker Env
+        uses: VirtoCommerce/vc-github-actions/docker-env@master
+        with:
+          githubUser: ${{ env.GITHUB_ACTOR }}
+          githubToken: ${{ env.GITHUB_TOKEN }}
+          platformImage: docker.pkg.github.com/virtocommerce/vc-platform/platform
+          storefrontImage: docker.pkg.github.com/virtocommerce/vc-storefront/storefront
+          validateSwagger: 'false'
+
+      - name: Containers info
+        id: containers
+        run: |
+          $platformIp = docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' virtocommerce_vc-platform-web_1
+          $storefrontIp = docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' virtocommerce_vc-storefront-web_1
+          Write-Output "::set-output name=platformIP::${$platformIp}"
+          Write-Output "::set-output name=storefrontIP::${$storefrontIp}"
 
       - name: OWASP ZAP Full Scan
         uses: zaproxy/action-full-scan@v0.2.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           docker_name: 'owasp/zap2docker-stable'
-          target: 'https://demo.virtocommerce.com/'
+          target: '${{ steps.containers.outputs.platformIP }}:8090'
           cmd_options: '-a -d'
 
 
