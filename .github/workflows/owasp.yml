@@ -28,10 +28,11 @@ jobs:
         id: containers
         shell: pwsh
         run: |
-          $platformIp = docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' virtocommerce_vc-platform-web_1
-          $storefrontIp = docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' virtocommerce_vc-storefront-web_1
-          Write-Output "::set-output name=platformIP::${$platformIp}"
-          Write-Output "::set-output name=storefrontIP::${$storefrontIp}"
+          $platformIP = docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' virtocommerce_vc-platform-web_1
+          $storefrontIP = docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' virtocommerce_vc-storefront-web_1
+          Write-Output "Platform ip: $($platformIP). Storefront ip: $($storefrontIP)"
+          Write-Output "::set-output name=platformIP::$($platformIP)"
+          Write-Output "::set-output name=storefrontIP::$($storefrontIP)"
 
       - name: OWASP ZAP Full Scan
         uses: zaproxy/action-full-scan@v0.2.0
