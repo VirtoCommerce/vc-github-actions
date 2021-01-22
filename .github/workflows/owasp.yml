@@ -41,12 +41,3 @@ jobs:
           docker_name: 'owasp/zap2docker-stable'
           target: 'http://localhost:8090'
           cmd_options: '-a -d'
-
-
-      - name: Katalon Report
-        if: ${{ success() || failure() }}
-        uses: VirtoCommerce/vc-github-actions/publish-katalon-report@master
-        with: 
-          testProjectPath: ${{ github.workspace }}
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
-          publishComment: 'false'
