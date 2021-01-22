@@ -35,7 +35,7 @@ jobs:
           Write-Output "::set-output name=storefrontIP::$($storefrontIP)"
 
       - name: OWASP ZAP Full Scan
-        uses: zaproxy/action-full-scan@v0.2.0
+        uses: zaproxy/action-baseline@v0.4.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           docker_name: 'owasp/zap2docker-stable'
