@@ -14,9 +14,6 @@ inputs:
     description: 'true to restart'
     required: false
     default: 'false'
-outputs:
-  modulesJsonPath:
-    description: "Path to updated modules.json"
 runs:
   using: 'node12'
   main: 'dist/index.js' 
