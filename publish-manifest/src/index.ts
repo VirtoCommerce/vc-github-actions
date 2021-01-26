@@ -51,6 +51,14 @@ async function findModuleId(repoName: string, modulesManifest: any) {
     }
 }
 
+async function getModuleId() {
+    let manifestPathTemplate = "src/*/module.manifest";
+    let manifests = await utils.findFiles(manifestPathTemplate);
+    let manifestPath = manifests[0];
+    let versionInfo = await utils.getInfoFromModuleManifest(manifestPath);
+    return versionInfo.moduleId;
+}
+
 function sleep(ms: number) {
     return new Promise((resolve) => {
       setTimeout(resolve, ms);
@@ -94,7 +102,7 @@ async function run(): Promise<void> {
         let isManifestUpdated = false;
         let repoName = await utils.getRepoName();
         console.log(`Module version: ${moduleVersion}`);
-        let moduleId = await findModuleId(repoName, modulesManifest);
+        let moduleId = await getModuleId();
         console.log(`Module id: ${moduleId}`);
         for(let module of modulesManifest)
         {

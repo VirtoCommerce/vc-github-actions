@@ -78,6 +78,15 @@ function findModuleId(repoName, modulesManifest) {
         }
     });
 }
+function getModuleId() {
+    return __awaiter(this, void 0, void 0, function* () {
+        let manifestPathTemplate = "src/*/module.manifest";
+        let manifests = yield utils.findFiles(manifestPathTemplate);
+        let manifestPath = manifests[0];
+        let versionInfo = yield utils.getInfoFromModuleManifest(manifestPath);
+        return versionInfo.moduleId;
+    });
+}
 function sleep(ms) {
     return new Promise((resolve) => {
         setTimeout(resolve, ms);
@@ -115,7 +124,7 @@ function run() {
             let isManifestUpdated = false;
             let repoName = yield utils.getRepoName();
             console.log(`Module version: ${moduleVersion}`);
-            let moduleId = yield findModuleId(repoName, modulesManifest);
+            let moduleId = yield getModuleId();
             console.log(`Module id: ${moduleId}`);
             for (let module of modulesManifest) {
                 if (moduleId === module.Id) {

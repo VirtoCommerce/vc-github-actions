@@ -6,3 +6,7 @@ export declare function getProjectType(): Promise<string>;
 export declare function downloadFile(url: string, outPath: string): Promise<void>;
 export declare function isPullRequest(github: any): Promise<boolean>;
 export declare function getVersionFromDirectoryBuildProps(path: string): Promise<string>;
+export declare function getInfoFromDirectoryBuildProps(path: string): Promise<any>;
+export declare function getInfoFromModuleManifest(path: string): Promise<any>;
+export declare function getInfoFromPackageJson(path: string): Promise<any>;
+export declare function findFiles(pattern: string): Array<string>;
