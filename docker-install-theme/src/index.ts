@@ -9,7 +9,7 @@ async function run(): Promise<void> {
     let containerDestination = core.getInput('containerDestination');
 
     await exec.exec(`docker exec ${containerName} sh -c "rm -rf ${containerDestination}"`);
-    let dirname = path.dirname(containerDestination);
+    let dirname = containerDestination.split(path.sep).pop();
     await exec.exec(`unzip ${artifactPath} -d ./${dirname}`);
     await exec.exec(`docker cp ./${dirname}/. ${containerName}:${containerDestination}`);
     if(restartContainer)

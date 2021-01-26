@@ -38,7 +38,7 @@ function run() {
         let containerName = core.getInput('containerName');
         let containerDestination = core.getInput('containerDestination');
         yield exec.exec(`docker exec ${containerName} sh -c "rm -rf ${containerDestination}"`);
-        let dirname = path.dirname(containerDestination);
+        let dirname = containerDestination.split(path.sep).pop();
         yield exec.exec(`unzip ${artifactPath} -d ./${dirname}`);
         yield exec.exec(`docker cp ./${dirname}/. ${containerName}:${containerDestination}`);
         if (restartContainer) {
