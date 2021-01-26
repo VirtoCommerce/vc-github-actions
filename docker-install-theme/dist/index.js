@@ -44,6 +44,7 @@ function run() {
         if (restartContainer) {
             yield exec.exec(`docker restart ${containerName}`);
         }
+        yield exec.exec('docker ps -a');
     });
 }
 run().catch(error => core.setFailed(error.message));

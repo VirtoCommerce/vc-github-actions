@@ -16,6 +16,7 @@ async function run(): Promise<void> {
     {
         await exec.exec(`docker restart ${containerName}`);
     }
+    await exec.exec('docker ps -a');
 }
 
 run().catch(error => core.setFailed(error.message));
