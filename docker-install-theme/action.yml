@@ -1,0 +1,22 @@
+name: 'docker-install-theme'
+description: 'Installs a theme to docker container'
+inputs:
+  artifactPath:
+    description: 'Path to a theme artifact'
+    required: true
+  containerName:
+    description: 'Name of docker container'
+    required: true
+  containerDestination:
+    description: 'Theme destination path inside the docker container'
+    required: true
+  restartContainer:
+    description: 'true to restart'
+    required: false
+    default: 'false'
+outputs:
+  modulesJsonPath:
+    description: "Path to updated modules.json"
+runs:
+  using: 'node12'
+  main: 'dist/index.js' 
