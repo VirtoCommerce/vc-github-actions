@@ -14,12 +14,18 @@ async function run(): Promise<void> {
     let octokit = github.getOctokit(GITHUB_TOKEN);
     console.log('Get octokit');
 
-    let artiсatList = await octokit.actions.listArtifactsForRepo({
+    
+    octokit.actions.listArtifactsForRepo({
         owner: repoOrg,
         repo: github.context.repo.repo
       });
+
+    // let artiсatList = await octokit.actions.listArtifactsForRepo({
+    //     owner: repoOrg,
+    //     repo: github.context.repo.repo
+    //   });
     
-    console.log(artiсatList);
+    console.log('artiсatList');
     
     // let artiсatURL = octokit.actions.downloadArtifact({
     //     repoOrg,
