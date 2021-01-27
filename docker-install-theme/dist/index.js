@@ -54,6 +54,8 @@ function run() {
             yield exec.exec('docker logs virtocommerce_vc-storefront-web_1');
             yield sleep(90000);
             yield exec.exec('netstat -tulpn');
+            yield exec.exec('wget http://localhost:8080 -qO-');
+            yield exec.exec('wget http://127.0.0.1:8080 -qO-');
         }
         yield exec.exec('docker ps -a');
     });
