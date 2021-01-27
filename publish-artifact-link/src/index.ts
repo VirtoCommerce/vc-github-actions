@@ -10,9 +10,11 @@ async function run(): Promise<void> {
     // let pattern = path.join(katalonProjectDir, "**/JUnit_Report.xml");
     // let files = await utils.findFiles(pattern);
     // let junitReportPath = files[0];
+    
     let octokit = github.getOctokit(GITHUB_TOKEN);
+    console.log('Get octokit');
 
-    let artiсatList = octokit.actions.listArtifactsForRepo({
+    let artiсatList = await octokit.actions.listArtifactsForRepo({
         owner: repoOrg,
         repo: github.context.repo.repo
       });
