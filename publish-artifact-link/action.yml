@@ -1,6 +1,13 @@
 name: 'publish-artifact-link'
 description: 'Publishes artifact link to PR comment'
 inputs:
+  githubToken:
+    description: "GitHub token"
+    required: false
+  repoOrg:
+    description: "repo org"
+    required: false
+    default: "VirtoCommerce"
   artifactName:
     description: "Artifact file name"
     required: true

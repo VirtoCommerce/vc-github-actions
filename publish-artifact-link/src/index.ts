@@ -21,10 +21,7 @@ async function run(): Promise<void> {
         repo: github.context.repo.repo
       });
 
-    // let artiсatList = await octokit.actions.listArtifactsForRepo({
-    //     owner: repoOrg,
-    //     repo: github.context.repo.repo
-    //   });
+    
     
     console.log('artiсatList');
     
