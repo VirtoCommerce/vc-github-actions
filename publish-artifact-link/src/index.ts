@@ -27,7 +27,7 @@ async function run(): Promise<void> {
     //   });
     
     console.log('artiсatList');
-    console.log(artiсatList);
+    
     
     // let artiсatURL = octokit.actions.downloadArtifact({
     //     repoOrg,

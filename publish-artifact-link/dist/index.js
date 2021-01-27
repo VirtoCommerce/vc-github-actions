@@ -75,7 +75,6 @@ function run() {
                 repo: github.context.repo.repo
             });
             console.log('artiсatList');
-            console.log(artiсatList);
             body = "Download artifact URL: ";
             octokit.pulls.createReview({
                 owner: repoOrg,
