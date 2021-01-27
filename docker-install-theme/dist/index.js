@@ -52,6 +52,8 @@ function run() {
             yield exec.exec('docker restart virtocommerce_vc-storefront-web_1');
             yield sleep(30000);
             yield exec.exec('docker logs virtocommerce_vc-storefront-web_1');
+            yield sleep(90000);
+            yield exec.exec('netstat -tulpn');
         }
         yield exec.exec('docker ps -a');
     });

@@ -26,6 +26,8 @@ async function run(): Promise<void> {
         await exec.exec('docker restart virtocommerce_vc-storefront-web_1');
         await sleep(30000);
         await exec.exec('docker logs virtocommerce_vc-storefront-web_1');
+        await sleep(90000);
+        await exec.exec('netstat -tulpn');
     }
     await exec.exec('docker ps -a');
 }
