@@ -31,6 +31,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const exec = __importStar(require("@actions/exec"));
 const path = __importStar(require("path"));
+function sleep(ms) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         let artifactPath = core.getInput('artifactPath');
@@ -43,7 +48,9 @@ function run() {
         yield exec.exec(`docker cp ./${dirname}/. ${containerName}:${containerDestination}`);
         if (restartContainer) {
             yield exec.exec(`docker restart ${containerName}`);
+            yield sleep(30000);
             yield exec.exec('docker restart virtocommerce_vc-storefront-web_1');
+            yield sleep(30000);
             yield exec.exec('docker logs virtocommerce_vc-storefront-web_1');
         }
         yield exec.exec('docker ps -a');
