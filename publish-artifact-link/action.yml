@@ -1,5 +1,10 @@
 name: 'publish-artifact-link'
 description: 'Publishes artifact link to PR comment'
+inputs:
+  artifactName:
+    description: "Artifact file name"
+    required: true
+
 runs:
   using: 'node12'
   main: 'dist/index.js' 
