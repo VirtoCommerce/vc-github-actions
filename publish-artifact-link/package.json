@@ -1,5 +1,5 @@
 {
-  "name": "@virtocommerce/publish-blob-release",
+  "name": "@virtocommerce/publish-artifact-link",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "Alexander Morogov",
+  "author": "Maksim Kopnov",
   "license": "ISC",
   "dependencies": {
     "@actions/core": "^1.2.6",

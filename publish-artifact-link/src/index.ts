@@ -1,13 +1,7 @@
-import * as core from '@actions/core'
 import * as github from '@actions/github'
-import * as exec from '@actions/exec'
-import fs from 'fs'
-import os from 'os'
-import path from 'path'
-import * as utils from '@virtocommerce/vc-actions-lib'
+import * as core from '@actions/core'
 
-
-async function run() {
+async function run(): Promise<void> {
     
     let GITHUB_TOKEN = core.getInput("githubToken");
     if(!GITHUB_TOKEN  && process.env.GITHUB_TOKEN !== undefined) GITHUB_TOKEN = process.env.GITHUB_TOKEN;

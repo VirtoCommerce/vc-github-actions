@@ -55,8 +55,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var core = __importStar(require("@actions/core"));
 var github = __importStar(require("@actions/github"));
+var core = __importStar(require("@actions/core"));
 function run() {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
