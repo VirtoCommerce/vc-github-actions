@@ -14,8 +14,9 @@ async function run(): Promise<void> {
     let octokit = github.getOctokit(GITHUB_TOKEN);
     console.log('Get octokit');
 
-    
-    octokit.actions.listArtifactsForRepo({
+    console.log(repoOrg);
+    console.log(github.context.repo.repo);
+    const artiсatList = octokit.actions.listArtifactsForRepo({
         owner: repoOrg,
         repo: github.context.repo.repo
       });
@@ -26,6 +27,7 @@ async function run(): Promise<void> {
     //   });
     
     console.log('artiсatList');
+    console.log(artiсatList);
     
     // let artiсatURL = octokit.actions.downloadArtifact({
     //     repoOrg,
@@ -45,6 +47,7 @@ async function run(): Promise<void> {
         body: body,
         event: "COMMENT"
     });
+    console.log('PR');
 }
 
 run().catch(error => core.setFailed(error.message));
