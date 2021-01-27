@@ -12,9 +12,8 @@ async function run(): Promise<void> {
     // let junitReportPath = files[0];
     
     let octokit = github.getOctokit(GITHUB_TOKEN);
-    console.log('Get octokit');
-
-    console.log(repoOrg);
+    
+    console.log(github.context.repo.owner);
     console.log(github.context.repo.repo);
     const artiсatList = octokit.actions.listArtifactsForRepo({
         owner: repoOrg,

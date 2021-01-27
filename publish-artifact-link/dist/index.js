@@ -67,8 +67,7 @@ function run() {
                 GITHUB_TOKEN = process.env.GITHUB_TOKEN;
             repoOrg = core.getInput("repoOrg");
             octokit = github.getOctokit(GITHUB_TOKEN);
-            console.log('Get octokit');
-            console.log(repoOrg);
+            console.log(github.context.repo.owner);
             console.log(github.context.repo.repo);
             artiсatList = octokit.actions.listArtifactsForRepo({
                 owner: repoOrg,
