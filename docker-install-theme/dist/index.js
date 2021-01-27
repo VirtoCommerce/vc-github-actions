@@ -44,6 +44,7 @@ function run() {
         if (restartContainer) {
             yield exec.exec(`docker restart ${containerName}`);
             yield exec.exec('docker restart virtocommerce_vc-storefront-web_1');
+            yield exec.exec('docker logs virtocommerce_vc-storefront-web_1');
         }
         yield exec.exec('docker ps -a');
     });
