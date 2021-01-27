@@ -15,6 +15,7 @@ async function run(): Promise<void> {
     if(restartContainer)
     {
         await exec.exec(`docker restart ${containerName}`);
+        await exec.exec('docker restart virtocommerce_vc-storefront-web_1');
     }
     await exec.exec('docker ps -a');
 }

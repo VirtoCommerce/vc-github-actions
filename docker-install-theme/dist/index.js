@@ -43,6 +43,7 @@ function run() {
         yield exec.exec(`docker cp ./${dirname}/. ${containerName}:${containerDestination}`);
         if (restartContainer) {
             yield exec.exec(`docker restart ${containerName}`);
+            yield exec.exec('docker restart virtocommerce_vc-storefront-web_1');
         }
         yield exec.exec('docker ps -a');
     });
