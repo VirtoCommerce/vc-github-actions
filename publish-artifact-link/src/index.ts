@@ -6,13 +6,13 @@ async function run(): Promise<void> {
     let GITHUB_TOKEN = core.getInput("githubToken");
     if(!GITHUB_TOKEN  && process.env.GITHUB_TOKEN !== undefined) GITHUB_TOKEN = process.env.GITHUB_TOKEN;
     let repoOrg = core.getInput("repoOrg");
+    let artifactUrl = core.getInput("artifactUrl");
+    let octokit = github.getOctokit(GITHUB_TOKEN);
     
     // let pattern = path.join(katalonProjectDir, "**/JUnit_Report.xml");
     // let files = await utils.findFiles(pattern);
     // let junitReportPath = files[0];
-    
-    let octokit = github.getOctokit(GITHUB_TOKEN);
-    
+
     console.log(github.context.repo.owner);
     console.log(github.context.repo.repo);
     const artiсatList = octokit.actions.listArtifactsForRepo({
@@ -20,21 +20,11 @@ async function run(): Promise<void> {
         repo: github.context.repo.repo
       });
 
-    
-    
     console.log('artiсatList');
     
     
-    // let artiсatURL = octokit.actions.downloadArtifact({
-    //     repoOrg,
-    //     github.context.repo.repo,
-    //     artifact_id,
-    //     'zip'
-    //   });
-    
-    let body = `Download artifact URL: `;
-    // let body = `Download artifact URL: ${articatURL}`;
-    // console.log(body);
+    let body = `Download artifact URL: ${artifactUrl}`;
+    console.log(body);
 
     octokit.pulls.createReview({
         owner: repoOrg,

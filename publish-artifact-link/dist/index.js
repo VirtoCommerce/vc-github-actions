@@ -60,12 +60,13 @@ var core = __importStar(require("@actions/core"));
 function run() {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var GITHUB_TOKEN, repoOrg, octokit, artiсatList, body;
+        var GITHUB_TOKEN, repoOrg, artifactUrl, octokit, artiсatList, body;
         return __generator(this, function (_c) {
             GITHUB_TOKEN = core.getInput("githubToken");
             if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
                 GITHUB_TOKEN = process.env.GITHUB_TOKEN;
             repoOrg = core.getInput("repoOrg");
+            artifactUrl = core.getInput("artifactUrl");
             octokit = github.getOctokit(GITHUB_TOKEN);
             console.log(github.context.repo.owner);
             console.log(github.context.repo.repo);
@@ -74,7 +75,8 @@ function run() {
                 repo: github.context.repo.repo
             });
             console.log('artiсatList');
-            body = "Download artifact URL: ";
+            body = "Download artifact URL: " + artifactUrl;
+            console.log(body);
             octokit.pulls.createReview({
                 owner: repoOrg,
                 repo: github.context.repo.repo,

@@ -8,8 +8,8 @@ inputs:
     description: "repo org"
     required: false
     default: "VirtoCommerce"
-  artifactName:
-    description: "Artifact file name"
+  artifactUrl:
+    description: "Link to artifact"
     required: true
 
 runs:
