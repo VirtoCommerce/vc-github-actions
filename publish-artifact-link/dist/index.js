@@ -60,32 +60,36 @@ var core = __importStar(require("@actions/core"));
 function run() {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var GITHUB_TOKEN, repoOrg, artifactUrl, octokit, artiсatList, body;
+        var downloadComment, GITHUB_TOKEN, repoOrg, artifactUrl, octokit, downloadUrlBody, currentPr;
         return __generator(this, function (_c) {
-            GITHUB_TOKEN = core.getInput("githubToken");
-            if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
-                GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-            repoOrg = core.getInput("repoOrg");
-            artifactUrl = core.getInput("artifactUrl");
-            octokit = github.getOctokit(GITHUB_TOKEN);
-            console.log(github.context.repo.owner);
-            console.log(github.context.repo.repo);
-            artiсatList = octokit.actions.listArtifactsForRepo({
-                owner: repoOrg,
-                repo: github.context.repo.repo
-            });
-            console.log('artiсatList');
-            body = "Download artifact URL: " + artifactUrl;
-            console.log(body);
-            octokit.pulls.createReview({
-                owner: repoOrg,
-                repo: github.context.repo.repo,
-                pull_number: (_b = (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number) !== null && _b !== void 0 ? _b : github.context.issue.number,
-                body: body,
-                event: "COMMENT"
-            });
-            console.log('PR');
-            return [2];
+            switch (_c.label) {
+                case 0:
+                    downloadComment = 'Download artifact URL:';
+                    GITHUB_TOKEN = core.getInput("githubToken");
+                    if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
+                        GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+                    repoOrg = core.getInput("repoOrg");
+                    artifactUrl = core.getInput("artifactUrl");
+                    octokit = github.getOctokit(GITHUB_TOKEN);
+                    console.log(github.context.repo.owner);
+                    console.log(github.context.repo.repo);
+                    downloadUrlBody = downloadComment + artifactUrl;
+                    console.log(downloadUrlBody);
+                    return [4, octokit.pulls.get({
+                            owner: repoOrg,
+                            repo: github.context.repo.repo,
+                            pull_number: (_b = (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number) !== null && _b !== void 0 ? _b : github.context.issue.number,
+                        })];
+                case 1:
+                    currentPr = _c.sent();
+                    if (currentPr.data.body.includes(downloadComment)) {
+                    }
+                    else {
+                        currentPr.data.body += '\n' + downloadUrlBody;
+                    }
+                    console.log('PR');
+                    return [2];
+            }
         });
     });
 }
