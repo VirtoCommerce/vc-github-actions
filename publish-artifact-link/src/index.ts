@@ -42,7 +42,7 @@ async function run(): Promise<void> {
     }
     else {
         // Add artifact URL if not exists
-        console.log('Link does not');
+        console.log('Link does not exists');
         currentPr.data.body += '\n' + downloadUrlBody;
     }
 

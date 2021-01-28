@@ -86,7 +86,7 @@ function run() {
                         console.log('Link exists');
                     }
                     else {
-                        console.log('Link does not');
+                        console.log('Link does not exists');
                         currentPr.data.body += '\n' + downloadUrlBody;
                     }
                     octokit.pulls.update({
