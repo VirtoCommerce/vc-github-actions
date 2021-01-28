@@ -16,8 +16,7 @@ async function run(): Promise<void> {
     // let files = await utils.findFiles(pattern);
     // let junitReportPath = files[0];
 
-    console.log(github.context.repo.owner);
-    console.log(github.context.repo.repo);
+    console.log(artifactUrl);
     
     // const artiсatList = octokit.actions.listArtifactsForRepo({
     //     owner: repoOrg,
@@ -32,7 +31,7 @@ async function run(): Promise<void> {
     let currentPr = await octokit.pulls.get({
         owner: repoOrg,
         repo: github.context.repo.repo,
-        pull_number: github.context.payload.pull_request?.number ?? github.context.issue.number,
+        pull_number: github.context.payload.pull_request?.number ?? github.context.issue.number
     });
 
     console.log(currentPr.data.body);
@@ -43,10 +42,17 @@ async function run(): Promise<void> {
     }
     else {
         // Add artifact URL if not exists
-        console.log('Link does not exist');
+        console.log('Link does not');
         currentPr.data.body += '\n' + downloadUrlBody;
     }
-    
+
+    octokit.pulls.update({
+        owner: repoOrg,
+        repo: github.context.repo.repo,
+        pull_number: github.context.payload.pull_request?.number ?? github.context.issue.number,
+        body: currentPr.data.body
+    })
+
     // octokit.pulls.createReview({
     //     owner: repoOrg,
     //     repo: github.context.repo.repo,
@@ -54,7 +60,7 @@ async function run(): Promise<void> {
     //     body: body,
     //     event: "COMMENT"
     // });
-    console.log('PR');
+
 }
 
 run().catch(error => core.setFailed(error.message));

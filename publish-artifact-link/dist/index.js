@@ -58,11 +58,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var github = __importStar(require("@actions/github"));
 var core = __importStar(require("@actions/core"));
 function run() {
-    var _a, _b;
+    var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
         var downloadComment, GITHUB_TOKEN, repoOrg, artifactUrl, octokit, downloadUrlBody, currentPr;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
+        return __generator(this, function (_e) {
+            switch (_e.label) {
                 case 0:
                     downloadComment = 'Download artifact URL:';
                     GITHUB_TOKEN = core.getInput("githubToken");
@@ -71,26 +71,30 @@ function run() {
                     repoOrg = core.getInput("repoOrg");
                     artifactUrl = core.getInput("artifactUrl");
                     octokit = github.getOctokit(GITHUB_TOKEN);
-                    console.log(github.context.repo.owner);
-                    console.log(github.context.repo.repo);
+                    console.log(artifactUrl);
                     downloadUrlBody = downloadComment + artifactUrl;
                     console.log(downloadUrlBody);
                     return [4, octokit.pulls.get({
                             owner: repoOrg,
                             repo: github.context.repo.repo,
-                            pull_number: (_b = (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number) !== null && _b !== void 0 ? _b : github.context.issue.number,
+                            pull_number: (_b = (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number) !== null && _b !== void 0 ? _b : github.context.issue.number
                         })];
                 case 1:
-                    currentPr = _c.sent();
+                    currentPr = _e.sent();
                     console.log(currentPr.data.body);
                     if (currentPr.data.body.includes(downloadComment)) {
                         console.log('Link exists');
                     }
                     else {
-                        console.log('Link does not exist');
+                        console.log('Link does not');
                         currentPr.data.body += '\n' + downloadUrlBody;
                     }
-                    console.log('PR');
+                    octokit.pulls.update({
+                        owner: repoOrg,
+                        repo: github.context.repo.repo,
+                        pull_number: (_d = (_c = github.context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.number) !== null && _d !== void 0 ? _d : github.context.issue.number,
+                        body: currentPr.data.body
+                    });
                     return [2];
             }
         });
