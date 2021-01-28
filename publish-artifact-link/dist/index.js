@@ -82,9 +82,12 @@ function run() {
                         })];
                 case 1:
                     currentPr = _c.sent();
+                    console.log(currentPr.data.body);
                     if (currentPr.data.body.includes(downloadComment)) {
+                        console.log('Link exists');
                     }
                     else {
+                        console.log('Link does not exist');
                         currentPr.data.body += '\n' + downloadUrlBody;
                     }
                     console.log('PR');

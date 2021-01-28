@@ -35,11 +35,15 @@ async function run(): Promise<void> {
         pull_number: github.context.payload.pull_request?.number ?? github.context.issue.number,
     });
 
+    console.log(currentPr.data.body);
+
     if (currentPr.data.body.includes(downloadComment)) { 
         // Replace existing artifact URL
+        console.log('Link exists');
     }
     else {
         // Add artifact URL if not exists
+        console.log('Link does not exist');
         currentPr.data.body += '\n' + downloadUrlBody;
     }
     
