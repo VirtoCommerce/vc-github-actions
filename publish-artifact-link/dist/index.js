@@ -85,6 +85,7 @@ function run() {
                     if (currentPr.data.body.includes(downloadComment)) {
                         console.log('Link exists');
                         currentPr.data.body.replace(/${downloadComment}\s*/, downloadUrlBody);
+                        console.log(currentPr.data.body);
                     }
                     else {
                         console.log('Link does not exist');
