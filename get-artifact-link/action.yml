@@ -1,0 +1,17 @@
+name: 'get-artifact-link'
+description: 'Gets artifact link from PR comment'
+inputs:
+  githubToken:
+    description: "GitHub token"
+    required: false
+  repoOrg:
+    description: "repo org"
+    required: false
+    default: "VirtoCommerce"
+outputs:  
+  artifactUrl:
+    description: "Link to artifact"
+
+runs:
+  using: 'node12'
+  main: 'dist/index.js' 

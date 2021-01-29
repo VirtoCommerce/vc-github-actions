@@ -12,7 +12,8 @@ async function run(): Promise<void> {
     let octokit = github.getOctokit(GITHUB_TOKEN);
 
     let downloadUrlBody = `${downloadComment} ${artifactUrl}`;
-    console.log(downloadUrlBody);
+    const regexp = RegExp(downloadComment + '\s*.*');
+    
 
     let currentPr = await octokit.pulls.get({
         owner: repoOrg,
@@ -24,13 +25,18 @@ async function run(): Promise<void> {
 
     if (body.includes(downloadComment)) { 
         // Replace existing artifact URL
-        const regexp = RegExp(downloadComment + '\s*.*');
+        
         body = body.replace(regexp, downloadUrlBody )
     }
     else {
         // Add artifact URL if not exists
         body += '\n' + downloadUrlBody;
     }
+
+    // Get UrL from body
+    //let result = body.match(regexp)[0].match(/[-a-zA-Z0-9@:%_\+.~#?&\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)?/gi)[0]
+    //console.log(result); 
+
 
     octokit.pulls.update({
         owner: repoOrg,

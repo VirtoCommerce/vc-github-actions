@@ -1,33 +1,28 @@
-# publish-blob-release
+# publish-artifact-link
 
-Publishes release artifact to Azure Blob
+Publishes artifact link to PR comment
 
 ## inputs:
 
-### blobUrl:
+### githubToken:
 
-    description: "Url to Azure Blob"
-    default: "https://vc3prerelease.blob.core.windows.net/packages"
-    required: false
+    description: "GitHub token"
 
-### blobSAS:
+### repoOrg:
 
-    description: "Blob SAS"
-    required: false
+    description: "repo org"
+    default: "VirtoCommerce"
 
-## outputs:
+### artifactUrl:
 
-### packageUrl:
-
-    description: "Package url"
+    description: "Link to artifact"
 
 ## Example of usage
 
 ```
-- name: Publish to Blob
-  if: ${{ github.ref == 'refs/heads/dev' }}
-  id: blobRelease
-  uses: VirtoCommerce/vc-github-actions/publish-blob-release@master
-  with:
-    blobSAS: ${{ secrets.BLOB_TOKEN }}
+- name: Add link to PR
+    if: ${{ github.event_name == 'pull_request' }}
+    uses: VirtoCommerce/vc-github-actions/publish-artifact-link@VDS-414
+    with:
+    artifactUrl: ${{ steps.publish.outputs.blobUrl }}
 ```
