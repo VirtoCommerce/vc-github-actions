@@ -60,7 +60,7 @@ var core = __importStar(require("@actions/core"));
 function run() {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
-        var downloadComment, GITHUB_TOKEN, repoOrg, artifactUrl, octokit, downloadUrlBody, currentPr;
+        var downloadComment, GITHUB_TOKEN, repoOrg, artifactUrl, octokit, downloadUrlBody, currentPr, body, regexp;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
@@ -71,7 +71,6 @@ function run() {
                     repoOrg = core.getInput("repoOrg");
                     artifactUrl = core.getInput("artifactUrl");
                     octokit = github.getOctokit(GITHUB_TOKEN);
-                    console.log(artifactUrl);
                     downloadUrlBody = downloadComment + artifactUrl;
                     console.log(downloadUrlBody);
                     return [4, octokit.pulls.get({
@@ -81,21 +80,22 @@ function run() {
                         })];
                 case 1:
                     currentPr = _e.sent();
-                    console.log(currentPr.data.body);
+                    body = currentPr.data.body;
                     if (currentPr.data.body.includes(downloadComment)) {
                         console.log('Link exists');
-                        currentPr.data.body.replace(/${downloadComment}\s*/, downloadUrlBody);
-                        console.log(currentPr.data.body);
+                        regexp = RegExp(downloadComment + '\s*.*');
+                        body = body.replace(regexp, downloadUrlBody);
+                        console.log(body);
                     }
                     else {
                         console.log('Link does not exist');
-                        currentPr.data.body += '\n' + downloadUrlBody;
+                        body += '\n' + downloadUrlBody;
                     }
                     octokit.pulls.update({
                         owner: repoOrg,
                         repo: github.context.repo.repo,
                         pull_number: (_d = (_c = github.context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.number) !== null && _d !== void 0 ? _d : github.context.issue.number,
-                        body: currentPr.data.body
+                        body: body
                     });
                     return [2];
             }

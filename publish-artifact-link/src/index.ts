@@ -11,20 +11,6 @@ async function run(): Promise<void> {
     let artifactUrl = core.getInput("artifactUrl");
     let octokit = github.getOctokit(GITHUB_TOKEN);
 
-    
-    // let pattern = path.join(katalonProjectDir, "**/JUnit_Report.xml");
-    // let files = await utils.findFiles(pattern);
-    // let junitReportPath = files[0];
-
-    console.log(artifactUrl);
-    
-    // const artiсatList = octokit.actions.listArtifactsForRepo({
-    //     owner: repoOrg,
-    //     repo: github.context.repo.repo
-    //   });
-
-    // console.log('artiсatList');
-
     let downloadUrlBody = downloadComment + artifactUrl;
     console.log(downloadUrlBody);
 
@@ -34,35 +20,27 @@ async function run(): Promise<void> {
         pull_number: github.context.payload.pull_request?.number ?? github.context.issue.number
     });
 
-    console.log(currentPr.data.body);
+    let body = currentPr.data.body;
 
     if (currentPr.data.body.includes(downloadComment)) { 
         // Replace existing artifact URL
         console.log('Link exists');
-        currentPr.data.body.replace(/${downloadComment}\s*/, downloadUrlBody )
-        console.log(currentPr.data.body);
+        let regexp = RegExp(downloadComment + '\s*.*');
+        body =body.replace(regexp, downloadUrlBody )
+        console.log(body);
     }
     else {
         // Add artifact URL if not exists
         console.log('Link does not exist');
-        currentPr.data.body += '\n' + downloadUrlBody;
+        body += '\n' + downloadUrlBody;
     }
 
     octokit.pulls.update({
         owner: repoOrg,
         repo: github.context.repo.repo,
         pull_number: github.context.payload.pull_request?.number ?? github.context.issue.number,
-        body: currentPr.data.body
+        body: body
     })
-
-    // octokit.pulls.createReview({
-    //     owner: repoOrg,
-    //     repo: github.context.repo.repo,
-    //     pull_number: github.context.payload.pull_request?.number ?? github.context.issue.number,
-    //     body: body,
-    //     event: "COMMENT"
-    // });
-
 }
 
 run().catch(error => core.setFailed(error.message));
