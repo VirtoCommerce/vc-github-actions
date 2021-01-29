@@ -81,14 +81,12 @@ function run() {
                 case 1:
                     currentPr = _e.sent();
                     body = currentPr.data.body;
-                    if (currentPr.data.body.includes(downloadComment)) {
-                        console.log('Link exists');
+                    if (body.includes(downloadComment)) {
                         regexp = RegExp(downloadComment + '\s*.*');
                         body = body.replace(regexp, downloadUrlBody);
                         console.log(body);
                     }
                     else {
-                        console.log('Link does not exist');
                         body += '\n' + downloadUrlBody;
                     }
                     octokit.pulls.update({
