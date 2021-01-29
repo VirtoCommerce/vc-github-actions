@@ -6,9 +6,9 @@ async function run(): Promise<void> {
     const downloadComment = 'Download artifact URL:'
     let GITHUB_TOKEN = core.getInput("githubToken");
     if(!GITHUB_TOKEN  && process.env.GITHUB_TOKEN !== undefined) GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-
+    
     let repoOrg = core.getInput("repoOrg");
-        let octokit = github.getOctokit(GITHUB_TOKEN);
+    let octokit = github.getOctokit(GITHUB_TOKEN);
 
     const regexp = RegExp(downloadComment + '\s*.*');
 
@@ -19,9 +19,12 @@ async function run(): Promise<void> {
     });
 
     let body = currentPr.data.body;
+    console.log(currentPr.data.title);
+    console.log(body);
 
     // Get UrL from body
-    let artifactLink = body.match(regexp)[0].match(/[-a-zA-Z0-9@:%_\+.~#?&\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)?/gi)[0]
+    let artifactLink = body.match(regexp)![0].match(/[-a-zA-Z0-9@:%_\+.~#?&\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)?/gi)![0];
+
     console.log(`Artifact link is: ${artifactLink}`); 
     core.setOutput('artifactLink', artifactLink);
 

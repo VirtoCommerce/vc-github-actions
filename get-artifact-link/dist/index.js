@@ -58,20 +58,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var github = __importStar(require("@actions/github"));
 var core = __importStar(require("@actions/core"));
 function run() {
-    var _a, _b, _c, _d;
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var downloadComment, GITHUB_TOKEN, repoOrg, artifactUrl, octokit, downloadUrlBody, regexp, currentPr, body;
-        return __generator(this, function (_e) {
-            switch (_e.label) {
+        var downloadComment, GITHUB_TOKEN, repoOrg, octokit, regexp, currentPr, body, artifactLink;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
                     downloadComment = 'Download artifact URL:';
                     GITHUB_TOKEN = core.getInput("githubToken");
                     if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
                         GITHUB_TOKEN = process.env.GITHUB_TOKEN;
                     repoOrg = core.getInput("repoOrg");
-                    artifactUrl = core.getInput("artifactUrl");
                     octokit = github.getOctokit(GITHUB_TOKEN);
-                    downloadUrlBody = downloadComment + " " + artifactUrl;
                     regexp = RegExp(downloadComment + '\s*.*');
                     return [4, octokit.pulls.get({
                             owner: repoOrg,
@@ -79,20 +77,13 @@ function run() {
                             pull_number: (_b = (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number) !== null && _b !== void 0 ? _b : github.context.issue.number
                         })];
                 case 1:
-                    currentPr = _e.sent();
+                    currentPr = _c.sent();
                     body = currentPr.data.body;
-                    if (body.includes(downloadComment)) {
-                        body = body.replace(regexp, downloadUrlBody);
-                    }
-                    else {
-                        body += '\n' + downloadUrlBody;
-                    }
-                    octokit.pulls.update({
-                        owner: repoOrg,
-                        repo: github.context.repo.repo,
-                        pull_number: (_d = (_c = github.context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.number) !== null && _d !== void 0 ? _d : github.context.issue.number,
-                        body: body
-                    });
+                    console.log(currentPr.data.title);
+                    console.log(body);
+                    artifactLink = body.match(regexp)[0].match(/[-a-zA-Z0-9@:%_\+.~#?&\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)?/gi)[0];
+                    console.log("Artifact link is: " + artifactLink);
+                    core.setOutput('artifactLink', artifactLink);
                     return [2];
             }
         });
