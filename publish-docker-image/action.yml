@@ -7,6 +7,10 @@ inputs:
   tag:
     description: "Tag of Docker Image"
     required: true
+  dockerOrg: 
+    description: "docker hub organization"
+    required: false
+    default: "virtocommerce"
   docker_user:
     description: "Docker Hub User"
     required: true
