@@ -30,7 +30,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const exec = __importStar(require("@actions/exec"));
-const path = __importStar(require("path"));
 function sleep(ms) {
     return new Promise((resolve) => {
         setTimeout(resolve, ms);
@@ -43,19 +42,13 @@ function run() {
         let containerName = core.getInput('containerName');
         let containerDestination = core.getInput('containerDestination');
         yield exec.exec(`docker exec ${containerName} sh -c "rm -rf ${containerDestination}"`);
-        let dirname = containerDestination.split(path.sep).pop();
+        let dirname = "theme";
         yield exec.exec(`unzip ${artifactPath} -d ./${dirname}`);
-        yield exec.exec(`docker cp ./${dirname}/. ${containerName}:${containerDestination}`);
+        yield exec.exec(`docker cp ./${dirname}/default/. ${containerName}:${containerDestination}`);
         if (restartContainer) {
             yield exec.exec(`docker restart ${containerName}`);
-            yield sleep(30000);
-            yield exec.exec('docker restart virtocommerce_vc-storefront-web_1');
-            yield sleep(30000);
-            yield exec.exec('docker logs virtocommerce_vc-storefront-web_1');
-            yield sleep(90000);
+            yield sleep(20000);
             yield exec.exec('netstat -tulpn');
-            yield exec.exec('wget http://localhost:8080 -qO-');
-            yield exec.exec('wget http://127.0.0.1:8080 -qO-');
         }
         yield exec.exec('docker ps -a');
     });
