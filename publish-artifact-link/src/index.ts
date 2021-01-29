@@ -39,11 +39,11 @@ async function run(): Promise<void> {
     if (currentPr.data.body.includes(downloadComment)) { 
         // Replace existing artifact URL
         console.log('Link exists');
-        currentPr.data.body.replace(`${downloadComment}\s*:.*`, downloadUrlBody )
+        currentPr.data.body.replace(/${downloadComment}\s*/, downloadUrlBody )
     }
     else {
         // Add artifact URL if not exists
-        console.log('Link does not exists');
+        console.log('Link does not exist');
         currentPr.data.body += '\n' + downloadUrlBody;
     }
 
