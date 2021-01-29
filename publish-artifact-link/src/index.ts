@@ -24,9 +24,8 @@ async function run(): Promise<void> {
 
     if (body.includes(downloadComment)) { 
         // Replace existing artifact URL
-        let regexp = RegExp(downloadComment + '\s*.*');
-        body =body.replace(regexp, downloadUrlBody )
-        console.log(body);
+        const regexp = RegExp(downloadComment + '\s*.*');
+        body = body.replace(regexp, downloadUrlBody )
     }
     else {
         // Add artifact URL if not exists

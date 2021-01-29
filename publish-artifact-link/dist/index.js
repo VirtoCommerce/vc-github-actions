@@ -84,7 +84,6 @@ function run() {
                     if (body.includes(downloadComment)) {
                         regexp = RegExp(downloadComment + '\s*.*');
                         body = body.replace(regexp, downloadUrlBody);
-                        console.log(body);
                     }
                     else {
                         body += '\n' + downloadUrlBody;
