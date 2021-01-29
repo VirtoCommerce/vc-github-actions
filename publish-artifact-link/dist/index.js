@@ -71,7 +71,7 @@ function run() {
                     repoOrg = core.getInput("repoOrg");
                     artifactUrl = core.getInput("artifactUrl");
                     octokit = github.getOctokit(GITHUB_TOKEN);
-                    downloadUrlBody = downloadComment + artifactUrl;
+                    downloadUrlBody = downloadComment + " " + artifactUrl;
                     console.log(downloadUrlBody);
                     return [4, octokit.pulls.get({
                             owner: repoOrg,

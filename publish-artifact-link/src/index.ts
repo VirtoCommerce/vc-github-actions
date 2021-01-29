@@ -11,7 +11,7 @@ async function run(): Promise<void> {
     let artifactUrl = core.getInput("artifactUrl");
     let octokit = github.getOctokit(GITHUB_TOKEN);
 
-    let downloadUrlBody = downloadComment + artifactUrl;
+    let downloadUrlBody = `${downloadComment} ${artifactUrl}`;
     console.log(downloadUrlBody);
 
     let currentPr = await octokit.pulls.get({
