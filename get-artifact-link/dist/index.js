@@ -57,27 +57,25 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var github = __importStar(require("@actions/github"));
 var core = __importStar(require("@actions/core"));
-function getArtifactUrl(downloadComment, repoOrg, octokit) {
-    var _a, _b, _c, _d, _e;
+function getArtifactUrl(downloadComment, prRepo, octokit) {
+    var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function () {
         var regexp, regExpTask, currentPr, taskNumber, body, artifactLink;
-        return __generator(this, function (_f) {
-            switch (_f.label) {
+        return __generator(this, function (_d) {
+            switch (_d.label) {
                 case 0:
                     regexp = RegExp(downloadComment + '\s*.*');
                     regExpTask = /\w+-\d+/;
                     return [4, octokit.pulls.get({
-                            owner: repoOrg,
-                            repo: github.context.repo.repo,
-                            pull_number: (_b = (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number) !== null && _b !== void 0 ? _b : github.context.issue.number
+                            owner: prRepo.repoOrg,
+                            repo: prRepo.repoName,
+                            pull_number: prRepo.pullNumber
                         })];
                 case 1:
-                    currentPr = _f.sent();
-                    taskNumber = (_c = currentPr.data.title.match(regExpTask)) === null || _c === void 0 ? void 0 : _c[0];
+                    currentPr = _d.sent();
+                    taskNumber = (_a = currentPr.data.title.match(regExpTask)) === null || _a === void 0 ? void 0 : _a[0];
                     body = currentPr.data.body;
-                    console.log(currentPr.data.title);
-                    console.log(body);
-                    artifactLink = (_e = (_d = body.match(regexp)) === null || _d === void 0 ? void 0 : _d[0].match(/[-a-zA-Z0-9@:%_\+.~#?&\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)?/gi)) === null || _e === void 0 ? void 0 : _e[0];
+                    artifactLink = (_c = (_b = body.match(regexp)) === null || _b === void 0 ? void 0 : _b[0].match(/[-a-zA-Z0-9@:%_\+.~#?&\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)?/gi)) === null || _c === void 0 ? void 0 : _c[0];
                     return [2, {
                             taskNumber: taskNumber,
                             artifactLink: artifactLink
@@ -86,48 +84,121 @@ function getArtifactUrl(downloadComment, repoOrg, octokit) {
         });
     });
 }
-function run() {
+function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
     return __awaiter(this, void 0, void 0, function () {
-        var GITHUB_TOKEN, downloadComment, deployRepo, deployBranch, repoOrg, octokit, pr, baseBranch;
+        var targetBranchName, baseBranch, targetBranch, cmData, deployContent, cmResult;
         return __generator(this, function (_a) {
             switch (_a.label) {
+                case 0:
+                    targetBranchName = "refs/heads/" + targetRepo.taskNumber + "-" + targetRepo.branchName + " deployment";
+                    return [4, octokit.git.getRef({
+                            owner: targetRepo.repoOrg,
+                            repo: targetRepo.repoName,
+                            ref: "heads/" + targetRepo.branchName
+                        })];
+                case 1:
+                    baseBranch = (_a.sent()).data;
+                    return [4, octokit.git.createRef({
+                            owner: targetRepo.repoOrg,
+                            repo: targetRepo.repoName,
+                            ref: targetBranchName,
+                            sha: baseBranch.object.sha,
+                        })];
+                case 2:
+                    targetBranch = (_a.sent()).data;
+                    return [4, octokit.repos.getContent({
+                            owner: targetRepo.repoOrg,
+                            repo: targetRepo.repoName,
+                            ref: targetBranchName,
+                            path: deployData.cmPath
+                        })];
+                case 3:
+                    cmData = (_a.sent()).data;
+                    deployContent = cmData.content;
+                    return [4, octokit.repos.getContent({
+                            owner: targetRepo.repoOrg,
+                            repo: targetRepo.repoName,
+                            ref: targetBranchName,
+                            path: deployData.cmPath,
+                            content: deployContent,
+                            sha: cmData.sha,
+                            message: "Automated update " + baseRepo.repoName + " from PR " + baseRepo.pullNumber,
+                            committer: {
+                                name: 'GitHub Actions',
+                                email: 'github.actions@virtoway.com'
+                            },
+                            author: {
+                                name: 'GitHub Actions',
+                                email: 'github.actions@virtoway.com'
+                            },
+                        })];
+                case 4:
+                    cmResult = (_a.sent()).data;
+                    return [4, octokit.pulls.create({
+                            owner: targetRepo.repoOrg,
+                            repo: targetRepo.repoName,
+                            head: targetRepo.branchName,
+                            base: targetBranchName,
+                            title: targetRepo.taskNumber + "-" + targetRepo.branchName + " deployment",
+                            body: "Automated update " + baseRepo.repoName + " from PR " + baseRepo.pullNumber + " " + baseRepo.pullHtmlUrl
+                        })];
+                case 5:
+                    _a.sent();
+                    return [2];
+            }
+        });
+    });
+}
+function run() {
+    var _a, _b, _c, _d, _e;
+    return __awaiter(this, void 0, void 0, function () {
+        var GITHUB_TOKEN, downloadComment, deployRepoName, deployBranchName, repoOrg, artifactKey, cmPath, octokit, prRepo, pr, deployRepo, deployData;
+        return __generator(this, function (_f) {
+            switch (_f.label) {
                 case 0:
                     GITHUB_TOKEN = core.getInput("githubToken");
                     if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
                         GITHUB_TOKEN = process.env.GITHUB_TOKEN;
                     downloadComment = 'Download artifact URL:';
-                    deployRepo = core.getInput("deployRepo");
-                    deployBranch = core.getInput("deployBranch");
+                    deployRepoName = core.getInput("deployRepo");
+                    deployBranchName = core.getInput("deployBranch");
                     repoOrg = core.getInput("repoOrg");
+                    artifactKey = core.getInput("artifactKey");
+                    cmPath = core.getInput("cmPath");
                     octokit = github.getOctokit(GITHUB_TOKEN);
-                    return [4, getArtifactUrl(downloadComment, repoOrg, octokit)];
+                    (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.html_url;
+                    prRepo = {
+                        repoOrg: repoOrg,
+                        repoName: github.context.repo.repo,
+                        pullHtmlUrl: (_b = github.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.html_url,
+                        pullNumber: (_d = (_c = github.context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.number) !== null && _d !== void 0 ? _d : github.context.issue.number
+                    };
+                    (_e = github.context.payload.pull_request) === null || _e === void 0 ? void 0 : _e.html_url;
+                    return [4, getArtifactUrl(downloadComment, prRepo, octokit)];
                 case 1:
-                    pr = _a.sent();
-                    if (!pr.artifactLink) return [3, 4];
-                    console.log("Artifact link is: " + pr.artifactLink);
-                    core.setOutput('artifactLink', pr.artifactLink);
-                    return [4, octokit.git.getRef({
-                            owner: repoOrg,
-                            repo: deployRepo,
-                            ref: "heads/" + deployBranch
-                        })];
-                case 2:
-                    baseBranch = (_a.sent()).data;
-                    return [4, octokit.git.createRef({
-                            owner: repoOrg,
-                            repo: deployRepo,
-                            ref: "refs/heads/" + pr.taskNumber + "-" + deployBranch + " deployment",
-                            sha: baseBranch.object.sha,
-                        })];
-                case 3:
-                    _a.sent();
-                    return [3, 5];
-                case 4:
-                    console.log("Could not find artifact link in PR body. PR body should contain '" + downloadComment + " artifact URL");
-                    core.error("Could not find artifact link in PR body. PR body should contain '" + downloadComment + " artifact URL");
-                    core.setFailed("Could not find artifact link in PR body. PR body should contain '" + downloadComment + " artifact URL");
-                    _a.label = 5;
-                case 5: return [2];
+                    pr = _f.sent();
+                    if (pr.artifactLink) {
+                        console.log("Artifact link is: " + pr.artifactLink);
+                        core.setOutput('artifactLink', pr.artifactLink);
+                        deployRepo = {
+                            repoOrg: repoOrg,
+                            repoName: deployRepoName,
+                            branchName: deployBranchName,
+                            taskNumber: pr.taskNumber
+                        };
+                        deployData = {
+                            key: artifactKey,
+                            keyValue: pr.artifactLink,
+                            cmPath: cmPath
+                        };
+                        createDeployPr(deployData, deployRepo, prRepo, octokit);
+                    }
+                    else {
+                        console.log("Could not find artifact link in PR body. PR body should contain '" + downloadComment + " artifact URL");
+                        core.error("Could not find artifact link in PR body. PR body should contain '" + downloadComment + " artifact URL");
+                        core.setFailed("Could not find artifact link in PR body. PR body should contain '" + downloadComment + " artifact URL");
+                    }
+                    return [2];
             }
         });
     });

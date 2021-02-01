@@ -16,8 +16,15 @@ inputs:
     description: "Base branch for new deployment PR"
     required: true
     default: "qa"
+  artifactKey:
+    description: "ArgoCD config map key for changed artifact"
+    required: true
+  cmPath:
+    description: "Path to config map in repository"
+    required: true
+    default: "webstore-app/resources/deployment-cm.yaml"
 
-outputs:  
+outputs:
   artifactUrl:
     description: "Link to artifact"
 
