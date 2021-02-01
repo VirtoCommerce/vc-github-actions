@@ -8,6 +8,15 @@ inputs:
     description: "repo org"
     required: false
     default: "VirtoCommerce"
+  deployRepo:
+    description: "Deployment repository name"
+    required: true
+    default: "vc-webstore-deploy"
+  deployBranch:
+    description: "Base branch for new deployment PR"
+    required: true
+    default: "qa"
+
 outputs:  
   artifactUrl:
     description: "Link to artifact"

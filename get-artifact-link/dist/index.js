@@ -57,34 +57,77 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var github = __importStar(require("@actions/github"));
 var core = __importStar(require("@actions/core"));
-function run() {
-    var _a, _b, _c, _d;
+function getArtifactUrl(downloadComment, repoOrg, octokit) {
+    var _a, _b, _c, _d, _e;
     return __awaiter(this, void 0, void 0, function () {
-        var downloadComment, GITHUB_TOKEN, repoOrg, octokit, regexp, currentPr, body, artifactLink;
-        return __generator(this, function (_e) {
-            switch (_e.label) {
+        var regexp, regExpTask, currentPr, taskNumber, body, artifactLink;
+        return __generator(this, function (_f) {
+            switch (_f.label) {
                 case 0:
-                    downloadComment = 'Download artifact URL:';
-                    GITHUB_TOKEN = core.getInput("githubToken");
-                    if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
-                        GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-                    repoOrg = core.getInput("repoOrg");
-                    octokit = github.getOctokit(GITHUB_TOKEN);
                     regexp = RegExp(downloadComment + '\s*.*');
+                    regExpTask = /\w+-\d+/;
                     return [4, octokit.pulls.get({
                             owner: repoOrg,
                             repo: github.context.repo.repo,
                             pull_number: (_b = (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number) !== null && _b !== void 0 ? _b : github.context.issue.number
                         })];
                 case 1:
-                    currentPr = _e.sent();
+                    currentPr = _f.sent();
+                    taskNumber = (_c = currentPr.data.title.match(regExpTask)) === null || _c === void 0 ? void 0 : _c[0];
                     body = currentPr.data.body;
                     console.log(currentPr.data.title);
                     console.log(body);
-                    artifactLink = (_d = (_c = body.match(regexp)) === null || _c === void 0 ? void 0 : _c[0].match(/[-a-zA-Z0-9@:%_\+.~#?&\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)?/gi)) === null || _d === void 0 ? void 0 : _d[0];
-                    console.log("Artifact link is: " + artifactLink);
-                    core.setOutput('artifactLink', artifactLink);
-                    return [2];
+                    artifactLink = (_e = (_d = body.match(regexp)) === null || _d === void 0 ? void 0 : _d[0].match(/[-a-zA-Z0-9@:%_\+.~#?&\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)?/gi)) === null || _e === void 0 ? void 0 : _e[0];
+                    return [2, {
+                            taskNumber: taskNumber,
+                            artifactLink: artifactLink
+                        }];
+            }
+        });
+    });
+}
+function run() {
+    return __awaiter(this, void 0, void 0, function () {
+        var GITHUB_TOKEN, downloadComment, deployRepo, deployBranch, repoOrg, octokit, pr, baseBranch;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    GITHUB_TOKEN = core.getInput("githubToken");
+                    if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
+                        GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+                    downloadComment = 'Download artifact URL:';
+                    deployRepo = core.getInput("deployRepo");
+                    deployBranch = core.getInput("deployBranch");
+                    repoOrg = core.getInput("repoOrg");
+                    octokit = github.getOctokit(GITHUB_TOKEN);
+                    return [4, getArtifactUrl(downloadComment, repoOrg, octokit)];
+                case 1:
+                    pr = _a.sent();
+                    if (!pr.artifactLink) return [3, 4];
+                    console.log("Artifact link is: " + pr.artifactLink);
+                    core.setOutput('artifactLink', pr.artifactLink);
+                    return [4, octokit.git.getRef({
+                            owner: repoOrg,
+                            repo: deployRepo,
+                            ref: "heads/" + deployBranch
+                        })];
+                case 2:
+                    baseBranch = (_a.sent()).data;
+                    return [4, octokit.git.createRef({
+                            owner: repoOrg,
+                            repo: deployRepo,
+                            ref: "refs/heads/" + pr.taskNumber + "-" + deployBranch + " deployment",
+                            sha: baseBranch.object.sha,
+                        })];
+                case 3:
+                    _a.sent();
+                    return [3, 5];
+                case 4:
+                    console.log("Could not find artifact link in PR body. PR body should contain '" + downloadComment + " artifact URL");
+                    core.error("Could not find artifact link in PR body. PR body should contain '" + downloadComment + " artifact URL");
+                    core.setFailed("Could not find artifact link in PR body. PR body should contain '" + downloadComment + " artifact URL");
+                    _a.label = 5;
+                case 5: return [2];
             }
         });
     });
