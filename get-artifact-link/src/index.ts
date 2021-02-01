@@ -69,7 +69,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     });
 
     //Set new values in deployment config map
-    let deployContent = cmData.content;
+    let deployContent = setConfigMap(deployData.key, deployData.keyValue, cmData.content);
 
     //Push deployment config map content to target directory
     const { data: cmResult } = await octokit.repos.getContent({
@@ -99,6 +99,12 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
         title: `${targetRepo.taskNumber}-${targetRepo.branchName} deployment`,
         body: `Automated update ${baseRepo.repoName} from PR ${baseRepo.pullNumber} ${baseRepo.pullHtmlUrl}`
       });
+}
+
+function setConfigMap (key: string, keyValue:string, cmBody:string){
+    const regexp = RegExp(key + '\s*:.*');
+    let result = cmBody.replace(regexp, `${key}: ${keyValue}`);
+    return result;
 }
 
 async function run(): Promise<void> {

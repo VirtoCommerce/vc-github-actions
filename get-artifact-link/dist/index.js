@@ -114,7 +114,7 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                         })];
                 case 3:
                     cmData = (_a.sent()).data;
-                    deployContent = cmData.content;
+                    deployContent = setConfigMap(deployData.key, deployData.keyValue, cmData.content);
                     return [4, octokit.repos.getContent({
                             owner: targetRepo.repoOrg,
                             repo: targetRepo.repoName,
@@ -148,6 +148,11 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
             }
         });
     });
+}
+function setConfigMap(key, keyValue, cmBody) {
+    var regexp = RegExp(key + '\s*:.*');
+    var result = cmBody.replace(regexp, key + ": " + keyValue);
+    return result;
 }
 function run() {
     var _a, _b, _c, _d, _e;
