@@ -1,0 +1,19 @@
+name: 'docker-install-modules'
+description: 'Installs modules to a docker container'
+inputs:
+  manifestPath:
+    description: 'Path to modules manifest '
+    required: true
+  containerName:
+    description: 'Name of docker container'
+    required: true
+  containerDestination:
+    description: 'Theme destination path inside the docker container'
+    required: true
+  restartContainer:
+    description: 'true(by default) to restart'
+    required: false
+    default: 'true'
+runs:
+  using: 'node12'
+  main: 'dist/index.js' 
