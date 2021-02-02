@@ -52,6 +52,7 @@ async function run(): Promise<void> {
     else if(manifestFormat == 'yml')
     {
         let jsonString = yaml.load(fs.readFileSync(manifestPath, 'utf8')) as string;
+        console.log(jsonString);
         let doc = JSON.parse(jsonString);
         for(let module of doc['data']['modules.json']){
             let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
