@@ -47,7 +47,7 @@ async function getArtifactUrl (downloadComment: string, prRepo: RepoData, octoki
 async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, baseRepo: RepoData,octokit: any): Promise <void>{
 
     console.log('Start - createDeployPrl');
-    const targetBranchName = `refs/heads/${targetRepo.taskNumber}-${targetRepo.branchName} deployment`;
+    const targetBranchName = `refs/heads/${targetRepo.taskNumber}-${targetRepo.branchName}-deployment`;
     
     console.log('Get base branch data');
     //Get base branch data

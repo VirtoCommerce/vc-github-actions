@@ -93,7 +93,7 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
             switch (_a.label) {
                 case 0:
                     console.log('Start - createDeployPrl');
-                    targetBranchName = "refs/heads/" + targetRepo.taskNumber + "-" + targetRepo.branchName + " deployment";
+                    targetBranchName = "refs/heads/" + targetRepo.taskNumber + "-" + targetRepo.branchName + "-deployment";
                     console.log('Get base branch data');
                     return [4, octokit.git.getRef({
                             owner: targetRepo.repoOrg,
