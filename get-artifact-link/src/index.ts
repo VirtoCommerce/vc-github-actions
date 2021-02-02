@@ -81,6 +81,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     //Set new values in deployment config map
     let deployContent = setConfigMap(deployData.key, deployData.keyValue, content);
 
+    console.log(`content SHA - ${cmData.sha}`);
     console.log('Push deployment config map content to target directory');
     //Push deployment config map content to target directory
     const { data: cmResult } = await octokit.repos.createOrUpdateFileContents({
