@@ -102,6 +102,7 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                         })];
                 case 1:
                     baseBranch = (_a.sent()).data;
+                    console.log("Base branch SHA - " + baseBranch.object.sha);
                     console.log('Create branch for deployment PR');
                     return [4, octokit.git.createRef({
                             owner: targetRepo.repoOrg,
@@ -111,6 +112,7 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                         })];
                 case 2:
                     targetBranch = (_a.sent()).data;
+                    console.log("Target branch - " + targetBranch);
                     console.log('Get deployment config map content');
                     return [4, octokit.repos.getContent({
                             owner: targetRepo.repoOrg,
@@ -120,6 +122,7 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                         })];
                 case 3:
                     cmData = (_a.sent()).data;
+                    console.log("cmContent - " + cmData.content);
                     deployContent = setConfigMap(deployData.key, deployData.keyValue, cmData.content);
                     console.log('Push deployment config map content to target directory');
                     return [4, octokit.repos.getContent({

@@ -57,6 +57,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
         ref: `heads/${targetRepo.branchName}`
     });
 
+    console.log(`Base branch SHA - ${baseBranch.object.sha}`);
     console.log('Create branch for deployment PR');
     //Create branch for deployment PR
     const { data: targetBranch } = await octokit.git.createRef({
@@ -66,6 +67,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
         sha: baseBranch.object.sha,
     });
 
+    console.log(`Target branch - ${targetBranch}`);
     console.log('Get deployment config map content');
     //Get deployment config map content
     const { data: cmData} = await octokit.repos.getContent({
@@ -76,6 +78,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     });
 
     //Set new values in deployment config map
+    console.log(`cmContent - ${cmData.content}`);
     let deployContent = setConfigMap(deployData.key, deployData.keyValue, cmData.content);
 
     console.log('Push deployment config map content to target directory');
