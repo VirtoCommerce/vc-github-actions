@@ -131,6 +131,7 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                             repo: targetRepo.repoName,
                             ref: targetBranchName,
                             path: deployData.cmPath,
+                            branch: targetBranchName,
                             content: Buffer.from(deployContent).toString("base64"),
                             sha: cmData.sha,
                             message: "Automated update " + baseRepo.repoName + " from PR " + baseRepo.pullNumber,
