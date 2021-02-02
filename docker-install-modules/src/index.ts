@@ -9,7 +9,14 @@ function sleep(ms: number) {
     return new Promise((resolve) => {
         setTimeout(resolve, ms);
     });
-} 
+}
+
+function yamlToJson(yamlContent: string): Promise<string> {
+    return new Promise((resolve) => {
+        let result = yaml.load(yamlContent) as string;
+        resolve(result);
+    })
+}
 
 async function run(): Promise<void> {
     let manifestUrl = core.getInput("manifestUrl");
@@ -51,7 +58,9 @@ async function run(): Promise<void> {
     }
     else if(manifestFormat == 'yml')
     {
-        let jsonString = yaml.load(fs.readFileSync(manifestPath, 'utf8')) as string;
+        let rawContent = fs.readFileSync(manifestPath, 'utf8');
+        let jsonString = await yamlToJson(rawContent);
+        console.log(jsonString);
         let doc = await JSON.parse(jsonString);
         for(let module of doc['data']['modules.json']){
             let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);

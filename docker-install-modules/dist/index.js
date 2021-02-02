@@ -39,6 +39,12 @@ function sleep(ms) {
         setTimeout(resolve, ms);
     });
 }
+function yamlToJson(yamlContent) {
+    return new Promise((resolve) => {
+        let result = yaml.load(yamlContent);
+        resolve(result);
+    });
+}
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         let manifestUrl = core.getInput("manifestUrl");
@@ -73,7 +79,9 @@ function run() {
             }
         }
         else if (manifestFormat == 'yml') {
-            let jsonString = yaml.load(fs.readFileSync(manifestPath, 'utf8'));
+            let rawContent = fs.readFileSync(manifestPath, 'utf8');
+            let jsonString = yield yamlToJson(rawContent);
+            console.log(jsonString);
             let doc = yield JSON.parse(jsonString);
             for (let module of doc['data']['modules.json']) {
                 let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
