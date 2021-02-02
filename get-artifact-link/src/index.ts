@@ -78,6 +78,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     });
 
     //Set new values in deployment config map
+    console.log(`cmPath - ${deployData.cmPath}`);
     console.log(`cmContent - ${cmData.content}`);
     let deployContent = setConfigMap(deployData.key, deployData.keyValue, cmData.content);
 
