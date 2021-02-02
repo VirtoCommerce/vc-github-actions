@@ -130,12 +130,12 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                             sha: cmData.sha,
                             message: "Automated update " + baseRepo.repoName + " from PR " + baseRepo.pullNumber,
                             committer: {
-                                name: 'GitHub Actions',
-                                email: 'github.actions@virtoway.com'
+                                name: 'vc-ci',
+                                email: 'ci@virtocommerce.com'
                             },
                             author: {
-                                name: 'GitHub Actions',
-                                email: 'github.actions@virtoway.com'
+                                name: 'vc-ci',
+                                email: 'ci@virtocommerce.com'
                             },
                         })];
                 case 4:
