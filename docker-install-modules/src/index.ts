@@ -14,7 +14,9 @@ function sleep(ms: number) {
 
 function yamlToJson(yamlContent: string): Promise<string> {
     return new Promise((resolve) => {
-        let result = yaml.load(yamlContent) as string;
+        let result = yaml.load(yamlContent, {
+            json: true
+        }) as string;
         resolve(result);
     })
 }
@@ -77,7 +79,6 @@ async function run(): Promise<void> {
     else if(manifestFormat == 'yml')
     {
         let rawContent = fs.readFileSync(manifestPath);
-        console.log(rawContent.toString());
         let jsonString = await yamlToJson(rawContent.toString());
         console.log(jsonString);
         let doc = await JSON.parse(jsonString);

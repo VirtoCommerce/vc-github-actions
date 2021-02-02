@@ -45,7 +45,9 @@ function sleep(ms) {
 }
 function yamlToJson(yamlContent) {
     return new Promise((resolve) => {
-        let result = yaml.load(yamlContent);
+        let result = yaml.load(yamlContent, {
+            json: true
+        });
         resolve(result);
     });
 }
@@ -99,7 +101,6 @@ function run() {
         }
         else if (manifestFormat == 'yml') {
             let rawContent = fs.readFileSync(manifestPath);
-            console.log(rawContent.toString());
             let jsonString = yield yamlToJson(rawContent.toString());
             console.log(jsonString);
             let doc = yield JSON.parse(jsonString);
