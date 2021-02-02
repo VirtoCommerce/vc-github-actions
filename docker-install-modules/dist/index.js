@@ -34,14 +34,20 @@ const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
 const utils = __importStar(require("@virtocommerce/vc-actions-lib"));
 const yaml = __importStar(require("js-yaml"));
+function sleep(ms) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         let manifestUrl = core.getInput("manifestUrl");
         let manifestFormat = core.getInput("manifestFormat");
         let modulesGroup = core.getInput("modulesGroup");
         let containerName = core.getInput("containerName");
-        let containerDestiantion = core.getInput("containerDestination");
+        let containerDestination = core.getInput("containerDestination");
         let restartContainer = core.getInput("restartContainer") == 'true';
+        let sleepAfterRestart = Number.parseInt(core.getInput("sleepAfterRestart"));
         let manifestPath = `modules.${manifestFormat}`;
         yield utils.downloadFile(manifestUrl, manifestPath);
         let modulesJson;
@@ -74,6 +80,11 @@ function run() {
                 yield utils.downloadFile(module['PackageUrl'], archivePath);
                 yield exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
             }
+        }
+        yield exec.exec(`docker cp ./${modulesDir}/. ${containerName}:${containerDestination}`);
+        if (restartContainer) {
+            yield exec.exec(`docker restart ${containerName}`);
+            yield sleep(sleepAfterRestart);
         }
     });
 }

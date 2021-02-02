@@ -5,13 +5,20 @@ import * as fs from 'fs'
 import * as utils from '@virtocommerce/vc-actions-lib'
 import * as yaml from 'js-yaml'
 
+function sleep(ms: number) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+} 
+
 async function run(): Promise<void> {
     let manifestUrl = core.getInput("manifestUrl");
     let manifestFormat = core.getInput("manifestFormat");
     let modulesGroup = core.getInput("modulesGroup");
     let containerName = core.getInput("containerName");
-    let containerDestiantion = core.getInput("containerDestination");
+    let containerDestination = core.getInput("containerDestination");
     let restartContainer = core.getInput("restartContainer") == 'true';
+    let sleepAfterRestart = Number.parseInt(core.getInput("sleepAfterRestart"));
 
     let manifestPath = `modules.${manifestFormat}`;
     await utils.downloadFile(manifestUrl, manifestPath);
@@ -51,6 +58,12 @@ async function run(): Promise<void> {
             await utils.downloadFile(module['PackageUrl'], archivePath);
             await exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
         }
+    }
+    await exec.exec(`docker cp ./${modulesDir}/. ${containerName}:${containerDestination}`);
+    if(restartContainer)
+    {
+        await exec.exec(`docker restart ${containerName}`);
+        await sleep(sleepAfterRestart);
     }
 }
 

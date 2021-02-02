@@ -20,6 +20,10 @@ inputs:
     description: 'true(by default) to restart'
     required: false
     default: 'true'
+  sleepAfterRestart:
+    description: 'Time in ms to wait for container restarts'
+    required: false
+    default: '30000'
 runs:
   using: 'node12'
   main: 'dist/index.js' 
