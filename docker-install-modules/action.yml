@@ -1,9 +1,15 @@
 name: 'docker-install-modules'
 description: 'Installs modules to a docker container'
 inputs:
-  manifestPath:
-    description: 'Path to modules manifest '
+  manifestUrl:
+    description: 'Url to modules manifest '
     required: true
+  manifestFormat:
+    description: 'yml or json'
+    required: true
+  modulesGroup:
+    description: 'Group f modules (commerce for example)'
+    required: false
   containerName:
     description: 'Name of docker container'
     required: true

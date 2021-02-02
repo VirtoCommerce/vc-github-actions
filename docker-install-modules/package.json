@@ -13,6 +13,10 @@
     "@actions/core": "^1.2.6",
     "@actions/exec": "^1.0.4",
     "@actions/github": "^4.0.0",
-    "@virtocommerce/vc-actions-lib": "^1.2.1"
+    "@virtocommerce/vc-actions-lib": "^1.2.1",
+    "js-yaml": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.0"
   }
 }
