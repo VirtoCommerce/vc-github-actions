@@ -88,7 +88,7 @@ function getArtifactUrl(downloadComment, prRepo, octokit) {
 }
 function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
     return __awaiter(this, void 0, void 0, function () {
-        var targetBranchName, baseBranch, targetBranch, cmData, deployContent, cmResult;
+        var targetBranchName, baseBranch, targetBranch, cmData, content, deployContent, cmResult;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -122,9 +122,10 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                         })];
                 case 3:
                     cmData = (_a.sent()).data;
+                    content = Buffer.from(cmData.content, 'base64').toString();
                     console.log("cmPath - " + deployData.cmPath);
-                    console.log("cmContent - " + cmData.content);
-                    deployContent = setConfigMap(deployData.key, deployData.keyValue, cmData.content);
+                    console.log("cmContent - " + content);
+                    deployContent = setConfigMap(deployData.key, deployData.keyValue, content);
                     console.log('Push deployment config map content to target directory');
                     return [4, octokit.repos.getContent({
                             owner: targetRepo.repoOrg,

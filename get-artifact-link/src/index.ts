@@ -77,10 +77,11 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
         path: deployData.cmPath
     });
 
+    let content = Buffer.from(cmData.content, 'base64').toString();
     //Set new values in deployment config map
     console.log(`cmPath - ${deployData.cmPath}`);
-    console.log(`cmContent - ${cmData.content}`);
-    let deployContent = setConfigMap(deployData.key, deployData.keyValue, cmData.content);
+    console.log(`cmContent - ${content}`);
+    let deployContent = setConfigMap(deployData.key, deployData.keyValue, content);
 
     console.log('Push deployment config map content to target directory');
     //Push deployment config map content to target directory
