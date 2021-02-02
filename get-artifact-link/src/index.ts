@@ -79,10 +79,9 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
 
     let content = Buffer.from(cmData.content, 'base64').toString();
     //Set new values in deployment config map
-    console.log(`cmPath - ${deployData.cmPath}`);
-    console.log(`cmContent - ${content}`);
     let deployContent = setConfigMap(deployData.key, deployData.keyValue, content);
 
+    console.log(`deployContent - ${deployContent}`);
     console.log('Push deployment config map content to target directory');
     //Push deployment config map content to target directory
     const { data: cmResult } = await octokit.repos.getContent({

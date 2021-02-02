@@ -123,9 +123,8 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                 case 3:
                     cmData = (_a.sent()).data;
                     content = Buffer.from(cmData.content, 'base64').toString();
-                    console.log("cmPath - " + deployData.cmPath);
-                    console.log("cmContent - " + content);
                     deployContent = setConfigMap(deployData.key, deployData.keyValue, content);
+                    console.log("deployContent - " + deployContent);
                     console.log('Push deployment config map content to target directory');
                     return [4, octokit.repos.getContent({
                             owner: targetRepo.repoOrg,
