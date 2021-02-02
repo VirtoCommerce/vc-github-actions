@@ -49,58 +49,58 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     console.log('Start - createDeployPrl');
     const targetBranchName = `${targetRepo.taskNumber}-${targetRepo.branchName}-deployment`;
     
-    console.log('Get base branch data');
-    //Get base branch data
-    const { data: baseBranch } = await octokit.git.getRef({
-        owner: targetRepo.repoOrg,
-        repo: targetRepo.repoName,
-        ref: `heads/${targetRepo.branchName}`
-    });
+    // console.log('Get base branch data');
+    // //Get base branch data
+    // const { data: baseBranch } = await octokit.git.getRef({
+    //     owner: targetRepo.repoOrg,
+    //     repo: targetRepo.repoName,
+    //     ref: `heads/${targetRepo.branchName}`
+    // });
 
-    console.log(`Base branch SHA - ${baseBranch.object.sha}`);
-    console.log('Create branch for deployment PR');
-    //Create branch for deployment PR
-    const { data: targetBranch } = await octokit.git.createRef({
-        owner: targetRepo.repoOrg,
-        repo: targetRepo.repoName,
-        ref: `refs/heads/${targetBranchName}`,
-        sha: baseBranch.object.sha,
-    });
+    // console.log(`Base branch SHA - ${baseBranch.object.sha}`);
+    // console.log('Create branch for deployment PR');
+    // //Create branch for deployment PR
+    // const { data: targetBranch } = await octokit.git.createRef({
+    //     owner: targetRepo.repoOrg,
+    //     repo: targetRepo.repoName,
+    //     ref: `refs/heads/${targetBranchName}`,
+    //     sha: baseBranch.object.sha,
+    // });
 
-    console.log(`Target branch - ${targetBranch}`);
-    console.log('Get deployment config map content');
-    //Get deployment config map content
-    const { data: cmData} = await octokit.repos.getContent({
-        owner: targetRepo.repoOrg,
-        repo: targetRepo.repoName,
-        ref: `refs/heads/${targetBranchName}`,
-        path: deployData.cmPath
-    });
+    // console.log(`Target branch - ${targetBranch}`);
+    // console.log('Get deployment config map content');
+    // //Get deployment config map content
+    // const { data: cmData} = await octokit.repos.getContent({
+    //     owner: targetRepo.repoOrg,
+    //     repo: targetRepo.repoName,
+    //     ref: `refs/heads/${targetBranchName}`,
+    //     path: deployData.cmPath
+    // });
 
-    let content = Buffer.from(cmData.content, 'base64').toString();
-    //Set new values in deployment config map
-    let deployContent = setConfigMap(deployData.key, deployData.keyValue, content);
+    // let content = Buffer.from(cmData.content, 'base64').toString();
+    // //Set new values in deployment config map
+    // let deployContent = setConfigMap(deployData.key, deployData.keyValue, content);
 
-    console.log(`content SHA - ${cmData.sha}`);
-    console.log('Push deployment config map content to target directory');
-    //Push deployment config map content to target directory
-    const { data: cmResult } = await octokit.repos.createOrUpdateFileContents({
-        owner: targetRepo.repoOrg,
-        repo: targetRepo.repoName,
-        path: deployData.cmPath,
-        branch: targetBranchName,
-        content: Buffer.from(deployContent).toString("base64"),
-        sha: cmData.sha,
-        message: `Automated update ${baseRepo.repoName} from PR ${baseRepo.pullNumber}`,
-        committer:{
-            name: 'GitHub Actions',
-            email: 'github.actions@virtoway.com' 
-        },
-        author:{
-            name: 'GitHub Actions',
-            email: 'github.actions@virtoway.com' 
-        },
-    });
+    // console.log(`content SHA - ${cmData.sha}`);
+    // console.log('Push deployment config map content to target directory');
+    // //Push deployment config map content to target directory
+    // const { data: cmResult } = await octokit.repos.createOrUpdateFileContents({
+    //     owner: targetRepo.repoOrg,
+    //     repo: targetRepo.repoName,
+    //     path: deployData.cmPath,
+    //     branch: targetBranchName,
+    //     content: Buffer.from(deployContent).toString("base64"),
+    //     sha: cmData.sha,
+    //     message: `Automated update ${baseRepo.repoName} from PR ${baseRepo.pullNumber}`,
+    //     committer:{
+    //         name: 'GitHub Actions',
+    //         email: 'github.actions@virtoway.com' 
+    //     },
+    //     author:{
+    //         name: 'GitHub Actions',
+    //         email: 'github.actions@virtoway.com' 
+    //     },
+    // });
 
     console.log('Create PR to head branch');
     //Create PR to head branch
