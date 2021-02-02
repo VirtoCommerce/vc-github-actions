@@ -107,8 +107,8 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     await octokit.pulls.create({
         owner: targetRepo.repoOrg,
         repo: targetRepo.repoName,
-        head: `refs/heads/${targetRepo.branchName}`,
-        base: `refs/heads/${targetBranchName}`,
+        head: `refs/heads/${targetBranchName}`,
+        base: `refs/heads/${targetRepo.branchName}`,
         title: targetBranchName,
         body: `Automated update ${baseRepo.repoName} from PR ${baseRepo.pullNumber} ${baseRepo.pullHtmlUrl}`
       });
