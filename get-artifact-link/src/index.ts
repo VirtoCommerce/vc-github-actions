@@ -23,6 +23,8 @@ async function getArtifactUrl (downloadComment: string, prRepo: RepoData, octoki
     const regexp = RegExp(downloadComment + '\s*.*');
     const regExpTask = /\w+-\d+/
 
+    console.log('Start - getArtifactUrl');
+
     //Get PR data
     let currentPr = await octokit.pulls.get({
         owner: prRepo.repoOrg,
@@ -35,23 +37,27 @@ async function getArtifactUrl (downloadComment: string, prRepo: RepoData, octoki
 
     // Get UrL from body
     let artifactLink = body.match(regexp)?.[0].match(/[-a-zA-Z0-9@:%_\+.~#?&\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)?/gi)?.[0];
+    console.log('Finish- getArtifactUrl');
     return {
         taskNumber: taskNumber,
         artifactLink: artifactLink
     };
-
 }
 
 async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, baseRepo: RepoData,octokit: any): Promise <void>{
 
+    console.log('Start - createDeployPrl');
     const targetBranchName = `refs/heads/${targetRepo.taskNumber}-${targetRepo.branchName} deployment`;
-     //Get base branch data
+    
+    console.log('Get base branch data');
+    //Get base branch data
     const { data: baseBranch } = await octokit.git.getRef({
         owner: targetRepo.repoOrg,
         repo: targetRepo.repoName,
         ref: `heads/${targetRepo.branchName}`
     });
 
+    console.log('Create branch for deployment PR');
     //Create branch for deployment PR
     const { data: targetBranch } = await octokit.git.createRef({
         owner: targetRepo.repoOrg,
@@ -60,6 +66,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
         sha: baseBranch.object.sha,
     });
 
+    console.log('Get deployment config map content');
     //Get deployment config map content
     const { data: cmData} = await octokit.repos.getContent({
         owner: targetRepo.repoOrg,
@@ -71,6 +78,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     //Set new values in deployment config map
     let deployContent = setConfigMap(deployData.key, deployData.keyValue, cmData.content);
 
+    console.log('Push deployment config map content to target directory');
     //Push deployment config map content to target directory
     const { data: cmResult } = await octokit.repos.getContent({
         owner: targetRepo.repoOrg,
@@ -90,6 +98,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
         },
     });
 
+    console.log('Create PR to head branch');
     //Create PR to head branch
     await octokit.pulls.create({
         owner: targetRepo.repoOrg,
@@ -99,6 +108,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
         title: `${targetRepo.taskNumber}-${targetRepo.branchName} deployment`,
         body: `Automated update ${baseRepo.repoName} from PR ${baseRepo.pullNumber} ${baseRepo.pullHtmlUrl}`
       });
+    console.log('Finish - createDeployPrl');
 }
 
 function setConfigMap (key: string, keyValue:string, cmBody:string){
