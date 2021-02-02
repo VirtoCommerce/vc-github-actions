@@ -27,7 +27,7 @@ async function run(): Promise<void> {
     let restartContainer = core.getInput("restartContainer") == 'true';
     let sleepAfterRestart = Number.parseInt(core.getInput("sleepAfterRestart"));
 
-    let manifestPath = `modules.${manifestFormat}`;
+    let manifestPath = `./modules.${manifestFormat}`;
     await utils.downloadFile(manifestUrl, manifestPath);
     let modulesJson;
     let modulesDir = __dirname + 'Modules';
@@ -58,9 +58,9 @@ async function run(): Promise<void> {
     }
     else if(manifestFormat == 'yml')
     {
-        let rawContent = fs.readFileSync(manifestPath, 'utf8');
-        console.log(rawContent);
-        let jsonString = await yamlToJson(rawContent);
+        let rawContent = fs.readFileSync(manifestPath);
+        console.log(rawContent.toString());
+        let jsonString = await yamlToJson(rawContent.toString());
         console.log(jsonString);
         let doc = await JSON.parse(jsonString);
         for(let module of doc['data']['modules.json']){

@@ -54,7 +54,7 @@ function run() {
         let containerDestination = core.getInput("containerDestination");
         let restartContainer = core.getInput("restartContainer") == 'true';
         let sleepAfterRestart = Number.parseInt(core.getInput("sleepAfterRestart"));
-        let manifestPath = `modules.${manifestFormat}`;
+        let manifestPath = `./modules.${manifestFormat}`;
         yield utils.downloadFile(manifestUrl, manifestPath);
         let modulesJson;
         let modulesDir = __dirname + 'Modules';
@@ -79,9 +79,9 @@ function run() {
             }
         }
         else if (manifestFormat == 'yml') {
-            let rawContent = fs.readFileSync(manifestPath, 'utf8');
-            console.log(rawContent);
-            let jsonString = yield yamlToJson(rawContent);
+            let rawContent = fs.readFileSync(manifestPath);
+            console.log(rawContent.toString());
+            let jsonString = yield yamlToJson(rawContent.toString());
             console.log(jsonString);
             let doc = yield JSON.parse(jsonString);
             for (let module of doc['data']['modules.json']) {
