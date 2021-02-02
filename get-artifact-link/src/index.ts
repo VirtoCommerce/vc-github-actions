@@ -88,7 +88,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
         repo: targetRepo.repoName,
         ref: targetBranchName,
         path: deployData.cmPath,
-        content: deployContent,
+        content: Buffer.from(deployContent).toString("base64"),
         sha: cmData.sha,
         message: `Automated update ${baseRepo.repoName} from PR ${baseRepo.pullNumber}`,
         committer:{
