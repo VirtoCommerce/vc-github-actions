@@ -74,8 +74,7 @@ function run() {
         }
         else if (manifestFormat == 'yml') {
             let jsonString = yaml.load(fs.readFileSync(manifestPath, 'utf8'));
-            console.log(jsonString);
-            let doc = JSON.parse(jsonString);
+            let doc = yield JSON.parse(jsonString);
             for (let module of doc['data']['modules.json']) {
                 let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
                 yield utils.downloadFile(module['PackageUrl'], archivePath);
