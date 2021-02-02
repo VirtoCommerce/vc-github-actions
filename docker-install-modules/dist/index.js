@@ -80,6 +80,7 @@ function run() {
         }
         else if (manifestFormat == 'yml') {
             let rawContent = fs.readFileSync(manifestPath, 'utf8');
+            console.log(rawContent);
             let jsonString = yield yamlToJson(rawContent);
             console.log(jsonString);
             let doc = yield JSON.parse(jsonString);

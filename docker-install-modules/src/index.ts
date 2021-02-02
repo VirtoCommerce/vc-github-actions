@@ -59,6 +59,7 @@ async function run(): Promise<void> {
     else if(manifestFormat == 'yml')
     {
         let rawContent = fs.readFileSync(manifestPath, 'utf8');
+        console.log(rawContent);
         let jsonString = await yamlToJson(rawContent);
         console.log(jsonString);
         let doc = await JSON.parse(jsonString);
