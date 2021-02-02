@@ -62,7 +62,7 @@ runs:
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
-        if("${{ inputs.installModules }}" -eq "true")
+        if("${{ inputs.installModules }}" -ne "true")
         {
           exit 0
         }
@@ -92,7 +92,7 @@ runs:
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
-        if("${{ inputs.installSampleData }}" -eq "true")
+        if("${{ inputs.installSampleData }}" -ne "true")
         {
           exit 0
         }
