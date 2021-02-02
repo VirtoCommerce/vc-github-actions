@@ -27,6 +27,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const exec = __importStar(require("@actions/exec"));
@@ -34,6 +37,7 @@ const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
 const utils = __importStar(require("@virtocommerce/vc-actions-lib"));
 const yaml = __importStar(require("js-yaml"));
+const axios_1 = __importDefault(require("axios"));
 function sleep(ms) {
     return new Promise((resolve) => {
         setTimeout(resolve, ms);
@@ -43,6 +47,22 @@ function yamlToJson(yamlContent) {
     return new Promise((resolve) => {
         let result = yaml.load(yamlContent);
         resolve(result);
+    });
+}
+function downloadFile(url, outFile) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const path = outFile;
+        const writer = fs.createWriteStream(path);
+        const response = yield axios_1.default({
+            url,
+            method: 'GET',
+            responseType: 'stream'
+        });
+        response.data.pipe(writer);
+        return new Promise((resolve, reject) => {
+            writer.on('finish', resolve);
+            writer.on('error', reject);
+        });
     });
 }
 function run() {
@@ -55,8 +75,7 @@ function run() {
         let restartContainer = core.getInput("restartContainer") == 'true';
         let sleepAfterRestart = Number.parseInt(core.getInput("sleepAfterRestart"));
         let manifestPath = `./modules.${manifestFormat}`;
-        yield utils.downloadFile(manifestUrl, manifestPath);
-        let modulesJson;
+        yield downloadFile(manifestUrl, manifestPath);
         let modulesDir = __dirname + 'Modules';
         let modulesZipDir = __dirname + 'ModulesZip';
         yield fs.mkdirSync(modulesDir);

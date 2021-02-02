@@ -4,6 +4,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 import * as utils from '@virtocommerce/vc-actions-lib'
 import * as yaml from 'js-yaml'
+import Axios from 'axios'
 
 function sleep(ms: number) {
     return new Promise((resolve) => {
@@ -18,6 +19,24 @@ function yamlToJson(yamlContent: string): Promise<string> {
     })
 }
 
+async function downloadFile(url: string, outFile: string) {
+    const path = outFile;
+    const writer = fs.createWriteStream(path);
+  
+    const response = await Axios({
+      url,
+      method: 'GET',
+      responseType: 'stream'
+    })
+  
+    response.data.pipe(writer)
+  
+    return new Promise((resolve, reject) => {
+      writer.on('finish', resolve)
+      writer.on('error', reject)
+    })
+}
+
 async function run(): Promise<void> {
     let manifestUrl = core.getInput("manifestUrl");
     let manifestFormat = core.getInput("manifestFormat");
@@ -28,8 +47,7 @@ async function run(): Promise<void> {
     let sleepAfterRestart = Number.parseInt(core.getInput("sleepAfterRestart"));
 
     let manifestPath = `./modules.${manifestFormat}`;
-    await utils.downloadFile(manifestUrl, manifestPath);
-    let modulesJson;
+    await downloadFile(manifestUrl, manifestPath);
     let modulesDir = __dirname + 'Modules';
     let modulesZipDir = __dirname + 'ModulesZip'
     await fs.mkdirSync(modulesDir);
