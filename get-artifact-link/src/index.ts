@@ -81,10 +81,9 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     //Set new values in deployment config map
     let deployContent = setConfigMap(deployData.key, deployData.keyValue, content);
 
-    console.log(`deployContent - ${deployContent}`);
     console.log('Push deployment config map content to target directory');
     //Push deployment config map content to target directory
-    const { data: cmResult } = await octokit.repos.getContent({
+    const { data: cmResult } = await octokit.repos.createOrUpdateFileContents({
         owner: targetRepo.repoOrg,
         repo: targetRepo.repoName,
         ref: targetBranchName,
