@@ -93,7 +93,7 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
             switch (_a.label) {
                 case 0:
                     console.log('Start - createDeployPrl');
-                    targetBranchName = "refs/heads/" + targetRepo.taskNumber + "-" + targetRepo.branchName + "-deployment";
+                    targetBranchName = targetRepo.taskNumber + "-" + targetRepo.branchName + "-deployment";
                     console.log('Get base branch data');
                     return [4, octokit.git.getRef({
                             owner: targetRepo.repoOrg,
@@ -107,7 +107,7 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                     return [4, octokit.git.createRef({
                             owner: targetRepo.repoOrg,
                             repo: targetRepo.repoName,
-                            ref: targetBranchName,
+                            ref: "refs/heads/" + targetBranchName,
                             sha: baseBranch.object.sha,
                         })];
                 case 2:
@@ -117,7 +117,7 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                     return [4, octokit.repos.getContent({
                             owner: targetRepo.repoOrg,
                             repo: targetRepo.repoName,
-                            ref: targetBranchName,
+                            ref: "refs/heads/" + targetBranchName,
                             path: deployData.cmPath
                         })];
                 case 3:
@@ -129,7 +129,6 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                     return [4, octokit.repos.createOrUpdateFileContents({
                             owner: targetRepo.repoOrg,
                             repo: targetRepo.repoName,
-                            ref: targetBranchName,
                             path: deployData.cmPath,
                             branch: targetBranchName,
                             content: Buffer.from(deployContent).toString("base64"),
@@ -152,7 +151,7 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                             repo: targetRepo.repoName,
                             head: targetRepo.branchName,
                             base: targetBranchName,
-                            title: targetRepo.taskNumber + "-" + targetRepo.branchName + " deployment",
+                            title: targetBranchName,
                             body: "Automated update " + baseRepo.repoName + " from PR " + baseRepo.pullNumber + " " + baseRepo.pullHtmlUrl
                         })];
                 case 5:

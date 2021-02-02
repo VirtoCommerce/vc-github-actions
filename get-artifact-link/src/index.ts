@@ -47,7 +47,7 @@ async function getArtifactUrl (downloadComment: string, prRepo: RepoData, octoki
 async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, baseRepo: RepoData,octokit: any): Promise <void>{
 
     console.log('Start - createDeployPrl');
-    const targetBranchName = `refs/heads/${targetRepo.taskNumber}-${targetRepo.branchName}-deployment`;
+    const targetBranchName = `${targetRepo.taskNumber}-${targetRepo.branchName}-deployment`;
     
     console.log('Get base branch data');
     //Get base branch data
@@ -63,7 +63,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     const { data: targetBranch } = await octokit.git.createRef({
         owner: targetRepo.repoOrg,
         repo: targetRepo.repoName,
-        ref: targetBranchName,
+        ref: `refs/heads/${targetBranchName}`,
         sha: baseBranch.object.sha,
     });
 
@@ -73,7 +73,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     const { data: cmData} = await octokit.repos.getContent({
         owner: targetRepo.repoOrg,
         repo: targetRepo.repoName,
-        ref: targetBranchName,
+        ref: `refs/heads/${targetBranchName}`,
         path: deployData.cmPath
     });
 
@@ -87,7 +87,6 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     const { data: cmResult } = await octokit.repos.createOrUpdateFileContents({
         owner: targetRepo.repoOrg,
         repo: targetRepo.repoName,
-        ref: targetBranchName,
         path: deployData.cmPath,
         branch: targetBranchName,
         content: Buffer.from(deployContent).toString("base64"),
@@ -110,7 +109,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
         repo: targetRepo.repoName,
         head: targetRepo.branchName,
         base: targetBranchName,
-        title: `${targetRepo.taskNumber}-${targetRepo.branchName} deployment`,
+        title: targetBranchName,
         body: `Automated update ${baseRepo.repoName} from PR ${baseRepo.pullNumber} ${baseRepo.pullHtmlUrl}`
       });
     console.log('Finish - createDeployPrl');
