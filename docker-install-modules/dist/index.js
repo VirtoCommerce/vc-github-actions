@@ -36,19 +36,11 @@ const exec = __importStar(require("@actions/exec"));
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
 const utils = __importStar(require("@virtocommerce/vc-actions-lib"));
-const yaml = __importStar(require("js-yaml"));
+const yaml = __importStar(require("yaml"));
 const axios_1 = __importDefault(require("axios"));
 function sleep(ms) {
     return new Promise((resolve) => {
         setTimeout(resolve, ms);
-    });
-}
-function yamlToJson(yamlContent) {
-    return new Promise((resolve) => {
-        let result = yaml.load(yamlContent, {
-            json: true
-        });
-        resolve(result);
     });
 }
 function downloadFile(url, outFile) {
@@ -101,7 +93,7 @@ function run() {
         }
         else if (manifestFormat == 'yml') {
             let rawContent = fs.readFileSync(manifestPath);
-            let jsonString = yield yamlToJson(rawContent.toString());
+            let jsonString = yaml.parse(rawContent.toString());
             console.log(jsonString);
             let doc = yield JSON.parse(jsonString);
             for (let module of doc['data']['modules.json']) {

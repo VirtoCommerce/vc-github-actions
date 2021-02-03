@@ -3,7 +3,7 @@ import * as exec from '@actions/exec'
 import * as path from 'path'
 import * as fs from 'fs'
 import * as utils from '@virtocommerce/vc-actions-lib'
-import * as yaml from 'js-yaml'
+import * as yaml from 'yaml'
 import Axios from 'axios'
 
 function sleep(ms: number) {
@@ -12,14 +12,14 @@ function sleep(ms: number) {
     });
 }
 
-function yamlToJson(yamlContent: string): Promise<string> {
-    return new Promise((resolve) => {
-        let result = yaml.load(yamlContent, {
-            json: true
-        }) as string;
-        resolve(result);
-    })
-}
+// function yamlToJson(yamlContent: string): Promise<string> {
+//     return new Promise((resolve) => {
+//         let result = yaml.load(yamlContent, {
+//             json: true
+//         }) as string;
+//         resolve(result);
+//     })
+// }
 
 async function downloadFile(url: string, outFile: string) {
     const path = outFile;
@@ -79,7 +79,7 @@ async function run(): Promise<void> {
     else if(manifestFormat == 'yml')
     {
         let rawContent = fs.readFileSync(manifestPath);
-        let jsonString = await yamlToJson(rawContent.toString());
+        let jsonString = yaml.parse(rawContent.toString());
         console.log(jsonString);
         let doc = await JSON.parse(jsonString);
         for(let module of doc['data']['modules.json']){
