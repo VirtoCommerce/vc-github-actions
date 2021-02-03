@@ -87,7 +87,7 @@ function getArtifactUrl(downloadComment, prRepo, octokit) {
 }
 function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
     return __awaiter(this, void 0, void 0, function () {
-        var targetBranchName, baseBranch, branch, targetBranch, cmData, content, deployContent, cmResult;
+        var targetBranchName, baseBranch, branch, err_1, targetBranch, cmData, content, deployContent, cmResult;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -100,15 +100,22 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                         })];
                 case 1:
                     baseBranch = (_a.sent()).data;
-                    try {
-                        branch = octokit.repos.getBranch({
+                    _a.label = 2;
+                case 2:
+                    _a.trys.push([2, 4, , 5]);
+                    return [4, octokit.repos.getBranch({
                             owner: targetRepo.repoOrg,
                             repo: targetRepo.repoName,
                             branch: "refs/heads/" + targetBranchName,
-                        });
-                    }
-                    catch (err) { }
-                    if (!!branch) return [3, 3];
+                        })];
+                case 3:
+                    branch = _a.sent();
+                    return [3, 5];
+                case 4:
+                    err_1 = _a.sent();
+                    return [3, 5];
+                case 5:
+                    if (!!branch) return [3, 7];
                     console.log('Create branch for deployment PR');
                     return [4, octokit.git.createRef({
                             owner: targetRepo.repoOrg,
@@ -116,10 +123,10 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                             ref: "refs/heads/" + targetBranchName,
                             sha: baseBranch.object.sha,
                         })];
-                case 2:
+                case 6:
                     targetBranch = (_a.sent()).data;
-                    _a.label = 3;
-                case 3:
+                    _a.label = 7;
+                case 7:
                     console.log('Get deployment config map content');
                     return [4, octokit.repos.getContent({
                             owner: targetRepo.repoOrg,
@@ -127,7 +134,7 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                             ref: "refs/heads/" + targetBranchName,
                             path: deployData.cmPath
                         })];
-                case 4:
+                case 8:
                     cmData = (_a.sent()).data;
                     content = Buffer.from(cmData.content, 'base64').toString();
                     deployContent = setConfigMap(deployData.key, deployData.keyValue, content);
@@ -149,7 +156,7 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                                 email: 'ci@virtocommerce.com'
                             },
                         })];
-                case 5:
+                case 9:
                     cmResult = (_a.sent()).data;
                     console.log('Create PR to head branch');
                     return [4, octokit.pulls.create({
@@ -160,7 +167,7 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                             title: targetBranchName,
                             body: "Automated update " + baseRepo.repoName + " from PR " + baseRepo.pullNumber + " " + baseRepo.pullHtmlUrl
                         })];
-                case 6:
+                case 10:
                     _a.sent();
                     return [2];
             }

@@ -59,13 +59,14 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
 
     let branch;
     try{
-        branch = octokit.repos.getBranch({
+        branch = await octokit.repos.getBranch({
             owner: targetRepo.repoOrg,
             repo: targetRepo.repoName,
             branch: `refs/heads/${targetBranchName}`,
         });
     } catch (err){}
 
+    
     if(!branch) {
 
         console.log('Create branch for deployment PR');
