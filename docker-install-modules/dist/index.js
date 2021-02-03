@@ -101,7 +101,7 @@ function run() {
                 yield exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
             }
         }
-        yield exec.exec(`docker cp ./${modulesDir}/. ${containerName}:${containerDestination}`);
+        yield exec.exec(`docker cp ${modulesDir}/. ${containerName}:${containerDestination}`);
         if (restartContainer) {
             yield exec.exec(`docker restart ${containerName}`);
             yield sleep(sleepAfterRestart);
