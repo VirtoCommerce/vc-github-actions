@@ -81,6 +81,7 @@ async function run(): Promise<void> {
         let rawContent = fs.readFileSync(manifestPath);
         let jsonString = yaml.parse(rawContent.toString());
         console.log(jsonString);
+        console.log(jsonString['data']['\'modules.json\'']);
         let doc = await JSON.parse(jsonString);
         for(let module of doc['data']['modules.json']){
             let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
