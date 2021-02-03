@@ -18,8 +18,8 @@ async function run(): Promise<void> {
     await exec.exec(`docker exec ${containerName} sh -c "rm -rf ${containerDestination}"`);
     let dirname = "theme"; //containerDestination.split(path.sep).pop();
     await exec.exec(`unzip ${artifactPath} -d ./${dirname}`);
-    await exec.exec(`docker exec ${containerName} sh -c "mkdir -p ${containerDestination}"`);
-    await exec.exec(`docker cp ./${dirname}/default/. ${containerName}:${containerDestination}`);
+    // await exec.exec(`docker exec ${containerName} sh -c "mkdir -p ${containerDestination}"`)
+    await exec.exec(`docker cp ./${dirname}/default ${containerName}:${containerDestination}`);
     if(restartContainer)
     {
         await exec.exec(`docker restart ${containerName}`);
