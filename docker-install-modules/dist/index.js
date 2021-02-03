@@ -95,7 +95,7 @@ function run() {
             let rawContent = fs.readFileSync(manifestPath);
             let jsonString = yaml.parse(rawContent.toString());
             console.log(jsonString);
-            console.log(jsonString['data']['\'modules.json\'']);
+            console.log(jsonString['data']['modules.json']);
             let doc = yield JSON.parse(jsonString);
             for (let module of doc['data']['modules.json']) {
                 let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
