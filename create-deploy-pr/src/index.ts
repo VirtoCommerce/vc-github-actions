@@ -56,7 +56,6 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     });
 
     //Check branch exists
-
     let branch;
     try{
         branch = await octokit.repos.getBranch({
@@ -65,8 +64,6 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
             branch: `refs/heads/${targetBranchName}`,
         });
     } catch (err){}
-
-    
     if(!branch) {
 
         console.log('Create branch for deployment PR');
@@ -113,16 +110,29 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
         },
     });
 
-    console.log('Create PR to head branch');
-    //Create PR to head branch
-    await octokit.pulls.create({
-        owner: targetRepo.repoOrg,
-        repo: targetRepo.repoName,
-        head: `refs/heads/${targetBranchName}`,
-        base: `refs/heads/${targetRepo.branchName}`,
-        title: targetBranchName,
-        body: `Automated update ${baseRepo.repoName} from PR ${baseRepo.pullNumber} ${baseRepo.pullHtmlUrl}`
-      });
+    //Check pr exists
+    let pr;
+    try {
+        pr = await octokit.pulls.list({
+            owner: targetRepo.repoOrg,
+            repo: targetRepo.repoName,
+            head: `refs/heads/${targetBranchName}`,
+            base: `refs/heads/${targetRepo.branchName}`,
+            state: 'open'
+          });
+    } catch (err) {}
+    if (!pr) {
+        console.log('Create PR to head branch');
+        //Create PR to head branch
+        await octokit.pulls.create({
+            owner: targetRepo.repoOrg,
+            repo: targetRepo.repoName,
+            head: `refs/heads/${targetBranchName}`,
+            base: `refs/heads/${targetRepo.branchName}`,
+            title: targetBranchName,
+            body: `Automated update ${baseRepo.repoName} from PR ${baseRepo.pullNumber} ${baseRepo.pullHtmlUrl}`
+        });
+    }
 }
 
 function setConfigMap (key: string, keyValue:string, cmBody:string){

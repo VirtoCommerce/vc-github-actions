@@ -87,7 +87,7 @@ function getArtifactUrl(downloadComment, prRepo, octokit) {
 }
 function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
     return __awaiter(this, void 0, void 0, function () {
-        var targetBranchName, baseBranch, branch, err_1, targetBranch, cmData, content, deployContent, cmResult;
+        var targetBranchName, baseBranch, branch, err_1, targetBranch, cmData, content, deployContent, cmResult, pr, err_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -158,6 +158,24 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                         })];
                 case 9:
                     cmResult = (_a.sent()).data;
+                    _a.label = 10;
+                case 10:
+                    _a.trys.push([10, 12, , 13]);
+                    return [4, octokit.pulls.list({
+                            owner: targetRepo.repoOrg,
+                            repo: targetRepo.repoName,
+                            head: "refs/heads/" + targetBranchName,
+                            base: "refs/heads/" + targetRepo.branchName,
+                            state: 'open'
+                        })];
+                case 11:
+                    pr = _a.sent();
+                    return [3, 13];
+                case 12:
+                    err_2 = _a.sent();
+                    return [3, 13];
+                case 13:
+                    if (!!pr) return [3, 15];
                     console.log('Create PR to head branch');
                     return [4, octokit.pulls.create({
                             owner: targetRepo.repoOrg,
@@ -167,9 +185,10 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                             title: targetBranchName,
                             body: "Automated update " + baseRepo.repoName + " from PR " + baseRepo.pullNumber + " " + baseRepo.pullHtmlUrl
                         })];
-                case 10:
+                case 14:
                     _a.sent();
-                    return [2];
+                    _a.label = 15;
+                case 15: return [2];
             }
         });
     });
