@@ -176,7 +176,7 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                     err_2 = _a.sent();
                     return [3, 13];
                 case 13:
-                    if (!!pr.data) return [3, 15];
+                    if (!(typeof pr.data === 'undefined' || pr.data.length === 0)) return [3, 15];
                     console.log('Create PR to head branch');
                     return [4, octokit.pulls.create({
                             owner: targetRepo.repoOrg,

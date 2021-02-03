@@ -123,7 +123,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
         console.log(pr.data);
 
     } catch (err) {}
-    if (!pr.data) {
+    if (typeof pr.data === 'undefined' || pr.data.length === 0) {
         console.log('Create PR to head branch');
         //Create PR to head branch
         await octokit.pulls.create({
