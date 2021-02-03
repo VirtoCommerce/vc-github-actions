@@ -171,6 +171,9 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                 case 11:
                     pr = _a.sent();
                     console.log(pr.data);
+                    console.log(typeof pr.data === 'undefined' || pr.data.length === 0);
+                    console.log(typeof pr.data === 'undefined');
+                    console.log(pr.data.length === 0);
                     return [3, 13];
                 case 12:
                     err_2 = _a.sent();

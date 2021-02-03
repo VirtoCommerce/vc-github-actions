@@ -121,6 +121,9 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
             state: 'open'
         });
         console.log(pr.data);
+        console.log(typeof pr.data === 'undefined' || pr.data.length === 0);
+        console.log(typeof pr.data === 'undefined');
+        console.log(pr.data.length === 0);
 
     } catch (err) {}
     if (typeof pr.data === 'undefined' || pr.data.length === 0) {
