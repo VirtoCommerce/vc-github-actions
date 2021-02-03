@@ -170,12 +170,13 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                         })];
                 case 11:
                     pr = _a.sent();
+                    console.log();
                     return [3, 13];
                 case 12:
                     err_2 = _a.sent();
                     return [3, 13];
                 case 13:
-                    if (!!pr) return [3, 15];
+                    if (!!pr.data) return [3, 15];
                     console.log('Create PR to head branch');
                     return [4, octokit.pulls.create({
                             owner: targetRepo.repoOrg,

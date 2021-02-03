@@ -119,9 +119,11 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
             head: `refs/heads/${targetBranchName}`,
             base: `refs/heads/${targetRepo.branchName}`,
             state: 'open'
-          });
+        });
+        console.log()
+
     } catch (err) {}
-    if (!pr) {
+    if (!pr.data) {
         console.log('Create PR to head branch');
         //Create PR to head branch
         await octokit.pulls.create({
