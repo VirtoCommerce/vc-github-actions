@@ -64,7 +64,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
             branch: `refs/heads/${targetBranchName}`,
         });
     } catch (err){}
-    if(!branch) {
+    if(!branch.data) {
 
         console.log('Create branch for deployment PR');
         //Create branch for deployment PR
@@ -120,11 +120,6 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
             base: `refs/heads/${targetRepo.branchName}`,
             state: 'open'
         });
-        console.log(pr.data);
-        console.log(typeof pr.data === 'undefined' || pr.data.length === 0);
-        console.log(typeof pr.data === 'undefined');
-        console.log(pr.data.length === 0);
-
     } catch (err) {}
     if (typeof pr.data === 'undefined' || pr.data.length === 0) {
         console.log('Create PR to head branch');
