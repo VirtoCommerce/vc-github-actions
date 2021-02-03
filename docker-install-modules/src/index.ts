@@ -87,6 +87,7 @@ async function run(): Promise<void> {
             await exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
         }
     }
+    await exec.exec(`chmod -R 777 ${modulesDir}`);
     await exec.exec(`docker cp ${modulesDir} ${containerName}:${containerDestination}`);
     if(restartContainer)
     {
