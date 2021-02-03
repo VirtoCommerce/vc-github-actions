@@ -170,7 +170,7 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                         })];
                 case 11:
                     pr = _a.sent();
-                    console.log();
+                    console.log(pr.data);
                     return [3, 13];
                 case 12:
                     err_2 = _a.sent();

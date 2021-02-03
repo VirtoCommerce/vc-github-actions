@@ -120,7 +120,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
             base: `refs/heads/${targetRepo.branchName}`,
             state: 'open'
         });
-        console.log()
+        console.log(pr.data);
 
     } catch (err) {}
     if (!pr.data) {
