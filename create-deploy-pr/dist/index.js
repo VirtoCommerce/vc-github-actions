@@ -100,11 +100,14 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                         })];
                 case 1:
                     baseBranch = (_a.sent()).data;
-                    branch = octokit.repos.getBranch({
-                        owner: targetRepo.repoOrg,
-                        repo: targetRepo.repoName,
-                        branch: "refs/heads/" + targetBranchName,
-                    });
+                    try {
+                        branch = octokit.repos.getBranch({
+                            owner: targetRepo.repoOrg,
+                            repo: targetRepo.repoName,
+                            branch: "refs/heads/" + targetBranchName,
+                        });
+                    }
+                    catch (err) { }
                     if (!!branch) return [3, 3];
                     console.log('Create branch for deployment PR');
                     return [4, octokit.git.createRef({

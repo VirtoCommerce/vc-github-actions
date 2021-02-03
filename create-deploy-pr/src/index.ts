@@ -57,20 +57,14 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
 
     //Check branch exists
 
-    let branch = octokit.repos.getBranch({
+    let branch;
+    try{
+        branch = octokit.repos.getBranch({
             owner: targetRepo.repoOrg,
             repo: targetRepo.repoName,
             branch: `refs/heads/${targetBranchName}`,
-    });
-
-
-    // try{
-    //     branch = octokit.repos.getBranch({
-    //         owner: targetRepo.repoOrg,
-    //         repo: targetRepo.repoName,
-    //         branch: `refs/heads/${targetBranchName}`,
-    //     });
-    // } catch (err){}
+        });
+    } catch (err){}
 
     if(!branch) {
 
