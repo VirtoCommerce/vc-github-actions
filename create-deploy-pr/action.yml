@@ -1,5 +1,5 @@
-name: 'get-artifact-link'
-description: 'Gets artifact link from PR comment'
+name: 'create-deploy-pr'
+description: 'Create deployment PR'
 inputs:
   githubToken:
     description: "GitHub token"
