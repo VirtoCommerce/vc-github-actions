@@ -79,11 +79,8 @@ async function run(): Promise<void> {
     else if(manifestFormat == 'yml')
     {
         let rawContent = fs.readFileSync(manifestPath);
-        let jsonString = yaml.parse(rawContent.toString());
-        console.log(jsonString);
-        console.log(jsonString['data']['modules.json']);
-        let doc = await JSON.parse(jsonString);
-        for(let module of doc['data']['modules.json']){
+        let json = yaml.parse(rawContent.toString());
+        for(let module of json['data']['modules.json']){
             let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
             await utils.downloadFile(module['PackageUrl'], archivePath);
             await exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
