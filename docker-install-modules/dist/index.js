@@ -35,7 +35,6 @@ const core = __importStar(require("@actions/core"));
 const exec = __importStar(require("@actions/exec"));
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
-const utils = __importStar(require("@virtocommerce/vc-actions-lib"));
 const yaml = __importStar(require("yaml"));
 const axios_1 = __importDefault(require("axios"));
 function sleep(ms) {
@@ -86,7 +85,7 @@ function run() {
                         continue;
                     }
                     let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
-                    yield utils.downloadFile(moduleVersion['PackageUrl'], archivePath);
+                    yield downloadFile(moduleVersion['PackageUrl'], archivePath);
                     yield exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
                 }
             }
@@ -96,7 +95,7 @@ function run() {
             let json = yaml.parse(rawContent.toString());
             for (let module of json['data']['modules.json']) {
                 let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
-                yield utils.downloadFile(module['PackageUrl'], archivePath);
+                yield downloadFile(module['PackageUrl'], archivePath);
                 yield exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
             }
         }

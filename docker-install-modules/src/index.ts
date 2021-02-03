@@ -71,7 +71,7 @@ async function run(): Promise<void> {
                     continue;
                 }
                 let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
-                await utils.downloadFile(moduleVersion['PackageUrl'], archivePath);
+                await downloadFile(moduleVersion['PackageUrl'], archivePath);
                 await exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
             }
         }
@@ -82,7 +82,7 @@ async function run(): Promise<void> {
         let json = yaml.parse(rawContent.toString());
         for(let module of json['data']['modules.json']){
             let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
-            await utils.downloadFile(module['PackageUrl'], archivePath);
+            await downloadFile(module['PackageUrl'], archivePath);
             await exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
         }
     }
