@@ -55,14 +55,35 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
         ref: `heads/${targetRepo.branchName}`
     });
 
-    console.log('Create branch for deployment PR');
-    //Create branch for deployment PR
-    const { data: targetBranch } = await octokit.git.createRef({
-        owner: targetRepo.repoOrg,
-        repo: targetRepo.repoName,
-        ref: `refs/heads/${targetBranchName}`,
-        sha: baseBranch.object.sha,
+    //Check branch exists
+
+    let branch = octokit.repos.getBranch({
+            owner: targetRepo.repoOrg,
+            repo: targetRepo.repoName,
+            branch: `refs/heads/${targetBranchName}`,
     });
+
+
+    // try{
+    //     branch = octokit.repos.getBranch({
+    //         owner: targetRepo.repoOrg,
+    //         repo: targetRepo.repoName,
+    //         branch: `refs/heads/${targetBranchName}`,
+    //     });
+    // } catch (err){}
+
+    if(!branch) {
+
+        console.log('Create branch for deployment PR');
+        //Create branch for deployment PR
+
+        const { data: targetBranch } = await octokit.git.createRef({
+            owner: targetRepo.repoOrg,
+            repo: targetRepo.repoName,
+            ref: `refs/heads/${targetBranchName}`,
+            sha: baseBranch.object.sha,
+        });
+    }
 
     console.log('Get deployment config map content');
     //Get deployment config map content
