@@ -87,7 +87,7 @@ async function run(): Promise<void> {
             await exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
         }
     }
-    await exec.exec(`docker cp ${modulesDir}/. ${containerName}:${containerDestination}`);
+    await exec.exec(`docker cp ${modulesDir} ${containerName}:${containerDestination}`);
     if(restartContainer)
     {
         await exec.exec(`docker restart ${containerName}`);
