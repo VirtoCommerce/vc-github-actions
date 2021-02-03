@@ -50,8 +50,8 @@ async function run(): Promise<void> {
 
     let manifestPath = `./modules.${manifestFormat}`;
     await downloadFile(manifestUrl, manifestPath);
-    let modulesDir = __dirname + 'Modules';
-    let modulesZipDir = __dirname + 'ModulesZip'
+    let modulesDir = path.join(__dirname, 'Modules');
+    let modulesZipDir = path.join(__dirname, 'ModulesZip');
     await fs.mkdirSync(modulesDir);
     await fs.mkdirSync(modulesZipDir);
     if(manifestFormat == 'json')
