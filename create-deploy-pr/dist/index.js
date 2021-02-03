@@ -115,7 +115,7 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                     err_1 = _a.sent();
                     return [3, 5];
                 case 5:
-                    if (!!branch.data) return [3, 7];
+                    if (!!branch) return [3, 7];
                     console.log('Create branch for deployment PR');
                     return [4, octokit.git.createRef({
                             owner: targetRepo.repoOrg,

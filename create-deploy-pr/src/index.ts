@@ -64,7 +64,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
             branch: `refs/heads/${targetBranchName}`,
         });
     } catch (err){}
-    if(!branch.data) {
+    if(!branch) {
 
         console.log('Create branch for deployment PR');
         //Create branch for deployment PR
