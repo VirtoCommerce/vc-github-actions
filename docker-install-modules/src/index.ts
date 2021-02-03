@@ -82,7 +82,6 @@ async function run(): Promise<void> {
         let json = yaml.parse(rawContent.toString());
         let modules = JSON.parse(json['data']['modules.json'] as string)
         for(let module of modules){
-            console.log(module);
             let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
             await downloadFile(module['PackageUrl'], archivePath);
             await exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);

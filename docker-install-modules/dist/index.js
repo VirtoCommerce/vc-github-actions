@@ -95,7 +95,6 @@ function run() {
             let json = yaml.parse(rawContent.toString());
             let modules = JSON.parse(json['data']['modules.json']);
             for (let module of modules) {
-                console.log(module);
                 let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
                 yield downloadFile(module['PackageUrl'], archivePath);
                 yield exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
