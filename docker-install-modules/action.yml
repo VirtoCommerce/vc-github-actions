@@ -24,6 +24,9 @@ inputs:
     description: 'Time in ms to wait for container restarts'
     required: false
     default: '30000'
+  githubToken:
+    description: 'Github Token'
+    required: true
 runs:
   using: 'node12'
   main: 'dist/index.js' 

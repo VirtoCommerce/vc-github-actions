@@ -21,14 +21,18 @@ function sleep(ms: number) {
 //     })
 // }
 
-async function downloadFile(url: string, outFile: string) {
+async function downloadFile(url: string, outFile: string, token: string) {
     const path = outFile;
     const writer = fs.createWriteStream(path);
   
     const response = await Axios({
       url,
       method: 'GET',
-      responseType: 'stream'
+      responseType: 'stream',
+      headers: {
+        Accept: "application/octet-stream",
+        Authorization: `token ${token}`
+      }
     })
   
     response.data.pipe(writer)
@@ -47,9 +51,10 @@ async function run(): Promise<void> {
     let containerDestination = core.getInput("containerDestination");
     let restartContainer = core.getInput("restartContainer") == 'true';
     let sleepAfterRestart = Number.parseInt(core.getInput("sleepAfterRestart"));
+    let githubToken = core.getInput('githubToken');
 
     let manifestPath = `./modules.${manifestFormat}`;
-    await downloadFile(manifestUrl, manifestPath);
+    await downloadFile(manifestUrl, manifestPath, githubToken);
     let modulesDir = path.join(__dirname, 'Modules');
     let modulesZipDir = path.join(__dirname, 'ModulesZip');
     await fs.mkdirSync(modulesDir);
@@ -71,7 +76,7 @@ async function run(): Promise<void> {
                     continue;
                 }
                 let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
-                await downloadFile(moduleVersion['PackageUrl'], archivePath);
+                await downloadFile(moduleVersion['PackageUrl'], archivePath, githubToken);
                 await exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
             }
         }
@@ -84,7 +89,7 @@ async function run(): Promise<void> {
         for(let module of modules){
             let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
             console.log(module['PackageUrl']);
-            await downloadFile(module['PackageUrl'], archivePath);
+            await downloadFile(module['PackageUrl'], archivePath, githubToken);
             await exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
         }
     }

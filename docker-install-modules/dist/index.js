@@ -42,14 +42,18 @@ function sleep(ms) {
         setTimeout(resolve, ms);
     });
 }
-function downloadFile(url, outFile) {
+function downloadFile(url, outFile, token) {
     return __awaiter(this, void 0, void 0, function* () {
         const path = outFile;
         const writer = fs.createWriteStream(path);
         const response = yield axios_1.default({
             url,
             method: 'GET',
-            responseType: 'stream'
+            responseType: 'stream',
+            headers: {
+                Accept: "application/octet-stream",
+                Authorization: `token ${token}`
+            }
         });
         response.data.pipe(writer);
         return new Promise((resolve, reject) => {
@@ -67,8 +71,9 @@ function run() {
         let containerDestination = core.getInput("containerDestination");
         let restartContainer = core.getInput("restartContainer") == 'true';
         let sleepAfterRestart = Number.parseInt(core.getInput("sleepAfterRestart"));
+        let githubToken = core.getInput('githubToken');
         let manifestPath = `./modules.${manifestFormat}`;
-        yield downloadFile(manifestUrl, manifestPath);
+        yield downloadFile(manifestUrl, manifestPath, githubToken);
         let modulesDir = path.join(__dirname, 'Modules');
         let modulesZipDir = path.join(__dirname, 'ModulesZip');
         yield fs.mkdirSync(modulesDir);
@@ -85,7 +90,7 @@ function run() {
                         continue;
                     }
                     let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
-                    yield downloadFile(moduleVersion['PackageUrl'], archivePath);
+                    yield downloadFile(moduleVersion['PackageUrl'], archivePath, githubToken);
                     yield exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
                 }
             }
@@ -97,7 +102,7 @@ function run() {
             for (let module of modules) {
                 let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
                 console.log(module['PackageUrl']);
-                yield downloadFile(module['PackageUrl'], archivePath);
+                yield downloadFile(module['PackageUrl'], archivePath, githubToken);
                 yield exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
             }
         }
