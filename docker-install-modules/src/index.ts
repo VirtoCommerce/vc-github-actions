@@ -31,7 +31,8 @@ async function downloadFile(url: string, outFile: string, token: string) {
       responseType: 'stream',
       headers: {
         Accept: "application/octet-stream",
-        Authorization: `token ${token}`
+        Authorization: `token ${token}`,
+        "User-Agent": "actions"
       }
     })
   

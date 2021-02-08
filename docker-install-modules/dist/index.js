@@ -52,7 +52,8 @@ function downloadFile(url, outFile, token) {
             responseType: 'stream',
             headers: {
                 Accept: "application/octet-stream",
-                Authorization: `token ${token}`
+                Authorization: `token ${token}`,
+                "User-Agent": "actions"
             }
         });
         response.data.pipe(writer);
