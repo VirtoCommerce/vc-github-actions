@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
+import * as github from '@actions/github'
 import * as path from 'path'
 import * as fs from 'fs'
 import * as utils from '@virtocommerce/vc-actions-lib'
@@ -21,19 +22,14 @@ function sleep(ms: number) {
 //     })
 // }
 
-async function downloadFile(url: string, outFile: string, token: string) {
+async function downloadFile(url: string, outFile: string) {
     const path = outFile;
     const writer = fs.createWriteStream(path);
   
     const response = await Axios({
       url,
       method: 'GET',
-      responseType: 'stream',
-      headers: {
-        Accept: "application/octet-stream",
-        Authorization: `token ${token}`,
-        "User-Agent": "actions"
-      }
+      responseType: 'stream'
     })
     
     response.data.pipe(writer)
@@ -42,6 +38,12 @@ async function downloadFile(url: string, outFile: string, token: string) {
       writer.on('finish', resolve)
       writer.on('error', reject)
     })
+}
+
+function getTagFromUrl(url: string): string
+{
+    let splitted = url.split('/');
+    return splitted[splitted.length - 2];
 }
 
 async function run(): Promise<void> {
@@ -53,9 +55,12 @@ async function run(): Promise<void> {
     let restartContainer = core.getInput("restartContainer") == 'true';
     let sleepAfterRestart = Number.parseInt(core.getInput("sleepAfterRestart"));
     let githubToken = core.getInput('githubToken');
+    let githubUser = core.getInput('githubUser');
+
+    let octokit = github.getOctokit(githubToken);
 
     let manifestPath = `./modules.${manifestFormat}`;
-    await downloadFile(manifestUrl, manifestPath, githubToken);
+    await downloadFile(manifestUrl, manifestPath);
     let modulesDir = path.join(__dirname, 'Modules');
     let modulesZipDir = path.join(__dirname, 'ModulesZip');
     await fs.mkdirSync(modulesDir);
@@ -79,7 +84,7 @@ async function run(): Promise<void> {
                     continue;
                 }
                 let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
-                await downloadFile(moduleVersion['PackageUrl'], archivePath, githubToken);
+                await downloadFile(moduleVersion['PackageUrl'], archivePath);
                 await exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
             }
         }
@@ -91,8 +96,16 @@ async function run(): Promise<void> {
         let modules = JSON.parse(json['data']['modules.json'] as string)
         for(let module of modules){
             let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
-            console.log(module['PackageUrl']);
-            await downloadFile(module['PackageUrl'], archivePath, githubToken);
+            let packageUrl = module['PackageUrl'];
+            let moduleRepo = module['Repository'] as string;
+            console.log(packageUrl);
+            let release = await octokit.repos.getReleaseByTag({
+                owner: githubUser,
+                repo: moduleRepo,
+                tag: getTagFromUrl(packageUrl)
+            });
+            console.log(release.data.assets_url);
+            await downloadFile(release.data.assets_url, archivePath);
             await exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
         }
     }

@@ -33,6 +33,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const exec = __importStar(require("@actions/exec"));
+const github = __importStar(require("@actions/github"));
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
 const yaml = __importStar(require("yaml"));
@@ -42,19 +43,14 @@ function sleep(ms) {
         setTimeout(resolve, ms);
     });
 }
-function downloadFile(url, outFile, token) {
+function downloadFile(url, outFile) {
     return __awaiter(this, void 0, void 0, function* () {
         const path = outFile;
         const writer = fs.createWriteStream(path);
         const response = yield axios_1.default({
             url,
             method: 'GET',
-            responseType: 'stream',
-            headers: {
-                Accept: "application/octet-stream",
-                Authorization: `token ${token}`,
-                "User-Agent": "actions"
-            }
+            responseType: 'stream'
         });
         response.data.pipe(writer);
         return new Promise((resolve, reject) => {
@@ -62,6 +58,10 @@ function downloadFile(url, outFile, token) {
             writer.on('error', reject);
         });
     });
+}
+function getTagFromUrl(url) {
+    let splitted = url.split('/');
+    return splitted[splitted.length - 2];
 }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -73,8 +73,10 @@ function run() {
         let restartContainer = core.getInput("restartContainer") == 'true';
         let sleepAfterRestart = Number.parseInt(core.getInput("sleepAfterRestart"));
         let githubToken = core.getInput('githubToken');
+        let githubUser = core.getInput('githubUser');
+        let octokit = github.getOctokit(githubToken);
         let manifestPath = `./modules.${manifestFormat}`;
-        yield downloadFile(manifestUrl, manifestPath, githubToken);
+        yield downloadFile(manifestUrl, manifestPath);
         let modulesDir = path.join(__dirname, 'Modules');
         let modulesZipDir = path.join(__dirname, 'ModulesZip');
         yield fs.mkdirSync(modulesDir);
@@ -93,7 +95,7 @@ function run() {
                         continue;
                     }
                     let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
-                    yield downloadFile(moduleVersion['PackageUrl'], archivePath, githubToken);
+                    yield downloadFile(moduleVersion['PackageUrl'], archivePath);
                     yield exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
                 }
             }
@@ -104,8 +106,16 @@ function run() {
             let modules = JSON.parse(json['data']['modules.json']);
             for (let module of modules) {
                 let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
-                console.log(module['PackageUrl']);
-                yield downloadFile(module['PackageUrl'], archivePath, githubToken);
+                let packageUrl = module['PackageUrl'];
+                let moduleRepo = module['Repository'];
+                console.log(packageUrl);
+                let release = yield octokit.repos.getReleaseByTag({
+                    owner: githubUser,
+                    repo: moduleRepo,
+                    tag: getTagFromUrl(packageUrl)
+                });
+                console.log(release.data.assets_url);
+                yield downloadFile(release.data.assets_url, archivePath);
                 yield exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
             }
         }
