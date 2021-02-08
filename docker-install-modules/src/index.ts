@@ -83,6 +83,7 @@ async function run(): Promise<void> {
         let modules = JSON.parse(json['data']['modules.json'] as string)
         for(let module of modules){
             let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
+            console.log(module['PackageUrl']);
             await downloadFile(module['PackageUrl'], archivePath);
             await exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
         }
