@@ -35,7 +35,7 @@ async function downloadFile(url: string, outFile: string, token: string) {
         "User-Agent": "actions"
       }
     })
-  
+    
     response.data.pipe(writer)
   
     return new Promise((resolve, reject) => {
@@ -70,6 +70,8 @@ async function run(): Promise<void> {
             {
                 continue;
             }
+            if(module['Id'] == "VirtoCommerce.PageBuilderModule")
+                continue;
             for(let moduleVersion of module.Version)
             {
                 if(moduleVersion.VersionTag)

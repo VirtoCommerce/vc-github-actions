@@ -86,6 +86,8 @@ function run() {
                 if (modulesGroup && !module['Groups'].includes(modulesGroup)) {
                     continue;
                 }
+                if (module['Id'] == "VirtoCommerce.PageBuilderModule")
+                    continue;
                 for (let moduleVersion of module.Version) {
                     if (moduleVersion.VersionTag) {
                         continue;
