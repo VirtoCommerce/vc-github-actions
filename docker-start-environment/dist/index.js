@@ -37,7 +37,8 @@ function run() {
         let platformDockerTag = core.getInput('platformDockerTag');
         let storefrontDockerTag = core.getInput('storefrontDockerTag');
         let envVarsArg = `-e PLATFORM_IMAGE=${platformImage} -e STOREFRONT_IMAGE=${storefrontImage} -e PLATFORM_DOCKER_TAG=${platformDockerTag} -e STOREFRONT_DOCKER_TAG=${storefrontDockerTag}`;
-        yield exec.exec(`docker-compose up -d ${envVarsArg}`);
+        let composePath = `${process.env.GITHUB_ACTION_PATH}/docker-compose.yml`;
+        yield exec.exec(`docker-compose up -f ${composePath} -d ${envVarsArg}`);
     });
 }
 run().catch(error => core.setFailed(error.message));
