@@ -116,8 +116,9 @@ function run() {
                     repo: moduleRepo,
                     tag: tag
                 });
-                console.log(release.data.assets_url);
-                yield downloadFile(release.data.assets_url, archivePath);
+                let assetUrl = release.data.zipball_url;
+                console.log(assetUrl);
+                yield downloadFile(assetUrl, archivePath);
                 yield exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
             }
         }

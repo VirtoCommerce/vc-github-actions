@@ -97,7 +97,7 @@ async function run(): Promise<void> {
         for(let module of modules){
             let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
             let packageUrl = module['PackageUrl'];
-            let moduleRepo = (module['Repository'] as string).split('/').pop();
+            let moduleRepo = module['Repository'].split('/').pop() as string;
             console.log(packageUrl);
             let tag = getTagFromUrl(packageUrl);
             console.log(`owner: ${githubUser}; repo: ${moduleRepo}; tag: ${tag}`);
@@ -106,8 +106,10 @@ async function run(): Promise<void> {
                 repo: moduleRepo,
                 tag: tag
             });
-            console.log(release.data.assets_url);
-            await downloadFile(release.data.assets_url, archivePath);
+            
+            let assetUrl = release.data.zipball_url as string;
+            console.log(assetUrl);
+            await downloadFile(assetUrl, archivePath);
             await exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
         }
     }
