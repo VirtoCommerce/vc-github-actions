@@ -32,7 +32,7 @@ const core = __importStar(require("@actions/core"));
 const exec = __importStar(require("@actions/exec"));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        let actionPath = core.getInput('actionPath');
+        let actionPath = __dirname;
         let platformImage = core.getInput('platformImage');
         let storefrontImage = core.getInput('storefrontImage');
         let platformDockerTag = core.getInput('platformDockerTag');

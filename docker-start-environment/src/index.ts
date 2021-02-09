@@ -10,7 +10,7 @@ import * as github from '@actions/github'
 //   STOREFRONT_DOCKER_TAG: ${{ inputs.storefrontDockerTag }}
 
 async function run(): Promise<void> {
-    let actionPath = core.getInput('actionPath');
+    let actionPath = __dirname;
     let platformImage = core.getInput('platformImage');
     let storefrontImage = core.getInput('storefrontImage');
     let platformDockerTag = core.getInput('platformDockerTag');
