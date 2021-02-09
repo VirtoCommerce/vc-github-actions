@@ -45,7 +45,7 @@ function run() {
         let envFileContent = `PLATFORM_IMAGE=${platformImage}\nSTOREFRONT_IMAGE=${storefrontImage}\nPLATFORM_DOCKER_TAG=${platformDockerTag}\nSTOREFRONT_DOCKER_TAG=${storefrontDockerTag}`;
         fs_1.default.writeFileSync('./env_file', envFileContent);
         let composePath = path_1.default.join(__dirname, '../docker-compose.yml');
-        yield exec.exec(`docker-compose -f ${composePath} -f ./env_file up -d`);
+        yield exec.exec(`docker-compose -f ${composePath} -f env_file up -d`);
     });
 }
 run().catch(error => core.setFailed(error.message));
