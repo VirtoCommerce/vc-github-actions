@@ -97,7 +97,7 @@ async function run(): Promise<void> {
         for(let module of modules){
             let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
             let packageUrl = module['PackageUrl'];
-            let moduleRepo = module['Repository'] as string;
+            let moduleRepo = (module['Repository'] as string).split('/').pop();
             console.log(packageUrl);
             let tag = getTagFromUrl(packageUrl);
             console.log(`owner: ${githubUser}; repo: ${moduleRepo}; tag: ${tag}`);

@@ -107,7 +107,7 @@ function run() {
             for (let module of modules) {
                 let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
                 let packageUrl = module['PackageUrl'];
-                let moduleRepo = module['Repository'];
+                let moduleRepo = module['Repository'].split('/').pop();
                 console.log(packageUrl);
                 let tag = getTagFromUrl(packageUrl);
                 console.log(`owner: ${githubUser}; repo: ${moduleRepo}; tag: ${tag}`);
