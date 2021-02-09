@@ -52,7 +52,7 @@ async function findModuleId(repoName: string, modulesManifest: any) {
 }
 
 async function getModuleId() {
-    let manifestPathTemplate = "src/*/module.manifest";
+    let manifestPathTemplate = "**/module.manifest";
     let manifests = await utils.findFiles(manifestPathTemplate);
     let manifestPath = manifests[0];
     let versionInfo = await utils.getInfoFromModuleManifest(manifestPath);

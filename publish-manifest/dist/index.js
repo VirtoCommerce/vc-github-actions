@@ -80,7 +80,7 @@ function findModuleId(repoName, modulesManifest) {
 }
 function getModuleId() {
     return __awaiter(this, void 0, void 0, function* () {
-        let manifestPathTemplate = "src/*/module.manifest";
+        let manifestPathTemplate = "**/module.manifest";
         let manifests = yield utils.findFiles(manifestPathTemplate);
         let manifestPath = manifests[0];
         let versionInfo = yield utils.getInfoFromModuleManifest(manifestPath);
