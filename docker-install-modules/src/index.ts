@@ -99,10 +99,12 @@ async function run(): Promise<void> {
             let packageUrl = module['PackageUrl'];
             let moduleRepo = module['Repository'] as string;
             console.log(packageUrl);
+            let tag = getTagFromUrl(packageUrl);
+            console.log(`tag: ${tag}`);
             let release = await octokit.repos.getReleaseByTag({
                 owner: githubUser,
                 repo: moduleRepo,
-                tag: getTagFromUrl(packageUrl)
+                tag: tag
             });
             console.log(release.data.assets_url);
             await downloadFile(release.data.assets_url, archivePath);

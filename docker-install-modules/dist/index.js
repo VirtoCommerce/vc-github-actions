@@ -109,10 +109,12 @@ function run() {
                 let packageUrl = module['PackageUrl'];
                 let moduleRepo = module['Repository'];
                 console.log(packageUrl);
+                let tag = getTagFromUrl(packageUrl);
+                console.log(`tag: ${tag}`);
                 let release = yield octokit.repos.getReleaseByTag({
                     owner: githubUser,
                     repo: moduleRepo,
-                    tag: getTagFromUrl(packageUrl)
+                    tag: tag
                 });
                 console.log(release.data.assets_url);
                 yield downloadFile(release.data.assets_url, archivePath);
