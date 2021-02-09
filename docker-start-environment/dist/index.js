@@ -42,7 +42,7 @@ function run() {
         let storefrontDockerTag = core.getInput('storefrontDockerTag');
         let envVarsArg = `-e PLATFORM_IMAGE=${platformImage} -e STOREFRONT_IMAGE=${storefrontImage} -e PLATFORM_DOCKER_TAG=${platformDockerTag} -e STOREFRONT_DOCKER_TAG=${storefrontDockerTag}`;
         let composePath = path_1.default.join(__dirname, '../docker-compose.yml');
-        yield exec.exec(`docker-compose -f ${composePath} up -d ${envVarsArg}`);
+        yield exec.exec(`docker-compose -f ${composePath} ${envVarsArg} up -d`);
     });
 }
 run().catch(error => core.setFailed(error.message));
