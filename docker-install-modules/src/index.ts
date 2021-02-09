@@ -75,8 +75,6 @@ async function run(): Promise<void> {
             {
                 continue;
             }
-            if(module['Id'] == "VirtoCommerce.PageBuilderModule")
-                continue;
             for(let moduleVersion of module.Version)
             {
                 if(moduleVersion.VersionTag)
@@ -95,6 +93,8 @@ async function run(): Promise<void> {
         let json = yaml.parse(rawContent.toString());
         let modules = JSON.parse(json['data']['modules.json'] as string)
         for(let module of modules){
+            if(module['Id'] == "VirtoCommerce.PageBuilderModule")
+                continue;
             let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
             let packageUrl = module['PackageUrl'];
             let moduleRepo = module['Repository'].split('/').pop() as string;

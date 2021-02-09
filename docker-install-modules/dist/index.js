@@ -88,8 +88,6 @@ function run() {
                 if (modulesGroup && !module['Groups'].includes(modulesGroup)) {
                     continue;
                 }
-                if (module['Id'] == "VirtoCommerce.PageBuilderModule")
-                    continue;
                 for (let moduleVersion of module.Version) {
                     if (moduleVersion.VersionTag) {
                         continue;
@@ -105,6 +103,8 @@ function run() {
             let json = yaml.parse(rawContent.toString());
             let modules = JSON.parse(json['data']['modules.json']);
             for (let module of modules) {
+                if (module['Id'] == "VirtoCommerce.PageBuilderModule")
+                    continue;
                 let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
                 let packageUrl = module['PackageUrl'];
                 let moduleRepo = module['Repository'].split('/').pop();
