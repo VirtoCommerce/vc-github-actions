@@ -37,8 +37,6 @@ function run() {
         let platformDockerTag = core.getInput('platformDockerTag');
         let storefrontDockerTag = core.getInput('storefrontDockerTag');
         let envVarsArg = `-e PLATFORM_IMAGE=${platformImage} -e STOREFRONT_IMAGE=${storefrontImage} -e PLATFORM_DOCKER_TAG=${platformDockerTag} -e STOREFRONT_DOCKER_TAG=${storefrontDockerTag}`;
-        yield exec.exec('ls -al');
-        yield exec.exec('ls -al ../');
         yield exec.exec(`docker-compose up -d ${envVarsArg}`);
     });
 }
