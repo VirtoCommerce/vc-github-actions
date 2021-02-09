@@ -32,12 +32,13 @@ const core = __importStar(require("@actions/core"));
 const exec = __importStar(require("@actions/exec"));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
+        let actionPath = core.getInput('actionPath');
         let platformImage = core.getInput('platformImage');
         let storefrontImage = core.getInput('storefrontImage');
         let platformDockerTag = core.getInput('platformDockerTag');
         let storefrontDockerTag = core.getInput('storefrontDockerTag');
         let envVarsArg = `-e PLATFORM_IMAGE=${platformImage} -e STOREFRONT_IMAGE=${storefrontImage} -e PLATFORM_DOCKER_TAG=${platformDockerTag} -e STOREFRONT_DOCKER_TAG=${storefrontDockerTag}`;
-        let composePath = `${process.env.GITHUB_ACTION_PATH}/docker-compose.yml`;
+        let composePath = `${actionPath}/docker-compose.yml`;
         yield exec.exec(`docker-compose up -f ${composePath} -d ${envVarsArg}`);
     });
 }

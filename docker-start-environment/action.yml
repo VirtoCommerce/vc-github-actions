@@ -15,6 +15,9 @@ inputs:
   storefrontImage:
     description: 'Storefront Docker Image'
     required: false
+  actionPath:
+    description: 'Current actions directory'
+    required: true
 
 runs:
   using: 'node12'
