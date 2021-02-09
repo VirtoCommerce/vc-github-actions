@@ -15,7 +15,8 @@ async function run(): Promise<void> {
     let platformDockerTag = core.getInput('platformDockerTag');
     let storefrontDockerTag = core.getInput('storefrontDockerTag');
     let  envVarsArg = `-e PLATFORM_IMAGE=${platformImage} -e STOREFRONT_IMAGE=${storefrontImage} -e PLATFORM_DOCKER_TAG=${platformDockerTag} -e STOREFRONT_DOCKER_TAG=${storefrontDockerTag}`;
-
+    await exec.exec('ls -al');
+    await exec.exec('ls -al ../')
     await exec.exec(`docker-compose up -d ${envVarsArg}`);
 }
 
