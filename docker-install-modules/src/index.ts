@@ -121,6 +121,7 @@ async function run(): Promise<void> {
         }
     }
     await exec.exec(`chmod -R 777 ${modulesDir}`);
+    await exec.exec(`docker exec ${containerName} sh -c "ls -al /opt/virtocommerce/platform"`)
     await exec.exec(`docker cp ${modulesDir} ${containerName}:${containerDestination}`);
     if(restartContainer)
     {
