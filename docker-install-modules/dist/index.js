@@ -110,7 +110,7 @@ function run() {
                 let moduleRepo = module['Repository'];
                 console.log(packageUrl);
                 let tag = getTagFromUrl(packageUrl);
-                console.log(`tag: ${tag}`);
+                console.log(`owner: ${githubUser}; repo: ${moduleRepo}; tag: ${tag}`);
                 let release = yield octokit.repos.getReleaseByTag({
                     owner: githubUser,
                     repo: moduleRepo,
