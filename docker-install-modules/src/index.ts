@@ -96,20 +96,27 @@ async function run(): Promise<void> {
             if(module['Id'] == "VirtoCommerce.PageBuilderModule")
                 continue;
             let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
-            let packageUrl = module['PackageUrl'];
+            let packageUrl = module['PackageUrl'] as string;
+            let isBlob = packageUrl.includes("windows.net/");
             let moduleRepo = module['Repository'].split('/').pop() as string;
             console.log(packageUrl);
-            let tag = getTagFromUrl(packageUrl);
-            console.log(`owner: ${githubUser}; repo: ${moduleRepo}; tag: ${tag}`);
-            let release = await octokit.repos.getReleaseByTag({
-                owner: githubUser,
-                repo: moduleRepo,
-                tag: tag
-            });
-            
-            let assetUrl = release.data.zipball_url as string;
-            console.log(assetUrl);
-            await downloadFile(assetUrl, archivePath);
+            if(isBlob)
+            {
+                await downloadFile(packageUrl, archivePath);
+            }
+            else{
+                let tag = getTagFromUrl(packageUrl);
+                console.log(`owner: ${githubUser}; repo: ${moduleRepo}; tag: ${tag}`);
+                let release = await octokit.repos.getReleaseByTag({
+                    owner: githubUser,
+                    repo: moduleRepo,
+                    tag: tag
+                });
+                
+                let assetUrl = release.data.zipball_url as string;
+                console.log(assetUrl);
+                await downloadFile(assetUrl, archivePath);
+            }
             await exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
         }
     }

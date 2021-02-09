@@ -107,18 +107,24 @@ function run() {
                     continue;
                 let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
                 let packageUrl = module['PackageUrl'];
+                let isBlob = packageUrl.includes("windows.net/");
                 let moduleRepo = module['Repository'].split('/').pop();
                 console.log(packageUrl);
-                let tag = getTagFromUrl(packageUrl);
-                console.log(`owner: ${githubUser}; repo: ${moduleRepo}; tag: ${tag}`);
-                let release = yield octokit.repos.getReleaseByTag({
-                    owner: githubUser,
-                    repo: moduleRepo,
-                    tag: tag
-                });
-                let assetUrl = release.data.zipball_url;
-                console.log(assetUrl);
-                yield downloadFile(assetUrl, archivePath);
+                if (isBlob) {
+                    yield downloadFile(packageUrl, archivePath);
+                }
+                else {
+                    let tag = getTagFromUrl(packageUrl);
+                    console.log(`owner: ${githubUser}; repo: ${moduleRepo}; tag: ${tag}`);
+                    let release = yield octokit.repos.getReleaseByTag({
+                        owner: githubUser,
+                        repo: moduleRepo,
+                        tag: tag
+                    });
+                    let assetUrl = release.data.zipball_url;
+                    console.log(assetUrl);
+                    yield downloadFile(assetUrl, archivePath);
+                }
                 yield exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
             }
         }
