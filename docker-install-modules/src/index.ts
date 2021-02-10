@@ -120,11 +120,12 @@ async function run(): Promise<void> {
             await exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
         }
     }
+    await exec.exec(`docker stop ${containerName}`);
     await exec.exec(`chmod -R 777 ${modulesDir}`);
     await exec.exec(`docker cp ${modulesDir} ${containerName}:${containerDestination}`);
     if(restartContainer)
     {
-        await exec.exec(`docker restart ${containerName}`);
+        await exec.exec(`docker start ${containerName}`);
         await sleep(sleepAfterRestart);
     }
 }
