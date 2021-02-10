@@ -129,7 +129,6 @@ function run() {
             }
         }
         yield exec.exec(`chmod -R 777 ${modulesDir}`);
-        yield exec.exec(`docker exec ${containerName} sh -c "ls -al /opt/virtocommerce/platform"`);
         yield exec.exec(`docker cp ${modulesDir} ${containerName}:${containerDestination}`);
         if (restartContainer) {
             yield exec.exec(`docker restart ${containerName}`);
