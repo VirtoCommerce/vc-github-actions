@@ -27,15 +27,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const exec = __importStar(require("@actions/exec"));
+const path_1 = __importDefault(require("path"));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         let platformUrl = core.getInput("platformUrl");
         let user = core.getInput('user');
         let password = core.getInput('password');
-        yield exec.exec(`pwsh ./scripts/check-installed-modules.ps1 -ApiUrl ${platformUrl} -Username ${user} -Password ${password}`);
+        let scriptPath = path_1.default.join(__dirname, '..', 'scripts/check-installed-modules.ps1');
+        yield exec.exec(`pwsh ${scriptPath} -ApiUrl ${platformUrl} -Username ${user} -Password ${password}`);
     });
 }
 run().catch(error => core.setFailed(error.message));
