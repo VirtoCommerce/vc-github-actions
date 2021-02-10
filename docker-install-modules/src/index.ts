@@ -93,7 +93,7 @@ async function run(): Promise<void> {
         let json = yaml.parse(rawContent.toString());
         let modules = JSON.parse(json['data']['modules.json'] as string)
         for(let module of modules){
-            if(module['Id'] == "VirtoCommerce.PageBuilderModule" || module['Id'] == "VirtoCommerce.Notifications")
+            if(module['Id'] == "VirtoCommerce.PageBuilderModule" || module['Id'] == "VirtoCommerce.Notifications" || module['Id'] == "VirtoCommerce.ImageTools")
                 continue;
             let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
             let packageUrl = module['PackageUrl'] as string;
