@@ -41,8 +41,8 @@ function run() {
         let storefrontImage = core.getInput('storefrontImage');
         let platformDockerTag = core.getInput('platformDockerTag');
         let storefrontDockerTag = core.getInput('storefrontDockerTag');
-        let envVarsArg = `-e PLATFORM_IMAGE=${platformImage} -e STOREFRONT_IMAGE=${storefrontImage} -e PLATFORM_DOCKER_TAG=${platformDockerTag} -e STOREFRONT_DOCKER_TAG=${storefrontDockerTag}`;
-        let envFileContent = `PLATFORM_IMAGE=${platformImage}\nSTOREFRONT_IMAGE=${storefrontImage}\nPLATFORM_DOCKER_TAG=${platformDockerTag}\nSTOREFRONT_DOCKER_TAG=${storefrontDockerTag}`;
+        let composeProjectName = core.getInput('composeProjectName');
+        let envFileContent = `PLATFORM_IMAGE=${platformImage}\nSTOREFRONT_IMAGE=${storefrontImage}\nPLATFORM_DOCKER_TAG=${platformDockerTag}\nSTOREFRONT_DOCKER_TAG=${storefrontDockerTag}\nCOMPOSE_PROJECT_NAME=${composeProjectName}`;
         fs_1.default.writeFileSync('./.env', envFileContent);
         let composePath = path_1.default.join(__dirname, '../docker-compose.yml');
         yield exec.exec(`docker-compose -f ${composePath} --env-file ./.env up -d`);

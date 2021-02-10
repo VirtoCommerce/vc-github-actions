@@ -15,9 +15,10 @@ inputs:
   storefrontImage:
     description: 'Storefront Docker Image'
     required: false
-  actionPath:
-    description: 'Current actions directory'
-    required: true
+  composeProjectName:
+    description: 'Value for COMPOSE_PROJECT_NAME env variable'
+    required: false
+    default: 'virtocommerce'
 
 runs:
   using: 'node12'
