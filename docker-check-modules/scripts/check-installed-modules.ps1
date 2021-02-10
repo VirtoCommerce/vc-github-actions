@@ -28,6 +28,9 @@ function Get-AuthToken {
 
 Start-Sleep -Seconds 120
 
+Write-Output $appAuthUrl
+Write-Output $checkModulesUrl
+
 $authToken = (Get-AuthToken $appAuthUrl $Username $Password)[1]
 $headers = @{}
 $headers.Add("Authorization", "Bearer $authToken")
