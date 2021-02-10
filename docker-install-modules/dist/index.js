@@ -103,7 +103,7 @@ function run() {
             let json = yaml.parse(rawContent.toString());
             let modules = JSON.parse(json['data']['modules.json']);
             for (let module of modules) {
-                if (module['Id'] == "VirtoCommerce.PageBuilderModule")
+                if (module['Id'] == "VirtoCommerce.PageBuilderModule" || module['Id'] == "VirtoCommerce.Notifications")
                     continue;
                 let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
                 let packageUrl = module['PackageUrl'];
