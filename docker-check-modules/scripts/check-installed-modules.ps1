@@ -27,7 +27,7 @@ function Get-AuthToken {
 }
 
 Start-Sleep -Seconds 120
-
+docker ps -a
 Write-Output $appAuthUrl
 Write-Output $checkModulesUrl
 
