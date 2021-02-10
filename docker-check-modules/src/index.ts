@@ -4,7 +4,7 @@ import path from 'path'
 
 async function run(): Promise<void>{
     let platformUrl = core.getInput("platformUrl");
-    let user = core.getInput('user');
+    let user = core.getInput('login');
     let password = core.getInput('password');
 
     let scriptPath = path.join(__dirname, '..', 'scripts/check-installed-modules.ps1');

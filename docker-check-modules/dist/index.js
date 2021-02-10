@@ -37,7 +37,7 @@ const path_1 = __importDefault(require("path"));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         let platformUrl = core.getInput("platformUrl");
-        let user = core.getInput('user');
+        let user = core.getInput('login');
         let password = core.getInput('password');
         let scriptPath = path_1.default.join(__dirname, '..', 'scripts/check-installed-modules.ps1');
         yield exec.exec(`pwsh ${scriptPath} -ApiUrl ${platformUrl} -Username ${user} -Password ${password}`);
