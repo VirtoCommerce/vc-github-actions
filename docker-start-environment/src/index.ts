@@ -16,10 +16,10 @@ async function run(): Promise<void> {
     let platformDockerTag = core.getInput('platformDockerTag');
     let storefrontDockerTag = core.getInput('storefrontDockerTag');
     let composeProjectName = core.getInput('composeProjectName');
-    let envFileContent = `PLATFORM_IMAGE=${platformImage}\nSTOREFRONT_IMAGE=${storefrontImage}\nPLATFORM_DOCKER_TAG=${platformDockerTag}\nSTOREFRONT_DOCKER_TAG=${storefrontDockerTag}\nCOMPOSE_PROJECT_NAME=${composeProjectName}`;
+    let envFileContent = `PLATFORM_IMAGE=${platformImage}\nSTOREFRONT_IMAGE=${storefrontImage}\nPLATFORM_DOCKER_TAG=${platformDockerTag}\nSTOREFRONT_DOCKER_TAG=${storefrontDockerTag}`;
     fs.writeFileSync('./.env', envFileContent);
     let composePath = path.join(__dirname, '../docker-compose.yml');
-    await exec.exec(`docker-compose -f ${composePath} --env-file ./.env up -d`);
+    await exec.exec(`docker-compose -p ${composeProjectName} -f ${composePath} --env-file ./.env up -d`);
 }
 
 run().catch(error => core.setFailed(error.message));
