@@ -7,13 +7,13 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: vc-module-cart
-      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-        USER: ${{ env.GITHUB_USER }}
-        GHA_DEPLOYMENT_FOLDER: "modules"
-        REPOSITORY: "vc-module-cart"
+    # - name: vc-module-cart
+    #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+    #     USER: ${{ env.GITHUB_USER }}
+    #     GHA_DEPLOYMENT_FOLDER: "modules"
+    #     REPOSITORY: "vc-module-cart"
 
     # - name: vc-module-azure-search
     #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
@@ -321,13 +321,13 @@ jobs:
     #     GHA_DEPLOYMENT_FOLDER: "storefront"
     #     REPOSITORY: "vc-storefront"
 
-    # - name: vc-platform
-    #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-    #     USER: ${{ env.GITHUB_USER }}
-    #     GHA_DEPLOYMENT_FOLDER: "platform"
-    #     REPOSITORY: "vc-platform"
+    - name: vc-platform
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        USER: ${{ env.GITHUB_USER }}
+        GHA_DEPLOYMENT_FOLDER: "platform"
+        REPOSITORY: "vc-platform"
 
     # - name: vc-theme-default
     #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
