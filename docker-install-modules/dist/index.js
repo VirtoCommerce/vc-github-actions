@@ -127,8 +127,7 @@ function run() {
                 }
                 let moduleDstPath = `${modulesDir}/${module['Id']}`;
                 console.log(`${module['Id']}\n${moduleDstPath}`);
-                yield exec.exec(`mkdir ${moduleDstPath}`);
-                yield exec.exec(`unzip ${archivePath} -d ${moduleDstPath}`);
+                yield exec.exec(`unzip ${archivePath} -d \"${moduleDstPath}\"`);
             }
         }
         yield exec.exec('docker ps -a');
