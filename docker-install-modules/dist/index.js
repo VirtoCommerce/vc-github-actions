@@ -131,6 +131,7 @@ function run() {
         yield exec.exec(`docker stop ${containerName}`);
         yield exec.exec(`chmod -R 777 ${modulesDir}`);
         yield exec.exec(`docker cp ${modulesDir} ${containerName}:${containerDestination}`);
+        yield exec.exec(`docker exec ${containerName} sh -c "chmod -R 777 ${containerDestination} && ls -al ${containerDestination}"`);
         if (restartContainer) {
             yield exec.exec(`docker start ${containerName}`);
             yield sleep(sleepAfterRestart);
