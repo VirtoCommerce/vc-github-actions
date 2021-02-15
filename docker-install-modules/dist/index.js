@@ -131,7 +131,7 @@ function run() {
         yield exec.exec('docker ps -a');
         yield exec.exec(`chmod -R 777 ${modulesDir}`);
         yield exec.exec(`docker cp ${modulesDir}/. ${containerName}:${containerDestination}`);
-        yield exec.exec(`docker exec ${containerName} sh -c "chmod -R 777 ${containerDestination} && ls -al ${containerDestination}"`);
+        yield exec.exec(`docker exec ${containerName} sh -c "chmod -R 777 ${containerDestination} && ls -al ${containerDestination} && ls -al ${containerDestination}/VirtoCommerce.Core"`);
         if (restartContainer) {
             yield exec.exec(`docker restart ${containerName}`);
             yield sleep(sleepAfterRestart);
