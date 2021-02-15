@@ -125,7 +125,9 @@ function run() {
                     console.log(assetUrl);
                     yield downloadFile(assetUrl, archivePath);
                 }
-                yield exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
+                let moduleDstPath = `${modulesDir}/${module['Id']}`;
+                console.log(`${module['Id']}\n${moduleDstPath}`);
+                yield exec.exec(`unzip ${archivePath} -d ${moduleDstPath}`);
             }
         }
         yield exec.exec('docker ps -a');

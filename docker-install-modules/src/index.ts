@@ -117,7 +117,9 @@ async function run(): Promise<void> {
                 console.log(assetUrl);
                 await downloadFile(assetUrl, archivePath);
             }
-            await exec.exec(`unzip ${archivePath} -d ${modulesDir}/${module['Id']}`);
+            let moduleDstPath = `${modulesDir}/${module['Id']}`;
+            console.log(`${module['Id']}\n${moduleDstPath}`);
+            await exec.exec(`unzip ${archivePath} -d ${moduleDstPath}`);
         }
     }
     await exec.exec('docker ps -a');
