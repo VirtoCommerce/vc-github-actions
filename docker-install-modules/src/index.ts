@@ -119,7 +119,7 @@ async function run(): Promise<void> {
             }
             let moduleDstPath = `${modulesDir}/${module['Id']}`;
             console.log(`${module['Id']}\n${moduleDstPath}`);
-            await exec.exec(`mkdir ${moduleDstPath} && unzip ${archivePath} -d ${moduleDstPath}`);
+            await exec.exec(`mkdir ${moduleDstPath} ; unzip ${archivePath} -d ${moduleDstPath}`);
         }
     }
     await exec.exec('docker ps -a');
