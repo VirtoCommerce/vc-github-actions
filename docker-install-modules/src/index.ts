@@ -29,7 +29,10 @@ async function downloadFile(url: string, outFile: string) {
     const response = await Axios({
       url,
       method: 'GET',
-      responseType: 'stream'
+      responseType: 'stream',
+      headers: {
+          'Accept': 'application/octet-stream'
+      }
     })
     
     response.data.pipe(writer)
@@ -113,7 +116,7 @@ async function run(): Promise<void> {
                     tag: tag
                 });
                 
-                let assetUrl = release.data.zipball_url as string;
+                let assetUrl = release.data.assets_url as string;
                 console.log(assetUrl);
                 await downloadFile(assetUrl, archivePath);
             }

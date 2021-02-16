@@ -50,7 +50,10 @@ function downloadFile(url, outFile) {
         const response = yield axios_1.default({
             url,
             method: 'GET',
-            responseType: 'stream'
+            responseType: 'stream',
+            headers: {
+                'Accept': 'application/octet-stream'
+            }
         });
         response.data.pipe(writer);
         return new Promise((resolve, reject) => {
@@ -121,7 +124,7 @@ function run() {
                         repo: moduleRepo,
                         tag: tag
                     });
-                    let assetUrl = release.data.zipball_url;
+                    let assetUrl = release.data.assets_url;
                     console.log(assetUrl);
                     yield downloadFile(assetUrl, archivePath);
                 }
