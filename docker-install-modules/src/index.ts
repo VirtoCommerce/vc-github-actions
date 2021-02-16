@@ -96,30 +96,30 @@ async function run(): Promise<void> {
         let json = yaml.parse(rawContent.toString());
         let modules = JSON.parse(json['data']['modules.json'] as string)
         for(let module of modules){
-            if(module['Id'] == "VirtoCommerce.PageBuilderModule" || module['Id'] == "VirtoCommerce.Notifications" || module['Id'] == "VirtoCommerce.ImageTools")
+            if(module['Id'] == "VirtoCommerce.PageBuilderModule")
                 continue;
             let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
             let packageUrl = module['PackageUrl'] as string;
             let isBlob = packageUrl.includes("windows.net/");
             let moduleRepo = module['Repository'].split('/').pop() as string;
             console.log(packageUrl);
-            if(isBlob)
-            {
+            // if(isBlob)
+            // {
                 await downloadFile(packageUrl, archivePath);
-            }
-            else{
-                let tag = getTagFromUrl(packageUrl);
-                console.log(`owner: ${githubUser}; repo: ${moduleRepo}; tag: ${tag}`);
-                let release = await octokit.repos.getReleaseByTag({
-                    owner: githubUser,
-                    repo: moduleRepo,
-                    tag: tag
-                });
+            // }
+            // else{
+            //     let tag = getTagFromUrl(packageUrl);
+            //     console.log(`owner: ${githubUser}; repo: ${moduleRepo}; tag: ${tag}`);
+            //     let release = await octokit.repos.getReleaseByTag({
+            //         owner: githubUser,
+            //         repo: moduleRepo,
+            //         tag: tag
+            //     });
                 
-                let assetUrl = release.data.assets_url as string;
-                console.log(assetUrl);
-                await downloadFile(assetUrl, archivePath);
-            }
+            //     let assetUrl = release.data.assets_url as string;
+            //     console.log(assetUrl);
+            //     await downloadFile(assetUrl, archivePath);
+            // }
             let moduleDstPath = `${modulesDir}/${module['Id']}`;
             console.log(`${module['Id']}\n${moduleDstPath}`);
             await exec.exec(`unzip ${archivePath} -d \"${moduleDstPath}\"`);

@@ -106,28 +106,14 @@ function run() {
             let json = yaml.parse(rawContent.toString());
             let modules = JSON.parse(json['data']['modules.json']);
             for (let module of modules) {
-                if (module['Id'] == "VirtoCommerce.PageBuilderModule" || module['Id'] == "VirtoCommerce.Notifications" || module['Id'] == "VirtoCommerce.ImageTools")
+                if (module['Id'] == "VirtoCommerce.PageBuilderModule")
                     continue;
                 let archivePath = path.join(modulesZipDir, `${module['Id']}.zip`);
                 let packageUrl = module['PackageUrl'];
                 let isBlob = packageUrl.includes("windows.net/");
                 let moduleRepo = module['Repository'].split('/').pop();
                 console.log(packageUrl);
-                if (isBlob) {
-                    yield downloadFile(packageUrl, archivePath);
-                }
-                else {
-                    let tag = getTagFromUrl(packageUrl);
-                    console.log(`owner: ${githubUser}; repo: ${moduleRepo}; tag: ${tag}`);
-                    let release = yield octokit.repos.getReleaseByTag({
-                        owner: githubUser,
-                        repo: moduleRepo,
-                        tag: tag
-                    });
-                    let assetUrl = release.data.assets_url;
-                    console.log(assetUrl);
-                    yield downloadFile(assetUrl, archivePath);
-                }
+                yield downloadFile(packageUrl, archivePath);
                 let moduleDstPath = `${modulesDir}/${module['Id']}`;
                 console.log(`${module['Id']}\n${moduleDstPath}`);
                 yield exec.exec(`unzip ${archivePath} -d \"${moduleDstPath}\"`);
