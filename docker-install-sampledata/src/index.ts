@@ -2,6 +2,7 @@ import * as github from '@actions/github'
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as urils from '@virtocommerce/vc-actions-lib'
+import path from 'path'
 
 async function run(): Promise<void> {
     let sampledataUrl = core.getInput('sampleDataUrl');
@@ -14,7 +15,8 @@ async function run(): Promise<void> {
     {
         sampleDataArg = `-SampleDataSrc ${sampledataUrl}`;
     }
-    await exec.exec(`pwsh -File ./scripts/setup-sampledata.ps1 -ApiUrl ${platformUrl} ${sampleDataArg} -Username ${login} -Password ${password}`);
+    let scriptPath = path.join(__dirname, '..', 'scripts/setup-sampledata.ps1');
+    await exec.exec(`pwsh ${scriptPath} -ApiUrl ${platformUrl} ${sampleDataArg} -Username ${login} -Password ${password}`);
 }
 
 run().catch(error => core.setFailed(error.message));

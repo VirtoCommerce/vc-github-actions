@@ -27,9 +27,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const exec = __importStar(require("@actions/exec"));
+const path_1 = __importDefault(require("path"));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         let sampledataUrl = core.getInput('sampleDataUrl');
@@ -40,7 +44,8 @@ function run() {
         if (sampledataUrl) {
             sampleDataArg = `-SampleDataSrc ${sampledataUrl}`;
         }
-        yield exec.exec(`pwsh -File ./scripts/setup-sampledata.ps1 -ApiUrl ${platformUrl} ${sampleDataArg} -Username ${login} -Password ${password}`);
+        let scriptPath = path_1.default.join(__dirname, '..', 'scripts/setup-sampledata.ps1');
+        yield exec.exec(`pwsh ${scriptPath} -ApiUrl ${platformUrl} ${sampleDataArg} -Username ${login} -Password ${password}`);
     });
 }
 run().catch(error => core.setFailed(error.message));
