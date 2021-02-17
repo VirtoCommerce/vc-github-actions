@@ -46,6 +46,7 @@ function run() {
         yield exec.exec(`unzip ${artifactPath} -d ./${dirname}`);
         yield exec.exec(`docker exec ${containerName} sh -c "mkdir -p ${containerDestination}"`);
         yield exec.exec(`docker cp ./${dirname}/default/. ${containerName}:${containerDestination}`);
+        yield exec.exec(`docker exec ${containerName} sh -c "chmod -R 777 ${containerDestination}"`);
         yield exec.exec(`docker exec ${containerName} sh -c "ls -al ${containerDestination}/templates"`);
         if (restartContainer) {
             yield exec.exec(`docker restart ${containerName}`);

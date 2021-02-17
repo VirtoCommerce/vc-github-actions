@@ -20,6 +20,7 @@ async function run(): Promise<void> {
     await exec.exec(`unzip ${artifactPath} -d ./${dirname}`);
     await exec.exec(`docker exec ${containerName} sh -c "mkdir -p ${containerDestination}"`)
     await exec.exec(`docker cp ./${dirname}/default/. ${containerName}:${containerDestination}`);
+    await exec.exec(`docker exec ${containerName} sh -c "chmod -R 777 ${containerDestination}"`);
     await exec.exec(`docker exec ${containerName} sh -c "ls -al ${containerDestination}/templates"`);
     if(restartContainer)
     {
