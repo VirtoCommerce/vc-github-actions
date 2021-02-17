@@ -27,6 +27,7 @@ async function run(): Promise<void> {
     let composePath = path.join(__dirname, '../docker-compose.yml');
     await exec.exec(`docker-compose -p ${composeProjectName} -f ${composePath} --env-file ./.env up -d`);
 
-    await sleep(30000);
+    await sleep(60000);
+}
 
 run().catch(error => core.setFailed(error.message));

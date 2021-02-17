@@ -51,7 +51,7 @@ function run() {
         fs_1.default.writeFileSync('./.env', envFileContent);
         let composePath = path_1.default.join(__dirname, '../docker-compose.yml');
         yield exec.exec(`docker-compose -p ${composeProjectName} -f ${composePath} --env-file ./.env up -d`);
-        yield sleep(30000);
-        run().catch(error => core.setFailed(error.message));
+        yield sleep(60000);
     });
 }
+run().catch(error => core.setFailed(error.message));
