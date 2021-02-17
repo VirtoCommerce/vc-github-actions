@@ -34,6 +34,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const exec = __importStar(require("@actions/exec"));
 const path_1 = __importDefault(require("path"));
+function sleep(ms) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         let host = core.getInput('host');
@@ -42,8 +47,11 @@ function run() {
         let pass = core.getInput('password');
         let dumpUrl = core.getInput('dumpUrl');
         let dumpFile = path_1.default.join(__dirname, 'dump.sql');
+        yield exec.exec(`docker stop virtocommerce_vc-platform-web_1`);
         yield exec.exec(`wget ${dumpUrl} -O ${dumpFile}`);
         yield exec.exec(`sqlcmd -S tcp:${host},${port} -U ${user} -P ${pass} -i ${dumpFile}`);
+        yield exec.exec(`docker start virtocommerce_vc-platform-web_1`);
+        yield sleep(30000);
     });
 }
 run().catch(error => core.setFailed(error.message));
