@@ -35,6 +35,11 @@ const core = __importStar(require("@actions/core"));
 const exec = __importStar(require("@actions/exec"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
+function sleep(ms) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         let platformImage = core.getInput('platformImage');
@@ -46,6 +51,7 @@ function run() {
         fs_1.default.writeFileSync('./.env', envFileContent);
         let composePath = path_1.default.join(__dirname, '../docker-compose.yml');
         yield exec.exec(`docker-compose -p ${composeProjectName} -f ${composePath} --env-file ./.env up -d`);
+        yield sleep(30000);
+        run().catch(error => core.setFailed(error.message));
     });
 }
-run().catch(error => core.setFailed(error.message));

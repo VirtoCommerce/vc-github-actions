@@ -10,6 +10,12 @@ import fs from 'fs'
 //   PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
 //   STOREFRONT_DOCKER_TAG: ${{ inputs.storefrontDockerTag }}
 
+function sleep(ms: number) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
+
 async function run(): Promise<void> {
     let platformImage = core.getInput('platformImage');
     let storefrontImage = core.getInput('storefrontImage');
@@ -20,6 +26,7 @@ async function run(): Promise<void> {
     fs.writeFileSync('./.env', envFileContent);
     let composePath = path.join(__dirname, '../docker-compose.yml');
     await exec.exec(`docker-compose -p ${composeProjectName} -f ${composePath} --env-file ./.env up -d`);
-}
+
+    await sleep(30000);
 
 run().catch(error => core.setFailed(error.message));
