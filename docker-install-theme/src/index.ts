@@ -20,7 +20,6 @@ async function run(): Promise<void> {
     await exec.exec(`unzip ${artifactPath} -d ./${dirname}`);
     await exec.exec(`docker exec ${containerName} sh -c "mkdir -p ${containerDestination}"`)
     await exec.exec(`docker cp ./${dirname}/default/. ${containerName}:${containerDestination}`);
-    await exec.exec(`docker exec ${containerName} sh -c "ls -al /opt/virtocommerce/storefront/wwwroot/cms-content/Themes/Electronics/default"`);
     if(restartContainer)
     {
         await exec.exec(`docker restart ${containerName}`);
