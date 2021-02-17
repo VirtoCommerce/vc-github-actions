@@ -38,7 +38,7 @@ services:
       - ASPNETCORE_URLS=http://+
       - VirtoCommerce:AllowInsecureHttp=true
       - VirtoCommerce:Hangfire:JobStorageType=Memory
-      - ConnectionStrings:VirtoCommerce=Data Source=vc-db;Initial Catalog=VirtoCommerce3docker;Persist Security Info=True;User ID=sa;Password=v!rto_Labs!;MultipleActiveResultSets=False;Connect Timeout=360;
+      - ConnectionStrings:VirtoCommerce=Data Source=vc-db;Initial Catalog=webstore-platform_qa;Persist Security Info=True;User ID=sa;Password=v!rto_Labs!;MultipleActiveResultSets=False;Connect Timeout=360;
       - Assets:FileSystem:PublicUrl=http://localhost:${DOCKER_PLATFORM_PORT:-8090}/assets/
       - Content:FileSystem:PublicUrl=http://localhost:${DOCKER_PLATFORM_PORT:-8090}/cms-content/
       - Search:Provider=Lucene
