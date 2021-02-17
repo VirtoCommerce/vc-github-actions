@@ -39,7 +39,7 @@ function run() {
         let host = core.getInput('host');
         let port = core.getInput('port');
         let user = core.getInput('user');
-        let pass = core.getInput('pass');
+        let pass = core.getInput('password');
         let dumpUrl = core.getInput('dumpUrl');
         let dumpFile = path_1.default.join(__dirname, 'dump.sql');
         yield exec.exec(`wget ${dumpUrl} -O ${dumpFile}`);

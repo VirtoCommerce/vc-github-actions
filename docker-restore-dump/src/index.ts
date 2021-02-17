@@ -6,7 +6,7 @@ async function run(): Promise<void> {
     let host = core.getInput('host');
     let port = core.getInput('port');
     let user = core.getInput('user');
-    let pass = core.getInput('pass');
+    let pass = core.getInput('password');
     let dumpUrl = core.getInput('dumpUrl');
     let dumpFile = path.join(__dirname, 'dump.sql');
 
