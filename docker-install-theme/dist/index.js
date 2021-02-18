@@ -30,7 +30,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const exec = __importStar(require("@actions/exec"));
-const path = __importStar(require("path"));
 function sleep(ms) {
     return new Promise((resolve) => {
         setTimeout(resolve, ms);
@@ -42,15 +41,11 @@ function run() {
         let restartContainer = core.getInput('restartContainer') === 'true';
         let containerName = core.getInput('containerName');
         let containerDestination = core.getInput('containerDestination');
-        artifactPath = path.join(__dirname, "theme.zip");
-        yield exec.exec(`wget https://vc3prerelease.blob.core.windows.net/packages/vc-demo-theme-b2b-1.10.0-alpha.1625.zip -O ${artifactPath}`);
         yield exec.exec(`docker exec ${containerName} sh -c "rm -rf ${containerDestination}"`);
         let dirname = "theme";
         yield exec.exec(`unzip ${artifactPath} -d ./${dirname}`);
         yield exec.exec(`docker exec ${containerName} sh -c "mkdir -p ${containerDestination}"`);
         yield exec.exec(`docker cp ./${dirname}/default/. ${containerName}:${containerDestination}`);
-        yield exec.exec(`docker exec ${containerName} sh -c "chmod -R 777 ${containerDestination}"`);
-        yield exec.exec(`docker exec ${containerName} sh -c "ls -al ${containerDestination}/templates"`);
         if (restartContainer) {
             yield exec.exec(`docker restart ${containerName}`);
             yield sleep(20000);

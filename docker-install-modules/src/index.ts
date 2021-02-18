@@ -103,23 +103,7 @@ async function run(): Promise<void> {
             let isBlob = packageUrl.includes("windows.net/");
             let moduleRepo = module['Repository'].split('/').pop() as string;
             console.log(packageUrl);
-            // if(isBlob)
-            // {
-                await downloadFile(packageUrl, archivePath);
-            // }
-            // else{
-            //     let tag = getTagFromUrl(packageUrl);
-            //     console.log(`owner: ${githubUser}; repo: ${moduleRepo}; tag: ${tag}`);
-            //     let release = await octokit.repos.getReleaseByTag({
-            //         owner: githubUser,
-            //         repo: moduleRepo,
-            //         tag: tag
-            //     });
-                
-            //     let assetUrl = release.data.assets_url as string;
-            //     console.log(assetUrl);
-            //     await downloadFile(assetUrl, archivePath);
-            // }
+            await downloadFile(packageUrl, archivePath);
             let moduleDstPath = `${modulesDir}/${module['Id']}`;
             console.log(`${module['Id']}\n${moduleDstPath}`);
             await exec.exec(`unzip ${archivePath} -d \"${moduleDstPath}\"`);
@@ -128,7 +112,7 @@ async function run(): Promise<void> {
     await exec.exec('docker ps -a');
     await exec.exec(`chmod -R 777 ${modulesDir}`);
     await exec.exec(`docker cp ${modulesDir}/. ${containerName}:${containerDestination}`);
-    await exec.exec(`docker exec ${containerName} sh -c "chmod -R 777 ${containerDestination} && ls -al ${containerDestination} && ls -al ${containerDestination}/VirtoCommerce.Core"`);
+    await exec.exec(`docker exec ${containerName} sh -c "chmod -R 777 ${containerDestination} && ls -al ${containerDestination}"`);
     //
     if(restartContainer)
     {

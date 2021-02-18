@@ -15,16 +15,11 @@ async function run(): Promise<void> {
     let containerName = core.getInput('containerName');
     let containerDestination = core.getInput('containerDestination');
 
-    artifactPath = path.join(__dirname, "theme.zip");
-    await exec.exec(`wget https://vc3prerelease.blob.core.windows.net/packages/vc-demo-theme-b2b-1.10.0-alpha.1625.zip -O ${artifactPath}`);
-
     await exec.exec(`docker exec ${containerName} sh -c "rm -rf ${containerDestination}"`);
-    let dirname = "theme"; //containerDestination.split(path.sep).pop();
+    let dirname = "theme";
     await exec.exec(`unzip ${artifactPath} -d ./${dirname}`);
     await exec.exec(`docker exec ${containerName} sh -c "mkdir -p ${containerDestination}"`)
     await exec.exec(`docker cp ./${dirname}/default/. ${containerName}:${containerDestination}`);
-    await exec.exec(`docker exec ${containerName} sh -c "chmod -R 777 ${containerDestination}"`);
-    await exec.exec(`docker exec ${containerName} sh -c "ls -al ${containerDestination}/templates"`);
     if(restartContainer)
     {
         await exec.exec(`docker restart ${containerName}`);

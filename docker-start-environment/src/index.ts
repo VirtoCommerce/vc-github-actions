@@ -4,12 +4,6 @@ import * as github from '@actions/github'
 import path from 'path'
 import fs from 'fs'
 
-// env:
-//   PLATFORM_IMAGE: ${{ inputs.platformImage }}
-//   STOREFRONT_IMAGE: ${{ inputs.storefrontImage }}
-//   PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
-//   STOREFRONT_DOCKER_TAG: ${{ inputs.storefrontDockerTag }}
-
 function sleep(ms: number) {
     return new Promise((resolve) => {
         setTimeout(resolve, ms);
