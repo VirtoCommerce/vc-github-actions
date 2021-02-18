@@ -95,4 +95,4 @@ runs:
         Get-ChildItem ${{ github.action_path }}
         Write-Output "vc-build ValidateSwaggerSchema -SwaggerSchemaPath ${{ github.action_path }}/swaggerSchema.json -SwaggerValidatorUri https://validator.swagger.io/validator/debug"
         Get-Content -Path ${{ github.action_path }}/swaggerSchema.json -TotalCount 10
-        vc-build ValidateSwaggerSchema -SwaggerSchemaPath ${{ github.action_path }}/swaggerSchema.json -SwaggerValidatorUri http://localhost:85/validator/debug"
+        vc-build ValidateSwaggerSchema -SwaggerSchemaPath ${{ github.action_path }}/swaggerSchema.json -SwaggerValidatorUri http://localhost:85/validator/debug
