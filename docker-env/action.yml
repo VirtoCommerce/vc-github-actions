@@ -90,6 +90,7 @@ runs:
         }
         docker pull swaggerapi/swagger-validator-v2
         docker run -d -p 85:8080 swaggerapi/swagger-validator-v2
+        Start-Sleep -Seconds 10
         ${{ github.action_path }}/scripts/get-swagger.ps1 -ApiUrl http://localhost:8090 -OutFile ${{ github.action_path }}/swaggerSchema.json -Verbose -Debug
         Get-ChildItem
         Get-ChildItem ${{ github.action_path }}
