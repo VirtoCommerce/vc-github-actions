@@ -8,7 +8,7 @@ inputs:
     description: 'yml or json'
     required: true
   modulesGroup:
-    description: 'Group f modules (commerce for example)'
+    description: 'Group of modules (commerce for example)'
     required: false
   containerName:
     description: 'Name of docker container'

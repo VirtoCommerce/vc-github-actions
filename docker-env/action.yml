@@ -36,11 +36,11 @@ inputs:
     description: 'Module id'
     required: false
   installModules:
-    description: ''
+    description: 'Enable or disable "Install Modules" step'
     required: false
     default: 'true'
   installSampleData:
-    description: ''
+    description: 'Enable or disable "Install Sample Data" step'
     required: true
     default: 'true'
 
