@@ -1,0 +1,19 @@
+name: 'docker-validate-swagger'
+description: 'Validates swagger schema'
+inputs:
+  platformUrl:
+    description: 'Platform url'
+    default: 'http://localhost:8090'
+    required: false
+  swaggerEndpoint:
+    description: 'Endpoint of swagger schema'
+    required: false
+    default: '/docs/PlatformUI/swagger.json'
+  validatorUrl:
+    description: 'Url to swagger validator'
+    required: false
+    default: 'https://validator.swagger.io/validator/debug'
+
+runs:
+  using: 'node12'
+  main: 'dist/index.js' 

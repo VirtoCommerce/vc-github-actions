@@ -1,0 +1,25 @@
+name: 'docker-restore-dump'
+description: 'Restores dump to MsSql via sqlcmd'
+inputs:
+  host:
+    description: 'Sql server host'
+    required: false
+    default: "localhost"
+  port:
+    description: 'Sql server port'
+    required: false
+    default: '1433'
+  user:
+    description: 'username'
+    required: false
+    default: 'sa'
+  password:
+    description: ''
+    required: false
+    default: 'v!rto_Labs!'
+  dumpUrl:
+    description: 'Dump file url'
+    required: true 
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
