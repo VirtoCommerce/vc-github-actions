@@ -131,7 +131,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
             owner: targetRepo.repoOrg,
             repo: targetRepo.repoName,
             head: `refs/heads/${targetBranchName}`,
-            base: `refs/heads/${targetRepo.branchName}`,
+//            base: `refs/heads/${targetRepo.branchName}`,
             state: 'open'
         });
     } catch (err) {}
