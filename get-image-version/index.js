@@ -129,7 +129,7 @@ async function run()
     branchName = github.context.eventName.startsWith('pull_request') ? github.context.payload.pull_request.head.ref : github.context.ref;
     if (github.context.eventName.startsWith('pull_request')){
         branchName = github.context.payload.pull_request.head.ref;
-        suffix = `pr-${github.context.payload.pull_request.number}-`;
+        suffix = 'pr-' + github.context.payload.pull_request.number;
     }
     else {
         branchName = github.context.ref;
@@ -139,8 +139,8 @@ async function run()
         branchName = branchName.slice('refs/heads/'.length);
     }
 
-    if (releaseBranch !== branchName) {
-        getCommitCount(branchName).then(result => { pushOutputs(branchName, prefix, `${suffix}alpha.${result}`, moduleId); })
+    if (suffix === "" && releaseBranch !== branchName) {
+        getCommitCount(branchName).then(result => { pushOutputs(branchName, prefix, `alpha.${result}`, moduleId); })
     } else {
         pushOutputs(branchName, prefix, suffix, moduleId);
     }
