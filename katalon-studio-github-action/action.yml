@@ -1,0 +1,26 @@
+name: 'Katalon Studio'
+description: 'Execute Katalon Studio projects'
+inputs:
+      version:
+            description: 'Which version of Katalon Studio to run'
+            required: true
+            default: ''
+            
+      projectPath:
+            description: 'Where the Katalon Studio project is checked out'
+            required: true
+            default: ''
+            
+      args:
+            description: 'What arguments to run Katalon Studio project'
+            required: true
+            default: ''
+
+      xvfbConfiguration:
+            description: 'Configuration for Xvfb'
+            required: false
+            default: '-a -n 99 -s "-screen 99 1920x1080x24"'
+
+runs:
+      using: 'node12'
+      main: 'index.js'
