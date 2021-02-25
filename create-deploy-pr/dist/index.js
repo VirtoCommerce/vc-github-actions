@@ -168,7 +168,8 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                     return [4, octokit.pulls.list({
                             owner: targetRepo.repoOrg,
                             repo: targetRepo.repoName,
-                            head: "refs/heads/" + targetBranchName,
+                            head: targetRepo.repoOrg + ":refs/heads/" + targetBranchName,
+                            base: "refs/heads/" + targetRepo.branchName,
                             state: 'open'
                         })];
                 case 11:

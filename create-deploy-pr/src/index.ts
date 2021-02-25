@@ -130,8 +130,8 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
         pr = await octokit.pulls.list({
             owner: targetRepo.repoOrg,
             repo: targetRepo.repoName,
-            head: `refs/heads/${targetBranchName}`,
-//            base: `refs/heads/${targetRepo.branchName}`,
+            head: `${targetRepo.repoOrg}:refs/heads/${targetBranchName}`,
+            base: `refs/heads/${targetRepo.branchName}`,
             state: 'open'
         });
     } catch (err) {}
