@@ -136,9 +136,6 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
         });
     } catch (err) {}
     
-    console.log(targetBranchName);
-    console.log(targetRepo.branchName);
-    console.log(pr);
     if (typeof pr.data === 'undefined' || pr.data.length === 0) {
         console.log('Create PR to head branch');
         //Create PR to head branch
