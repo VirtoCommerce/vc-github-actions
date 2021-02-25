@@ -18,11 +18,21 @@ interface DeploymentData
     cmPath: string
 }
 
-async function getArtifactUrl (downloadComment: string, prRepo: RepoData, octokit: any): Promise< { taskNumber: string; artifactLink: string } > {
-    
-    console.log('Get UrL from PR body');
+interface PrComments
+{
+    downloadLink: string,
+    qaTask: string,
+    demoTask: string
+}
 
-    const regexp = RegExp(downloadComment + '\s*.*');
+
+async function getArtifactUrl (prComment: PrComments, prRepo: RepoData, octokit: any): Promise< { qaTaskNumber: string; demoTaskNumber: string; artifactLink: string } > {
+    
+    console.log('Get UrL and task numbers from PR body');
+
+    const regExpLink = RegExp(prComment.downloadLink + '\s*.*');
+    const regExpQa = RegExp(prComment.qaTask + '\s*.*');
+    const regExpDemo = RegExp(prComment.demoTask + '\s*.*');
     const regExpTask = /\w+-\d+/
 
     //Get PR data
@@ -32,13 +42,17 @@ async function getArtifactUrl (downloadComment: string, prRepo: RepoData, octoki
         pull_number: prRepo.pullNumber
     });
 
-    let taskNumber = currentPr.data.title.match(regExpTask)?.[0];
     let body = currentPr.data.body;
 
+    let qaTaskNumber = body.match(regExpQa)?.[0].match(regExpTask)?.[0];
+    let demoTaskNumber = body.match(regExpDemo)?.[0].match(regExpTask)?.[0];
+    
+
     // Get UrL from body
-    let artifactLink = body.match(regexp)?.[0].match(/[-a-zA-Z0-9@:%_\+.~#?&\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)?/gi)?.[0];
+    let artifactLink = body.match(regExpLink)?.[0].match(/[-a-zA-Z0-9@:%_\+.~#?&\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)?/gi)?.[0];
     return {
-        taskNumber: taskNumber,
+        qaTaskNumber: qaTaskNumber,
+        demoTaskNumber: demoTaskNumber,
         artifactLink: artifactLink
     };
 }
@@ -146,7 +160,11 @@ async function run(): Promise<void> {
     let GITHUB_TOKEN = core.getInput("githubToken");
     if(!GITHUB_TOKEN  && process.env.GITHUB_TOKEN !== undefined) GITHUB_TOKEN = process.env.GITHUB_TOKEN;
     
-    const downloadComment = 'Download artifact URL:'
+    const prComments: PrComments = {
+        downloadLink: 'Download artifact URL:',
+        qaTask: 'QA-test:',
+        demoTask: 'Demo-test:'
+    }
     const deployRepoName = core.getInput("deployRepo");
     const deployBranchName = core.getInput("deployBranch");
     const repoOrg = core.getInput("repoOrg");
@@ -165,7 +183,7 @@ async function run(): Promise<void> {
     };
     github.context.payload.pull_request?.html_url
 
-    let pr = await getArtifactUrl (downloadComment, prRepo, octokit);
+    let pr = await getArtifactUrl (prComments, prRepo, octokit);
 
     if (pr.artifactLink){
 
@@ -176,7 +194,7 @@ async function run(): Promise<void> {
             repoOrg: repoOrg,
             repoName: deployRepoName,
             branchName: deployBranchName,
-            taskNumber: pr.taskNumber
+            taskNumber: pr.qaTaskNumber
         };
         const deployData: DeploymentData ={
             key: artifactKey,
@@ -188,9 +206,9 @@ async function run(): Promise<void> {
 
 
     } else {
-        console.log(`Could not find artifact link in PR body. PR body should contain '${downloadComment} artifact URL`);
-        core.error(`Could not find artifact link in PR body. PR body should contain '${downloadComment} artifact URL`);
-        core.setFailed(`Could not find artifact link in PR body. PR body should contain '${downloadComment} artifact URL`);
+        console.log(`Could not find artifact link in PR body. PR body should contain '${prComments.downloadLink}`);
+        core.error(`Could not find artifact link in PR body. PR body should contain '${prComments.downloadLink}`);
+        core.setFailed(`Could not find artifact link in PR body. PR body should contain '${prComments.downloadLink}`);
     }
 
 }
