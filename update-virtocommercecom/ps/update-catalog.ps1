@@ -22,6 +22,7 @@ if ([string]::IsNullOrWhiteSpace($hmacSecret))
 
 $listEntriesUrl = "$apiurl/api/catalog/listentries"
 $productUrl = "$apiurl/api/catalog/products"
+$productCode = $moduleId.Replace(".", "_")
 
 # Initiate modules installation
 $headerValue = Create-Authorization $hmacAppId $hmacSecret
@@ -34,7 +35,7 @@ $headers = @{
 $listEntriesBody = @{
     "catalogId" = $catalogId
     "categoryId" = $categoryId
-    "keyword" = $moduleId
+    "keyword" = $productCode
     "responseGroup" = "withCategories, withProducts"
     "searchVariations" = "false"
     "skip" = 0
@@ -42,21 +43,26 @@ $listEntriesBody = @{
 } | ConvertTo-Json
 $result = Invoke-RestMethod -Uri $listEntriesUrl -Method Post -Headers $headers -Body $listEntriesBody
 
-Write-Output $result.listEntries[0]
-
-$productId = $result.listEntries[0].id
-$productInfo = Invoke-RestMethod -Uri "$productUrl/$productId" -Method Get -Headers $headers
-
-Write-Output "_________"
-foreach($property in $productInfo.properties)
+foreach($entry in $result.listEntries)
 {
-    if($property.name -eq "DownloadLink")
-    {
-        Write-Output $property.values
-        Write-Output $property.values[0].value
-        $property.values[0].value = $moduleUrl
+    Write-Output $entry
+    if($entry.code -eq $productCode)
+    {    
+        $productId = $entry.id
+        $productInfo = Invoke-RestMethod -Uri "$productUrl/$productId" -Method Get -Headers $headers
+
+        Write-Output "_________"
+        foreach($property in $productInfo.properties)
+        {
+            if($property.name -eq "DownloadLink")
+            {
+                Write-Output $property.values
+                Write-Output $property.values[0].value
+                $property.values[0].value = "https://github.com/VirtoCommerce/vc-module-catalog/releases"
+            }
+        }
+        $productInfoJson = $productInfo | ConvertTo-Json -Depth 7
+        $productUpdateResult = Invoke-RestMethod -Uri $productUrl -Method Post -Headers $headers -Body $productInfoJson
+        Write-Output $productUpdateResult
     }
 }
-$productInfoJson = $productInfo | ConvertTo-Json -Depth 7
-$productUpdateResult = Invoke-RestMethod -Uri $productUrl -Method Post -Headers $headers -Body $productInfoJson
-Write-Output $productUpdateResult
