@@ -1,4 +1,23 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -12,27 +31,27 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const core_1 = __importDefault(require("@actions/core"));
-const exec_1 = __importDefault(require("@actions/exec"));
-const github_1 = __importDefault(require("@actions/github"));
+const core = __importStar(require("@actions/core"));
+const exec = __importStar(require("@actions/exec"));
+const github = __importStar(require("@actions/github"));
 const path_1 = __importDefault(require("path"));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        let token = core_1.default.getInput("githubToken");
-        let login = core_1.default.getInput("login");
-        let password = core_1.default.getInput("password");
-        let catalogId = core_1.default.getInput("catalogId");
-        let categoryId = core_1.default.getInput("categoryId");
-        let platformUrl = core_1.default.getInput("platformUrl");
-        let moduleId = core_1.default.getInput("moduleId");
+        let token = core.getInput("githubToken");
+        let login = core.getInput("login");
+        let password = core.getInput("password");
+        let catalogId = core.getInput("catalogId");
+        let categoryId = core.getInput("categoryId");
+        let platformUrl = core.getInput("platformUrl");
+        let moduleId = core.getInput("moduleId");
         let scriptPath = path_1.default.join(__dirname, "..", "ps/update-catalog.ps1");
-        let octo = github_1.default.getOctokit(token);
+        let octo = github.getOctokit(token);
         let release = yield octo.repos.getLatestRelease({
-            owner: github_1.default.context.repo.owner,
-            repo: github_1.default.context.repo.repo
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo
         });
         let moduleUrl = release.data.assets[0].browser_download_url;
-        yield exec_1.default.exec(`pwsh ${scriptPath} -apiUrl ${platformUrl} -hmacAppId ${login} -hmacSecret ${password} -catalogId ${catalogId} -categoryId ${categoryId} -moduleId ${moduleId} -moduleUrl ${moduleUrl}`);
+        yield exec.exec(`pwsh ${scriptPath} -apiUrl ${platformUrl} -hmacAppId ${login} -hmacSecret ${password} -catalogId ${catalogId} -categoryId ${categoryId} -moduleId ${moduleId} -moduleUrl ${moduleUrl}`);
     });
 }
-run().catch(error => core_1.default.setFailed(error.message));
+run().catch(error => core.setFailed(error.message));
