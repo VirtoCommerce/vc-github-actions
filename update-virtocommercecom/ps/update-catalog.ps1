@@ -58,7 +58,7 @@ foreach($entry in $result.listEntries)
             {
                 Write-Output $property.values
                 Write-Output $property.values[0].value
-                $property.values[0].value = "https://github.com/VirtoCommerce/vc-module-catalog/releases"
+                $property.values[0].value = $moduleUrl
             }
         }
         $productInfoJson = $productInfo | ConvertTo-Json -Depth 7
