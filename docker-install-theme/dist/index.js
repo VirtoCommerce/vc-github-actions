@@ -49,7 +49,6 @@ function run() {
         if (restartContainer) {
             yield exec.exec(`docker restart ${containerName}`);
             yield sleep(20000);
-            yield exec.exec('netstat -tulpn');
         }
         yield exec.exec('docker ps -a');
     });

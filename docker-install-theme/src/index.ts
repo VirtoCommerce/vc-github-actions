@@ -24,7 +24,6 @@ async function run(): Promise<void> {
     {
         await exec.exec(`docker restart ${containerName}`);
         await sleep(20000);
-        await exec.exec('netstat -tulpn');
     }
     await exec.exec('docker ps -a');
 }
