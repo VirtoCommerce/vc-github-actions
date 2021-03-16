@@ -12,7 +12,13 @@ async function run()
             if(exitCode != 0)
             {
                 core.setFailed("vc-build ChangeVersion failed");
-            }
+            };
+        await exec.exec(`echo $HOME`).then(exitCode => {
+            if(exitCode != 0)
+            {
+                core.setFailed("vc-build ChangeVersion failed");
+            };
+
         await exec.exec(`/home/.dotnet/tools/vc-build ChangeVersion -CustomVersionSuffix \"${versionSuffix}\"`).then(exitCode => {
             if(exitCode != 0)
             {
