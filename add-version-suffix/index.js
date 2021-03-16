@@ -8,7 +8,7 @@ async function run()
     let versionSuffix = core.getInput("versionSuffix");
     if(versionSuffix)
     {
-        await exec.exec(`/$HOME/.dotnet/tools/vc-build ChangeVersion -CustomVersionSuffix \"${versionSuffix}\"`).then(exitCode => {
+        await exec.exec(`/home/.dotnet/tools/vc-build ChangeVersion -CustomVersionSuffix \"${versionSuffix}\"`).then(exitCode => {
             if(exitCode != 0)
             {
                 core.setFailed("vc-build ChangeVersion failed");
