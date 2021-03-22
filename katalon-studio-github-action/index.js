@@ -1,5 +1,6 @@
 const { execute } = require("katalon-cli/src/katalon-studio");
 const core = require("@actions/core");
+const exec = require("@actions/exec");
 
 const user_version = core.getInput("version");
 const user_projectPath = core.getInput("projectPath");
@@ -7,6 +8,7 @@ const user_args = core.getInput("args");
 const xvfbConf = core.getInput("xvfbConfiguration");
 
 try {
+  let displays = exec.exec("xrandr --query");
   execute(user_version, "", user_projectPath, user_args, "", "--auto-servernum --server-args=\"-ac -screen 1 1600x1200x16\"", { // -n 99 --server-args="-screen 99 1920x1080x24
     info: function (message) {
       console.log(message);
