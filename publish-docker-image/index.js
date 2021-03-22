@@ -43,6 +43,7 @@ async function run()
     const dockerHub = core.getInput("docker_hub");
     const releaseBranch = core.getInput("release_branch");
     const updateLatest = core.getInput("update_latest").toLocaleLowerCase();
+    const dockerOrg = core.getInput("dockerOrg");
 
     await pushImage(imageName, tag); //github
 
@@ -61,7 +62,7 @@ async function run()
     {
         let splitedImageName = imageName.split("/");
         let projectType = splitedImageName[splitedImageName.length-1];
-        let dockerImageName = `${dockerUser}/${projectType}`;
+        let dockerImageName = `${dockerOrg}/${projectType}`;
         let dockerImageTag =  releaseBranch.localeCompare(branchName) === 0 ? "latest" : "dev-linux-experimental";
         await renameImage(imageName, tag, dockerImageName, dockerImageTag);
         await dockerHubAuth(dockerUser, dockerToken);

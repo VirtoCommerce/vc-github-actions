@@ -2,7 +2,7 @@ name: Dashboard Update
 on:
     workflow_dispatch:
     schedule:
-      - cron: '*/5 * * * *'
+      - cron: '0 0 * * *'
 jobs:
   update_wiki:
     runs-on: ubuntu-latest

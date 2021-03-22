@@ -12,18 +12,18 @@ VirtoCommerce continuous integration based on [GitHub Actions feature](https://d
 
 ## Workflows
 
-Two type of workflows have been implemented main workflows and release alpha workflows.
+Two type of workflows have been implemented main workflows and tests automation workflows.
 
-### Main workflows
+## Main workflow
 
-Main workflows implement base VirtoCommerce CI:
+**Main** workflow implement base VirtoCommerce CI:
 
 * Module CI;
 * Platform CI;
 * Storefront CI;
 * Theme CI.
 
-Workflows triggers automatically on Pull Request or on Push to Master or Dev branches.
+Workflow triggers automatically on Pull Request or on Push to Master or Dev branches.
 
 On Pull Request event workflows force only code checks
 ![Checks](media/GitHub-Actions-flows-Checks-Flow.png)
@@ -38,7 +38,27 @@ On Push to Master branch event workflows force code checks, creates artifacts fo
 
 ### Release alpha version
 
-To crete artifacts for alpha version (pre-release)  trigger manually main workflow from specified branch. It create alpha version artifacts and publish it to GtHub packages (images for Platform and Storefront) or to Azure Blob Storage (zipped binaries for Modules or Themes).
+To crete artifacts for alpha version (pre-release) run manually main workflow from specified branch. It create alpha version artifacts and publish it to GtHub packages (images for Platform and Storefront) or to Azure Blob Storage (zipped binaries for Modules or Themes).
+
+## Tests automation workflows
+
+![Test workflows](media/GitHub-Actions-flows-Tests-automations-Flow.png)
+
+### OWASP ZAP
+
+**OWASP ZAP** workflow implements dynamic application security testing. Workflow triggers automatically on Push to Dev branch or manually. The testing result report placed in workflow artifacts.
+
+![Workflow artifacts](media/action-artifacts.png)
+
+Read more about [OWASP ZAP](https://www.zaproxy.org/docs/docker/full-scan/)
+
+### E2E API tests
+
+**Platform E2E** workflow runs API tests for platform and modules (in commerce bundle) endpoints. Workflow triggers automatically on Pull Request to Master or Dev branch or manually. When workflow runs manually `testSuite` parameter should be specified. A test suite is a collection of multiple different or duplicate test cases in [Katalone](https://docs.katalon.com/) test project. Default value is `Test Suites/Platform_start`.
+
+**Module E2E** workflow runs API tests for current module (repository where workflow runs) and all dependend modules endpoints.
+
+Actual API tests you can find in [vc-quality-gate-katalon](https://github.com/VirtoCommerce/vc-quality-gate-katalon) repository.
 
 ## Secrets
 

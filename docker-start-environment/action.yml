@@ -1,0 +1,25 @@
+name: 'docker-start-environment'
+description: 'Starts Docker Environment'
+inputs:
+  platformDockerTag:
+    description: 'Platform Docker Tag'
+    required: false
+    default: 'dev-linux-latest'
+  storefrontDockerTag:
+    description: 'Storefront Docker Tag'
+    required: false
+    default: 'dev-linux-latest'
+  platformImage:
+    description: 'Platform Docker Image'
+    required: false
+  storefrontImage:
+    description: 'Storefront Docker Image'
+    required: false
+  composeProjectName:
+    description: 'Value for COMPOSE_PROJECT_NAME env variable'
+    required: false
+    default: 'virtocommerce'
+
+runs:
+  using: 'node12'
+  main: 'dist/index.js' 

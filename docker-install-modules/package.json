@@ -1,0 +1,26 @@
+{
+  "name": "@virtocommerce/docker-install-modules",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Alexander Morogov",
+  "license": "ISC",
+  "dependencies": {
+    "@actions/core": "^1.2.6",
+    "@actions/exec": "^1.0.4",
+    "@actions/github": "^4.0.0",
+    "@virtocommerce/vc-actions-lib": "^1.2.1",
+    "axios": "^0.21.1",
+    "install": "^0.13.0",
+    "js-yaml": "^4.0.0",
+    "npm": "^7.5.2",
+    "yaml": "^2.0.0-3"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.0"
+  }
+}
