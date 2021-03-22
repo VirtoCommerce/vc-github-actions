@@ -8,7 +8,7 @@ const user_args = core.getInput("args");
 const xvfbConf = core.getInput("xvfbConfiguration");
 
 try {
-  let displays = exec.exec("xrandr --query");
+  // let displays = exec.exec("xrandr --query");
   // if(user_args.indexOf("-webui.autoUpdateDrivers") == -1){
   //   user_args = `${user_args} -webui.autoUpdateDrivers=true`;
   // }
