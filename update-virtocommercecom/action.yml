@@ -25,6 +25,18 @@ inputs:
   moduleId:
     description: "Module Id"
     required: true
+  moduleDescription:
+    description: "Module Description"
+    default: ""
+    required: false
+  projectUrl:
+    description: "Module repo url"
+    default: ""
+    required: false
+  iconUrl:
+    description: "Url to module icon"
+    default: ""
+    required: false
 runs:
   using: 'node12'
   main: 'dist/index.js'
