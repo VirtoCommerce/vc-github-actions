@@ -205,58 +205,45 @@ function setConfigMap(key, keyValue, cmBody) {
 function run() {
     var _a, _b, _c, _d, _e;
     return __awaiter(this, void 0, void 0, function () {
-        var GITHUB_TOKEN, prComments, deployRepoName, deployBranchName, repoOrg, artifactKey, cmPath, octokit, prRepo, pr, deployRepo, deployData;
+        var GITHUB_TOKEN, prComments, deployRepoName, deployBranchName, repoOrg, artifactKey, artifactUrl, taskNumber, cmPath, octokit, prRepo, deployRepo, deployData;
         return __generator(this, function (_f) {
-            switch (_f.label) {
-                case 0:
-                    GITHUB_TOKEN = core.getInput("githubToken");
-                    if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
-                        GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-                    prComments = {
-                        downloadLink: 'Download artifact URL:',
-                        qaTask: 'QA-test:',
-                        demoTask: 'Demo-test:'
-                    };
-                    deployRepoName = core.getInput("deployRepo");
-                    deployBranchName = core.getInput("deployBranch");
-                    repoOrg = core.getInput("repoOrg");
-                    artifactKey = core.getInput("artifactKey");
-                    cmPath = core.getInput("cmPath");
-                    octokit = github.getOctokit(GITHUB_TOKEN);
-                    (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.html_url;
-                    prRepo = {
-                        repoOrg: repoOrg,
-                        repoName: github.context.repo.repo,
-                        pullHtmlUrl: (_b = github.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.html_url,
-                        pullNumber: (_d = (_c = github.context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.number) !== null && _d !== void 0 ? _d : github.context.issue.number
-                    };
-                    (_e = github.context.payload.pull_request) === null || _e === void 0 ? void 0 : _e.html_url;
-                    return [4, getArtifactUrl(prComments, prRepo, octokit)];
-                case 1:
-                    pr = _f.sent();
-                    if (pr.artifactLink) {
-                        console.log("Artifact link is: " + pr.artifactLink);
-                        core.setOutput('artifactLink', pr.artifactLink);
-                        deployRepo = {
-                            repoOrg: repoOrg,
-                            repoName: deployRepoName,
-                            branchName: deployBranchName,
-                            taskNumber: pr.qaTaskNumber
-                        };
-                        deployData = {
-                            key: artifactKey,
-                            keyValue: pr.artifactLink,
-                            cmPath: cmPath
-                        };
-                        createDeployPr(deployData, deployRepo, prRepo, octokit);
-                    }
-                    else {
-                        console.log("Could not find artifact link in PR body. PR body should contain '" + prComments.downloadLink);
-                        core.error("Could not find artifact link in PR body. PR body should contain '" + prComments.downloadLink);
-                        core.setFailed("Could not find artifact link in PR body. PR body should contain '" + prComments.downloadLink);
-                    }
-                    return [2];
-            }
+            GITHUB_TOKEN = core.getInput("githubToken");
+            if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
+                GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+            prComments = {
+                downloadLink: 'Download artifact URL:',
+                qaTask: 'QA-test:',
+                demoTask: 'Demo-test:'
+            };
+            deployRepoName = core.getInput("deployRepo");
+            deployBranchName = core.getInput("deployBranch");
+            repoOrg = core.getInput("repoOrg");
+            artifactKey = core.getInput("artifactKey");
+            artifactUrl = core.getInput("artifactUrl");
+            taskNumber = core.getInput("taskNumber");
+            cmPath = core.getInput("cmPath");
+            octokit = github.getOctokit(GITHUB_TOKEN);
+            (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.html_url;
+            prRepo = {
+                repoOrg: repoOrg,
+                repoName: github.context.repo.repo,
+                pullHtmlUrl: (_b = github.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.html_url,
+                pullNumber: (_d = (_c = github.context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.number) !== null && _d !== void 0 ? _d : github.context.issue.number
+            };
+            (_e = github.context.payload.pull_request) === null || _e === void 0 ? void 0 : _e.html_url;
+            deployRepo = {
+                repoOrg: repoOrg,
+                repoName: deployRepoName,
+                branchName: deployBranchName,
+                taskNumber: taskNumber
+            };
+            deployData = {
+                key: artifactKey,
+                keyValue: artifactUrl,
+                cmPath: cmPath
+            };
+            createDeployPr(deployData, deployRepo, prRepo, octokit);
+            return [2];
         });
     });
 }

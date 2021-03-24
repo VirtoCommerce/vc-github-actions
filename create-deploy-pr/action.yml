@@ -5,7 +5,7 @@ inputs:
     description: "GitHub token"
     required: false
   repoOrg:
-    description: "repo org"
+    description: "Repo org"
     required: false
     default: "VirtoCommerce"
   deployRepo:
@@ -19,14 +19,16 @@ inputs:
   artifactKey:
     description: "ArgoCD config map key for changed artifact"
     required: true
+  artifactUrl:
+      description: "Link to changed artifact"
+      required: true
+  taskNumber:
+    description: "Jira task number to create deploy PR in QA or Demo environment"
+    required: true
   cmPath:
     description: "Path to config map in repository"
     required: true
     default: "webstore-app/resources/deployment-cm.yaml"
-
-outputs:
-  artifactUrl:
-    description: "Link to artifact"
 
 runs:
   using: 'node12'

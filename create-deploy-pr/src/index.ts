@@ -170,6 +170,8 @@ async function run(): Promise<void> {
     const deployBranchName = core.getInput("deployBranch");
     const repoOrg = core.getInput("repoOrg");
     const artifactKey = core.getInput("artifactKey");
+    const artifactUrl = core.getInput("artifactUrl");
+    const taskNumber = core.getInput("taskNumber");
     const cmPath = core.getInput("cmPath");
 
     const octokit = github.getOctokit(GITHUB_TOKEN);
@@ -184,33 +186,20 @@ async function run(): Promise<void> {
     };
     github.context.payload.pull_request?.html_url
 
-    let pr = await getArtifactUrl (prComments, prRepo, octokit);
 
-    if (pr.artifactLink){
-
-        console.log(`Artifact link is: ${pr.artifactLink}`); 
-        core.setOutput('artifactLink', pr.artifactLink);
-
-        const deployRepo: RepoData = {
-            repoOrg: repoOrg,
-            repoName: deployRepoName,
-            branchName: deployBranchName,
-            taskNumber: pr.qaTaskNumber
-        };
-        const deployData: DeploymentData ={
-            key: artifactKey,
-            keyValue: pr.artifactLink,
-            cmPath: cmPath
-        }
-
-        createDeployPr(deployData, deployRepo, prRepo, octokit);
-
-
-    } else {
-        console.log(`Could not find artifact link in PR body. PR body should contain '${prComments.downloadLink}`);
-        core.error(`Could not find artifact link in PR body. PR body should contain '${prComments.downloadLink}`);
-        core.setFailed(`Could not find artifact link in PR body. PR body should contain '${prComments.downloadLink}`);
+    const deployRepo: RepoData = {
+        repoOrg: repoOrg,
+        repoName: deployRepoName,
+        branchName: deployBranchName,
+        taskNumber: taskNumber
+    };
+    const deployData: DeploymentData ={
+        key: artifactKey,
+        keyValue: artifactUrl,
+        cmPath: cmPath
     }
+
+    createDeployPr(deployData, deployRepo, prRepo, octokit);
 
 }
 
