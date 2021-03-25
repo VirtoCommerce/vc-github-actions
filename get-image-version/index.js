@@ -5,7 +5,7 @@ const fs = require('fs');
 const utils = require('@virtocommerce/vc-actions-lib');
 const defaultPath = '.'
 
-function pushOutputs(branchName, prefix, suffix, moduleId) {
+function pushOutputs(branchName, prefix, suffix, moduleId, moduleDescription="", projectUrl="", iconUrl="") {
     branchName = branchName.substring(branchName.lastIndexOf('/') + 1, branchName.length).toLowerCase();
     const sha = github.context.eventName.startsWith('pull_request') ? github.context.payload.pull_request.head.sha.substring(0, 8) : github.context.sha.substring(0, 8);
     const fullSuffix = (suffix) ? suffix + '-' + branchName : branchName;
@@ -24,6 +24,9 @@ function pushOutputs(branchName, prefix, suffix, moduleId) {
     core.setOutput("tag", tag);
     core.setOutput("fullVersion", fullVersion);
     core.setOutput("taggedVersion", taggedVersion);
+    core.setOutput("moduleDescription", moduleDescription);
+    core.setOutput("projectUrl", projectUrl);
+    core.setOutput("iconUrl", iconUrl);
 
     console.log(`Branch name is: ${branchName}`);
     console.log(`Version prefix is: ${prefix}`);
@@ -35,6 +38,10 @@ function pushOutputs(branchName, prefix, suffix, moduleId) {
     console.log(`Tag is: ${tag}`);
     console.log(`Full version is: ${fullVersion}`);
     console.log(`Tagged version is: ${taggedVersion}`);
+    
+    console.log(`moduleDescription: ${moduleDescription}`);
+    console.log(`projectUrl: ${projectUrl}`);
+    console.log(`iconUrl: ${iconUrl}`);
 }
 async function getCommitCount(baseBranch) {
     try {
@@ -101,6 +108,9 @@ async function run()
     let branchName = "";
     let projectType = await getProjectType( path );
     let versionInfo = null;
+    let moduleDescription = "";
+    let projectUrl = "";
+    let  iconUrl = "";
     console.log(`Project Type: ${projectType}`);
     switch(projectType) {
         case "theme":
@@ -118,6 +128,9 @@ async function run()
             prefix = versionInfo.prefix;
             suffix = versionInfo.suffix;
             moduleId = versionInfo.moduleId;
+            moduleDescription = versionInfo.moduleDescription;
+            projectUrl = versionInfo.projectUrl;
+            iconUrl = versionInfo.iconUrl
             break;
         case "platform":
             versionInfo = await utils.getInfoFromDirectoryBuildProps(`${path}/Directory.Build.props`);
@@ -140,9 +153,9 @@ async function run()
     }
 
     if (suffix === "" && releaseBranch !== branchName) {
-        getCommitCount(branchName).then(result => { pushOutputs(branchName, prefix, `alpha.${result}`, moduleId); })
+        getCommitCount(branchName).then(result => { pushOutputs(branchName, prefix, `alpha.${result}`, moduleId, moduleDescription, projectUrl, iconUrl); })
     } else {
-        pushOutputs(branchName, prefix, suffix, moduleId);
+        pushOutputs(branchName, prefix, suffix, moduleId, moduleDescription, projectUrl, iconUrl);
     }
 }
 
