@@ -54,7 +54,7 @@ function run() {
             repo: github.context.repo.repo
         });
         let moduleUrl = release.data.assets[0].browser_download_url;
-        yield exec.exec(`pwsh ${scriptPath} -apiUrl ${platformUrl} -hmacAppId ${login} -hmacSecret ${password} -catalogId ${catalogId} -categoryId ${categoryId} -moduleId ${moduleId} -moduleUrl ${moduleUrl} -moduleDescription ${moduleDesc} -projectUrl ${projectUrl} -iconUrl ${iconUrl}`);
+        yield exec.exec(`pwsh ${scriptPath} -apiUrl ${platformUrl} -hmacAppId ${login} -hmacSecret ${password} -catalogId ${catalogId} -categoryId ${categoryId} -moduleId ${moduleId} -moduleUrl ${moduleUrl} -moduleDescription "${moduleDesc}" -projectUrl "${projectUrl}" -iconUrl "${iconUrl}"`);
     });
 }
 run().catch(error => core.setFailed(error.message));

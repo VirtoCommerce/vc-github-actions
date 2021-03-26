@@ -23,7 +23,7 @@ async function run() {
     });
     let moduleUrl = release.data.assets[0].browser_download_url
 
-    await exec.exec(`pwsh ${scriptPath} -apiUrl ${platformUrl} -hmacAppId ${login} -hmacSecret ${password} -catalogId ${catalogId} -categoryId ${categoryId} -moduleId ${moduleId} -moduleUrl ${moduleUrl} -moduleDescription ${moduleDesc} -projectUrl ${projectUrl} -iconUrl ${iconUrl}`);
+    await exec.exec(`pwsh ${scriptPath} -apiUrl ${platformUrl} -hmacAppId ${login} -hmacSecret ${password} -catalogId ${catalogId} -categoryId ${categoryId} -moduleId ${moduleId} -moduleUrl ${moduleUrl} -moduleDescription "${moduleDesc}" -projectUrl "${projectUrl}" -iconUrl "${iconUrl}"`);
     
 }
 
