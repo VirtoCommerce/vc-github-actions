@@ -123,3 +123,5 @@ jobs:
         uses: VirtoCommerce/vc-github-actions/publish-manifest@master
         with:
           packageUrl: ${{ steps.blobRelease.outputs.packageUrl }}
+
+      - name: Update virtocommerce.com catalog
