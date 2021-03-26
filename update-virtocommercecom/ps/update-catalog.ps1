@@ -6,9 +6,9 @@ Param(
     $categoryId,
     $moduleId,
     $moduleUrl,
-    $moduleDescription,
-    $projectUrl,
-    $iconUrl
+    $moduleDescription = "",
+    $projectUrl = "",
+    $iconUrl = ""
 )
 
 . $PSScriptRoot\utilities.ps1   

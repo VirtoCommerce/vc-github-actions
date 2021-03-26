@@ -27,11 +27,11 @@ async function run() {
     let projectUrlArg = "";
     let iconUrlArg = "";
     if(moduleDesc)
-        moduleDescriptionArg = `-moduleDescription "${moduleDesc}"`;
+        moduleDescriptionArg = `-moduleDescription \"${moduleDesc}\"`;
     if(projectUrl)
-        projectUrlArg = `-projectUrl "${projectUrl}"`;
+        projectUrlArg = `-projectUrl \"${projectUrl}\"`;
     if(iconUrl)
-        iconUrlArg = `-iconUrl "${iconUrl}"`;
+        iconUrlArg = `-iconUrl \"${iconUrl}\"`;
     await exec.exec(`pwsh ${scriptPath} -apiUrl ${platformUrl} -hmacAppId ${login} -hmacSecret ${password} -catalogId ${catalogId} -categoryId ${categoryId} -moduleId ${moduleId} -moduleUrl ${moduleUrl} ${moduleDescriptionArg} ${projectUrlArg} ${iconUrlArg}`);
     
 }
