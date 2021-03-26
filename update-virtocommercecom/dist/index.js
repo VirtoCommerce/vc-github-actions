@@ -44,7 +44,7 @@ function run() {
         let categoryId = core.getInput("categoryId");
         let platformUrl = core.getInput("platformUrl");
         let moduleId = core.getInput("moduleId");
-        let moduleDesc = core.getInput("moduleDesccription");
+        let moduleDesc = core.getInput("moduleDescription");
         let projectUrl = core.getInput("projectUrl");
         let iconUrl = core.getInput("iconUrl");
         let scriptPath = path_1.default.join(__dirname, "..", "ps/update-catalog.ps1");
@@ -54,7 +54,16 @@ function run() {
             repo: github.context.repo.repo
         });
         let moduleUrl = release.data.assets[0].browser_download_url;
-        yield exec.exec(`pwsh ${scriptPath} -apiUrl ${platformUrl} -hmacAppId ${login} -hmacSecret ${password} -catalogId ${catalogId} -categoryId ${categoryId} -moduleId ${moduleId} -moduleUrl ${moduleUrl} -moduleDescription "${moduleDesc}" -projectUrl "${projectUrl}" -iconUrl "${iconUrl}"`);
+        let moduleDescriptionArg = "";
+        let projectUrlArg = "";
+        let iconUrlArg = "";
+        if (moduleDesc)
+            moduleDescriptionArg = `-moduleDescription "${moduleDesc}"`;
+        if (projectUrl)
+            projectUrlArg = `-projectUrl "${projectUrl}"`;
+        if (iconUrl)
+            iconUrlArg = `-iconUrl "${iconUrl}"`;
+        yield exec.exec(`pwsh ${scriptPath} -apiUrl ${platformUrl} -hmacAppId ${login} -hmacSecret ${password} -catalogId ${catalogId} -categoryId ${categoryId} -moduleId ${moduleId} -moduleUrl ${moduleUrl} ${moduleDescriptionArg} ${projectUrlArg} ${iconUrlArg}`);
     });
 }
 run().catch(error => core.setFailed(error.message));
