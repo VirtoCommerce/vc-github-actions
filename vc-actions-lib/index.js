@@ -153,13 +153,27 @@ function getInfoFromModuleManifest(path) {
                 xml2js.parseString(data, function (err, json) {
                     if (!err) {
                         let moduleId = json.module.id[0].trim();
+                        let moduleDescription = "";
+                        if(json.module.hasOwnProperty("description"))
+                            moduleDescription = json.module.description[0];
+                        let projectUrl = "";
+                        if(json.module.hasOwnProperty("projectUrl"))
+                            projectUrl = json.module.projectUrl[0];
+                        let iconUrl = "";
+                        if(json.module.hasOwnProperty("iconUrl"))
+                            iconUrl = json.module.iconUrl[0];
                         let prefix = json.module.version[0].trim();
-                        let suffix = json.module["version-tag"][0].trim();
+                        let suffix = "";
+                        if(json.module["version-tag"] !== undefined && json.module["version-tag"])
+                            suffix = json.module["version-tag"][0].trim();
                         let version = [];
                         version.push(prefix);
                         if(suffix) version.push(suffix);
                         var result = {
                             moduleId: moduleId,
+                            description: moduleDescription,
+                            projectUrl: projectUrl,
+                            iconUrl: iconUrl,
                             prefix: prefix,
                             suffix: suffix,
                             version: version.join("-")
