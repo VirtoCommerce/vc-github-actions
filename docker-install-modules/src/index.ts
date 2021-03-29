@@ -93,7 +93,18 @@ async function run(): Promise<void> {
     else if(manifestFormat == 'yml')
     {
         let rawContent = fs.readFileSync(manifestPath);
-        let json = yaml.parse(rawContent.toString());
+        let parsed = yaml.parseAllDocuments(rawContent.toString());
+        let i = 0;
+        let json: any;
+        for(let p of parsed){
+            let j = p.toJSON();
+            if(j.hasOwnProperty("data")){
+                if(j["data"].hasOwnProperty("modules.json")){
+                    json = j;
+                    break;
+                }
+            }
+        }
         let modules = JSON.parse(json['data']['modules.json'] as string)
         for(let module of modules){
             if(module['Id'] == "VirtoCommerce.PageBuilderModule")
