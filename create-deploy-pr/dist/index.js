@@ -203,10 +203,10 @@ function setConfigMap(key, keyValue, cmBody) {
     return result;
 }
 function run() {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function () {
         var GITHUB_TOKEN, prComments, deployRepoName, deployBranchName, repoOrg, artifactKey, artifactUrl, taskNumber, cmPath, octokit, prRepo, deployRepo, deployData;
-        return __generator(this, function (_f) {
+        return __generator(this, function (_d) {
             GITHUB_TOKEN = core.getInput("githubToken");
             if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
                 GITHUB_TOKEN = process.env.GITHUB_TOKEN;
@@ -223,14 +223,12 @@ function run() {
             taskNumber = core.getInput("taskNumber");
             cmPath = core.getInput("cmPath");
             octokit = github.getOctokit(GITHUB_TOKEN);
-            (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.html_url;
             prRepo = {
                 repoOrg: repoOrg,
                 repoName: github.context.repo.repo,
-                pullHtmlUrl: (_b = github.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.html_url,
-                pullNumber: (_d = (_c = github.context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.number) !== null && _d !== void 0 ? _d : github.context.issue.number
+                pullHtmlUrl: (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.html_url,
+                pullNumber: (_c = (_b = github.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.number) !== null && _c !== void 0 ? _c : github.context.issue.number
             };
-            (_e = github.context.payload.pull_request) === null || _e === void 0 ? void 0 : _e.html_url;
             deployRepo = {
                 repoOrg: repoOrg,
                 repoName: deployRepoName,

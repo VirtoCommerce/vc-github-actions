@@ -176,17 +176,13 @@ async function run(): Promise<void> {
 
     const octokit = github.getOctokit(GITHUB_TOKEN);
 
-    github.context.payload.pull_request?.html_url
-
     const prRepo: RepoData = {
         repoOrg: repoOrg,
         repoName: github.context.repo.repo,
         pullHtmlUrl: github.context.payload.pull_request?.html_url,
         pullNumber: github.context.payload.pull_request?.number ?? github.context.issue.number
     };
-    github.context.payload.pull_request?.html_url
-
-
+    
     const deployRepo: RepoData = {
         repoOrg: repoOrg,
         repoName: deployRepoName,
