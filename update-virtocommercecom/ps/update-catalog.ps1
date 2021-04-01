@@ -76,7 +76,6 @@ if($moduleFound -ne $true) {
     $newProduct | Add-Member -Name "isBuyable" -Type "NoteProperty" -Value $true
     $newProduct | Add-Member -Name "maxQuantity" -Type "NoteProperty" -Value 0
     $newProduct | Add-Member -Name "minQuantity" -Type "NoteProperty" -Value 1
-    $newProduct | Add-Member -Name "priority" -Type "NoteProperty" -Value 0
     $newProduct | Add-Member -Name "trackInventory" -Type "NoteProperty" -Value $false
     $newProduct | Add-Member -Name "name" -Type "NoteProperty" -Value $moduleTitle
     $newProduct | Add-Member -Name "imgSrc" -Type "NoteProperty" -Value $iconUrl
@@ -89,13 +88,16 @@ if($moduleFound -ne $true) {
         {
             Write-Output $property.values
             Write-Output $property.values[0].value
-            $property.values[0] | Add-Member -Name "value" -Type "NoteProperty" -Value $moduleUrl
+            #$property.values[0] | Add-Member -Name "value" -Type "NoteProperty" -Value $moduleUrl
+            $property.values += $moduleUrl
         }
         if($property.name -eq "Description"){
-            $property.values[0] | Add-Member -Name "value" -Type "NoteProperty" -Value $moduleDescription
+            #$property.values[0] | Add-Member -Name "value" -Type "NoteProperty" -Value $moduleDescription
+            $property.values += $moduleDescription
         }
         if($property.name -eq "ProjectLink"){
-            $property.values[0] | Add-Member -Name "value" -Type "NoteProperty" -Value $projectUrl
+            #$property.values[0] | Add-Member -Name "value" -Type "NoteProperty" -Value $projectUrl
+            $property.values += $projectUrl
         }
     }
     $newProductJson = $newProduct | ConvertTo-Json -Depth 7
