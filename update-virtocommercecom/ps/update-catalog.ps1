@@ -25,6 +25,7 @@ $listEntriesUrl = "$apiurl/api/catalog/listentries"
 $productUrl = "$apiurl/api/catalog/products"
 $newProductUrl = "$apiurl/api/catalog/$catalogId/categories/$categoryId/products/getnew"
 $productCode = $moduleId.Replace(".", "_")
+$moduleTitle = $moduleId.Substring($moduleId.IndexOf(".")+1)
 
 # Initiate modules installation
 $headerValue = Create-Authorization $hmacAppId $hmacSecret
@@ -77,7 +78,7 @@ if($moduleFound -ne $true) {
     $newProduct | Add-Member -Name "minQuantity" -Type "NoteProperty" -Value 1
     $newProduct | Add-Member -Name "priority" -Type "NoteProperty" -Value 0
     $newProduct | Add-Member -Name "trackInventory" -Type "NoteProperty" -Value $false
-    $newProduct | Add-Member -Name "name" -Type "NoteProperty" -Value $moduleId
+    $newProduct | Add-Member -Name "name" -Type "NoteProperty" -Value $moduleTitle
     $newProduct | Add-Member -Name "imgSrc" -Type "NoteProperty" -Value $iconUrl
     $newProduct.code = $productCode
 
@@ -88,13 +89,13 @@ if($moduleFound -ne $true) {
         {
             Write-Output $property.values
             Write-Output $property.values[0].value
-            $property.values[0].value = $moduleUrl
+            $property.values[0] | Add-Member -Name "value" -Type "NoteProperty" -Value $moduleUrl
         }
         if($property.name -eq "Description"){
-            $property.values[0].value = $moduleDescription
+            $property.values[0] | Add-Member -Name "value" -Type "NoteProperty" -Value $moduleDescription
         }
         if($property.name -eq "ProjectLink"){
-            $property.values[0].value = $projectUrl
+            $property.values[0] | Add-Member -Name "value" -Type "NoteProperty" -Value $projectUrl
         }
     }
     $newProductJson = $newProduct | ConvertTo-Json -Depth 7
