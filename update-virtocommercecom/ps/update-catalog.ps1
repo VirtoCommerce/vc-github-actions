@@ -20,6 +20,20 @@ if ([string]::IsNullOrWhiteSpace($hmacAppId)) {
 if ([string]::IsNullOrWhiteSpace($hmacSecret)) {
     $hmacSecret = "${env:HMAC_SECRET}"
 }     
+function getPropertyValue() {
+    param (
+        $property,
+        $propertyValue
+    )
+    return @{
+        "propertyName" = $property.name
+        "propertyId" = $property.id
+        "valueType" = $property.valueType
+        "value" = $propertyValue
+        "isInherited" = $false
+        "propertyMultivalue" = $property.multivalue
+    } 
+}
 
 $listEntriesUrl = "$apiurl/api/catalog/listentries"
 $productUrl = "$apiurl/api/catalog/products"
