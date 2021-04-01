@@ -68,21 +68,6 @@ foreach ($entry in $result.listEntries) {
     }
 }
 
-function getPropertyValue() {
-    param (
-        $property,
-        $value
-    )
-    return @{
-        "propertyName" = $property.name
-        "propertyId" = $property.id
-        "valueType" = $property.valueType
-        "value" = $value
-        "isInherited" = $false
-        "propertyMultivalue" = $property.multivalue
-    } 
-}
-
 if($moduleFound -ne $true) {
     $newProduct = Invoke-RestMethod -Method Get -Uri $newProductUrl -Headers $headers
     $newProduct | Add-Member -Name "productType" -Type "NoteProperty" -Value "Digital"
@@ -104,15 +89,15 @@ if($moduleFound -ne $true) {
             Write-Output $property.values
             Write-Output $property.values[0].value
             #$property.values[0] | Add-Member -Name "value" -Type "NoteProperty" -Value $moduleUrl
-            $property.values += getPropertyValue($property, $moduleUrl)
+            $property.values += getPropertyValue $property $moduleUrl
         }
         if($property.name -eq "Description"){
             #$property.values[0] | Add-Member -Name "value" -Type "NoteProperty" -Value $moduleDescription
-            $property.values += getPropertyValue($property, $moduleDescription)
+            $property.values += getPropertyValue $property $moduleDescription
         }
         if($property.name -eq "ProjectLink"){
             #$property.values[0] | Add-Member -Name "value" -Type "NoteProperty" -Value $projectUrl
-            $property.values += getPropertyValue($property, $projectUrl)
+            $property.values += getPropertyValue $property $projectUrl
         }
     }
     $newProductJson = $newProduct | ConvertTo-Json -Depth 7
