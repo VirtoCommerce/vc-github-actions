@@ -54,7 +54,7 @@ async function run() {
         projectUrlArg = `-projectUrl \"${projectUrl}\"`;
     if(iconUrl)
         iconUrlArg = `-iconUrl \"${iconUrl}\"`;
-    await exec.exec(`pwsh ${scriptPath} -apiUrl ${platformUrl} -hmacAppId ${login} -hmacSecret ${password} -catalogId ${catalogId} -categoryId ${categoryId} -moduleId ${moduleId} -moduleUrl ${moduleUrl} ${moduleDescriptionArg} ${projectUrlArg} ${iconUrlArg} -moduleTitle ${moduleTitle}`);
+    await exec.exec(`pwsh ${scriptPath} -apiUrl ${platformUrl} -hmacAppId ${login} -hmacSecret ${password} -catalogId ${catalogId} -categoryId ${categoryId} -moduleId ${moduleId} -moduleUrl ${moduleUrl} ${moduleDescriptionArg} ${projectUrlArg} ${iconUrlArg} -moduleTitle "${moduleTitle}"`);
     
 }
 
