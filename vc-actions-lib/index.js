@@ -162,6 +162,9 @@ function getInfoFromModuleManifest(path) {
                         let iconUrl = "";
                         if(json.module.hasOwnProperty("iconUrl"))
                             iconUrl = json.module.iconUrl[0];
+                        let moduleTitle = "";
+                        if(json.module.hasOwnProperty("title"))
+                            moduleTitle = json.module.title[0];
                         let prefix = json.module.version[0].trim();
                         let suffix = "";
                         if(json.module["version-tag"] !== undefined && json.module["version-tag"])
@@ -171,6 +174,7 @@ function getInfoFromModuleManifest(path) {
                         if(suffix) version.push(suffix);
                         var result = {
                             moduleId: moduleId,
+                            title: moduleTitle,
                             description: moduleDescription,
                             projectUrl: projectUrl,
                             iconUrl: iconUrl,
