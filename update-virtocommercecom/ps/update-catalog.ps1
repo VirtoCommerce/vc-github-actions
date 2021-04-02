@@ -8,7 +8,8 @@ Param(
     $moduleUrl,
     $moduleDescription = "",
     $projectUrl = "",
-    $iconUrl = ""
+    $iconUrl = "",
+    $moduleTitle = ""
 )
 
 . $PSScriptRoot\utilities.ps1   
@@ -39,7 +40,7 @@ $listEntriesUrl = "$apiurl/api/catalog/listentries"
 $productUrl = "$apiurl/api/catalog/products"
 $newProductUrl = "$apiurl/api/catalog/$catalogId/categories/$categoryId/products/getnew"
 $productCode = $moduleId.Replace(".", "_")
-$moduleTitle = $moduleId.Substring($moduleId.IndexOf(".")+1)
+#$moduleTitle = $moduleId.Substring($moduleId.IndexOf(".")+1)
 
 # Initiate modules installation
 $headerValue = Create-Authorization $hmacAppId $hmacSecret

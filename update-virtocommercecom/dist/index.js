@@ -34,6 +34,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const exec = __importStar(require("@actions/exec"));
 const github = __importStar(require("@actions/github"));
+const utils = __importStar(require("@virtocommerce/vc-actions-lib"));
 const path_1 = __importDefault(require("path"));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -48,6 +49,16 @@ function run() {
         let projectUrl = core.getInput("projectUrl");
         let iconUrl = core.getInput("iconUrl");
         let scriptPath = path_1.default.join(__dirname, "..", "ps/update-catalog.ps1");
+        let moduleTitle = moduleId.substr(moduleId.indexOf(".") + 1);
+        let manifestPathTemplate = "src/*/module.manifest";
+        let manifests = yield utils.findFiles(manifestPathTemplate);
+        if (manifests.length > 0) {
+            let versionInfo = yield utils.getInfoFromModuleManifest(manifests[0]);
+            moduleTitle = versionInfo.title;
+            moduleDesc = versionInfo.description;
+            projectUrl = versionInfo.projectUrl;
+            iconUrl = versionInfo.iconUrl;
+        }
         let octo = github.getOctokit(token);
         let release = yield octo.repos.getLatestRelease({
             owner: github.context.repo.owner,
@@ -63,7 +74,7 @@ function run() {
             projectUrlArg = `-projectUrl \"${projectUrl}\"`;
         if (iconUrl)
             iconUrlArg = `-iconUrl \"${iconUrl}\"`;
-        yield exec.exec(`pwsh ${scriptPath} -apiUrl ${platformUrl} -hmacAppId ${login} -hmacSecret ${password} -catalogId ${catalogId} -categoryId ${categoryId} -moduleId ${moduleId} -moduleUrl ${moduleUrl} ${moduleDescriptionArg} ${projectUrlArg} ${iconUrlArg}`);
+        yield exec.exec(`pwsh ${scriptPath} -apiUrl ${platformUrl} -hmacAppId ${login} -hmacSecret ${password} -catalogId ${catalogId} -categoryId ${categoryId} -moduleId ${moduleId} -moduleUrl ${moduleUrl} ${moduleDescriptionArg} ${projectUrlArg} ${iconUrlArg} -moduleTitle ${moduleTitle}`);
     });
 }
 run().catch(error => core.setFailed(error.message));
