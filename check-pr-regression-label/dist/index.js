@@ -62,7 +62,6 @@ function getPrNumber(commitMessage) {
     console.log('Get PR number from commit message');
     var regExpPr = /\(#\d+\)/;
     var result = (_b = (_a = commitMessage.match(regExpPr)) === null || _a === void 0 ? void 0 : _a[0].match(/\d+/)) === null || _b === void 0 ? void 0 : _b[0];
-    console.log("PR number is: " + result);
     return result;
 }
 function run() {

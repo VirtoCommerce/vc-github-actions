@@ -20,7 +20,7 @@ function getPrNumber (commitMessage: string) {
     const regExpPr = /\(#\d+\)/;
 
     let result = commitMessage.match(regExpPr)?.[0].match(/\d+/)?.[0];
-    console.log(`PR number is: ${result}`);
+
     return result;
 }
 
