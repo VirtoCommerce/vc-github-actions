@@ -13,14 +13,14 @@ interface Label
 
 }
 
-function getPrNumber (commitMessage: string): number{
+function getPrNumber (commitMessage: string) {
     
     console.log('PR number from commit message');
 
     const regExpPr = /\(#\d*\)/;
 
-    let result: number = Number(commitMessage.match(regExpPr)?.[0].match(/\d*/)?.[0]);
-    
+    let result = commitMessage.match(regExpPr)?.[0].match(/\d*/)?.[0];
+
     return result;
 
 }
@@ -41,17 +41,20 @@ async function run(): Promise<void> {
     let prUrl: string = '';
 
     //Get base PR
-    const { data: basePrData } = await octokit.pulls.get({
-        owner: github.context.repo.owner,
-        repo: github.context.repo.repo,
-        pull_number: prNumber
-    });
+    if (typeof prNumber !== 'undefined' ){
 
-    if (typeof basePrData !== 'undefined' ){
-
-        let labels = basePrData.labels as Label[];
-        isPrLabeled = labels.some( x  => x.name === prLabel)
-        prUrl = basePrData.html_url;
+        const { data: basePrData } = await octokit.pulls.get({
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            pull_number: Number(prNumber)
+        });
+    
+        if (typeof basePrData !== 'undefined' ){
+    
+            let labels = basePrData.labels as Label[];
+            isPrLabeled = labels.some( x  => x.name === prLabel)
+            prUrl = basePrData.html_url;
+        }
     }
 
     core.setOutput("pullNumber", prNumber);

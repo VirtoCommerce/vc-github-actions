@@ -61,7 +61,7 @@ function getPrNumber(commitMessage) {
     var _a, _b;
     console.log('PR number from commit message');
     var regExpPr = /\(#\d*\)/;
-    var result = Number((_b = (_a = commitMessage.match(regExpPr)) === null || _a === void 0 ? void 0 : _a[0].match(/\d*/)) === null || _b === void 0 ? void 0 : _b[0]);
+    var result = (_b = (_a = commitMessage.match(regExpPr)) === null || _a === void 0 ? void 0 : _a[0].match(/\d*/)) === null || _b === void 0 ? void 0 : _b[0];
     return result;
 }
 function run() {
@@ -80,10 +80,11 @@ function run() {
                     octokit = github.getOctokit(GITHUB_TOKEN);
                     isPrLabeled = false;
                     prUrl = '';
+                    if (!(typeof prNumber !== 'undefined')) return [3, 2];
                     return [4, octokit.pulls.get({
                             owner: github.context.repo.owner,
                             repo: github.context.repo.repo,
-                            pull_number: prNumber
+                            pull_number: Number(prNumber)
                         })];
                 case 1:
                     basePrData = (_a.sent()).data;
@@ -92,6 +93,8 @@ function run() {
                         isPrLabeled = labels.some(function (x) { return x.name === prLabel; });
                         prUrl = basePrData.html_url;
                     }
+                    _a.label = 2;
+                case 2:
                     core.setOutput("pullNumber", prNumber);
                     core.setOutput("pullUrl", prUrl);
                     core.setOutput("isLabeled", isPrLabeled);
