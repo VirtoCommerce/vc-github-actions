@@ -17,9 +17,9 @@ function getPrNumber (commitMessage: string) {
 
     console.log('Get PR number from commit message');
 
-    const regExpPr = /\(#\d*\)/;
+    const regExpPr = /\(#\d+\)/;
 
-    let result = commitMessage.match(regExpPr)?.[0].match(/\d*/)?.[0];
+    let result = commitMessage.match(regExpPr)?.[0].match(/\d+/)?.[0];
     console.log(`PR number is: ${result}`);
     return result;
 }
