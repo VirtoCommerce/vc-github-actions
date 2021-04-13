@@ -14,7 +14,7 @@ interface Label
 }
 
 function getPrNumber (commitMessage: string) {
-    
+
     console.log('Get PR number from commit message');
 
     const regExpPr = /\(#\d*\)/;
