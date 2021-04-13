@@ -1,0 +1,22 @@
+name: 'check-pr-regression-label'
+description: 'Checks PR contain label for regression'
+inputs:
+  githubToken:
+    description: "GitHub token"
+    required: false
+  label:
+    description: "PR label for regression"
+    required: true
+    default: "regression"
+  commitMessage:
+    description: "Latest squash commit message which should contain PR number looks like (#123)"
+    required: true
+outputs:
+  isLabeled:
+    description: "True if base PR contain label"
+  pullNumber:
+    description: "Labelled for regression PR number"
+
+runs:
+  using: 'node12'
+  main: 'dist/index.js' 
