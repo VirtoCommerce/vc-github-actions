@@ -29,8 +29,7 @@ async function run(): Promise<void> {
     
     let GITHUB_TOKEN = core.getInput("githubToken");
     if(!GITHUB_TOKEN  && process.env.GITHUB_TOKEN !== undefined) GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-    
-    const targetBranchName = core.getInput("targetBranch");
+
     const prLabel = core.getInput("label");
     const squashCommitMessage = core.getInput("commitMessage");
     const prNumber = getPrNumber(squashCommitMessage);
