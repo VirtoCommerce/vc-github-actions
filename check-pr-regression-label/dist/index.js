@@ -59,21 +59,20 @@ var github = __importStar(require("@actions/github"));
 var core = __importStar(require("@actions/core"));
 function getPrNumber(commitMessage) {
     var _a, _b;
-    console.log('PR number from commit message');
+    console.log('Get PR number from commit message');
     var regExpPr = /\(#\d*\)/;
     var result = (_b = (_a = commitMessage.match(regExpPr)) === null || _a === void 0 ? void 0 : _a[0].match(/\d*/)) === null || _b === void 0 ? void 0 : _b[0];
     return result;
 }
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var GITHUB_TOKEN, targetBranchName, prLabel, squashCommitMessage, prNumber, octokit, isPrLabeled, prUrl, basePrData, labels;
+        var GITHUB_TOKEN, prLabel, squashCommitMessage, prNumber, octokit, isPrLabeled, prUrl, basePrData, labels;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     GITHUB_TOKEN = core.getInput("githubToken");
                     if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
                         GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-                    targetBranchName = core.getInput("targetBranch");
                     prLabel = core.getInput("label");
                     squashCommitMessage = core.getInput("commitMessage");
                     prNumber = getPrNumber(squashCommitMessage);
