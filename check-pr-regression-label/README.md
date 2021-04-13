@@ -24,7 +24,7 @@ Flag describes that PR contain label
 
 ### pullNumber:
 
-Labelled for regression PR number
+PR number labeled for regression
 
 ## Example of usage
 

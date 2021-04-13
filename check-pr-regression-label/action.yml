@@ -15,7 +15,10 @@ outputs:
   isLabeled:
     description: "True if base PR contain label"
   pullNumber:
-    description: "Labelled for regression PR number"
+    description: "PR number labeled for regression "
+  pullUrl:
+    description: "PR link"
+
 
 runs:
   using: 'node12'

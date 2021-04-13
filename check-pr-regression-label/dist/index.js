@@ -64,53 +64,42 @@ function getPrNumber(commitMessage) {
     var result = Number((_b = (_a = commitMessage.match(regExpPr)) === null || _a === void 0 ? void 0 : _a[0].match(/\d*/)) === null || _b === void 0 ? void 0 : _b[0]);
     return result;
 }
-function checkPrLabel(repo, labelName, octokit) {
+function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var isPrLabeled, basePrData, labels;
+        var GITHUB_TOKEN, targetBranchName, prLabel, squashCommitMessage, prNumber, octokit, isPrLabeled, prUrl, basePrData, labels;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    GITHUB_TOKEN = core.getInput("githubToken");
+                    if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
+                        GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+                    targetBranchName = core.getInput("targetBranch");
+                    prLabel = core.getInput("label");
+                    squashCommitMessage = core.getInput("commitMessage");
+                    prNumber = getPrNumber(squashCommitMessage);
+                    octokit = github.getOctokit(GITHUB_TOKEN);
                     isPrLabeled = false;
+                    prUrl = '';
                     return [4, octokit.pulls.get({
-                            owner: repo.repoOrg,
-                            repo: repo.repoName,
-                            pull_number: repo.pullNumber
+                            owner: github.context.repo.owner,
+                            repo: github.context.repo.repo,
+                            pull_number: prNumber
                         })];
                 case 1:
                     basePrData = (_a.sent()).data;
-                    if (typeof basePrData !== 'undefined' && basePrData.length > 0) {
+                    if (typeof basePrData !== 'undefined') {
                         labels = basePrData.labels;
-                        isPrLabeled = labels.some(function (x) { return x.name === labelName; });
+                        isPrLabeled = labels.some(function (x) { return x.name === prLabel; });
+                        prUrl = basePrData.html_url;
                     }
-                    return [2, isPrLabeled];
+                    core.setOutput("pullNumber", prNumber);
+                    core.setOutput("pullUrl", prUrl);
+                    core.setOutput("isLabeled", isPrLabeled);
+                    console.log("Squashed PR number is : " + prNumber);
+                    console.log("PR link is : " + prUrl);
+                    console.log("PR is contain " + prLabel + " label: " + isPrLabeled);
+                    return [2];
             }
-        });
-    });
-}
-function run() {
-    return __awaiter(this, void 0, void 0, function () {
-        var GITHUB_TOKEN, targetBranchName, prLabel, squashCommitMessage, prNumber, octokit, repo, isPrLabeled;
-        return __generator(this, function (_a) {
-            GITHUB_TOKEN = core.getInput("githubToken");
-            if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
-                GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-            targetBranchName = core.getInput("targetBranch");
-            prLabel = core.getInput("label");
-            squashCommitMessage = core.getInput("commitMessage");
-            prNumber = getPrNumber(squashCommitMessage);
-            octokit = github.getOctokit(GITHUB_TOKEN);
-            repo = {
-                repoOrg: github.context.repo.owner,
-                repoName: github.context.repo.repo,
-                branchName: targetBranchName,
-                pullNumber: prNumber
-            };
-            isPrLabeled = checkPrLabel(repo, prLabel, octokit);
-            core.setOutput("pullNumber", prNumber);
-            core.setOutput("isLabeled", isPrLabeled);
-            console.log("Squash PR number is : " + prNumber);
-            console.log("PR is contain " + prLabel + " label: " + isPrLabeled);
-            return [2];
         });
     });
 }

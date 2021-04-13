@@ -13,17 +13,6 @@ interface Label
 
 }
 
-interface RepoData
-{
-    repoOrg: string,
-    repoName: string,
-    branchName?: string,
-    taskNumber?: string,
-    pullHtmlUrl?: string
-    pullNumber?: number
-}
-
-
 function getPrNumber (commitMessage: string): number{
     
     console.log('PR number from commit message');
@@ -34,25 +23,6 @@ function getPrNumber (commitMessage: string): number{
     
     return result;
 
-}
-
-async function checkPrLabel( repo: RepoData, labelName: string, octokit: any ): Promise <boolean>{
-
-    let isPrLabeled: boolean = false;
-
-    //Get base PR
-    const { data: basePrData } = await octokit.pulls.get({
-        owner: repo.repoOrg,
-        repo: repo.repoName,
-        pull_number: repo.pullNumber
-    });
-
-    if (typeof basePrData !== 'undefined' && basePrData.length > 0){
-
-        let labels = basePrData.labels as Label[];
-        isPrLabeled = labels.some( x  => x.name === labelName)
-    }
-    return isPrLabeled;
 }
 
 async function run(): Promise<void> {
@@ -67,19 +37,29 @@ async function run(): Promise<void> {
 
     const octokit = github.getOctokit(GITHUB_TOKEN);
 
-    const repo: RepoData = {
-        repoOrg: github.context.repo.owner,
-        repoName: github.context.repo.repo,
-        branchName: targetBranchName,
-        pullNumber: prNumber
-    };
+    let isPrLabeled: boolean = false;
+    let prUrl: string = '';
 
-    const isPrLabeled = checkPrLabel(repo, prLabel, octokit);
+    //Get base PR
+    const { data: basePrData } = await octokit.pulls.get({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        pull_number: prNumber
+    });
+
+    if (typeof basePrData !== 'undefined' ){
+
+        let labels = basePrData.labels as Label[];
+        isPrLabeled = labels.some( x  => x.name === prLabel)
+        prUrl = basePrData.html_url;
+    }
 
     core.setOutput("pullNumber", prNumber);
+    core.setOutput("pullUrl", prUrl);
     core.setOutput("isLabeled", isPrLabeled);
 
-    console.log(`Squash PR number is : ${prNumber}`);
+    console.log(`Squashed PR number is : ${prNumber}`);
+    console.log(`PR link is : ${prUrl}`);
     console.log(`PR is contain ${prLabel} label: ${isPrLabeled}`);
 
 }
