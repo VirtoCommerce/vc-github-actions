@@ -11,13 +11,6 @@ interface RepoData
     pullNumber?: number
 }
 
-interface DeploymentData
-{
-    key: string,
-    keyValue: string,
-    cmPath: string
-}
-
 interface PrComments
 {
     downloadLink: string,
@@ -67,11 +60,7 @@ async function run(): Promise<void> {
         qaTask: 'QA-test:',
         demoTask: 'Demo-test:'
     }
-    const deployRepoName = core.getInput("deployRepo");
-    const deployBranchName = core.getInput("deployBranch");
     const repoOrg = core.getInput("repoOrg");
-    const artifactKey = core.getInput("artifactKey");
-    const cmPath = core.getInput("cmPath");
 
     const octokit = github.getOctokit(GITHUB_TOKEN);
 

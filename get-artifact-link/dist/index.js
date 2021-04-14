@@ -92,7 +92,7 @@ function getArtifactUrl(prComment, prRepo, octokit) {
 function run() {
     var _a, _b, _c, _d, _e;
     return __awaiter(this, void 0, void 0, function () {
-        var GITHUB_TOKEN, prComments, deployRepoName, deployBranchName, repoOrg, artifactKey, cmPath, octokit, prRepo, pr;
+        var GITHUB_TOKEN, prComments, repoOrg, octokit, prRepo, pr;
         return __generator(this, function (_f) {
             switch (_f.label) {
                 case 0:
@@ -104,11 +104,7 @@ function run() {
                         qaTask: 'QA-test:',
                         demoTask: 'Demo-test:'
                     };
-                    deployRepoName = core.getInput("deployRepo");
-                    deployBranchName = core.getInput("deployBranch");
                     repoOrg = core.getInput("repoOrg");
-                    artifactKey = core.getInput("artifactKey");
-                    cmPath = core.getInput("cmPath");
                     octokit = github.getOctokit(GITHUB_TOKEN);
                     (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.html_url;
                     prRepo = {
