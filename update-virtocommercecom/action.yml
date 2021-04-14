@@ -1,0 +1,42 @@
+name: 'update-virtocommercecom'
+description: 'Updates Catalog in https://virtocommerce.com/apps/extensions'
+inputs:
+  githubToken:
+    description: "Github Token"
+    required: true
+  login:
+    description: "hmac app id"
+    required: true
+  password:
+    description: "hmac secret"
+    required: true
+  catalogId:
+    description: "Catalog id"
+    required: false
+    default: "df74feb8266e4bb79d241b9695f52ea1"
+  categoryId:
+    description: "Category id"
+    required: false
+    default: "32fff046ead84c2a8d88c57dd7289bbf"
+  platformUrl:
+    description: "Platform Url"
+    required: false
+    default: "https://admin.virtocommerce.com:443/"
+  moduleId:
+    description: "Module Id"
+    required: true
+  moduleDescription:
+    description: "Module Description"
+    default: ""
+    required: false
+  projectUrl:
+    description: "Module repo url"
+    default: ""
+    required: false
+  iconUrl:
+    description: "Url to module icon"
+    default: ""
+    required: false
+runs:
+  using: 'node12'
+  main: 'dist/index.js'

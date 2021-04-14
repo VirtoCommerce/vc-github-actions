@@ -361,6 +361,15 @@ jobs:
     #     GHA_DEPLOYMENT_FOLDER: "modules"
     #     REPOSITORY: "vc-module-demo-features"
 
+    #  - name: vc-module-event-bus
+    #    uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+    #    env:
+    #      GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+    #      USER: ${{ env.GITHUB_USER }}
+    #      GHA_DEPLOYMENT_FOLDER: "modules"
+    #      REPOSITORY: "vc-module-event-bus"
+
+
     # - name: vc-demo-theme-default
     #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
     #   env:

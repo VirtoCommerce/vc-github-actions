@@ -31,6 +31,12 @@ outputs:
     description: 'Version value formatted as prefix-fullSuffix'
   taggedVersion:
     description: 'Version value formatted as prefix-fullSuffix-sha'
+  moduleDescription:
+    description: 'Module description from module.manifest'
+  projectUrl:
+    description: 'Module repo url'
+  iconUrl:
+    description: 'Url to a module icon'
 
 
 runs:
