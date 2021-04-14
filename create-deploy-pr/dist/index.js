@@ -166,8 +166,16 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
     });
 }
 function setConfigMap(key, keyValue, cmBody) {
-    var regexp = RegExp(key + '\s*:.*');
-    var result = cmBody.replace(regexp, key + ": " + keyValue);
+    var moduleKey = "VirtoCommerce.";
+    var result;
+    if (key.indexOf(moduleKey)) {
+        var regexp = RegExp('"PackageUrl":\s*.*' + key + '.*');
+        result = cmBody.replace(regexp, "\"PackageUrl\": \"" + keyValue + "\"");
+    }
+    else {
+        var regexp = RegExp(key + '\s*:.*');
+        result = cmBody.replace(regexp, key + ": " + keyValue);
+    }
     return result;
 }
 function run() {
