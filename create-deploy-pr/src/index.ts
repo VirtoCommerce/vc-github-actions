@@ -26,37 +26,6 @@ interface PrComments
 }
 
 
-async function getArtifactUrl (prComment: PrComments, prRepo: RepoData, octokit: any): Promise< { qaTaskNumber: string; demoTaskNumber: string; artifactLink: string } > {
-    
-    console.log('Get UrL and task numbers from PR body');
-
-    const regExpLink = RegExp(prComment.downloadLink + '\s*.*');
-    const regExpQa = RegExp(prComment.qaTask + '\s*.*');
-    const regExpDemo = RegExp(prComment.demoTask + '\s*.*');
-    const regExpTask = /\w+-\d+/
-
-    //Get PR data
-    let currentPr = await octokit.pulls.get({
-        owner: prRepo.repoOrg,
-        repo: prRepo.repoName,
-        pull_number: prRepo.pullNumber
-    });
-
-    let body = currentPr.data.body;
-
-    let qaTaskNumber = body.match(regExpQa)?.[0].match(regExpTask)?.[0];
-    let demoTaskNumber = body.match(regExpDemo)?.[0].match(regExpTask)?.[0];
-    
-
-    // Get UrL from body
-    let artifactLink = body.match(regExpLink)?.[0].match(/[-a-zA-Z0-9@:%_\+.~#?&\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)?/gi)?.[0];
-    return {
-        qaTaskNumber: qaTaskNumber,
-        demoTaskNumber: demoTaskNumber,
-        artifactLink: artifactLink
-    };
-}
-
 async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, baseRepo: RepoData,octokit: any): Promise <void>{
 
     const targetBranchName = `${targetRepo.taskNumber}-${targetRepo.branchName}-deployment`;
@@ -161,11 +130,6 @@ async function run(): Promise<void> {
     let GITHUB_TOKEN = core.getInput("githubToken");
     if(!GITHUB_TOKEN  && process.env.GITHUB_TOKEN !== undefined) GITHUB_TOKEN = process.env.GITHUB_TOKEN;
     
-    const prComments: PrComments = {
-        downloadLink: 'Download artifact URL:',
-        qaTask: 'QA-test:',
-        demoTask: 'Demo-test:'
-    }
     const deployRepoName = core.getInput("deployRepo");
     const deployBranchName = core.getInput("deployBranch");
     const repoOrg = core.getInput("repoOrg");

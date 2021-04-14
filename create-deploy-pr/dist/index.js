@@ -57,38 +57,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var github = __importStar(require("@actions/github"));
 var core = __importStar(require("@actions/core"));
-function getArtifactUrl(prComment, prRepo, octokit) {
-    var _a, _b, _c, _d, _e, _f;
-    return __awaiter(this, void 0, void 0, function () {
-        var regExpLink, regExpQa, regExpDemo, regExpTask, currentPr, body, qaTaskNumber, demoTaskNumber, artifactLink;
-        return __generator(this, function (_g) {
-            switch (_g.label) {
-                case 0:
-                    console.log('Get UrL and task numbers from PR body');
-                    regExpLink = RegExp(prComment.downloadLink + '\s*.*');
-                    regExpQa = RegExp(prComment.qaTask + '\s*.*');
-                    regExpDemo = RegExp(prComment.demoTask + '\s*.*');
-                    regExpTask = /\w+-\d+/;
-                    return [4, octokit.pulls.get({
-                            owner: prRepo.repoOrg,
-                            repo: prRepo.repoName,
-                            pull_number: prRepo.pullNumber
-                        })];
-                case 1:
-                    currentPr = _g.sent();
-                    body = currentPr.data.body;
-                    qaTaskNumber = (_b = (_a = body.match(regExpQa)) === null || _a === void 0 ? void 0 : _a[0].match(regExpTask)) === null || _b === void 0 ? void 0 : _b[0];
-                    demoTaskNumber = (_d = (_c = body.match(regExpDemo)) === null || _c === void 0 ? void 0 : _c[0].match(regExpTask)) === null || _d === void 0 ? void 0 : _d[0];
-                    artifactLink = (_f = (_e = body.match(regExpLink)) === null || _e === void 0 ? void 0 : _e[0].match(/[-a-zA-Z0-9@:%_\+.~#?&\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)?/gi)) === null || _f === void 0 ? void 0 : _f[0];
-                    return [2, {
-                            qaTaskNumber: qaTaskNumber,
-                            demoTaskNumber: demoTaskNumber,
-                            artifactLink: artifactLink
-                        }];
-            }
-        });
-    });
-}
 function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
     return __awaiter(this, void 0, void 0, function () {
         var targetBranchName, baseBranch, branch, err_1, targetBranch, cmData, content, deployContent, cmResult, pr, err_2;
@@ -205,16 +173,11 @@ function setConfigMap(key, keyValue, cmBody) {
 function run() {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function () {
-        var GITHUB_TOKEN, prComments, deployRepoName, deployBranchName, repoOrg, artifactKey, artifactUrl, taskNumber, cmPath, octokit, prRepo, deployRepo, deployData;
+        var GITHUB_TOKEN, deployRepoName, deployBranchName, repoOrg, artifactKey, artifactUrl, taskNumber, cmPath, octokit, prRepo, deployRepo, deployData;
         return __generator(this, function (_d) {
             GITHUB_TOKEN = core.getInput("githubToken");
             if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
                 GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-            prComments = {
-                downloadLink: 'Download artifact URL:',
-                qaTask: 'QA-test:',
-                demoTask: 'Demo-test:'
-            };
             deployRepoName = core.getInput("deployRepo");
             deployBranchName = core.getInput("deployBranch");
             repoOrg = core.getInput("repoOrg");
