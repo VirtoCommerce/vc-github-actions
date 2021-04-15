@@ -124,7 +124,7 @@ function setConfigMap (key: string, keyValue:string, cmBody:string){
     const moduleKey = "VirtoCommerce."
     let result;
 
-    if(key.indexOf(moduleKey)){ //  Module deployment
+    if(key.indexOf(moduleKey) > -1){ //  Module deployment
         console.log('Module deployment')
         const regexp = RegExp('"PackageUrl":\s*.*' + key +'.*');
         console.log(regexp)
