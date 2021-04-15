@@ -120,21 +120,18 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
 }
 
 function setConfigMap (key: string, keyValue:string, cmBody:string){
-    console.log('setConfigMap start')
     const moduleKey = "VirtoCommerce."
     let result;
 
     if(key.indexOf(moduleKey) > -1){ //  Module deployment
-        console.log('Module deployment')
+        console.log('setConfigMap: Module deployment')
         const regexp = RegExp('"PackageUrl":\s*.*' + key +'.*');
-        console.log(regexp)
         result = cmBody.replace(regexp, `"PackageUrl": "${keyValue}"`);
     } else { //  Theme deployment
-        console.log('Theme deployment')
+        console.log('setConfigMap: Theme deployment')
         const regexp = RegExp(key + '\s*:.*');
         result = cmBody.replace(regexp, `${key}: ${keyValue}`);
     }
-    console.log('setConfigMap end')
     return result;
 }
 

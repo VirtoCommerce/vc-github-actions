@@ -166,21 +166,18 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
     });
 }
 function setConfigMap(key, keyValue, cmBody) {
-    console.log('setConfigMap start');
     var moduleKey = "VirtoCommerce.";
     var result;
     if (key.indexOf(moduleKey) > -1) {
-        console.log('Module deployment');
+        console.log('setConfigMap: Module deployment');
         var regexp = RegExp('"PackageUrl":\s*.*' + key + '.*');
-        console.log(regexp);
         result = cmBody.replace(regexp, "\"PackageUrl\": \"" + keyValue + "\"");
     }
     else {
-        console.log('Theme deployment');
+        console.log('setConfigMap: Theme deployment');
         var regexp = RegExp(key + '\s*:.*');
         result = cmBody.replace(regexp, key + ": " + keyValue);
     }
-    console.log('setConfigMap end');
     return result;
 }
 function run() {
