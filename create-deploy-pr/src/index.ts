@@ -1,3 +1,4 @@
+import * as yaml from 'js-yaml'
 import * as github from '@actions/github'
 import * as core from '@actions/core'
 
@@ -24,7 +25,6 @@ interface PrComments
     qaTask: string,
     demoTask: string
 }
-
 
 async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, baseRepo: RepoData,octokit: any): Promise <void>{
 
@@ -121,17 +121,38 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
 
 function setConfigMap (key: string, keyValue:string, cmBody:string){
     const moduleKey = "VirtoCommerce."
+    const dockerKey = "docker.";
     let result;
 
-    if(key.indexOf(moduleKey) > -1){ //  Module deployment
-        console.log('setConfigMap: Module deployment')
-        const regexp = RegExp('"PackageUrl":\s*.*' + key +'.*');
-        result = cmBody.replace(regexp, `"PackageUrl": "${keyValue}"`);
-    } else { //  Theme deployment
-        console.log('setConfigMap: Theme deployment')
-        const regexp = RegExp(key + '\s*:.*');
-        result = cmBody.replace(regexp, `${key}: ${keyValue}`);
+    if(key.indexOf(dockerKey) > -1){ //  Docker image deployment
+        const tag = getDockerTag(keyValue);
+        const doc = yaml.load(cmBody);
+
+        let imageIndex = doc["images"].findIndex( x => x.name === key);
+        doc["images"][imageIndex]["newTag"] = tag;
+
+        result = yaml.dump(doc);
+
+    } else {
+        if(key.indexOf(moduleKey) > -1){ //  Module deployment
+            console.log('setConfigMap: Module deployment')
+            const regexp = RegExp('"PackageUrl":\s*.*' + key +'.*');
+            result = cmBody.replace(regexp, `"PackageUrl": "${keyValue}"`);
+        } else { //  Theme deployment
+            console.log('setConfigMap: Theme deployment')
+            const regexp = RegExp(key + '\s*:.*');
+            result = cmBody.replace(regexp, `${key}: ${keyValue}`);
+        }
     }
+    return result;
+    
+}
+function getDockerTag (dockerLink: string){
+    const regExpDocker = /(?<=:).*/;
+    let result;
+
+    result = dockerLink.match(regExpDocker)?.[0];
+
     return result;
 }
 
