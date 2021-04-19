@@ -125,6 +125,8 @@ function setConfigMap (key: string, keyValue:string, cmBody:string){
     let result;
 
     if(key.indexOf(dockerKey) > -1){ //  Docker image deployment
+        console.log('setConfigMap: Docker image deployment')
+        
         const tag = getDockerTag(keyValue);
         const doc = yaml.load(cmBody);
 
