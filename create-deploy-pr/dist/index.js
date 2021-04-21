@@ -55,6 +55,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var yaml = __importStar(require("js-yaml"));
 var github = __importStar(require("@actions/github"));
 var core = __importStar(require("@actions/core"));
 function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
@@ -167,17 +168,35 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
 }
 function setConfigMap(key, keyValue, cmBody) {
     var moduleKey = "VirtoCommerce.";
+    var dockerKey = "docker.";
     var result;
-    if (key.indexOf(moduleKey) > -1) {
-        console.log('setConfigMap: Module deployment');
-        var regexp = RegExp('"PackageUrl":\s*.*' + key + '.*');
-        result = cmBody.replace(regexp, "\"PackageUrl\": \"" + keyValue + "\"");
+    if (key.indexOf(dockerKey) > -1) {
+        console.log('setConfigMap: Docker image deployment');
+        var tag = getDockerTag(keyValue);
+        var doc = yaml.load(cmBody);
+        var imageIndex = doc["images"].findIndex(function (x) { return x.name === key; });
+        doc["images"][imageIndex]["newTag"] = tag;
+        result = yaml.dump(doc);
     }
     else {
-        console.log('setConfigMap: Theme deployment');
-        var regexp = RegExp(key + '\s*:.*');
-        result = cmBody.replace(regexp, key + ": " + keyValue);
+        if (key.indexOf(moduleKey) > -1) {
+            console.log('setConfigMap: Module deployment');
+            var regexp = RegExp('"PackageUrl":\s*.*' + key + '.*');
+            result = cmBody.replace(regexp, "\"PackageUrl\": \"" + keyValue + "\"");
+        }
+        else {
+            console.log('setConfigMap: Theme deployment');
+            var regexp = RegExp(key + '\s*:.*');
+            result = cmBody.replace(regexp, key + ": " + keyValue);
+        }
     }
+    return result;
+}
+function getDockerTag(dockerLink) {
+    var _a;
+    var regExpDocker = /(?<=:).*/;
+    var result;
+    result = (_a = dockerLink.match(regExpDocker)) === null || _a === void 0 ? void 0 : _a[0];
     return result;
 }
 function run() {
