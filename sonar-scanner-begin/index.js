@@ -24,8 +24,6 @@ async function run()
         ghRepoArg = `-SonarGithubRepo "${process.env.GITHUB_REPOSITORY}"`;
         prProviderArg = `-SonarPRProvider "GitHub"`
     }
-    await exec.exec("dotnet tool uninstall -g dotnet-sonarscanner");
-    await exec.exec("dotnet tool install --global dotnet-sonarscanner --version 5.2.0")
     let SonarAuthToken = process.env.SONAR_TOKEN;
     let sonarAuthArg = `-SonarAuthToken ${SonarAuthToken}`;
     let repoNameArg = `-RepoName ${repoName}`;
