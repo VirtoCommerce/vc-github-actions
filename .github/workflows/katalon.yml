@@ -61,7 +61,7 @@ jobs:
       - name: Katalon Studio Github Action
         uses: katalon-studio/katalon-studio-github-action@v2.2
         with:
-          version: '7.7.2'
+          version: '7.9.1'
           projectPath: '${{ github.workspace }}/vc-quality-gate-katalon/platform_storefront.prj'
           args: '-noSplash -retry=0 -testSuitePath="${{ github.event.inputs.testSuite }}" -browserType="Chrome (headless)" -apiKey= ${{ secrets.KATALON_API_KEY }} -g_urlBack="http://localhost:8090" -g_urlFront="http://localhost:8080" -executionProfile="default"' 
 
