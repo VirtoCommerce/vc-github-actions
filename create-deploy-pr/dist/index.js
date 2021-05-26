@@ -166,6 +166,48 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
         });
     });
 }
+function createDeployCommit(deployData, targetRepo, baseRepoName, octokit) {
+    return __awaiter(this, void 0, void 0, function () {
+        var cmData, content, deployContent, cmResult;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    console.log('Get deployment config map content');
+                    return [4, octokit.repos.getContent({
+                            owner: targetRepo.repoOrg,
+                            repo: targetRepo.repoName,
+                            ref: "refs/heads/" + targetRepo.branchName,
+                            path: deployData.cmPath
+                        })];
+                case 1:
+                    cmData = (_a.sent()).data;
+                    content = Buffer.from(cmData.content, 'base64').toString();
+                    deployContent = setConfigMap(deployData.key, deployData.keyValue, content);
+                    console.log('Push deployment config map content to target directory');
+                    return [4, octokit.repos.createOrUpdateFileContents({
+                            owner: targetRepo.repoOrg,
+                            repo: targetRepo.repoName,
+                            path: deployData.cmPath,
+                            branch: targetRepo.branchName,
+                            content: Buffer.from(deployContent).toString("base64"),
+                            sha: cmData.sha,
+                            message: "Automated update " + baseRepoName,
+                            committer: {
+                                name: 'vc-ci',
+                                email: 'ci@virtocommerce.com'
+                            },
+                            author: {
+                                name: 'vc-ci',
+                                email: 'ci@virtocommerce.com'
+                            },
+                        })];
+                case 2:
+                    cmResult = (_a.sent()).data;
+                    return [2];
+            }
+        });
+    });
+}
 function setConfigMap(key, keyValue, cmBody) {
     var moduleKey = "VirtoCommerce.";
     var dockerKey = "docker.";
@@ -202,7 +244,7 @@ function getDockerTag(dockerLink) {
 function run() {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function () {
-        var GITHUB_TOKEN, deployRepoName, deployBranchName, repoOrg, artifactKey, artifactUrl, taskNumber, cmPath, octokit, prRepo, deployRepo, deployData;
+        var GITHUB_TOKEN, deployRepoName, deployBranchName, repoOrg, artifactKey, artifactUrl, taskNumber, cmPath, forceCommit, octokit, prRepo, deployRepo, deployData;
         return __generator(this, function (_d) {
             GITHUB_TOKEN = core.getInput("githubToken");
             if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
@@ -214,6 +256,7 @@ function run() {
             artifactUrl = core.getInput("artifactUrl");
             taskNumber = core.getInput("taskNumber");
             cmPath = core.getInput("cmPath");
+            forceCommit = core.getInput("forceCommit");
             octokit = github.getOctokit(GITHUB_TOKEN);
             prRepo = {
                 repoOrg: repoOrg,
@@ -232,7 +275,16 @@ function run() {
                 keyValue: artifactUrl,
                 cmPath: cmPath
             };
-            createDeployPr(deployData, deployRepo, prRepo, octokit);
+            switch (forceCommit) {
+                case "false":
+                    createDeployPr(deployData, deployRepo, prRepo, octokit);
+                    break;
+                case "true":
+                    createDeployCommit(deployData, deployRepo, prRepo.repoName, octokit);
+                    break;
+                default:
+                    console.log("Input parameter forceCommit should contain \"true\" or \"false\". Current forceCommit value is \"" + forceCommit + "\"");
+            }
             return [2];
         });
     });

@@ -119,6 +119,43 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     }
 }
 
+async function createDeployCommit(deployData: DeploymentData, targetRepo: RepoData, baseRepoName: string,octokit: any): Promise <void>{
+
+    console.log('Get deployment config map content');
+    //Get deployment config map content
+    const { data: cmData} = await octokit.repos.getContent({
+        owner: targetRepo.repoOrg,
+        repo: targetRepo.repoName,
+        ref: `refs/heads/${targetRepo.branchName}`,
+        path: deployData.cmPath
+    });
+
+    let content = Buffer.from(cmData.content, 'base64').toString();
+    //Set new values in deployment config map
+    let deployContent = setConfigMap(deployData.key, deployData.keyValue, content);
+
+    console.log('Push deployment config map content to target directory');
+    //Push deployment config map content to target directory
+    const { data: cmResult } = await octokit.repos.createOrUpdateFileContents({
+        owner: targetRepo.repoOrg,
+        repo: targetRepo.repoName,
+        path: deployData.cmPath,
+        branch: targetRepo.branchName,
+        content: Buffer.from(deployContent).toString("base64"),
+        sha: cmData.sha,
+        message: `Automated update ${baseRepoName}`,
+        committer:{
+            name: 'vc-ci',
+            email: 'ci@virtocommerce.com' 
+        },
+        author:{
+            name: 'vc-ci',
+            email: 'ci@virtocommerce.com' 
+        },
+    });
+}
+
+
 function setConfigMap (key: string, keyValue:string, cmBody:string){
     const moduleKey = "VirtoCommerce."
     const dockerKey = "docker.";
@@ -170,6 +207,7 @@ async function run(): Promise<void> {
     const artifactUrl = core.getInput("artifactUrl");
     const taskNumber = core.getInput("taskNumber");
     const cmPath = core.getInput("cmPath");
+    const forceCommit = core.getInput("forceCommit");
 
     const octokit = github.getOctokit(GITHUB_TOKEN);
 
@@ -192,7 +230,16 @@ async function run(): Promise<void> {
         cmPath: cmPath
     }
 
-    createDeployPr(deployData, deployRepo, prRepo, octokit);
+    switch(forceCommit){
+        case "false":
+            createDeployPr(deployData, deployRepo, prRepo, octokit);
+            break;
+        case "true":
+            createDeployCommit(deployData, deployRepo, prRepo.repoName, octokit);
+            break;
+        default:
+            console.log(`Input parameter forceCommit should contain "true" or "false". Current forceCommit value is "${forceCommit}"`)
+    }
 
 }
 

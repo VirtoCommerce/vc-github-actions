@@ -46,6 +46,12 @@
     required: true
     default: "webstore-app/resources/deployment-cm.yaml"
 
+### forceCommit:
+
+    description: "Flag to create deploy commit without PR. If true - create commit into deployBranch and don`t create PR"
+    required: true
+    default: "false"
+
 ## Example of usage
 
 ```
