@@ -2,6 +2,10 @@ import * as yaml from 'js-yaml'
 import * as github from '@actions/github'
 import * as core from '@actions/core'
 
+const githubUser = {
+    name: 'vc-ci',
+    email: 'ci@virtocommerce.com' 
+}
 interface RepoData
 {
     repoOrg: string,
@@ -84,12 +88,12 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
         sha: cmData.sha,
         message: `Automated update ${baseRepo.repoName} from PR ${baseRepo.pullNumber}`,
         committer:{
-            name: 'vc-ci',
-            email: 'ci@virtocommerce.com' 
+            name: githubUser.name,
+            email: githubUser.email
         },
         author:{
-            name: 'vc-ci',
-            email: 'ci@virtocommerce.com' 
+            name: githubUser.name,
+            email: githubUser.email
         },
     });
 
@@ -145,12 +149,12 @@ async function createDeployCommit(deployData: DeploymentData, targetRepo: RepoDa
         sha: cmData.sha,
         message: `Automated update ${baseRepoName}`,
         committer:{
-            name: 'vc-ci',
-            email: 'ci@virtocommerce.com' 
+            name: githubUser.name,
+            email: githubUser.email
         },
         author:{
-            name: 'vc-ci',
-            email: 'ci@virtocommerce.com' 
+            name: githubUser.name,
+            email: githubUser.email
         },
     });
 }

@@ -58,6 +58,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var yaml = __importStar(require("js-yaml"));
 var github = __importStar(require("@actions/github"));
 var core = __importStar(require("@actions/core"));
+var githubUser = {
+    name: 'vc-ci',
+    email: 'ci@virtocommerce.com'
+};
 function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
     return __awaiter(this, void 0, void 0, function () {
         var targetBranchName, baseBranch, branch, err_1, targetBranch, cmData, content, deployContent, cmResult, pr, err_2;
@@ -121,12 +125,12 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                             sha: cmData.sha,
                             message: "Automated update " + baseRepo.repoName + " from PR " + baseRepo.pullNumber,
                             committer: {
-                                name: 'vc-ci',
-                                email: 'ci@virtocommerce.com'
+                                name: githubUser.name,
+                                email: githubUser.email
                             },
                             author: {
-                                name: 'vc-ci',
-                                email: 'ci@virtocommerce.com'
+                                name: githubUser.name,
+                                email: githubUser.email
                             },
                         })];
                 case 9:
@@ -193,12 +197,12 @@ function createDeployCommit(deployData, targetRepo, baseRepoName, octokit) {
                             sha: cmData.sha,
                             message: "Automated update " + baseRepoName,
                             committer: {
-                                name: 'vc-ci',
-                                email: 'ci@virtocommerce.com'
+                                name: githubUser.name,
+                                email: githubUser.email
                             },
                             author: {
-                                name: 'vc-ci',
-                                email: 'ci@virtocommerce.com'
+                                name: githubUser.name,
+                                email: githubUser.email
                             },
                         })];
                 case 2:
