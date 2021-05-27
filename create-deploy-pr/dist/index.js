@@ -58,11 +58,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var yaml = __importStar(require("js-yaml"));
 var github = __importStar(require("@actions/github"));
 var core = __importStar(require("@actions/core"));
-var githubUser = {
-    name: 'vc-ci',
-    email: 'ci@virtocommerce.com'
-};
-function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
+function createDeployPr(deployData, targetRepo, baseRepo, gitUser, octokit) {
     return __awaiter(this, void 0, void 0, function () {
         var targetBranchName, baseBranch, branch, err_1, targetBranch, cmData, content, deployContent, cmResult, pr, err_2;
         return __generator(this, function (_a) {
@@ -125,12 +121,12 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                             sha: cmData.sha,
                             message: "Automated update " + baseRepo.repoName + " from PR " + baseRepo.pullNumber,
                             committer: {
-                                name: githubUser.name,
-                                email: githubUser.email
+                                name: gitUser.name,
+                                email: gitUser.email
                             },
                             author: {
-                                name: githubUser.name,
-                                email: githubUser.email
+                                name: gitUser.name,
+                                email: gitUser.email
                             },
                         })];
                 case 9:
@@ -170,7 +166,7 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
         });
     });
 }
-function createDeployCommit(deployData, targetRepo, baseRepoName, octokit) {
+function createDeployCommit(deployData, targetRepo, baseRepoName, gitUser, octokit) {
     return __awaiter(this, void 0, void 0, function () {
         var cmData, content, deployContent, cmResult;
         return __generator(this, function (_a) {
@@ -197,12 +193,12 @@ function createDeployCommit(deployData, targetRepo, baseRepoName, octokit) {
                             sha: cmData.sha,
                             message: "Automated update " + baseRepoName,
                             committer: {
-                                name: githubUser.name,
-                                email: githubUser.email
+                                name: gitUser.name,
+                                email: gitUser.email
                             },
                             author: {
-                                name: githubUser.name,
-                                email: githubUser.email
+                                name: gitUser.name,
+                                email: gitUser.email
                             },
                         })];
                 case 2:
@@ -247,13 +243,15 @@ function getDockerTag(dockerLink) {
 function run() {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function () {
-        var GITHUB_TOKEN, deployRepoName, deployBranchName, repoOrg, artifactKey, artifactUrl, taskNumber, cmPath, forceCommit, octokit, prRepo, deployRepo, deployData;
+        var GITHUB_TOKEN, deployRepoName, deployBranchName, gitUserName, gitUserEmail, repoOrg, artifactKey, artifactUrl, taskNumber, cmPath, forceCommit, octokit, gitUser, prRepo, deployRepo, deployData;
         return __generator(this, function (_d) {
             GITHUB_TOKEN = core.getInput("githubToken");
             if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
                 GITHUB_TOKEN = process.env.GITHUB_TOKEN;
             deployRepoName = core.getInput("deployRepo");
             deployBranchName = core.getInput("deployBranch");
+            gitUserName = core.getInput("gitUserName");
+            gitUserEmail = core.getInput("gitUserEmail");
             repoOrg = core.getInput("repoOrg");
             artifactKey = core.getInput("artifactKey");
             artifactUrl = core.getInput("artifactUrl");
@@ -261,6 +259,10 @@ function run() {
             cmPath = core.getInput("cmPath");
             forceCommit = core.getInput("forceCommit");
             octokit = github.getOctokit(GITHUB_TOKEN);
+            gitUser = {
+                name: gitUserName,
+                email: gitUserEmail
+            };
             prRepo = {
                 repoOrg: repoOrg,
                 repoName: github.context.repo.repo,
@@ -280,10 +282,10 @@ function run() {
             };
             switch (forceCommit) {
                 case "false":
-                    createDeployPr(deployData, deployRepo, prRepo, octokit);
+                    createDeployPr(deployData, deployRepo, prRepo, gitUser, octokit);
                     break;
                 case "true":
-                    createDeployCommit(deployData, deployRepo, prRepo.repoName, octokit);
+                    createDeployCommit(deployData, deployRepo, prRepo.repoName, gitUser, octokit);
                     break;
                 default:
                     console.log("Input parameter forceCommit should contain \"true\" or \"false\". Current forceCommit value is \"" + forceCommit + "\"");

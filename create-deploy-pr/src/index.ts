@@ -2,9 +2,10 @@ import * as yaml from 'js-yaml'
 import * as github from '@actions/github'
 import * as core from '@actions/core'
 
-const githubUser = {
-    name: 'vc-ci',
-    email: 'ci@virtocommerce.com' 
+interface GitUser 
+{
+    name: string,
+    email: string
 }
 interface RepoData
 {
@@ -23,14 +24,7 @@ interface DeploymentData
     cmPath: string
 }
 
-interface PrComments
-{
-    downloadLink: string,
-    qaTask: string,
-    demoTask: string
-}
-
-async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, baseRepo: RepoData,octokit: any): Promise <void>{
+async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, baseRepo: RepoData, gitUser: GitUser, octokit: any): Promise <void>{
 
     const targetBranchName = `${targetRepo.taskNumber}-${targetRepo.branchName}-deployment`;
     
@@ -88,12 +82,12 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
         sha: cmData.sha,
         message: `Automated update ${baseRepo.repoName} from PR ${baseRepo.pullNumber}`,
         committer:{
-            name: githubUser.name,
-            email: githubUser.email
+            name: gitUser.name,
+            email: gitUser.email
         },
         author:{
-            name: githubUser.name,
-            email: githubUser.email
+            name: gitUser.name,
+            email: gitUser.email
         },
     });
 
@@ -123,7 +117,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     }
 }
 
-async function createDeployCommit(deployData: DeploymentData, targetRepo: RepoData, baseRepoName: string,octokit: any): Promise <void>{
+async function createDeployCommit(deployData: DeploymentData, targetRepo: RepoData, baseRepoName: string, gitUser: GitUser, octokit: any): Promise <void>{
 
     console.log('Get deployment config map content');
     //Get deployment config map content
@@ -149,16 +143,15 @@ async function createDeployCommit(deployData: DeploymentData, targetRepo: RepoDa
         sha: cmData.sha,
         message: `Automated update ${baseRepoName}`,
         committer:{
-            name: githubUser.name,
-            email: githubUser.email
+            name: gitUser.name,
+            email: gitUser.email
         },
         author:{
-            name: githubUser.name,
-            email: githubUser.email
+            name: gitUser.name,
+            email: gitUser.email
         },
     });
 }
-
 
 function setConfigMap (key: string, keyValue:string, cmBody:string){
     const moduleKey = "VirtoCommerce."
@@ -205,6 +198,8 @@ async function run(): Promise<void> {
     
     const deployRepoName = core.getInput("deployRepo");
     const deployBranchName = core.getInput("deployBranch");
+    const gitUserName = core.getInput("gitUserName");
+    const gitUserEmail = core.getInput("gitUserEmail");
     const repoOrg = core.getInput("repoOrg");
     const artifactKey = core.getInput("artifactKey");
     const artifactUrl = core.getInput("artifactUrl");
@@ -214,6 +209,10 @@ async function run(): Promise<void> {
 
     const octokit = github.getOctokit(GITHUB_TOKEN);
 
+    const gitUser: GitUser = {
+        name: gitUserName,
+        email: gitUserEmail
+    }
     const prRepo: RepoData = {
         repoOrg: repoOrg,
         repoName: github.context.repo.repo,
@@ -235,10 +234,10 @@ async function run(): Promise<void> {
 
     switch(forceCommit){
         case "false":
-            createDeployPr(deployData, deployRepo, prRepo, octokit);
+            createDeployPr(deployData, deployRepo, prRepo, gitUser, octokit);
             break;
         case "true":
-            createDeployCommit(deployData, deployRepo, prRepo.repoName, octokit);
+            createDeployCommit(deployData, deployRepo, prRepo.repoName, gitUser, octokit);
             break;
         default:
             console.log(`Input parameter forceCommit should contain "true" or "false". Current forceCommit value is "${forceCommit}"`)
