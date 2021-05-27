@@ -221,8 +221,7 @@ function setConfigMap(key, keyValue, cmBody) {
         var tag = getDockerTag(keyValue);
         var doc = yaml.load(cmBody);
         var imageIndex = doc["images"].findIndex(function (x) { return x.name === key; });
-        doc["images"][imageIndex]["newTag"] = tag;
-        result = yaml.dump(doc);
+        result = cmBody.replace(doc["images"][imageIndex]["newTag"], tag);
     }
     else {
         if (key.indexOf(moduleKey) > -1) {

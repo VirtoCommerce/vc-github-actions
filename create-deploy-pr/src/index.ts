@@ -172,9 +172,8 @@ function setConfigMap (key: string, keyValue:string, cmBody:string){
         const doc = yaml.load(cmBody);
 
         let imageIndex = doc["images"].findIndex( x => x.name === key);
-        doc["images"][imageIndex]["newTag"] = tag;
 
-        result = yaml.dump(doc);
+        result = cmBody.replace(doc["images"][imageIndex]["newTag"], tag);
 
     } else {
         if(key.indexOf(moduleKey) > -1){ //  Module deployment
