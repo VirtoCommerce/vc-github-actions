@@ -42,7 +42,7 @@ description: 'Get deployment parameters for ArgoCD deployments'
 ```
 
 - name: Read deployment config
-  uses: VirtoCommerce/vc-github-actions/create-deploy-pr@master
+  uses: VirtoCommerce/vc-github-actions/get-deploy-param@master
   id: deployConfig
 
 ```
