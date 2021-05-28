@@ -10,7 +10,6 @@ interface DeployConfig
     cmPath: string;
 }
 
-
 interface RepoData
 {
     repoOrg: string,
@@ -25,12 +24,11 @@ async function getDeployConfig(repo: RepoData, deployConfigPath: string, octokit
     const { data: cmData} = await octokit.repos.getContent({
         owner: repo.repoOrg,
         repo: repo.repoName,
-        ref: `refs/heads/${repo.branchName}`,
+        ref: repo.branchName,
         path: deployConfigPath
     });
 
     return Buffer.from(cmData.content, 'base64').toString();
-    
 }
 
 async function run(): Promise<void> {
@@ -64,7 +62,6 @@ async function run(): Promise<void> {
     console.log(`deployBranchQa is: ${deployConfig.deployBranchQa}`);
     console.log(`deployBranchProd is: ${deployConfig.deployBranchProd}`);
     console.log(`cmPath is: ${deployConfig.cmPath}`);
-
 }
 
 run().catch(error => core.setFailed(error.message));

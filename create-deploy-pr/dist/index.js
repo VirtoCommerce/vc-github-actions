@@ -58,7 +58,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var yaml = __importStar(require("js-yaml"));
 var github = __importStar(require("@actions/github"));
 var core = __importStar(require("@actions/core"));
-function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
+function createDeployPr(deployData, targetRepo, baseRepo, gitUser, octokit) {
     return __awaiter(this, void 0, void 0, function () {
         var targetBranchName, baseBranch, branch, err_1, targetBranch, cmData, content, deployContent, cmResult, pr, err_2;
         return __generator(this, function (_a) {
@@ -121,12 +121,12 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
                             sha: cmData.sha,
                             message: "Automated update " + baseRepo.repoName + " from PR " + baseRepo.pullNumber,
                             committer: {
-                                name: 'vc-ci',
-                                email: 'ci@virtocommerce.com'
+                                name: gitUser.name,
+                                email: gitUser.email
                             },
                             author: {
-                                name: 'vc-ci',
-                                email: 'ci@virtocommerce.com'
+                                name: gitUser.name,
+                                email: gitUser.email
                             },
                         })];
                 case 9:
@@ -166,6 +166,48 @@ function createDeployPr(deployData, targetRepo, baseRepo, octokit) {
         });
     });
 }
+function createDeployCommit(deployData, targetRepo, baseRepoName, gitUser, octokit) {
+    return __awaiter(this, void 0, void 0, function () {
+        var cmData, content, deployContent, cmResult;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    console.log('Get deployment config map content');
+                    return [4, octokit.repos.getContent({
+                            owner: targetRepo.repoOrg,
+                            repo: targetRepo.repoName,
+                            ref: "refs/heads/" + targetRepo.branchName,
+                            path: deployData.cmPath
+                        })];
+                case 1:
+                    cmData = (_a.sent()).data;
+                    content = Buffer.from(cmData.content, 'base64').toString();
+                    deployContent = setConfigMap(deployData.key, deployData.keyValue, content);
+                    console.log('Push deployment config map content to target directory');
+                    return [4, octokit.repos.createOrUpdateFileContents({
+                            owner: targetRepo.repoOrg,
+                            repo: targetRepo.repoName,
+                            path: deployData.cmPath,
+                            branch: targetRepo.branchName,
+                            content: Buffer.from(deployContent).toString("base64"),
+                            sha: cmData.sha,
+                            message: "Automated update " + baseRepoName,
+                            committer: {
+                                name: gitUser.name,
+                                email: gitUser.email
+                            },
+                            author: {
+                                name: gitUser.name,
+                                email: gitUser.email
+                            },
+                        })];
+                case 2:
+                    cmResult = (_a.sent()).data;
+                    return [2];
+            }
+        });
+    });
+}
 function setConfigMap(key, keyValue, cmBody) {
     var moduleKey = "VirtoCommerce.";
     var dockerKey = "docker.";
@@ -175,8 +217,7 @@ function setConfigMap(key, keyValue, cmBody) {
         var tag = getDockerTag(keyValue);
         var doc = yaml.load(cmBody);
         var imageIndex = doc["images"].findIndex(function (x) { return x.name === key; });
-        doc["images"][imageIndex]["newTag"] = tag;
-        result = yaml.dump(doc);
+        result = cmBody.replace(doc["images"][imageIndex]["newTag"], tag);
     }
     else {
         if (key.indexOf(moduleKey) > -1) {
@@ -202,19 +243,26 @@ function getDockerTag(dockerLink) {
 function run() {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function () {
-        var GITHUB_TOKEN, deployRepoName, deployBranchName, repoOrg, artifactKey, artifactUrl, taskNumber, cmPath, octokit, prRepo, deployRepo, deployData;
+        var GITHUB_TOKEN, deployRepoName, deployBranchName, gitUserName, gitUserEmail, repoOrg, artifactKey, artifactUrl, taskNumber, cmPath, forceCommit, octokit, gitUser, prRepo, deployRepo, deployData;
         return __generator(this, function (_d) {
             GITHUB_TOKEN = core.getInput("githubToken");
             if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
                 GITHUB_TOKEN = process.env.GITHUB_TOKEN;
             deployRepoName = core.getInput("deployRepo");
             deployBranchName = core.getInput("deployBranch");
+            gitUserName = core.getInput("gitUserName");
+            gitUserEmail = core.getInput("gitUserEmail");
             repoOrg = core.getInput("repoOrg");
             artifactKey = core.getInput("artifactKey");
             artifactUrl = core.getInput("artifactUrl");
             taskNumber = core.getInput("taskNumber");
             cmPath = core.getInput("cmPath");
+            forceCommit = core.getInput("forceCommit");
             octokit = github.getOctokit(GITHUB_TOKEN);
+            gitUser = {
+                name: gitUserName,
+                email: gitUserEmail
+            };
             prRepo = {
                 repoOrg: repoOrg,
                 repoName: github.context.repo.repo,
@@ -232,7 +280,16 @@ function run() {
                 keyValue: artifactUrl,
                 cmPath: cmPath
             };
-            createDeployPr(deployData, deployRepo, prRepo, octokit);
+            switch (forceCommit) {
+                case "false":
+                    createDeployPr(deployData, deployRepo, prRepo, gitUser, octokit);
+                    break;
+                case "true":
+                    createDeployCommit(deployData, deployRepo, prRepo.repoName, gitUser, octokit);
+                    break;
+                default:
+                    console.log("Input parameter forceCommit should contain \"true\" or \"false\". Current forceCommit value is \"" + forceCommit + "\"");
+            }
             return [2];
         });
     });

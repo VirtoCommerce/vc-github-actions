@@ -2,6 +2,11 @@ import * as yaml from 'js-yaml'
 import * as github from '@actions/github'
 import * as core from '@actions/core'
 
+interface GitUser 
+{
+    name: string,
+    email: string
+}
 interface RepoData
 {
     repoOrg: string,
@@ -19,14 +24,7 @@ interface DeploymentData
     cmPath: string
 }
 
-interface PrComments
-{
-    downloadLink: string,
-    qaTask: string,
-    demoTask: string
-}
-
-async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, baseRepo: RepoData,octokit: any): Promise <void>{
+async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, baseRepo: RepoData, gitUser: GitUser, octokit: any): Promise <void>{
 
     const targetBranchName = `${targetRepo.taskNumber}-${targetRepo.branchName}-deployment`;
     
@@ -84,12 +82,12 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
         sha: cmData.sha,
         message: `Automated update ${baseRepo.repoName} from PR ${baseRepo.pullNumber}`,
         committer:{
-            name: 'vc-ci',
-            email: 'ci@virtocommerce.com' 
+            name: gitUser.name,
+            email: gitUser.email
         },
         author:{
-            name: 'vc-ci',
-            email: 'ci@virtocommerce.com' 
+            name: gitUser.name,
+            email: gitUser.email
         },
     });
 
@@ -119,6 +117,43 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     }
 }
 
+async function createDeployCommit(deployData: DeploymentData, targetRepo: RepoData, baseRepoName: string, gitUser: GitUser, octokit: any): Promise <void>{
+
+    console.log('Get deployment config map content');
+    //Get deployment config map content
+    const { data: cmData} = await octokit.repos.getContent({
+        owner: targetRepo.repoOrg,
+        repo: targetRepo.repoName,
+        ref: `refs/heads/${targetRepo.branchName}`,
+        path: deployData.cmPath
+    });
+
+    let content = Buffer.from(cmData.content, 'base64').toString();
+    
+    //Set new values in deployment config map
+    let deployContent = setConfigMap(deployData.key, deployData.keyValue, content);
+
+    console.log('Push deployment config map content to target directory');
+    //Push deployment config map content to target directory
+    const { data: cmResult } = await octokit.repos.createOrUpdateFileContents({
+        owner: targetRepo.repoOrg,
+        repo: targetRepo.repoName,
+        path: deployData.cmPath,
+        branch: targetRepo.branchName,
+        content: Buffer.from(deployContent).toString("base64"),
+        sha: cmData.sha,
+        message: `Automated update ${baseRepoName}`,
+        committer:{
+            name: gitUser.name,
+            email: gitUser.email
+        },
+        author:{
+            name: gitUser.name,
+            email: gitUser.email
+        },
+    });
+}
+
 function setConfigMap (key: string, keyValue:string, cmBody:string){
     const moduleKey = "VirtoCommerce."
     const dockerKey = "docker.";
@@ -131,9 +166,8 @@ function setConfigMap (key: string, keyValue:string, cmBody:string){
         const doc = yaml.load(cmBody);
 
         let imageIndex = doc["images"].findIndex( x => x.name === key);
-        doc["images"][imageIndex]["newTag"] = tag;
 
-        result = yaml.dump(doc);
+        result = cmBody.replace(doc["images"][imageIndex]["newTag"], tag);
 
     } else {
         if(key.indexOf(moduleKey) > -1){ //  Module deployment
@@ -165,14 +199,21 @@ async function run(): Promise<void> {
     
     const deployRepoName = core.getInput("deployRepo");
     const deployBranchName = core.getInput("deployBranch");
+    const gitUserName = core.getInput("gitUserName");
+    const gitUserEmail = core.getInput("gitUserEmail");
     const repoOrg = core.getInput("repoOrg");
     const artifactKey = core.getInput("artifactKey");
     const artifactUrl = core.getInput("artifactUrl");
     const taskNumber = core.getInput("taskNumber");
     const cmPath = core.getInput("cmPath");
+    const forceCommit = core.getInput("forceCommit");
 
     const octokit = github.getOctokit(GITHUB_TOKEN);
 
+    const gitUser: GitUser = {
+        name: gitUserName,
+        email: gitUserEmail
+    }
     const prRepo: RepoData = {
         repoOrg: repoOrg,
         repoName: github.context.repo.repo,
@@ -192,7 +233,16 @@ async function run(): Promise<void> {
         cmPath: cmPath
     }
 
-    createDeployPr(deployData, deployRepo, prRepo, octokit);
+    switch(forceCommit){
+        case "false":
+            createDeployPr(deployData, deployRepo, prRepo, gitUser, octokit);
+            break;
+        case "true":
+            createDeployCommit(deployData, deployRepo, prRepo.repoName, gitUser, octokit);
+            break;
+        default:
+            console.log(`Input parameter forceCommit should contain "true" or "false". Current forceCommit value is "${forceCommit}"`)
+    }
 
 }
 

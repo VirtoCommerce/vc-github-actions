@@ -67,7 +67,7 @@ function getDeployConfig(repo, deployConfigPath, octokit) {
                     return [4, octokit.repos.getContent({
                             owner: repo.repoOrg,
                             repo: repo.repoName,
-                            ref: "refs/heads/" + repo.branchName,
+                            ref: repo.branchName,
                             path: deployConfigPath
                         })];
                 case 1:
