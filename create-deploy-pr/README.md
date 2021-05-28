@@ -15,7 +15,7 @@
     default: "ci@virtocommerce.com"
 
 ### gitUserName:
-    
+
     description: "git config user.name"
     default: "vc-ci"
     required: false
