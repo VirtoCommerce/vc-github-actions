@@ -129,6 +129,9 @@ async function createDeployCommit(deployData: DeploymentData, targetRepo: RepoDa
     });
 
     let content = Buffer.from(cmData.content, 'base64').toString();
+    
+    console.log('Config map - ');
+    console.log(content);
     //Set new values in deployment config map
     let deployContent = setConfigMap(deployData.key, deployData.keyValue, content);
 
@@ -163,8 +166,11 @@ function setConfigMap (key: string, keyValue:string, cmBody:string){
         
         const tag = getDockerTag(keyValue);
         const doc = yaml.load(cmBody);
+        console.log('Load cmBody - ok')
 
         let imageIndex = doc["images"].findIndex( x => x.name === key);
+        
+        console.log('Find key - ok')
 
         result = cmBody.replace(doc["images"][imageIndex]["newTag"], tag);
 
