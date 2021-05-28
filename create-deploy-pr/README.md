@@ -8,6 +8,18 @@
 
     description: "GitHub token"
 
+### gitUserEmail:
+
+    description: "git config user.email"
+    required: false
+    default: "ci@virtocommerce.com"
+
+### gitUserName:
+
+    description: "git config user.name"
+    default: "vc-ci"
+    required: false
+
 ### repoOrg:
 
     description: "Repo org"
@@ -45,6 +57,12 @@
     description: "Path to config map in repository"
     required: true
     default: "webstore-app/resources/deployment-cm.yaml"
+
+### forceCommit:
+
+    description: "Flag to create deploy commit without PR. If true - create commit into deployBranch and don`t create PR"
+    required: true
+    default: "false"
 
 ## Example of usage
 
