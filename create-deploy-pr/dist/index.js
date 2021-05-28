@@ -182,8 +182,6 @@ function createDeployCommit(deployData, targetRepo, baseRepoName, gitUser, octok
                 case 1:
                     cmData = (_a.sent()).data;
                     content = Buffer.from(cmData.content, 'base64').toString();
-                    console.log('Config map - ');
-                    console.log(content);
                     deployContent = setConfigMap(deployData.key, deployData.keyValue, content);
                     console.log('Push deployment config map content to target directory');
                     return [4, octokit.repos.createOrUpdateFileContents({
@@ -218,9 +216,7 @@ function setConfigMap(key, keyValue, cmBody) {
         console.log('setConfigMap: Docker image deployment');
         var tag = getDockerTag(keyValue);
         var doc = yaml.load(cmBody);
-        console.log('Load cmBody - ok');
         var imageIndex = doc["images"].findIndex(function (x) { return x.name === key; });
-        console.log('Find key - ok');
         result = cmBody.replace(doc["images"][imageIndex]["newTag"], tag);
     }
     else {
