@@ -11,7 +11,7 @@ description: 'Get deployment parameters for ArgoCD deployments'
 
 ### envName:
 
-    description: 'Name for required environment parameters'
+    description: 'Name for required environment parameters. Allowed values is: dev, qa, prod'
     required: true
     default: 'dev'
 
@@ -27,29 +27,25 @@ description: 'Get deployment parameters for ArgoCD deployments'
 
     description: 'artifactKey value'
 
-### deployAppName:
-
-    description: 'deployAppName value'
-
 ### deployRepo: 
 
     description: 'deployRepo value'
 
-### deployBranchDev:
+### deployAppName:
 
-    description: 'deployBranchDev value'
+    description: 'Required environment deployAppName value'
 
-### deployBranchQa:
+### deployBranch:
 
-    description: 'deployBranchQa value'
-
-### deployBranchProd:
-
-    description: 'deployBranchProd value'
+    description: 'Required environment deployBranch value'
 
 ### cmPath:
 
-    description: 'description value'
+    description: 'Path to config map'
+
+### deployConfig:
+
+    description: 'Full deploy config(for all environments)'
 
 ## Example of usage
 

@@ -118,10 +118,9 @@ function run() {
                     core.setOutput("deployConfig", deployConfig);
                     console.log("artifactKey is: " + deployConfig.artifactKey);
                     console.log("deployRepo is: " + deployConfig.deployRepo);
+                    console.log(envName + " deployAppName is: " + deployConfig[envName].deployAppName);
+                    console.log(envName + " deployBranch is: " + deployConfig[envName].deployBranch);
                     console.log("cmPath is: " + deployConfig.cmPath);
-                    console.log("dev is: " + deployConfig['dev']);
-                    console.log("qa  is: " + deployConfig['qa']);
-                    console.log("prod  is: " + deployConfig['prod']);
                     return [2];
             }
         });

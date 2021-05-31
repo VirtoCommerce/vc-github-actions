@@ -5,7 +5,7 @@ inputs:
     description: 'GitHub token'
     required: false
   envName:
-    description: 'Name for required environment parameters'
+    description: 'Name for required environment parameters. Allowed values is: dev, qa, prod'
     required: true
     default: 'dev'
   deployConfigPath:
@@ -15,23 +15,16 @@ inputs:
 outputs:
   artifactKey:
     description: 'artifactKey value'
-  deployAppName:
-    description: 'deployAppName value'
-  deployBranch:
-    description: 'deployBranch value'
-  deployConfig:
-    description: 'deployBranch value'
   deployRepo: 
     description: 'deployRepo value'
-  deployBranchDev:
-    description: 'deployBranchDev value'
-  deployBranchQa:
-    description: 'deployBranchQa value'
-  deployBranchProd:
-    description: 'deployBranchProd value'
+  deployAppName:
+    description: 'Required environment deployAppName value'
+  deployBranch:
+    description: 'Required environment deployBranch value'
   cmPath:
-    description: 'description value'
-
+    description: 'Path to config map'
+  deployConfig:
+    description: 'Full deploy config(for all environments)'
 
 runs:
   using: 'node12'

@@ -48,12 +48,17 @@ async function getDeployConfig(repo: RepoData, deployConfigPath: string, octokit
 
 async function run(): Promise<void> {
     
+    const environments = [ 'dev', 'qa', 'prod'];
     let deployConfig:DeployConfig;
     let GITHUB_TOKEN = core.getInput("githubToken");
     if(!GITHUB_TOKEN  && process.env.GITHUB_TOKEN !== undefined) GITHUB_TOKEN = process.env.GITHUB_TOKEN;
     
     const deployConfigPath = core.getInput("deployConfigPath");
     const envName = core.getInput("envName");
+
+    if (environments.includes(envName)) {
+        core.setFailed(`"envName" input variable should contain "dev", "qa" or "prod" value. Actual "envName" value is: ${envName}`)
+    }
 
     const octokit = github.getOctokit(GITHUB_TOKEN);
 
@@ -80,15 +85,9 @@ async function run(): Promise<void> {
     core.setOutput("deployConfig", deployConfig);
 
     console.log(`artifactKey is: ${deployConfig.artifactKey}`);
-//    console.log(`deployAppName is: ${deployConfig.deployAppName}`);
     console.log(`deployRepo is: ${deployConfig.deployRepo}`);
-//    console.log(`deployBranchDev is: ${deployConfig.deployBranchDev}`);
-//    console.log(`deployBranchQa is: ${deployConfig.deployBranchQa}`);
-//    console.log(`deployBranchProd is: ${deployConfig.deployBranchProd}`);
+    console.log(`${envName} deployAppName is: ${deployConfig[envName].deployAppName}`);
+    console.log(`${envName} deployBranch is: ${deployConfig[envName].deployBranch}`);
     console.log(`cmPath is: ${deployConfig.cmPath}`);
-    console.log(`dev is: ${deployConfig['dev']}`);
-    console.log(`qa  is: ${deployConfig['qa']}`);
-    console.log(`prod  is: ${deployConfig['prod']}`);
 }
-
 run().catch(error => core.setFailed(error.message));
