@@ -21,6 +21,10 @@ description: 'Get deployment parameters for ArgoCD deployments'
 
     description: 'artifactKey value'
 
+### deployAppName:
+
+    description: 'deployAppName value'
+
 ### deployRepo: 
 
     description: 'deployRepo value'

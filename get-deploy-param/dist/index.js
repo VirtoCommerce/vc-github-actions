@@ -110,11 +110,13 @@ function run() {
                         core.setFailed(error.message);
                     }
                     core.setOutput("artifactKey", deployConfig.artifactKey);
+                    core.setOutput("deployAppName", deployConfig.deployRepo);
                     core.setOutput("deployRepo", deployConfig.deployRepo);
                     core.setOutput("deployBranchQa", deployConfig.deployBranchQa);
                     core.setOutput("deployBranchProd", deployConfig.deployBranchProd);
                     core.setOutput("cmPath", deployConfig.cmPath);
                     console.log("artifactKey is: " + deployConfig.artifactKey);
+                    console.log("deployAppName is: " + deployConfig.deployAppName);
                     console.log("deployRepo is: " + deployConfig.deployRepo);
                     console.log("deployBranchQa is: " + deployConfig.deployBranchQa);
                     console.log("deployBranchProd is: " + deployConfig.deployBranchProd);

@@ -11,6 +11,8 @@ inputs:
 outputs:
   artifactKey:
     description: 'artifactKey value'
+  deployAppName:
+    description: 'deployAppName value'
   deployRepo: 
     description: 'deployRepo value'
   deployBranchQa:
