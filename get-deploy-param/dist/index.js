@@ -85,15 +85,19 @@ function getDeployConfig(repo, deployConfigPath, octokit) {
 }
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var deployConfig, GITHUB_TOKEN, deployConfigPath, envName, octokit, branchName, prRepo, content;
+        var environments, deployConfig, GITHUB_TOKEN, deployConfigPath, envName, octokit, branchName, prRepo, content;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    environments = ['dev', 'qa', 'prod'];
                     GITHUB_TOKEN = core.getInput("githubToken");
                     if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
                         GITHUB_TOKEN = process.env.GITHUB_TOKEN;
                     deployConfigPath = core.getInput("deployConfigPath");
                     envName = core.getInput("envName");
+                    if (!environments.includes(envName)) {
+                        core.setFailed("\"envName\" input variable should contain \"dev\", \"qa\" or \"prod\" value. Actual \"envName\" value is: " + envName);
+                    }
                     octokit = github.getOctokit(GITHUB_TOKEN);
                     branchName = github.context.eventName.startsWith('pull_request') ? github.context.payload.pull_request.head.ref : github.context.ref;
                     prRepo = {

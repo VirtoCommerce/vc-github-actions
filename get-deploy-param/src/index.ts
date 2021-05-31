@@ -56,7 +56,7 @@ async function run(): Promise<void> {
     const deployConfigPath = core.getInput("deployConfigPath");
     const envName = core.getInput("envName");
 
-    if (environments.includes(envName)) {
+    if (!environments.includes(envName)) {
         core.setFailed(`"envName" input variable should contain "dev", "qa" or "prod" value. Actual "envName" value is: ${envName}`)
     }
 
