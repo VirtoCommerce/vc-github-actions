@@ -29,6 +29,10 @@ description: 'Get deployment parameters for ArgoCD deployments'
 
     description: 'deployRepo value'
 
+### deployBranchDev:
+
+    description: 'deployBranchDev value'
+
 ### deployBranchQa:
 
     description: 'deployBranchQa value'

@@ -6,6 +6,7 @@ interface DeployConfig
     artifactKey: string;
     deployAppName: string;
     deployRepo: string;
+    deployBranchDev: string;
     deployBranchQa: string;
     deployBranchProd: string;
     cmPath: string;
@@ -65,6 +66,7 @@ async function run(): Promise<void> {
     core.setOutput("artifactKey", deployConfig.artifactKey);
     core.setOutput("deployAppName", deployConfig.deployRepo);
     core.setOutput("deployRepo", deployConfig.deployRepo);
+    core.setOutput("deployBranchDev", deployConfig.deployBranchDev);
     core.setOutput("deployBranchQa", deployConfig.deployBranchQa);
     core.setOutput("deployBranchProd", deployConfig.deployBranchProd);
     core.setOutput("cmPath", deployConfig.cmPath);
@@ -72,6 +74,7 @@ async function run(): Promise<void> {
     console.log(`artifactKey is: ${deployConfig.artifactKey}`);
     console.log(`deployAppName is: ${deployConfig.deployAppName}`);
     console.log(`deployRepo is: ${deployConfig.deployRepo}`);
+    console.log(`deployBranchDev is: ${deployConfig.deployBranchDev}`);
     console.log(`deployBranchQa is: ${deployConfig.deployBranchQa}`);
     console.log(`deployBranchProd is: ${deployConfig.deployBranchProd}`);
     console.log(`cmPath is: ${deployConfig.cmPath}`);
