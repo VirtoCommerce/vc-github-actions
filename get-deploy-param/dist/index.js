@@ -110,7 +110,7 @@ function run() {
                         core.setFailed(error.message);
                     }
                     core.setOutput("artifactKey", deployConfig.artifactKey);
-                    core.setOutput("deployAppName", deployConfig.deployRepo);
+                    core.setOutput("deployAppName", deployConfig.deployAppName);
                     core.setOutput("deployRepo", deployConfig.deployRepo);
                     core.setOutput("deployBranchDev", deployConfig.deployBranchDev);
                     core.setOutput("deployBranchQa", deployConfig.deployBranchQa);
