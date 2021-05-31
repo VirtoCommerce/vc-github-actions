@@ -48,7 +48,7 @@ async function getDeployConfig(repo: RepoData, deployConfigPath: string, octokit
 
 async function run(): Promise<void> {
     
-    const environments = [ 'dev', 'qa', 'prod'];
+    const environments = [ 'dev', 'qa', 'prod' ];
     let deployConfig:DeployConfig;
     let GITHUB_TOKEN = core.getInput("githubToken");
     if(!GITHUB_TOKEN  && process.env.GITHUB_TOKEN !== undefined) GITHUB_TOKEN = process.env.GITHUB_TOKEN;
