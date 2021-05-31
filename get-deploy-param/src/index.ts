@@ -74,8 +74,8 @@ async function run(): Promise<void> {
 
     core.setOutput("artifactKey", deployConfig.artifactKey);
     core.setOutput("deployRepo", deployConfig.deployRepo);
-    core.setOutput("deployAppName", deployConfig[envName].deployAppName);
-    core.setOutput("deployBranch", deployConfig[envName].deployBranch);
+//    core.setOutput("deployAppName", deployConfig[envName].deployAppName);
+//    core.setOutput("deployBranch", deployConfig[envName].deployBranch);
     core.setOutput("cmPath", deployConfig.cmPath);
     core.setOutput("deployConfig", deployConfig);
 
