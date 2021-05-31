@@ -19,20 +19,26 @@ interface RepoData
 
 async function getDeployConfig(repo: RepoData, deployConfigPath: string, octokit: any): Promise <string>{
 
-    console.log('Get deployment config map content');
-    //Get deployment config content
-    const { data: cmData} = await octokit.repos.getContent({
-        owner: repo.repoOrg,
-        repo: repo.repoName,
-        ref: repo.branchName,
-        path: deployConfigPath
-    });
-
-    return Buffer.from(cmData.content, 'base64').toString();
+    try {
+        console.log('Get deployment config content');
+        //Get deployment config content
+        const { data: cmData} = await octokit.repos.getContent({
+            owner: repo.repoOrg,
+            repo: repo.repoName,
+            ref: repo.branchName,
+            path: deployConfigPath
+        });
+    
+        return Buffer.from(cmData.content, 'base64').toString();
+    
+    } catch(error) {
+        core.setFailed(error.message)
+    }
 }
 
 async function run(): Promise<void> {
     
+    let deployConfig:DeployConfig;
     let GITHUB_TOKEN = core.getInput("githubToken");
     if(!GITHUB_TOKEN  && process.env.GITHUB_TOKEN !== undefined) GITHUB_TOKEN = process.env.GITHUB_TOKEN;
     
@@ -49,7 +55,11 @@ async function run(): Promise<void> {
     };
 
     const content: string = await getDeployConfig(prRepo, deployConfigPath, octokit);
-    const deployConfig:DeployConfig = JSON.parse(content);
+    try {
+        deployConfig = JSON.parse(content);
+    } catch (error) {
+        core.setFailed(error.message)
+    }
 
     core.setOutput("artifactKey", deployConfig.artifactKey);
     core.setOutput("deployRepo", deployConfig.deployRepo);

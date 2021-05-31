@@ -59,11 +59,12 @@ var github = __importStar(require("@actions/github"));
 var core = __importStar(require("@actions/core"));
 function getDeployConfig(repo, deployConfigPath, octokit) {
     return __awaiter(this, void 0, void 0, function () {
-        var cmData;
+        var cmData, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    console.log('Get deployment config map content');
+                    _a.trys.push([0, 2, , 3]);
+                    console.log('Get deployment config content');
                     return [4, octokit.repos.getContent({
                             owner: repo.repoOrg,
                             repo: repo.repoName,
@@ -73,13 +74,18 @@ function getDeployConfig(repo, deployConfigPath, octokit) {
                 case 1:
                     cmData = (_a.sent()).data;
                     return [2, Buffer.from(cmData.content, 'base64').toString()];
+                case 2:
+                    error_1 = _a.sent();
+                    core.setFailed(error_1.message);
+                    return [3, 3];
+                case 3: return [2];
             }
         });
     });
 }
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var GITHUB_TOKEN, deployConfigPath, octokit, branchName, prRepo, content, deployConfig;
+        var deployConfig, GITHUB_TOKEN, deployConfigPath, octokit, branchName, prRepo, content;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -97,7 +103,12 @@ function run() {
                     return [4, getDeployConfig(prRepo, deployConfigPath, octokit)];
                 case 1:
                     content = _a.sent();
-                    deployConfig = JSON.parse(content);
+                    try {
+                        deployConfig = JSON.parse(content);
+                    }
+                    catch (error) {
+                        core.setFailed(error.message);
+                    }
                     core.setOutput("artifactKey", deployConfig.artifactKey);
                     core.setOutput("deployRepo", deployConfig.deployRepo);
                     core.setOutput("deployBranchQa", deployConfig.deployBranchQa);
