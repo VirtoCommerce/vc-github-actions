@@ -4,11 +4,19 @@ import * as core from '@actions/core'
 interface DeployConfig
 {
     artifactKey: string;
-    deployAppName: string;
     deployRepo: string;
-    deployBranchDev: string;
-    deployBranchQa: string;
-    deployBranchProd: string;
+    dev:{
+        deployAppName: string;
+        deployBranch: string;
+    },
+    qa:{
+        deployAppName: string;
+        deployBranch: string;
+    },
+    prod:{
+        deployAppName: string;
+        deployBranch: string;
+    }
     cmPath: string;
 }
 
@@ -45,6 +53,7 @@ async function run(): Promise<void> {
     if(!GITHUB_TOKEN  && process.env.GITHUB_TOKEN !== undefined) GITHUB_TOKEN = process.env.GITHUB_TOKEN;
     
     const deployConfigPath = core.getInput("deployConfigPath");
+    const envName = core.getInput("envName");
 
     const octokit = github.getOctokit(GITHUB_TOKEN);
 
@@ -64,20 +73,22 @@ async function run(): Promise<void> {
     }
 
     core.setOutput("artifactKey", deployConfig.artifactKey);
-    core.setOutput("deployAppName", deployConfig.deployAppName);
     core.setOutput("deployRepo", deployConfig.deployRepo);
-    core.setOutput("deployBranchDev", deployConfig.deployBranchDev);
-    core.setOutput("deployBranchQa", deployConfig.deployBranchQa);
-    core.setOutput("deployBranchProd", deployConfig.deployBranchProd);
+    core.setOutput("deployAppName", deployConfig[envName].deployAppName);
+    core.setOutput("deployBranch", deployConfig[envName].deployBranch);
     core.setOutput("cmPath", deployConfig.cmPath);
+    core.setOutput("deployConfig", deployConfig);
 
     console.log(`artifactKey is: ${deployConfig.artifactKey}`);
-    console.log(`deployAppName is: ${deployConfig.deployAppName}`);
+//    console.log(`deployAppName is: ${deployConfig.deployAppName}`);
     console.log(`deployRepo is: ${deployConfig.deployRepo}`);
-    console.log(`deployBranchDev is: ${deployConfig.deployBranchDev}`);
-    console.log(`deployBranchQa is: ${deployConfig.deployBranchQa}`);
-    console.log(`deployBranchProd is: ${deployConfig.deployBranchProd}`);
+//    console.log(`deployBranchDev is: ${deployConfig.deployBranchDev}`);
+//    console.log(`deployBranchQa is: ${deployConfig.deployBranchQa}`);
+//    console.log(`deployBranchProd is: ${deployConfig.deployBranchProd}`);
     console.log(`cmPath is: ${deployConfig.cmPath}`);
+    console.log(`dev is: ${deployConfig['dev']}`);
+    console.log(`qa  is: ${deployConfig['qa']}`);
+    console.log(`prod  is: ${deployConfig['prod']}`);
 }
 
 run().catch(error => core.setFailed(error.message));

@@ -4,6 +4,10 @@ inputs:
   githubToken:
     description: 'GitHub token'
     required: false
+  envName:
+    description: 'Name for required environment parameters'
+    required: true
+    default: 'dev'
   deployConfigPath:
     description: 'Path to the argoDeploy.json'
     required: true
@@ -13,6 +17,10 @@ outputs:
     description: 'artifactKey value'
   deployAppName:
     description: 'deployAppName value'
+  deployBranch:
+    description: 'deployBranch value'
+  deployConfig:
+    description: 'deployBranch value'
   deployRepo: 
     description: 'deployRepo value'
   deployBranchDev:

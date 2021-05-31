@@ -85,7 +85,7 @@ function getDeployConfig(repo, deployConfigPath, octokit) {
 }
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var deployConfig, GITHUB_TOKEN, deployConfigPath, octokit, branchName, prRepo, content;
+        var deployConfig, GITHUB_TOKEN, deployConfigPath, envName, octokit, branchName, prRepo, content;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -93,6 +93,7 @@ function run() {
                     if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
                         GITHUB_TOKEN = process.env.GITHUB_TOKEN;
                     deployConfigPath = core.getInput("deployConfigPath");
+                    envName = core.getInput("envName");
                     octokit = github.getOctokit(GITHUB_TOKEN);
                     branchName = github.context.eventName.startsWith('pull_request') ? github.context.payload.pull_request.head.ref : github.context.ref;
                     prRepo = {
@@ -110,19 +111,17 @@ function run() {
                         core.setFailed(error.message);
                     }
                     core.setOutput("artifactKey", deployConfig.artifactKey);
-                    core.setOutput("deployAppName", deployConfig.deployAppName);
                     core.setOutput("deployRepo", deployConfig.deployRepo);
-                    core.setOutput("deployBranchDev", deployConfig.deployBranchDev);
-                    core.setOutput("deployBranchQa", deployConfig.deployBranchQa);
-                    core.setOutput("deployBranchProd", deployConfig.deployBranchProd);
+                    core.setOutput("deployAppName", deployConfig[envName].deployAppName);
+                    core.setOutput("deployBranch", deployConfig[envName].deployBranch);
                     core.setOutput("cmPath", deployConfig.cmPath);
+                    core.setOutput("deployConfig", deployConfig);
                     console.log("artifactKey is: " + deployConfig.artifactKey);
-                    console.log("deployAppName is: " + deployConfig.deployAppName);
                     console.log("deployRepo is: " + deployConfig.deployRepo);
-                    console.log("deployBranchDev is: " + deployConfig.deployBranchDev);
-                    console.log("deployBranchQa is: " + deployConfig.deployBranchQa);
-                    console.log("deployBranchProd is: " + deployConfig.deployBranchProd);
                     console.log("cmPath is: " + deployConfig.cmPath);
+                    console.log("dev is: " + deployConfig['dev']);
+                    console.log("qa  is: " + deployConfig['qa']);
+                    console.log("prod  is: " + deployConfig['prod']);
                     return [2];
             }
         });

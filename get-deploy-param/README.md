@@ -9,6 +9,12 @@ description: 'Get deployment parameters for ArgoCD deployments'
     description: 'GitHub token'
     required: false
 
+### envName:
+
+    description: 'Name for required environment parameters'
+    required: true
+    default: 'dev'
+
 ### deployConfigPath:
 
     description: 'Path to the argoDeploy.json'
