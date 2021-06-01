@@ -62,7 +62,8 @@ async function run(): Promise<void> {
 
     const octokit = github.getOctokit(GITHUB_TOKEN);
 
-    const branchName = github.context.eventName.startsWith('pull_request') ? github.context.payload.pull_request.head.ref : github.context.ref
+//    const branchName = github.context.eventName.startsWith('pull_request') ? github.context.payload.pull_request.head.ref : github.context.ref;
+    const branchName =  github.context.ref;
 
     const prRepo: RepoData = {
         repoOrg: github.context.repo.owner,
