@@ -1,0 +1,14 @@
+name: Get pr labels
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Get pr labels
+        uses: VirtoCommerce/vc-github-actions/sonar-scanner-begin@PT2023
