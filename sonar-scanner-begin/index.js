@@ -6,7 +6,7 @@ const utils = require('@virtocommerce/vc-actions-lib');
 async function run()
 {
     let isPullRequest = await utils.isPullRequest(github);
-    let isDependencies = await utils.isDependencies(github);
+//    let isDependencies = await utils.isDependencies(github);
 
     let prArg = isPullRequest ? '-PullRequest' : '';
     let branchName = await utils.getBranchName(github);

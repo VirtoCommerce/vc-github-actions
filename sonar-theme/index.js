@@ -12,7 +12,7 @@ async function run()
     const sonarLongLiveBranches = ["master","develop","dev"];
 
     let isPullRequest = await utils.isPullRequest(github);
-    let isDependencies = await utils.isDependencies(github);
+//    let isDependencies = await utils.isDependencies(github);
 
     let branchName = await utils.getBranchName(github);
     let repoName = await utils.getRepoName();

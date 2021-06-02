@@ -6,7 +6,7 @@ const utils = require('@virtocommerce/vc-actions-lib');
 async function run()
 {
     let isPullRequest = await utils.isPullRequest(github);
-    let isDependencies = await utils.isDependencies(github);
+    // let isDependencies = await utils.isDependencies(github);
 
     // if (isPullRequest && isDependencies) {
     //     console.log(`Pull request contain "dependencies" label, SonarScanner steps skipped.`);
