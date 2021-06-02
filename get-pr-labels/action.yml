@@ -1,0 +1,6 @@
+name: 'Get PR labels'
+description: 'Test action'
+
+runs:
+  using: 'node12'
+  main: 'index.js'
