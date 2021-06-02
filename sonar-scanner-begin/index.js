@@ -6,6 +6,7 @@ const utils = require('@virtocommerce/vc-actions-lib');
 async function run()
 {
     let isPullRequest = await utils.isPullRequest(github);
+    let isDependencies = await utils.isDependencies(github);
 
     let prArg = isPullRequest ? '-PullRequest' : '';
     let branchName = await utils.getBranchName(github);
@@ -15,6 +16,12 @@ async function run()
     let prKeyArg = "";
     let ghRepoArg = "";
     let prProviderArg = "";
+
+    if (isPullRequest && isDependencies) {
+        console.log(`Pull request contain "dependencies" label, SonarScanner steps skipped.`);
+        return;
+    }
+
     if(isPullRequest)
     {
         prBaseArg = `-SonarPRBase "${github.context.payload.pull_request.base.ref}"`;
