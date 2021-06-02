@@ -78,9 +78,12 @@ async function isPullRequest(github)
 
 async function isDependencies(github)
 {
-    return github.context.payload.pull_request.labels.some(
-        (label) => label.name === DEPENDENCIES_LABEL
-      );
+    if (github.context.eventName === 'pull_request') {
+        return github.context.payload.pull_request.labels.some(
+            (label) => label.name === DEPENDENCIES_LABEL
+          );
+    }
+    return false;
 }
 
 function getVersionFromDirectoryBuildProps(path) {
