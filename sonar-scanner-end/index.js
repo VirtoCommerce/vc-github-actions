@@ -1,12 +1,19 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const exec = require('@actions/exec');
+const utils = require('@virtocommerce/vc-actions-lib');
 
 async function run()
 {
-    //vc-build SonarQubeEnd -SonarAuthToken ${{ secrets.SONAR_TOKEN }} -skip
+    let isPullRequest = await utils.isPullRequest(github);
+    let isDependencies = await utils.isDependencies(github);
+
+    if (isPullRequest && isDependencies) {
+        console.log(`Pull request contain "dependencies" label, SonarScanner steps skipped.`);
+        return;
+    }
+
     delete process.env.JAVA_TOOL_OPTIONS;
-    process.env
     await exec.exec(`vc-build SonarQubeEnd -SonarAuthToken ${process.env.SONAR_TOKEN} -skip`)
 }
 

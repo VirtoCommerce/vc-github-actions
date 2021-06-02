@@ -5,6 +5,8 @@ const { request } = require("@octokit/request");
 const glob = require('glob');
 const xml2js = require('xml2js');
 
+const DEPENDENCIES_LABEL = 'dependencies';
+
 async function findArtifact(pattern)
 {
     let globResult = glob.sync(pattern);
@@ -72,6 +74,13 @@ async function downloadFile(url, outPath)
 async function isPullRequest(github)
 {
     return github.context.eventName === 'pull_request';
+}
+
+async function isDependencies(github)
+{
+    return github.context.payload.pull_request.labels.some(
+        (label) => label.name === DEPENDENCIES_LABEL
+      );
 }
 
 function getVersionFromDirectoryBuildProps(path) {
@@ -204,6 +213,7 @@ module.exports.getRepoName = getRepoName;
 module.exports.getProjectType = getProjectType;
 module.exports.downloadFile = downloadFile;
 module.exports.isPullRequest = isPullRequest;
+module.exports.isDependencies = isDependencies;
 module.exports.getVersionFromDirectoryBuildProps = getVersionFromDirectoryBuildProps;
 module.exports.getInfoFromDirectoryBuildProps = getInfoFromDirectoryBuildProps;
 module.exports.getInfoFromModuleManifest = getInfoFromModuleManifest;
