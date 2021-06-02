@@ -15,6 +15,7 @@ async function run()
     let prKeyArg = "";
     let ghRepoArg = "";
     let prProviderArg = "";
+    github.context.payload.pull_request
     if(isPullRequest)
     {
         prBaseArg = `-SonarPRBase "${github.context.payload.pull_request.base.ref}"`;
