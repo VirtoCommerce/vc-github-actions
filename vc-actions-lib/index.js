@@ -83,7 +83,6 @@ async function isDependencies(github)
       );
 }
 
-
 function getVersionFromDirectoryBuildProps(path) {
     return new Promise((resolve) => {
         let buildPropsFile = path;
