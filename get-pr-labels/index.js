@@ -7,11 +7,11 @@ async function run()
 {
     console.log(github.context.payload.pull_request.labels);
     if (
-        context.payload.pull_request.labels.some(
+        github.context.payload.pull_request.labels.some(
           (label) => label.name === DEPENDENCIES_LABEL
         )
       ){
-        console.log(`Pull request contain "${DEPENDENCIES_LABEL}", SonarScanner steps skipped`);
+        console.log(`Pull request contain "${DEPENDENCIES_LABEL}" label, SonarScanner steps skipped`);
     } else {
         
     }
