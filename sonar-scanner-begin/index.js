@@ -17,10 +17,11 @@ async function run()
     let ghRepoArg = "";
     let prProviderArg = "";
 
-    if (isPullRequest && isDependencies) {
-        console.log(`Pull request contain "dependencies" label, SonarScanner steps skipped.`);
-        return;
-    }
+
+    // if (isPullRequest && isDependencies) {
+    //     console.log(`Pull request contain "dependencies" label, SonarScanner steps skipped.`);
+    //     return;
+    // }
 
     if(isPullRequest)
     {

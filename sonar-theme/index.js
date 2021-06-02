@@ -20,10 +20,10 @@ async function run()
     let projectVersionArg = projectVersion ? `-Dsonar.projectVersion=${projectVersion}` : "";
     let branchTargetArg = sonarLongLiveBranches.includes(branchName) ? "" : `-Dsonar.branch.target=${branchTarget}`;
 
-    if (isPullRequest && isDependencies) {
-        console.log(`Pull request contain "dependencies" label, SonarScanner steps skipped.`);
-        return;
-    }
+    // if (isPullRequest && isDependencies) {
+    //     console.log(`Pull request contain "dependencies" label, SonarScanner steps skipped.`);
+    //     return;
+    // }
 
     if(isPullRequest)
     {
