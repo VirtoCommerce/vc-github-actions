@@ -45,6 +45,12 @@ String.prototype.replaceAll = function (find, replace)
 
 async function run()
 {
+    let isDependencies = await utils.isDependencies(github);
+    if (isDependencies) {
+        console.log(`Pull request contain "dependencies" label. Step skipped.`);
+        return;
+    }
+
     let latestRelease = await utils.getLatestRelease(process.env.GITHUB_REPOSITORY);
     let commitMessages = "";
     if(latestRelease != null)
