@@ -5,6 +5,11 @@ const { request } = require("@octokit/request");
 const glob = require('glob');
 const xml2js = require('xml2js');
 
+const projectTypeModule = "module";
+const projectTypeTheme = "theme";
+const projectTypePlatform = "platform";
+const projectTypeStorefront = "storefront";
+
 const DEPENDENCIES_LABEL = 'dependencies';
 
 async function findArtifact(pattern)
@@ -59,9 +64,26 @@ async function getRepoName()
 async function getProjectType()
 {
     let repoName = await getRepoName();
-    let projectType = repoName.split("-")[1];
-    return projectType;
+    repoName = repoName.toLowerCase();
+
+    if (repoName.includes(projectTypeModule)) {
+        return projectTypeModule;
+    }
+
+    if (repoName.includes(projectTypeTheme)) {
+        return projectTypeTheme;
+    }
+
+    if (repoName.includes(projectTypePlatform)) {
+        return projectTypePlatform;
+    }
+
+    if (repoName.includes(projectTypeStorefront)) {
+        return projectTypeStorefront;
+    }
+    return "Project type undefined";
 }
+
 
 async function downloadFile(url, outPath)
 {
