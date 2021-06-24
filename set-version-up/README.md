@@ -13,7 +13,7 @@ Increment version (minor or patch) in Directory.Build.props and [module.manifest
 ## Example of usage
 
 ```
-- name: Add version suffix
+- name: Set version up
   uses: VirtoCommerce/vc-github-actions/set-version-up@master
   with:
     versionLabel: "patch"
