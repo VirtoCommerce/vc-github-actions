@@ -1,0 +1,14 @@
+name: 'set-version-up'
+description: 'Increment version (minor or patch) in Directory.Build.props and [module.manifest]'
+inputs:
+  path:
+    description: 'Path to directory that contains module.manifest, package.json or Directory.Build.props'
+    default: '.'
+    required: false
+  versionLabel:
+    description: "Accepted values: minor or patch"
+    required: true
+    default: "minor"
+runs:
+  using: 'node12'
+  main: 'index.js'
