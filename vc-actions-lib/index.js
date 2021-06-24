@@ -243,3 +243,8 @@ module.exports.getVersionFromDirectoryBuildProps = getVersionFromDirectoryBuildP
 module.exports.getInfoFromDirectoryBuildProps = getInfoFromDirectoryBuildProps;
 module.exports.getInfoFromModuleManifest = getInfoFromModuleManifest;
 module.exports.getInfoFromPackageJson = getInfoFromPackageJson;
+
+module.exports.projectTypeModule = projectTypeModule;
+module.exports.projectTypeTheme = projectTypeModule;
+module.exports.projectTypePlatform = projectTypeModule;
+module.exports.projectTypeStorefront = projectTypeModule;
