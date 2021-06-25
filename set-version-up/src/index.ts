@@ -39,7 +39,7 @@ async function commitChanges(projectType: string, path: string, newVersion: stri
         console.log(`Run command: ${gitCommand}`);
         await exec.exec(gitCommand);
     
-        gitCommand = `git push origin ${branchName}`;
+//        gitCommand = `git push origin ${branchName}`;
         console.log(`Run command: ${gitCommand}`);
         await exec.exec(gitCommand);
 

@@ -98,7 +98,6 @@ function commitChanges(projectType, path, newVersion, branchName) {
                     return [4, exec.exec(gitCommand)];
                 case 4:
                     _a.sent();
-                    gitCommand = "git push origin " + branchName;
                     console.log("Run command: " + gitCommand);
                     return [4, exec.exec(gitCommand)];
                 case 5:
