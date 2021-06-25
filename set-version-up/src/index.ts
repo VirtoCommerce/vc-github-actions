@@ -92,7 +92,7 @@ async function run(): Promise<void> {
             break;
     }
 
-    await exec.exec(`vc-build ${targetName} -CustomVersionPrefix \"1.0.0\"`).then(exitCode => {
+    await exec.exec(`vc-build ${targetName} -CustomVersionPrefix \"${oldVersion}\"`).then(exitCode => {
         if(exitCode != 0)
         {
             core.setFailed("vc-build ChangeVersion failed");

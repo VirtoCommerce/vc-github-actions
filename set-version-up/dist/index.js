@@ -148,7 +148,7 @@ function run() {
                             targetName = "IncrementPatch";
                             break;
                     }
-                    return [4, exec.exec("vc-build " + targetName + " -CustomVersionPrefix \"1.0.0\"").then(function (exitCode) {
+                    return [4, exec.exec("vc-build " + targetName + " -CustomVersionPrefix \"" + oldVersion + "\"").then(function (exitCode) {
                             if (exitCode != 0) {
                                 core.setFailed("vc-build ChangeVersion failed");
                             }
