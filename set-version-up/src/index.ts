@@ -77,7 +77,6 @@ async function run(): Promise<void> {
     let newVersion: string;
 
     path = path.replace(/\/+$/, ''); // remove trailing slashes
-    await exec.exec(`ls -l`);
 
 //    oldVersion = (projectType === utils.projectTypeTheme) ? (await utils.getInfoFromPackageJson(`${path}/package.json`)).version : (await utils.getInfoFromDirectoryBuildProps(`${path}/Directory.Build.props`)).prefix;
     oldVersion = await utils.getVersionFromDirectoryBuildProps(`./Directory.Build.props`);
