@@ -119,9 +119,9 @@ function commitChanges(projectType, path, newVersion, branchName) {
 }
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var GITHUB_TOKEN, versionLabel, path, branchName, projectType, targetName, oldVersion, newVersion, _a;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        var GITHUB_TOKEN, versionLabel, path, branchName, projectType, targetName, oldVersion, newVersion, _a, _b;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
                     GITHUB_TOKEN = core.getInput("githubToken");
                     if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
@@ -130,15 +130,23 @@ function run() {
                     path = core.getInput("path");
                     return [4, utils.getBranchName(github)];
                 case 1:
-                    branchName = _b.sent();
+                    branchName = _c.sent();
                     return [4, utils.getProjectType()];
                 case 2:
-                    projectType = _b.sent();
+                    projectType = _c.sent();
                     console.log("Project type: " + projectType);
                     path = path.replace(/\/+$/, '');
-                    return [4, utils.getInfoFromPackageJson(path + "/package.json")];
+                    if (!(projectType === utils.projectTypeTheme)) return [3, 4];
+                    return [4, utils.getInfoFromDirectoryBuildProps(path + "/Directory.Build.props")];
                 case 3:
-                    oldVersion = (_b.sent()).version;
+                    _a = (_c.sent()).prefix;
+                    return [3, 6];
+                case 4: return [4, utils.getInfoFromPackageJson(path + "/package.json")];
+                case 5:
+                    _a = (_c.sent()).version;
+                    _c.label = 6;
+                case 6:
+                    oldVersion = _a;
                     console.log("Previous version number: " + oldVersion);
                     switch (versionLabel.toLowerCase()) {
                         case "minor":
@@ -153,19 +161,19 @@ function run() {
                                 core.setFailed("vc-build ChangeVersion failed");
                             }
                         })];
-                case 4:
-                    _b.sent();
-                    if (!(projectType === utils.projectTypeTheme)) return [3, 6];
-                    return [4, utils.getInfoFromPackageJson(path + "/package.json")];
-                case 5:
-                    _a = (_b.sent()).version;
-                    return [3, 8];
-                case 6: return [4, utils.getInfoFromDirectoryBuildProps(path + "/Directory.Build.props")];
                 case 7:
-                    _a = (_b.sent()).prefix;
-                    _b.label = 8;
+                    _c.sent();
+                    if (!(projectType === utils.projectTypeTheme)) return [3, 9];
+                    return [4, utils.getInfoFromPackageJson(path + "/package.json")];
                 case 8:
-                    newVersion = _a;
+                    _b = (_c.sent()).version;
+                    return [3, 11];
+                case 9: return [4, utils.getInfoFromDirectoryBuildProps(path + "/Directory.Build.props")];
+                case 10:
+                    _b = (_c.sent()).prefix;
+                    _c.label = 11;
+                case 11:
+                    newVersion = _b;
                     console.log("Current version number: " + newVersion);
                     commitChanges(projectType, path, newVersion, branchName);
                     return [2];
