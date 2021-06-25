@@ -80,7 +80,7 @@ async function run(): Promise<void> {
     await exec.exec(`ls -l`);
 
 //    oldVersion = (projectType === utils.projectTypeTheme) ? (await utils.getInfoFromPackageJson(`${path}/package.json`)).version : (await utils.getInfoFromDirectoryBuildProps(`${path}/Directory.Build.props`)).prefix;
-    oldVersion = await utils.getInfoFromDirectoryBuildProps(`Directory.Build.props`);
+    oldVersion = await utils.getVersionFromDirectoryBuildProps(`./Directory.Build.props`);
     console.log(`Previous version number: ${oldVersion}`)
 
     switch (versionLabel.toLowerCase())

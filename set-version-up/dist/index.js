@@ -139,7 +139,7 @@ function run() {
                     return [4, exec.exec("ls -l")];
                 case 3:
                     _b.sent();
-                    return [4, utils.getInfoFromDirectoryBuildProps("Directory.Build.props")];
+                    return [4, utils.getVersionFromDirectoryBuildProps("./Directory.Build.props")];
                 case 4:
                     oldVersion = _b.sent();
                     console.log("Previous version number: " + oldVersion);
