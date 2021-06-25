@@ -119,7 +119,7 @@ function commitChanges(projectType, path, newVersion, branchName) {
 }
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var GITHUB_TOKEN, versionLabel, path, branchName, projectType, targetName, oldVersion, newVersion, _a;
+        var GITHUB_TOKEN, versionLabel, path, branchName, projectType, targetName, oldVersion, newVersion, error_1, _a;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -136,10 +136,19 @@ function run() {
                     projectType = _b.sent();
                     console.log("Project type: " + projectType);
                     path = path.replace(/\/+$/, '');
-                    return [4, utils.getVersionFromDirectoryBuildProps(".Directory.Build.props")];
+                    _b.label = 3;
                 case 3:
+                    _b.trys.push([3, 5, , 6]);
+                    return [4, utils.getVersionFromDirectoryBuildProps("./Directory.Build.props")];
+                case 4:
                     oldVersion = _b.sent();
                     console.log("Previous version number: " + oldVersion);
+                    return [3, 6];
+                case 5:
+                    error_1 = _b.sent();
+                    core.setFailed(error_1);
+                    return [3, 6];
+                case 6:
                     switch (versionLabel.toLowerCase()) {
                         case "minor":
                             targetName = "IncrementMinor";
@@ -153,18 +162,18 @@ function run() {
                                 core.setFailed("vc-build ChangeVersion failed");
                             }
                         })];
-                case 4:
-                    _b.sent();
-                    if (!(projectType === utils.projectTypeTheme)) return [3, 6];
-                    return [4, utils.getInfoFromPackageJson(path + "/package.json")];
-                case 5:
-                    _a = (_b.sent()).version;
-                    return [3, 8];
-                case 6: return [4, utils.getInfoFromDirectoryBuildProps(path + "/Directory.Build.props")];
                 case 7:
-                    _a = (_b.sent()).prefix;
-                    _b.label = 8;
+                    _b.sent();
+                    if (!(projectType === utils.projectTypeTheme)) return [3, 9];
+                    return [4, utils.getInfoFromPackageJson(path + "/package.json")];
                 case 8:
+                    _a = (_b.sent()).version;
+                    return [3, 11];
+                case 9: return [4, utils.getInfoFromDirectoryBuildProps(path + "/Directory.Build.props")];
+                case 10:
+                    _a = (_b.sent()).prefix;
+                    _b.label = 11;
+                case 11:
                     newVersion = _a;
                     console.log("Current version number: " + newVersion);
                     commitChanges(projectType, path, newVersion, branchName);
