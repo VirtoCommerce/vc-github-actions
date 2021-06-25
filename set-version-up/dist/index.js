@@ -61,7 +61,7 @@ var exec = __importStar(require("@actions/exec"));
 var utils = __importStar(require("@virtocommerce/vc-actions-lib"));
 function commitChanges(projectType, path, newVersion, branchName) {
     return __awaiter(this, void 0, void 0, function () {
-        var addPath, gitCommand;
+        var addPath, gitCommand, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -85,41 +85,37 @@ function commitChanges(projectType, path, newVersion, branchName) {
                         })];
                 case 1:
                     _a.sent();
+                    _a.label = 2;
+                case 2:
+                    _a.trys.push([2, 6, , 7]);
                     gitCommand = "git commit -m \"Release version " + newVersion + "\"";
                     console.log("Run command: " + gitCommand);
-                    return [4, exec.exec(gitCommand).then(function (exitCode) {
-                            if (exitCode != 0) {
-                                core.setFailed("Can`t commit changes to git");
-                            }
-                        })];
-                case 2:
+                    return [4, exec.exec(gitCommand)];
+                case 3:
                     _a.sent();
                     gitCommand = "git tag " + newVersion;
                     console.log("Run command: " + gitCommand);
-                    return [4, exec.exec(gitCommand).then(function (exitCode) {
-                            if (exitCode != 0) {
-                                core.setFailed("Can`t set new version tag");
-                            }
-                        })];
-                case 3:
+                    return [4, exec.exec(gitCommand)];
+                case 4:
                     _a.sent();
                     gitCommand = "git push origin " + branchName;
                     console.log("Run command: " + gitCommand);
-                    return [4, exec.exec(gitCommand).then(function (exitCode) {
-                            if (exitCode != 0) {
-                                core.setFailed("Can`t push changes to GitHub");
-                            }
-                        })];
-                case 4:
+                    return [4, exec.exec(gitCommand)];
+                case 5:
                     _a.sent();
-                    return [2];
+                    return [3, 7];
+                case 6:
+                    error_1 = _a.sent();
+                    core.setFailed(error_1);
+                    return [3, 7];
+                case 7: return [2];
             }
         });
     });
 }
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var GITHUB_TOKEN, versionLabel, path, branchName, projectType, targetName, oldVersion, newVersion, _a, error_1, _b, error_2;
+        var GITHUB_TOKEN, versionLabel, path, branchName, projectType, targetName, oldVersion, newVersion, _a, error_2, _b, error_3;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
@@ -153,8 +149,8 @@ function run() {
                     console.log("Previous version number: " + oldVersion);
                     return [3, 9];
                 case 8:
-                    error_1 = _c.sent();
-                    core.setFailed(error_1);
+                    error_2 = _c.sent();
+                    core.setFailed(error_2);
                     return [3, 9];
                 case 9:
                     switch (versionLabel.toLowerCase()) {
@@ -189,8 +185,8 @@ function run() {
                     console.log("Current version number: " + newVersion);
                     return [3, 17];
                 case 16:
-                    error_2 = _c.sent();
-                    core.setFailed(error_2);
+                    error_3 = _c.sent();
+                    core.setFailed(error_3);
                     return [3, 17];
                 case 17:
                     commitChanges(projectType, path, newVersion, branchName);

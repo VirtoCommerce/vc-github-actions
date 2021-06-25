@@ -30,33 +30,22 @@ async function commitChanges(projectType: string, path: string, newVersion: stri
         }
     });
 
-    gitCommand = `git commit -m "Release version ${newVersion}"`;
-    console.log(`Run command: ${gitCommand}`);
-    await exec.exec(gitCommand).then(exitCode => {
-        if(exitCode != 0)
-        {
-            core.setFailed("Can`t commit changes to git");
-        }
-    });
+    try {
+        gitCommand = `git commit -m "Release version ${newVersion}"`;
+        console.log(`Run command: ${gitCommand}`);
+        await exec.exec(gitCommand);
+    
+        gitCommand = `git tag ${newVersion}`;
+        console.log(`Run command: ${gitCommand}`);
+        await exec.exec(gitCommand);
+    
+        gitCommand = `git push origin ${branchName}`;
+        console.log(`Run command: ${gitCommand}`);
+        await exec.exec(gitCommand);
 
-    gitCommand = `git tag ${newVersion}`;
-    console.log(`Run command: ${gitCommand}`);
-    await exec.exec(gitCommand).then(exitCode => {
-        if(exitCode != 0)
-        {
-            core.setFailed("Can`t set new version tag");
-        }
-    });
-
-    gitCommand = `git push origin ${branchName}`;
-    console.log(`Run command: ${gitCommand}`);
-    await exec.exec(gitCommand).then(exitCode => {
-        if(exitCode != 0)
-        {
-            core.setFailed("Can`t push changes to GitHub");
-        }
-    });
-
+    } catch (error) {
+        core.setFailed(error);
+    }
 }
 
 async function run(): Promise<void> {
