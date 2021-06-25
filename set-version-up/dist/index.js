@@ -136,9 +136,9 @@ function run() {
                     projectType = _b.sent();
                     console.log("Project type: " + projectType);
                     path = path.replace(/\/+$/, '');
-                    return [4, utils.getInfoFromDirectoryBuildProps(path + "/Directory.Build.props")];
+                    return [4, utils.getInfoFromDirectoryBuildProps("Directory.Build.props")];
                 case 3:
-                    oldVersion = (_b.sent()).prefix;
+                    oldVersion = _b.sent();
                     console.log("Previous version number: " + oldVersion);
                     switch (versionLabel.toLowerCase()) {
                         case "minor":
