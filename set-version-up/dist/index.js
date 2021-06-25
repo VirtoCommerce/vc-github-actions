@@ -137,13 +137,13 @@ function run() {
                     console.log("Project type: " + projectType);
                     path = path.replace(/\/+$/, '');
                     if (!(projectType === utils.projectTypeTheme)) return [3, 4];
-                    return [4, utils.getInfoFromDirectoryBuildProps(path + "/Directory.Build.props")];
+                    return [4, utils.getInfoFromPackageJson(path + "/package.json")];
                 case 3:
-                    _a = (_c.sent()).prefix;
-                    return [3, 6];
-                case 4: return [4, utils.getInfoFromPackageJson(path + "/package.json")];
-                case 5:
                     _a = (_c.sent()).version;
+                    return [3, 6];
+                case 4: return [4, utils.getInfoFromDirectoryBuildProps(path + "/Directory.Build.props")];
+                case 5:
+                    _a = (_c.sent()).prefix;
                     _c.label = 6;
                 case 6:
                     oldVersion = _a;
