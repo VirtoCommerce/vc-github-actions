@@ -136,8 +136,11 @@ function run() {
                     projectType = _b.sent();
                     console.log("Project type: " + projectType);
                     path = path.replace(/\/+$/, '');
-                    return [4, utils.getInfoFromDirectoryBuildProps("Directory.Build.props")];
+                    return [4, exec.exec("ls -l")];
                 case 3:
+                    _b.sent();
+                    return [4, utils.getInfoFromDirectoryBuildProps("Directory.Build.props")];
+                case 4:
                     oldVersion = _b.sent();
                     console.log("Previous version number: " + oldVersion);
                     switch (versionLabel.toLowerCase()) {
@@ -153,18 +156,18 @@ function run() {
                                 core.setFailed("vc-build ChangeVersion failed");
                             }
                         })];
-                case 4:
-                    _b.sent();
-                    if (!(projectType === utils.projectTypeTheme)) return [3, 6];
-                    return [4, utils.getInfoFromPackageJson(path + "/package.json")];
                 case 5:
+                    _b.sent();
+                    if (!(projectType === utils.projectTypeTheme)) return [3, 7];
+                    return [4, utils.getInfoFromPackageJson(path + "/package.json")];
+                case 6:
                     _a = (_b.sent()).version;
-                    return [3, 8];
-                case 6: return [4, utils.getInfoFromDirectoryBuildProps(path + "/Directory.Build.props")];
-                case 7:
-                    _a = (_b.sent()).prefix;
-                    _b.label = 8;
+                    return [3, 9];
+                case 7: return [4, utils.getInfoFromDirectoryBuildProps(path + "/Directory.Build.props")];
                 case 8:
+                    _a = (_b.sent()).prefix;
+                    _b.label = 9;
+                case 9:
                     newVersion = _a;
                     console.log("Current version number: " + newVersion);
                     commitChanges(projectType, path, newVersion, branchName);
