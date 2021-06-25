@@ -87,7 +87,7 @@ function commitChanges(projectType, path, newVersion, branchName) {
                     _a.sent();
                     gitCommand = "git commit -m \"Release version " + newVersion + "\"";
                     console.log("Run command: " + gitCommand);
-                    return [4, exec.exec("git commit -m \"Release version " + newVersion + "\"").then(function (exitCode) {
+                    return [4, exec.exec(gitCommand).then(function (exitCode) {
                             if (exitCode != 0) {
                                 core.setFailed("Can`t commit changes to git");
                             }
@@ -96,7 +96,7 @@ function commitChanges(projectType, path, newVersion, branchName) {
                     _a.sent();
                     gitCommand = "git tag " + newVersion;
                     console.log("Run command: " + gitCommand);
-                    return [4, exec.exec("git tag " + newVersion + "\"").then(function (exitCode) {
+                    return [4, exec.exec(gitCommand).then(function (exitCode) {
                             if (exitCode != 0) {
                                 core.setFailed("Can`t set new version tag");
                             }
@@ -105,7 +105,7 @@ function commitChanges(projectType, path, newVersion, branchName) {
                     _a.sent();
                     gitCommand = "git push origin " + branchName;
                     console.log("Run command: " + gitCommand);
-                    return [4, exec.exec("git tag " + newVersion + "\"").then(function (exitCode) {
+                    return [4, exec.exec(gitCommand).then(function (exitCode) {
                             if (exitCode != 0) {
                                 core.setFailed("Can`t push changes to GitHub");
                             }
@@ -119,9 +119,9 @@ function commitChanges(projectType, path, newVersion, branchName) {
 }
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var GITHUB_TOKEN, versionLabel, path, branchName, projectType, targetName, oldVersion, newVersion, error_1, _a;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        var GITHUB_TOKEN, versionLabel, path, branchName, projectType, targetName, oldVersion, newVersion, _a, error_1, _b, error_2;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
                     GITHUB_TOKEN = core.getInput("githubToken");
                     if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
@@ -130,25 +130,33 @@ function run() {
                     path = core.getInput("path");
                     return [4, utils.getBranchName(github)];
                 case 1:
-                    branchName = _b.sent();
+                    branchName = _c.sent();
                     return [4, utils.getProjectType()];
                 case 2:
-                    projectType = _b.sent();
+                    projectType = _c.sent();
                     console.log("Project type: " + projectType);
                     path = path.replace(/\/+$/, '');
-                    _b.label = 3;
+                    _c.label = 3;
                 case 3:
-                    _b.trys.push([3, 5, , 6]);
-                    return [4, utils.getVersionFromDirectoryBuildProps("./Directory.Build.props")];
+                    _c.trys.push([3, 8, , 9]);
+                    if (!(projectType === utils.projectTypeTheme)) return [3, 5];
+                    return [4, utils.getInfoFromPackageJson(path + "/package.json")];
                 case 4:
-                    oldVersion = _b.sent();
-                    console.log("Previous version number: " + oldVersion);
-                    return [3, 6];
-                case 5:
-                    error_1 = _b.sent();
-                    core.setFailed(error_1);
-                    return [3, 6];
+                    _a = (_c.sent()).version;
+                    return [3, 7];
+                case 5: return [4, utils.getVersionFromDirectoryBuildProps(path + "/Directory.Build.props")];
                 case 6:
+                    _a = (_c.sent());
+                    _c.label = 7;
+                case 7:
+                    oldVersion = _a;
+                    console.log("Previous version number: " + oldVersion);
+                    return [3, 9];
+                case 8:
+                    error_1 = _c.sent();
+                    core.setFailed(error_1);
+                    return [3, 9];
+                case 9:
                     switch (versionLabel.toLowerCase()) {
                         case "minor":
                             targetName = "IncrementMinor";
@@ -162,20 +170,29 @@ function run() {
                                 core.setFailed("vc-build ChangeVersion failed");
                             }
                         })];
-                case 7:
-                    _b.sent();
-                    if (!(projectType === utils.projectTypeTheme)) return [3, 9];
-                    return [4, utils.getInfoFromPackageJson(path + "/package.json")];
-                case 8:
-                    _a = (_b.sent()).version;
-                    return [3, 11];
-                case 9: return [4, utils.getInfoFromDirectoryBuildProps(path + "/Directory.Build.props")];
                 case 10:
-                    _a = (_b.sent()).prefix;
-                    _b.label = 11;
+                    _c.sent();
+                    _c.label = 11;
                 case 11:
-                    newVersion = _a;
+                    _c.trys.push([11, 16, , 17]);
+                    if (!(projectType === utils.projectTypeTheme)) return [3, 13];
+                    return [4, utils.getInfoFromPackageJson(path + "/package.json")];
+                case 12:
+                    _b = (_c.sent()).version;
+                    return [3, 15];
+                case 13: return [4, utils.getVersionFromDirectoryBuildProps(path + "/Directory.Build.props")];
+                case 14:
+                    _b = (_c.sent());
+                    _c.label = 15;
+                case 15:
+                    newVersion = _b;
                     console.log("Current version number: " + newVersion);
+                    return [3, 17];
+                case 16:
+                    error_2 = _c.sent();
+                    core.setFailed(error_2);
+                    return [3, 17];
+                case 17:
                     commitChanges(projectType, path, newVersion, branchName);
                     return [2];
             }

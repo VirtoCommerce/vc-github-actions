@@ -32,7 +32,7 @@ async function commitChanges(projectType: string, path: string, newVersion: stri
 
     gitCommand = `git commit -m "Release version ${newVersion}"`;
     console.log(`Run command: ${gitCommand}`);
-    await exec.exec(`git commit -m "Release version ${newVersion}"`).then(exitCode => {
+    await exec.exec(gitCommand).then(exitCode => {
         if(exitCode != 0)
         {
             core.setFailed("Can`t commit changes to git");
@@ -41,7 +41,7 @@ async function commitChanges(projectType: string, path: string, newVersion: stri
 
     gitCommand = `git tag ${newVersion}`;
     console.log(`Run command: ${gitCommand}`);
-    await exec.exec(`git tag ${newVersion}"`).then(exitCode => {
+    await exec.exec(gitCommand).then(exitCode => {
         if(exitCode != 0)
         {
             core.setFailed("Can`t set new version tag");
@@ -50,7 +50,7 @@ async function commitChanges(projectType: string, path: string, newVersion: stri
 
     gitCommand = `git push origin ${branchName}`;
     console.log(`Run command: ${gitCommand}`);
-    await exec.exec(`git tag ${newVersion}"`).then(exitCode => {
+    await exec.exec(gitCommand).then(exitCode => {
         if(exitCode != 0)
         {
             core.setFailed("Can`t push changes to GitHub");
@@ -78,15 +78,13 @@ async function run(): Promise<void> {
 
     path = path.replace(/\/+$/, ''); // remove trailing slashes
 
-//    oldVersion = (projectType === utils.projectTypeTheme) ? (await utils.getInfoFromPackageJson(`${path}/package.json`)).version : (await utils.getInfoFromDirectoryBuildProps(`${path}/Directory.Build.props`)).prefix;
     try {
-        oldVersion = await utils.getVersionFromDirectoryBuildProps(`./Directory.Build.props`);
+        oldVersion = (projectType === utils.projectTypeTheme) ? (await utils.getInfoFromPackageJson(`${path}/package.json`)).version : (await utils.getVersionFromDirectoryBuildProps(`${path}/Directory.Build.props`));
         console.log(`Previous version number: ${oldVersion}`)
-
     } catch (error) {
         core.setFailed(error);
     }
-    
+
     switch (versionLabel.toLowerCase())
     {
         case "minor":
@@ -104,8 +102,12 @@ async function run(): Promise<void> {
         }
     });
     
-    newVersion = projectType === utils.projectTypeTheme ? (await utils.getInfoFromPackageJson(`${path}/package.json`)).version : (await utils.getInfoFromDirectoryBuildProps(`${path}/Directory.Build.props`)).prefix;
-    console.log(`Current version number: ${newVersion}`)
+    try {
+        newVersion = (projectType === utils.projectTypeTheme) ? (await utils.getInfoFromPackageJson(`${path}/package.json`)).version : (await utils.getVersionFromDirectoryBuildProps(`${path}/Directory.Build.props`));
+        console.log(`Current version number: ${newVersion}`);
+    } catch (error) {
+        core.setFailed(error);
+    }
 
     commitChanges(projectType, path, newVersion, branchName)
 }
