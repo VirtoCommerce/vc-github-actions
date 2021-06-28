@@ -1,4 +1,4 @@
-# v1.4.vc-demo-theme
+# v2.0.vc-demo-theme Trunk base development
 name: Theme CI
 on:
   workflow_dispatch:
@@ -9,17 +9,23 @@ on:
       - 'build/**'
       - 'README.md'
       - 'LICENSE'
+      - 'Directory.Build.props'
+      - 'src/*/module.manifest'
+      - 'package.json'
     branches:
-      [master, dev]
+      [ master ]
   pull_request:
     branches:
-      [master, dev]
+      [ master ]
     paths-ignore:
       - '.github/**'
       - 'docs/**'
       - 'build/**'
       - 'README.md'
       - 'LICENSE'
+      - 'Directory.Build.props'
+      - 'src/*/module.manifest'
+      - 'package.json'
 
 jobs:
   ci:
@@ -31,86 +37,106 @@ jobs:
       VERSION_SUFFIX: ""
 
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
 
-    - name: Setup sonarqube
-      uses: warchant/setup-sonar-scanner@v3
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
-    - name: Get Image Version
-      uses: VirtoCommerce/vc-github-actions/get-image-version@master
-      id: image
+      - name: Set up .net Core 3.1.x for vc-build #GitHib Actions migrates to .net Core 5.x. To vc-build work properly need to manually install .net Core 3.1.x
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '3.1.x'
 
-    - name: Set release variables
-      run: |
-        echo "VERSION_SUFFIX=${{ steps.image.outputs.suffix }}" >> $GITHUB_ENV
+      - name: Install VirtoCommerce.GlobalTool
+        uses: VirtoCommerce/vc-github-actions/setup-vcbuild@master
 
-    - name: Set release-alpha variables
-      if: ${{ github.event_name == 'workflow_dispatch' }}
-      run: |
-        echo "VERSION_SUFFIX=${{ steps.image.outputs.fullSuffix }}" >> $GITHUB_ENV
+      - name: Setup sonarqube
+        uses: warchant/setup-sonar-scanner@v3
 
-    - name: Set PR variables
-      if: ${{ github.event_name == 'pull_request' }}
-      run: |
-        echo "VERSION_SUFFIX=${{ steps.image.outputs.suffix }}-${{ steps.image.outputs.SHA }}" >> $GITHUB_ENV
+      - name: Setup Git Credentials
+        uses: VirtoCommerce/vc-github-actions/setup-git-credentials-github@master
+        with: 
+          githubToken: ${{ secrets.REPO_TOKEN }}
 
-    - name: Get changelog
-      id: changelog
-      uses: VirtoCommerce/vc-github-actions/changelog-generator@master
+      - name: Set version up
+        uses: VirtoCommerce/vc-github-actions/set-version-up@master
+        with:
+          githubToken: ${{ secrets.REPO_TOKEN }}
+          versionLabel: 'minor'
 
-    - name: SonarCloud Scan
-      uses: VirtoCommerce/vc-github-actions/sonar-theme@master
-      with:
-        projectVersion: ${{ env.VERSION_SUFFIX }}
+      - name: Get Image Version
+        uses: VirtoCommerce/vc-github-actions/get-image-version@master
+        id: image
 
-    - name: Build
-      if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' }}
-      id: build
-      uses: VirtoCommerce/vc-github-actions/build-theme@master
-      with:
-        versionSuffix:  ${{ env.VERSION_SUFFIX }}
+      - name: Set release variables
+        run: |
+          echo "VERSION_SUFFIX=${{ steps.image.outputs.suffix }}" >> $GITHUB_ENV
 
-    - name: Publish
-      if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master')}}
-      id: publish
-      uses: VirtoCommerce/vc-github-actions/publish-theme@master
-      with:
-        artifactPath: ${{ steps.build.outputs.artifactPath }}
-        artifactName: ${{ steps.build.outputs.artifactName }}
+      - name: Set release-alpha variables
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          echo "VERSION_SUFFIX=${{ steps.image.outputs.fullSuffix }}" >> $GITHUB_ENV
 
-    - name: Add link to PR
-      if: ${{ github.event_name == 'pull_request' }}
-      uses: VirtoCommerce/vc-github-actions/publish-artifact-link@master
-      with:
-        artifactUrl: ${{ steps.publish.outputs.blobUrl }}
+      - name: Set PR variables
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          echo "VERSION_SUFFIX=${{ steps.image.outputs.suffix }}-${{ steps.image.outputs.SHA }}" >> $GITHUB_ENV
 
-    - name: Create Release
-      if: ${{ github.ref == 'refs/heads/master' }}
-      id: create_release
-      uses: actions/create-release@v1
-      with:
-        tag_name: ${{ steps.image.outputs.prefix }}
-        release_name: ${{ steps.image.outputs.prefix }}
-        draft: false
-        prerelease: false
-        body: ${{ steps.changelog.outputs.changelog }}
+      - name: Get changelog
+        id: changelog
+        uses: VirtoCommerce/vc-github-actions/changelog-generator@master
 
-    - name: Upload Release Asset
-      if: ${{ github.ref == 'refs/heads/master' }}
-      id: upload-release-asset 
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ steps.build.outputs.artifactPath }}
-        asset_name: ${{ steps.build.outputs.artifactName }}
-        asset_content_type: application/zip
+      - name: SonarCloud Scan
+        uses: VirtoCommerce/vc-github-actions/sonar-theme@master
+        with:
+          projectVersion: ${{ env.VERSION_SUFFIX }}
 
-    - name: Invoke Theme deployment workflow
-      if: ${{ github.ref == 'refs/heads/dev' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master')}}
-      uses: benc-uk/workflow-dispatch@v1
-      with:
-        workflow: VC deployment
-        token: ${{ secrets.REPO_TOKEN }}
-        inputs: '{ "artifactUrl": "${{ steps.publish.outputs.blobUrl }}" }'
+      - name: Build
+        if: ${{ github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' }}
+        id: build
+        uses: VirtoCommerce/vc-github-actions/build-theme@master
+        with:
+          versionSuffix:  ${{ env.VERSION_SUFFIX }}
+
+      - name: Publish
+        if: ${{ github.ref == 'refs/heads/master' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master')}}
+        id: publish
+        uses: VirtoCommerce/vc-github-actions/publish-theme@master
+        with:
+          artifactPath: ${{ steps.build.outputs.artifactPath }}
+          artifactName: ${{ steps.build.outputs.artifactName }}
+
+      - name: Add link to PR
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: VirtoCommerce/vc-github-actions/publish-artifact-link@master
+        with:
+          artifactUrl: ${{ steps.publish.outputs.blobUrl }}
+
+      - name: Create Release
+        if: ${{ github.ref == 'refs/heads/master' }}
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ steps.image.outputs.prefix }}
+          release_name: ${{ steps.image.outputs.prefix }}
+          draft: false
+          prerelease: false
+          body: ${{ steps.changelog.outputs.changelog }}
+
+      - name: Upload Release Asset
+        if: ${{ github.ref == 'refs/heads/master' }}
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.build.outputs.artifactPath }}
+          asset_name: ${{ steps.build.outputs.artifactName }}
+          asset_content_type: application/zip
+
+      - name: Invoke Theme deployment workflow
+        if: ${{ github.ref == 'refs/heads/master' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master')}}
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: VC deployment
+          token: ${{ secrets.REPO_TOKEN }}
+          inputs: '{ "artifactUrl": "${{ steps.publish.outputs.blobUrl }}" }'

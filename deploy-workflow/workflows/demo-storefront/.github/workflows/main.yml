@@ -1,4 +1,4 @@
-# v1.4.vc-demo-storefront
+# v2.0.vc-demo-storefront Trunk base development
 name: Storefront CI
 on:
   workflow_dispatch:
@@ -9,7 +9,11 @@ on:
       - 'build/**'
       - 'README.md'
       - 'LICENSE'
-    branches: [ master, dev ]
+      - 'Directory.Build.props'
+      - 'src/*/module.manifest'
+      - 'package.json'
+
+    branches: [ master ]
   pull_request:
     paths-ignore:
       - '.github/**'
@@ -17,7 +21,11 @@ on:
       - 'build/**'
       - 'README.md'
       - 'LICENSE'
-    branches: [ master, dev ]
+      - 'Directory.Build.props'
+      - 'src/*/module.manifest'
+      - 'package.json'
+
+    branches: [ master ]
 
 jobs:
   ci:
@@ -34,127 +42,138 @@ jobs:
 
     steps:
 
-    - name: Set variables
-      if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' }}
-      run: |
-        echo "UPDATE_LATEST_TAG=false" >> $GITHUB_ENV 
-      #  echo "PUBLISH_TO_DOCKER=false" >> $GITHUB_ENV
-        
+      - name: Set variables
+        if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' }}
+        run: |
+          echo "UPDATE_LATEST_TAG=false" >> $GITHUB_ENV 
+        #  echo "PUBLISH_TO_DOCKER=false" >> $GITHUB_ENV
+          
 
-    - name: Set up JDK 11 for dotnet-sonarscanner #Sonar stop accepting Java versions less than 11
-      uses: actions/setup-java@v1
-      with:
-        java-version: 1.11
+      - name: Set up JDK 11 for dotnet-sonarscanner #Sonar stop accepting Java versions less than 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.11
 
-    - name: Set up .net Core 3.1.x for vc-build #GitHib Actions migrates to .net Core 5.x. To vc-build work properly need to manually install .net Core 3.1.x
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: '3.1.x'
+      - name: Set up .net Core 3.1.x for vc-build #GitHib Actions migrates to .net Core 5.x. To vc-build work properly need to manually install .net Core 3.1.x
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '3.1.x'
 
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
-    - name: Install VirtoCommerce.GlobalTool
-      uses: VirtoCommerce/vc-github-actions/setup-vcbuild@master
+      - name: Install VirtoCommerce.GlobalTool
+        uses: VirtoCommerce/vc-github-actions/setup-vcbuild@master
 
-    - name: Install dotnet-sonarscanner
-      run: dotnet tool install --global dotnet-sonarscanner
+      - name: Install dotnet-sonarscanner
+        run: dotnet tool install --global dotnet-sonarscanner
 
-    - name: Get Image Version
-      uses: VirtoCommerce/vc-github-actions/get-image-version@master
-      id: image
+      - name: Setup Git Credentials
+        uses: VirtoCommerce/vc-github-actions/setup-git-credentials-github@master
+        with: 
+          githubToken: ${{ secrets.REPO_TOKEN }}
 
-    - name: Get changelog
-      id: changelog
-      uses: VirtoCommerce/vc-github-actions/changelog-generator@master
+      - name: Set version up
+        uses: VirtoCommerce/vc-github-actions/set-version-up@master
+        with:
+          githubToken: ${{ secrets.REPO_TOKEN }}
+          versionLabel: 'minor'
 
-    - name: Set release variables
-      run: |
-        echo "VERSION_SUFFIX=${{ steps.image.outputs.suffix }}" >> $GITHUB_ENV
+      - name: Get Image Version
+        uses: VirtoCommerce/vc-github-actions/get-image-version@master
+        id: image
 
-    - name: Set release-alpha variables
-      if: ${{ github.event_name == 'workflow_dispatch' }}
-      run: |
-        echo "VERSION_SUFFIX=${{ steps.image.outputs.fullSuffix }}" >> $GITHUB_ENV
+      - name: Get changelog
+        id: changelog
+        uses: VirtoCommerce/vc-github-actions/changelog-generator@master
 
-    - name: Add version suffix
-      if: ${{ github.ref != 'refs/heads/master' }}
-      uses: VirtoCommerce/vc-github-actions/add-version-suffix@master
-      with:
-        versionSuffix: ${{ env.VERSION_SUFFIX }}
+      - name: Set release variables
+        run: |
+          echo "VERSION_SUFFIX=${{ steps.image.outputs.suffix }}" >> $GITHUB_ENV
 
-    - name: SonarCloud Begin
-      uses: VirtoCommerce/vc-github-actions/sonar-scanner-begin@master
+      - name: Set release-alpha variables
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          echo "VERSION_SUFFIX=${{ steps.image.outputs.fullSuffix }}" >> $GITHUB_ENV
 
-    - name: Build
-      run: vc-build Compile
+      - name: Add version suffix
+        if: ${{ github.ref != 'refs/heads/master' }}
+        uses: VirtoCommerce/vc-github-actions/add-version-suffix@master
+        with:
+          versionSuffix: ${{ env.VERSION_SUFFIX }}
 
-    - name: Unit Tests
-      run: vc-build Test -TestsFilter "Category=Unit|Category=CI" -skip
+      - name: SonarCloud Begin
+        uses: VirtoCommerce/vc-github-actions/sonar-scanner-begin@master
 
-    - name: SonarCloud End
-      uses: VirtoCommerce/vc-github-actions/sonar-scanner-end@master
+      - name: Build
+        run: vc-build Compile
 
-    - name: Quality Gate
-      uses: VirtoCommerce/vc-github-actions/sonar-quality-gate@master
-      with:
-        login: ${{secrets.SONAR_TOKEN}}
+      - name: Unit Tests
+        run: vc-build Test -TestsFilter "Category=Unit|Category=CI" -skip
 
-    - name: Packaging
-      run: vc-build Compress -skip Clean+Restore+Compile+Test
+      - name: SonarCloud End
+        uses: VirtoCommerce/vc-github-actions/sonar-scanner-end@master
 
-    - name: Build Docker Image
-      if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master') }}
-      id: dockerBuild
-      uses: VirtoCommerce/vc-github-actions/build-docker-image@master
-      with:
-        tag: ${{ steps.image.outputs.taggedVersion }}
-        imageName: ${{ env.IMAGE_NAME }}
-        dockerFiles: "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/storefront/Dockerfile"
+      - name: Quality Gate
+        uses: VirtoCommerce/vc-github-actions/sonar-quality-gate@master
+        with:
+          login: ${{secrets.SONAR_TOKEN}}
 
-    # - name: Publish to Blob
-    #   if: ${{ github.ref == 'refs/heads/dev' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master') }}
-    #   id: blobRelease
-    #   uses: VirtoCommerce/vc-github-actions/publish-blob-release@master
-    #   with:
-    #     blobSAS: ${{ secrets.BLOB_TOKEN }}
+      - name: Packaging
+        run: vc-build Compress -skip Clean+Restore+Compile+Test
 
-    - name: Publish Github Release
-      if: ${{ github.ref == 'refs/heads/master' }}
-      with:
-        changelog: ${{ steps.changelog.outputs.changelog }}
-      uses: VirtoCommerce/vc-github-actions/publish-github-release@master
-
-    - name: Docker Login
-      if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master') }}
-      uses: azure/docker-login@v1
-      with:
-        login-server: docker.pkg.github.com
-        username: $GITHUB_ACTOR
-        password: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Publish Docker Image
-      if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master') }}
-      uses: VirtoCommerce/vc-github-actions/publish-docker-image@master
-      with:
-          image: ${{ steps.dockerBuild.outputs.imageName }}
+      - name: Build Docker Image
+        if: ${{ github.ref == 'refs/heads/master' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master') }}
+        id: dockerBuild
+        uses: VirtoCommerce/vc-github-actions/build-docker-image@master
+        with:
           tag: ${{ steps.image.outputs.taggedVersion }}
-          docker_user: ${{ secrets.DOCKER_USERNAME }}
-          docker_token: ${{ secrets.DOCKER_TOKEN }}
-          docker_hub: ${{ env.PUBLISH_TO_DOCKER }}
-          update_latest: ${{ env.UPDATE_LATEST_TAG }}
+          imageName: ${{ env.IMAGE_NAME }}
+          dockerFiles: "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/storefront/Dockerfile"
 
-    - name: Add link to PR
-      if: ${{ github.event_name == 'pull_request' }}
-      uses: VirtoCommerce/vc-github-actions/publish-artifact-link@master
-      with:
-        artifactUrl: "docker.pkg.github.com/${{ github.repository }}/${{ env.IMAGE_NAME }}:${{ steps.image.outputs.taggedVersion }}"
+      # - name: Publish to Blob
+      #   if: ${{ github.ref == 'refs/heads/master' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master') }}
+      #   id: blobRelease
+      #   uses: VirtoCommerce/vc-github-actions/publish-blob-release@master
+      #   with:
+      #     blobSAS: ${{ secrets.BLOB_TOKEN }}
 
-    - name: Invoke VC image deployment workflow
-      if: ${{ github.ref == 'refs/heads/dev' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master')}}
-      uses: benc-uk/workflow-dispatch@v1
-      with:
-        workflow: VC deployment
-        token: ${{ secrets.REPO_TOKEN }}
-        inputs: '{ "artifactUrl": "docker.pkg.github.com/${{ github.repository }}/${{ env.IMAGE_NAME }}:${{ steps.image.outputs.taggedVersion }}" }'
+      - name: Publish Github Release
+        if: ${{ github.ref == 'refs/heads/master' }}
+        with:
+          changelog: ${{ steps.changelog.outputs.changelog }}
+        uses: VirtoCommerce/vc-github-actions/publish-github-release@master
+
+      - name: Docker Login
+        if: ${{ github.ref == 'refs/heads/master' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master') }}
+        uses: azure/docker-login@v1
+        with:
+          login-server: docker.pkg.github.com
+          username: $GITHUB_ACTOR
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Docker Image
+        if: ${{ github.ref == 'refs/heads/master' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master') }}
+        uses: VirtoCommerce/vc-github-actions/publish-docker-image@master
+        with:
+            image: ${{ steps.dockerBuild.outputs.imageName }}
+            tag: ${{ steps.image.outputs.taggedVersion }}
+            docker_user: ${{ secrets.DOCKER_USERNAME }}
+            docker_token: ${{ secrets.DOCKER_TOKEN }}
+            docker_hub: ${{ env.PUBLISH_TO_DOCKER }}
+            update_latest: ${{ env.UPDATE_LATEST_TAG }}
+
+      - name: Add link to PR
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: VirtoCommerce/vc-github-actions/publish-artifact-link@master
+        with:
+          artifactUrl: "docker.pkg.github.com/${{ github.repository }}/${{ env.IMAGE_NAME }}:${{ steps.image.outputs.taggedVersion }}"
+
+      - name: Invoke VC image deployment workflow
+        if: ${{ github.ref == 'refs/heads/master' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master')}}
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: VC deployment
+          token: ${{ secrets.REPO_TOKEN }}
+          inputs: '{ "artifactUrl": "docker.pkg.github.com/${{ github.repository }}/${{ env.IMAGE_NAME }}:${{ steps.image.outputs.taggedVersion }}" }'
