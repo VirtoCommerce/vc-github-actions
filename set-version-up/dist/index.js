@@ -70,24 +70,20 @@ function commitChanges(projectType, path, newVersion, branchName) {
                             addPath = path + "/package.json";
                             break;
                         case utils.projectTypeModule:
-                            addPath = path + "/Directory.Build.props /src/*/module.manifest";
+                            addPath = path + "/Directory.Build.props " + path + "/src/*/module.manifest";
                             break;
                         default:
                             addPath = path + "/Directory.Build.props";
                             break;
                     }
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 6, , 7]);
                     gitCommand = "git add " + addPath;
                     console.log("Run command: " + gitCommand);
-                    return [4, exec.exec(gitCommand).then(function (exitCode) {
-                            if (exitCode != 0) {
-                                core.setFailed("Can`t add changes to git");
-                            }
-                        })];
-                case 1:
-                    _a.sent();
-                    _a.label = 2;
+                    return [4, exec.exec(gitCommand)];
                 case 2:
-                    _a.trys.push([2, 6, , 7]);
+                    _a.sent();
                     gitCommand = "git commit -m \"Release version " + newVersion + "\"";
                     console.log("Run command: " + gitCommand);
                     return [4, exec.exec(gitCommand)];
@@ -98,6 +94,7 @@ function commitChanges(projectType, path, newVersion, branchName) {
                     return [4, exec.exec(gitCommand)];
                 case 4:
                     _a.sent();
+                    gitCommand = "git push origin " + branchName;
                     console.log("Run command: " + gitCommand);
                     return [4, exec.exec(gitCommand)];
                 case 5:

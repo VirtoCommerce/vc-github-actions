@@ -14,23 +14,18 @@ async function commitChanges(projectType: string, path: string, newVersion: stri
             addPath = `${path}/package.json`;
             break;
         case utils.projectTypeModule:
-            addPath = `${path}/Directory.Build.props /src/*/module.manifest`;
+            addPath = `${path}/Directory.Build.props ${path}/src/*/module.manifest`;
             break;
         default:
             addPath = `${path}/Directory.Build.props`;
             break;
     }
-    
-    gitCommand = `git add ${addPath}`;
-    console.log(`Run command: ${gitCommand}`);
-    await exec.exec(gitCommand).then(exitCode => {
-        if(exitCode != 0)
-        {
-            core.setFailed("Can`t add changes to git");
-        }
-    });
 
     try {
+        gitCommand = `git add ${addPath}`;
+        console.log(`Run command: ${gitCommand}`);
+        await exec.exec(gitCommand);
+    
         gitCommand = `git commit -m "Release version ${newVersion}"`;
         console.log(`Run command: ${gitCommand}`);
         await exec.exec(gitCommand);
@@ -39,7 +34,7 @@ async function commitChanges(projectType: string, path: string, newVersion: stri
         console.log(`Run command: ${gitCommand}`);
         await exec.exec(gitCommand);
     
-//        gitCommand = `git push origin ${branchName}`;
+        gitCommand = `git push origin ${branchName}`;
         console.log(`Run command: ${gitCommand}`);
         await exec.exec(gitCommand);
 
