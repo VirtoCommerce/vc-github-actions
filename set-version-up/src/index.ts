@@ -96,7 +96,7 @@ async function run(): Promise<void> {
         core.setFailed(error);
     }
 
-    if (!newVersion) core.setFailed(`New ${projectType} not set. The result of "vc-build ChangeVersion" command failed.`);
+    if (!newVersion) core.setFailed(`New ${projectType} version not set. The result of "vc-build ChangeVersion" command failed.`);
 
     commitChanges(projectType, path, newVersion, branchName)
 }

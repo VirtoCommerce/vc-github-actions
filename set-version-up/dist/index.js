@@ -189,7 +189,7 @@ function run() {
                     return [3, 17];
                 case 17:
                     if (!newVersion)
-                        core.setFailed("New " + projectType + " not set. The result of \"vc-build ChangeVersion\" command failed.");
+                        core.setFailed("New " + projectType + " version not set. The result of \"vc-build ChangeVersion\" command failed.");
                     commitChanges(projectType, path, newVersion, branchName);
                     return [2];
             }
