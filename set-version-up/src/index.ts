@@ -8,8 +8,7 @@ async function commitChanges(projectType: string, path: string, newVersion: stri
     let addPath:string;
     let gitCommand:string;
 
-    switch (projectType)
-    {
+    switch (projectType){
         case utils.projectTypeTheme:
             addPath = `${path}/package.json`;
             break;
@@ -62,19 +61,14 @@ async function run(): Promise<void> {
 
     path = path.replace(/\/+$/, ''); // remove trailing slashes
 
-    console.log(`Theme ${utils.projectTypeTheme}`);
-    console.log(`Module ${utils.projectTypeModule}`);
-    console.log(`Platform ${utils.projectTypePlatform}`);
-    console.log(`Storefront ${utils.projectTypeStorefront}`);
     try {
         oldVersion = (projectType === utils.projectTypeTheme) ? (await utils.getInfoFromPackageJson(`${path}/package.json`)).version : (await utils.getVersionFromDirectoryBuildProps(`${path}/Directory.Build.props`));
-        console.log(`Previous version number: ${oldVersion}`)
+        console.log(`Previous ${projectType} version number: ${oldVersion}`)
     } catch (error) {
         core.setFailed(error);
     }
 
-    switch (versionLabel.toLowerCase())
-    {
+    switch (versionLabel.toLowerCase()){
         case "minor":
             targetName = "IncrementMinor";
             break;
@@ -92,7 +86,7 @@ async function run(): Promise<void> {
     
     try {
         newVersion = (projectType === utils.projectTypeTheme) ? (await utils.getInfoFromPackageJson(`${path}/package.json`)).version : (await utils.getVersionFromDirectoryBuildProps(`${path}/Directory.Build.props`));
-        console.log(`Current version number: ${newVersion}`);
+        console.log(`Current ${projectType} version number: ${newVersion}`);
     } catch (error) {
         core.setFailed(error);
     }

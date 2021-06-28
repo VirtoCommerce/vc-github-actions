@@ -128,10 +128,6 @@ function run() {
                     projectType = _c.sent();
                     console.log("Project type: " + projectType);
                     path = path.replace(/\/+$/, '');
-                    console.log("Theme " + utils.projectTypeTheme);
-                    console.log("Module " + utils.projectTypeModule);
-                    console.log("Platform " + utils.projectTypePlatform);
-                    console.log("Storefront " + utils.projectTypeStorefront);
                     _c.label = 3;
                 case 3:
                     _c.trys.push([3, 8, , 9]);
@@ -146,7 +142,7 @@ function run() {
                     _c.label = 7;
                 case 7:
                     oldVersion = _a;
-                    console.log("Previous version number: " + oldVersion);
+                    console.log("Previous " + projectType + " version number: " + oldVersion);
                     return [3, 9];
                 case 8:
                     error_2 = _c.sent();
@@ -182,7 +178,7 @@ function run() {
                     _c.label = 15;
                 case 15:
                     newVersion = _b;
-                    console.log("Current version number: " + newVersion);
+                    console.log("Current " + projectType + " version number: " + newVersion);
                     return [3, 17];
                 case 16:
                     error_3 = _c.sent();
