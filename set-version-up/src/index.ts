@@ -50,7 +50,6 @@ async function run(): Promise<void> {
     const versionLabel = core.getInput("versionLabel")
     let path = core.getInput("path");
 
-
     const branchName = await utils.getBranchName(github);
     const projectType = await utils.getProjectType();
     console.log(`Project type: ${projectType}`)

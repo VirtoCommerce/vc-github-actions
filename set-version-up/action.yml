@@ -2,16 +2,16 @@ name: 'set-version-up'
 description: 'Increment version (minor or patch) in Directory.Build.props and [module.manifest]'
 inputs:
   githubToken:
-    description: "GitHub Token"
+    description: 'GitHub Token'
     required: false
   path:
     description: 'Path to directory that contains module.manifest, package.json or Directory.Build.props'
     default: '.'
     required: false
   versionLabel:
-    description: "Accepted values: minor or patch"
+    description: 'Accepted values: minor or patch'
     required: true
-    default: "minor"
+    default: 'minor'
 runs:
   using: 'node12'
   main: 'dist/index.js' 
