@@ -87,11 +87,16 @@ async function run(): Promise<void> {
     });
     
     try {
+        console.log(projectType);
+        console.log(utils.projectTypeTheme);
+        console.log(projectType === utils.projectTypeTheme);
         newVersion = (projectType === utils.projectTypeTheme) ? (await utils.getInfoFromPackageJson(`${path}/package.json`)).version : (await utils.getVersionFromDirectoryBuildProps(`${path}/Directory.Build.props`));
         console.log(`Current version number: ${newVersion}`);
     } catch (error) {
         core.setFailed(error);
     }
+
+    if (!newVersion) core.setFailed(`New ${projectType} not set. The result of "vc-build ChangeVersion" command failed.`);
 
     commitChanges(projectType, path, newVersion, branchName)
 }

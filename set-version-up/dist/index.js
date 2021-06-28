@@ -167,6 +167,9 @@ function run() {
                     _c.label = 11;
                 case 11:
                     _c.trys.push([11, 16, , 17]);
+                    console.log(projectType);
+                    console.log(utils.projectTypeTheme);
+                    console.log(projectType === utils.projectTypeTheme);
                     if (!(projectType === utils.projectTypeTheme)) return [3, 13];
                     return [4, utils.getInfoFromPackageJson(path + "/package.json")];
                 case 12:
@@ -185,6 +188,8 @@ function run() {
                     core.setFailed(error_3);
                     return [3, 17];
                 case 17:
+                    if (!newVersion)
+                        core.setFailed("New " + projectType + " not set. The result of \"vc-build ChangeVersion\" command failed.");
                     commitChanges(projectType, path, newVersion, branchName);
                     return [2];
             }
