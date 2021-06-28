@@ -62,6 +62,10 @@ async function run(): Promise<void> {
 
     path = path.replace(/\/+$/, ''); // remove trailing slashes
 
+    console.log(`Theme ${utils.projectTypeTheme}`);
+    console.log(`Module ${utils.projectTypeModule}`);
+    console.log(`Platform ${utils.projectTypePlatform}`);
+    console.log(`Storefront ${utils.projectTypeStorefront}`);
     try {
         oldVersion = (projectType === utils.projectTypeTheme) ? (await utils.getInfoFromPackageJson(`${path}/package.json`)).version : (await utils.getVersionFromDirectoryBuildProps(`${path}/Directory.Build.props`));
         console.log(`Previous version number: ${oldVersion}`)
@@ -87,9 +91,6 @@ async function run(): Promise<void> {
     });
     
     try {
-        console.log(projectType);
-        console.log(utils.projectTypeTheme);
-        console.log(projectType === utils.projectTypeTheme);
         newVersion = (projectType === utils.projectTypeTheme) ? (await utils.getInfoFromPackageJson(`${path}/package.json`)).version : (await utils.getVersionFromDirectoryBuildProps(`${path}/Directory.Build.props`));
         console.log(`Current version number: ${newVersion}`);
     } catch (error) {

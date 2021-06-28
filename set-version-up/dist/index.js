@@ -128,6 +128,10 @@ function run() {
                     projectType = _c.sent();
                     console.log("Project type: " + projectType);
                     path = path.replace(/\/+$/, '');
+                    console.log("Theme " + utils.projectTypeTheme);
+                    console.log("Module " + utils.projectTypeModule);
+                    console.log("Platform " + utils.projectTypePlatform);
+                    console.log("Storefront " + utils.projectTypeStorefront);
                     _c.label = 3;
                 case 3:
                     _c.trys.push([3, 8, , 9]);
@@ -167,9 +171,6 @@ function run() {
                     _c.label = 11;
                 case 11:
                     _c.trys.push([11, 16, , 17]);
-                    console.log(projectType);
-                    console.log(utils.projectTypeTheme);
-                    console.log(projectType === utils.projectTypeTheme);
                     if (!(projectType === utils.projectTypeTheme)) return [3, 13];
                     return [4, utils.getInfoFromPackageJson(path + "/package.json")];
                 case 12:
