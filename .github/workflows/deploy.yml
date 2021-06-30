@@ -311,13 +311,13 @@ jobs:
     #     GHA_DEPLOYMENT_FOLDER: "modules"
     #     REPOSITORY: "vc-module-changes-collector"
 
-    # - name: vc-storefront
-    #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-    #     USER: ${{ env.GITHUB_USER }}
-    #     GHA_DEPLOYMENT_FOLDER: "storefront"
-    #     REPOSITORY: "vc-storefront"
+    - name: vc-storefront
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        USER: ${{ env.GITHUB_USER }}
+        GHA_DEPLOYMENT_FOLDER: "storefront"
+        REPOSITORY: "vc-storefront"
 
     - name: vc-platform
       uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
