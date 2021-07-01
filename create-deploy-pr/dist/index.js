@@ -210,7 +210,7 @@ function createDeployCommit(deployData, targetRepo, baseRepoName, gitUser, octok
 }
 function setConfigMap(key, keyValue, cmBody) {
     var moduleKey = "VirtoCommerce.";
-    var dockerKey = "docker.";
+    var dockerKey = "ghcr.";
     var result;
     if (key.indexOf(dockerKey) > -1) {
         console.log('setConfigMap: Docker image deployment');
