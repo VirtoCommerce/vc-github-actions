@@ -1,0 +1,13 @@
+name: 'msteams-send-message'
+description: 'Send message to MS TEams'
+inputs:
+  webhook_uri:
+    description: "Microsoft Teams webhook URI"
+    required: true
+  body:
+    description: "Microsoft Teams formatted message"
+    required: true
+
+runs:
+  using: 'node12'
+  main: 'dist/index.js' 

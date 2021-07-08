@@ -1,0 +1,20 @@
+{
+  "name": "msteams-send-message",
+  "version": "1.0.0",
+  "description": "Publishes artifact link to PR comment",
+  "main": "index.js",
+  "dependencies": {
+    "typescript": "^4.3.5",
+    "@actions/core": "^1.4.0",
+    "request": "^2.88.2"
+  },
+  "devDependencies": {
+    "@types/request": "^2.48.6"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
