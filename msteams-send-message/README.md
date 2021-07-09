@@ -1,25 +1,26 @@
-# publish-artifact-link
+# msteams-send-message
 
 Publishes artifact link to PR comment
 
-## inputs:
+## inputs
 
-### githubToken:
+### webhook_uri
 
-    description: "GitHub token"
+description: "Microsoft Teams webhook URI"
 
-### repoOrg:
+required: true
 
-    description: "repo org"
-    default: "VirtoCommerce"
+### body
 
-### artifactUrl:
+description: "Microsoft Teams formatted message"
 
-    description: "Link to artifact"
+required: true
+
+Read more about Microsoft Teams message card [format](https://docs.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/connectors-using?tabs=cURL)
 
 ## Example of usage
 
-```
+```yaml
 - name: Add link to PR
     if: ${{ github.event_name == 'pull_request' }}
     uses: VirtoCommerce/vc-github-actions/publish-artifact-link@VDS-414
