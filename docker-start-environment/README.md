@@ -28,8 +28,8 @@ Starts Docker Environment
 - name: Start Containers
   uses: VirtoCommerce/vc-github-actions/docker-start-environment@master
   with: 
-    platformImage: docker.pkg.github.com/virtocommerce/vc-platform/platform
+    platformImage: ghcr.io/virtocommerce/platform
     platformDockerTag: 3.49.0-master-182936ca
-    storefrontImage: docker.pkg.github.com/virtocommerce/vc-demo-storefront/demo-storefront
+    storefrontImage: ghcr.io/virtocommerce/demo-storefront
     storefrontDockerTag: 1.10.0-alpha.1012-upstream-dev-672f462a
 ```
