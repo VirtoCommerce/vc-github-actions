@@ -14,6 +14,37 @@ function pushOutputs(branchName, prefix, suffix, moduleId, moduleDescription="",
     const fullVersion = prefix + '-' + fullSuffix;
     const taggedVersion = prefix + '-' + fullSuffix + '-' + sha;
 
+    const output = {
+        "branchName": branchName,
+        "prefix": prefix,
+        "suffix": suffix,
+        "fullSuffix": fllSuffix,
+        "moduleId": moduleId,
+        "sha": sha,
+        "shortVersion": shortVersion,
+        "tag": tag,
+        "fullVersion": fullVersion,
+        "taggedVersion": taggedVersion,
+        "moduleDescription": moduleDescription,
+        "projectUrl": projectUrl,
+        "iconUrl": iconUrl
+    }
+     // core.setOutput("branchName", branchName);
+     // core.setOutput("prefix", prefix);
+     // core.setOutput("suffix", suffix);
+     // core.setOutput("fullSuffix", fullSuffix);
+     // core.setOutput("moduleId", moduleId);
+     // core.setOutput("sha", sha);
+     // core.setOutput("shortVersion", shortVersion);
+     // core.setOutput("tag", tag);
+     // core.setOutput("fullVersion", fullVersion);
+     // core.setOutput("taggedVersion", taggedVersion);
+     // core.setOutput("moduleDescription", moduleDescription);
+     // core.setOutput("projectUrl", projectUrl);
+     // core.setOutput("iconUrl", iconUrl);
+ 
+    core.setOutput("outputs", JSON.stringify(output));
+
     console.log(`Branch name is: ${branchName}`);
     console.log(`Version prefix is: ${prefix}`);
     console.log(`Version suffix is: ${suffix}`);
@@ -28,21 +59,6 @@ function pushOutputs(branchName, prefix, suffix, moduleId, moduleDescription="",
     console.log(`moduleDescription: ${moduleDescription}`);
     console.log(`projectUrl: ${projectUrl}`);
     console.log(`iconUrl: ${iconUrl}`);
-
-
-    core.setOutput("branchName", branchName);
-    core.setOutput("prefix", prefix);
-    core.setOutput("suffix", suffix);
-    core.setOutput("fullSuffix", fullSuffix);
-    core.setOutput("moduleId", moduleId);
-    core.setOutput("sha", sha);
-    core.setOutput("shortVersion", shortVersion);
-    core.setOutput("tag", tag);
-    core.setOutput("fullVersion", fullVersion);
-    core.setOutput("taggedVersion", taggedVersion);
-    core.setOutput("moduleDescription", moduleDescription);
-    core.setOutput("projectUrl", projectUrl);
-    core.setOutput("iconUrl", iconUrl);
 
 }
 async function getCommitCount(baseBranch) {
