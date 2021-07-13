@@ -1,9 +1,14 @@
 const core = require('@actions/core');
 const exec = require('@actions/exec');
 const github = require('@actions/github');
-const fs = require('fs');
 const utils = require('@virtocommerce/vc-actions-lib');
-const defaultPath = '.'
+const defaultPath = '.';
+const validProjectTypes = [
+    utils.projectTypeTheme,
+    utils.projectTypeModule,
+    utils.projectTypePlatform,
+    utils.projectTypeStorefront
+];
 
 function pushOutputs(branchName, prefix, suffix, moduleId, moduleDescription="", projectUrl="", iconUrl="") {
     branchName = branchName.substring(branchName.lastIndexOf('/') + 1, branchName.length).toLowerCase();
@@ -14,19 +19,23 @@ function pushOutputs(branchName, prefix, suffix, moduleId, moduleDescription="",
     const fullVersion = prefix + '-' + fullSuffix;
     const taggedVersion = prefix + '-' + fullSuffix + '-' + sha;
 
-    core.setOutput("branchName", branchName);
-    core.setOutput("prefix", prefix);
-    core.setOutput("suffix", suffix);
-    core.setOutput("fullSuffix", fullSuffix);
-    core.setOutput("moduleId", moduleId);
-    core.setOutput("sha", sha);
-    core.setOutput("shortVersion", shortVersion);
-    core.setOutput("tag", tag);
-    core.setOutput("fullVersion", fullVersion);
-    core.setOutput("taggedVersion", taggedVersion);
-    core.setOutput("moduleDescription", moduleDescription);
-    core.setOutput("projectUrl", projectUrl);
-    core.setOutput("iconUrl", iconUrl);
+    const output = {
+        "branchName": branchName,
+        "prefix": prefix,
+        "suffix": suffix,
+        "fullSuffix": fullSuffix,
+        "moduleId": moduleId,
+        "sha": sha,
+        "shortVersion": shortVersion,
+        "tag": tag,
+        "fullVersion": fullVersion,
+        "taggedVersion": taggedVersion,
+        "moduleDescription": moduleDescription,
+        "projectUrl": projectUrl,
+        "iconUrl": iconUrl
+    }
+
+    core.setOutput("outputs", JSON.stringify(output));
 
     console.log(`Branch name is: ${branchName}`);
     console.log(`Version prefix is: ${prefix}`);
@@ -42,6 +51,7 @@ function pushOutputs(branchName, prefix, suffix, moduleId, moduleDescription="",
     console.log(`moduleDescription: ${moduleDescription}`);
     console.log(`projectUrl: ${projectUrl}`);
     console.log(`iconUrl: ${iconUrl}`);
+
 }
 async function getCommitCount(baseBranch) {
     try {
@@ -74,50 +84,29 @@ async function getCommitCount(baseBranch) {
     return result;
 }
 
-async function getProjectType( path )
-{
-    let propsExists = fs.existsSync(`${path}/Directory.Build.props`);
-    let manifestPathTemplate = "src/*/module.manifest";
-    if (path !== defaultPath) {
-        manifestPathTemplate = `${path}/module.manifest`
-    }
-    let manifests = await utils.findFiles(manifestPathTemplate);
-    let manifestExists = manifests.length > 0;
-    if(!propsExists)
-    {
-        return "theme";
-    }
-    if(manifestExists)
-    {
-        return "module";
-    }
-    if(propsExists && !manifestExists)
-    {
-        return "platform"; //or storefront
-    }
-}
-
 async function run() 
 {
     const releaseBranch = core.getInput("releaseBranch");
     let path = core.getInput("path");
+    const inputProjectType = core.getInput("projectType");
     path = path.replace(/\/+$/, ''); // remove trailing slashes
     let prefix = "";
     let suffix = "";
     let moduleId = "";
     let branchName = "";
-    let projectType = await getProjectType( path );
+
+    let projectType = validProjectTypes.includes(inputProjectType.toLowerCase()) ? inputProjectType.toLowerCase() : await utils.getProjectType();
     let versionInfo = null;
     let moduleDescription = "";
     let projectUrl = "";
     let  iconUrl = "";
     console.log(`Project Type: ${projectType}`);
     switch(projectType) {
-        case "theme":
+        case utils.projectTypeTheme:
             versionInfo = await utils.getInfoFromPackageJson(`${path}/package.json`);
             prefix = versionInfo.version;
             break;
-        case "module":
+        case utils.projectTypeModule:
             let manifestPathTemplate = "src/*/module.manifest";
             if (path !== defaultPath) {
                 manifestPathTemplate = `${path}/module.manifest`
@@ -132,7 +121,8 @@ async function run()
             projectUrl = versionInfo.projectUrl;
             iconUrl = versionInfo.iconUrl
             break;
-        case "platform":
+        case utils.projectTypePlatform:
+        case utils.projectTypeStorefront:
             versionInfo = await utils.getInfoFromDirectoryBuildProps(`${path}/Directory.Build.props`);
             prefix = versionInfo.prefix;
             suffix = versionInfo.suffix; 
