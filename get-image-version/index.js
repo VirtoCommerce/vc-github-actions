@@ -3,7 +3,12 @@ const exec = require('@actions/exec');
 const github = require('@actions/github');
 const utils = require('@virtocommerce/vc-actions-lib');
 const defaultPath = '.';
-const validProjectTypes = `${utils.projectTypeTheme}${utils.projectTypeModule}${utils.projectTypePlatform}${utils.projectTypeStorefront}`;
+const validProjectTypes = [
+    utils.projectTypeTheme,
+    utils.projectTypeModule,
+    utils.projectTypePlatform,
+    utils.projectTypeStorefront
+];
 
 function pushOutputs(branchName, prefix, suffix, moduleId, moduleDescription="", projectUrl="", iconUrl="") {
     branchName = branchName.substring(branchName.lastIndexOf('/') + 1, branchName.length).toLowerCase();
