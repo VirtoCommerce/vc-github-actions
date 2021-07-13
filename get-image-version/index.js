@@ -29,20 +29,7 @@ function pushOutputs(branchName, prefix, suffix, moduleId, moduleDescription="",
         "projectUrl": projectUrl,
         "iconUrl": iconUrl
     }
-     // core.setOutput("branchName", branchName);
-     // core.setOutput("prefix", prefix);
-     // core.setOutput("suffix", suffix);
-     // core.setOutput("fullSuffix", fullSuffix);
-     // core.setOutput("moduleId", moduleId);
-     // core.setOutput("sha", sha);
-     // core.setOutput("shortVersion", shortVersion);
-     // core.setOutput("tag", tag);
-     // core.setOutput("fullVersion", fullVersion);
-     // core.setOutput("taggedVersion", taggedVersion);
-     // core.setOutput("moduleDescription", moduleDescription);
-     // core.setOutput("projectUrl", projectUrl);
-     // core.setOutput("iconUrl", iconUrl);
- 
+
     core.setOutput("outputs", JSON.stringify(output));
 
     console.log(`Branch name is: ${branchName}`);
