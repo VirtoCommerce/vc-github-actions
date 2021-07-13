@@ -9,6 +9,9 @@ inputs:
     description: 'Branch support preparation of a new production release'
     required: false
     default: 'master'
+  projectType:
+    description: 'Type of project. Allowed values "module", "theme", "platform", "storefront". If value, not specified project type will be determined automatically.'
+    required: false
 
 outputs:
   branchName:
