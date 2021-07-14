@@ -157,9 +157,10 @@ async function createDeployCommit(deployData: DeploymentData, targetRepo: RepoDa
 function setConfigMap (key: string, keyValue:string, cmBody:string){
     const moduleKey = "VirtoCommerce."
     const dockerKey = "docker.";
+    const ghcrKey = "ghcr.";
     let result;
 
-    if(key.indexOf(dockerKey) > -1){ //  Docker image deployment
+    if((key.indexOf(dockerKey) > -1) || (key.indexOf(ghcrKey) > -1)){ //  Docker image deployment
         console.log('setConfigMap: Docker image deployment')
         
         const tag = getDockerTag(keyValue);
