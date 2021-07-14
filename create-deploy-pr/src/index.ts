@@ -183,7 +183,7 @@ function setConfigMap (key: string, keyValue:string, cmBody:string){
             }
         }
     } catch (error) { 
-        core.setFailed(error.message)
+        core.setFailed(error.message);
         process.exit();
     }
     return result;
