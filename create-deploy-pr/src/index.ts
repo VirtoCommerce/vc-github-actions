@@ -182,10 +182,11 @@ function setConfigMap (key: string, keyValue:string, cmBody:string){
                 result = cmBody.replace(regexp, `${key}: ${keyValue}`);
             }
         }
-        return result;
     } catch (error) { 
-        core.setFailed(error)
+        core.setFailed(error.message)
+        process.exit();
     }
+    return result;
 }
 function getDockerTag (dockerLink: string){
     const regExpDocker = /(?<=:).*/;
