@@ -213,26 +213,31 @@ function setConfigMap(key, keyValue, cmBody) {
     var dockerKey = "docker.";
     var ghcrKey = "ghcr.";
     var result;
-    if ((key.indexOf(dockerKey) > -1) || (key.indexOf(ghcrKey) > -1)) {
-        console.log('setConfigMap: Docker image deployment');
-        var tag = getDockerTag(keyValue);
-        var doc = yaml.load(cmBody);
-        var imageIndex = doc["images"].findIndex(function (x) { return x.name === key; });
-        result = cmBody.replace(doc["images"][imageIndex]["newTag"], tag);
-    }
-    else {
-        if (key.indexOf(moduleKey) > -1) {
-            console.log('setConfigMap: Module deployment');
-            var regexp = RegExp('"PackageUrl":\s*.*' + key + '.*');
-            result = cmBody.replace(regexp, "\"PackageUrl\": \"" + keyValue + "\"");
+    try {
+        if ((key.indexOf(dockerKey) > -1) || (key.indexOf(ghcrKey) > -1)) {
+            console.log('setConfigMap: Docker image deployment');
+            var tag = getDockerTag(keyValue);
+            var doc = yaml.load(cmBody);
+            var imageIndex = doc["images"].findIndex(function (x) { return x.name === key; });
+            result = cmBody.replace(doc["images"][imageIndex]["newTag"], tag);
         }
         else {
-            console.log('setConfigMap: Theme deployment');
-            var regexp = RegExp(key + '\s*:.*');
-            result = cmBody.replace(regexp, key + ": " + keyValue);
+            if (key.indexOf(moduleKey) > -1) {
+                console.log('setConfigMap: Module deployment');
+                var regexp = RegExp('"PackageUrl":\s*.*' + key + '.*');
+                result = cmBody.replace(regexp, "\"PackageUrl\": \"" + keyValue + "\"");
+            }
+            else {
+                console.log('setConfigMap: Theme deployment');
+                var regexp = RegExp(key + '\s*:.*');
+                result = cmBody.replace(regexp, key + ": " + keyValue);
+            }
         }
+        return result;
     }
-    return result;
+    catch (error) {
+        core.setFailed(error);
+    }
 }
 function getDockerTag(dockerLink) {
     var _a;

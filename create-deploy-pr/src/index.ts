@@ -160,29 +160,32 @@ function setConfigMap (key: string, keyValue:string, cmBody:string){
     const ghcrKey = "ghcr.";
     let result;
 
-    if((key.indexOf(dockerKey) > -1) || (key.indexOf(ghcrKey) > -1)){ //  Docker image deployment
-        console.log('setConfigMap: Docker image deployment')
-        
-        const tag = getDockerTag(keyValue);
-        const doc = yaml.load(cmBody);
+    try {
+        if((key.indexOf(dockerKey) > -1) || (key.indexOf(ghcrKey) > -1)){ //  Docker image deployment
+            console.log('setConfigMap: Docker image deployment')
+            
+            const tag = getDockerTag(keyValue);
+            const doc = yaml.load(cmBody);
 
-        let imageIndex = doc["images"].findIndex( x => x.name === key);
+            let imageIndex = doc["images"].findIndex( x => x.name === key);
 
-        result = cmBody.replace(doc["images"][imageIndex]["newTag"], tag);
+            result = cmBody.replace(doc["images"][imageIndex]["newTag"], tag);
 
-    } else {
-        if(key.indexOf(moduleKey) > -1){ //  Module deployment
-            console.log('setConfigMap: Module deployment')
-            const regexp = RegExp('"PackageUrl":\s*.*' + key +'.*');
-            result = cmBody.replace(regexp, `"PackageUrl": "${keyValue}"`);
-        } else { //  Theme deployment
-            console.log('setConfigMap: Theme deployment')
-            const regexp = RegExp(key + '\s*:.*');
-            result = cmBody.replace(regexp, `${key}: ${keyValue}`);
+        } else {
+            if(key.indexOf(moduleKey) > -1){ //  Module deployment
+                console.log('setConfigMap: Module deployment')
+                const regexp = RegExp('"PackageUrl":\s*.*' + key +'.*');
+                result = cmBody.replace(regexp, `"PackageUrl": "${keyValue}"`);
+            } else { //  Theme deployment
+                console.log('setConfigMap: Theme deployment')
+                const regexp = RegExp(key + '\s*:.*');
+                result = cmBody.replace(regexp, `${key}: ${keyValue}`);
+            }
         }
+        return result;
+    } catch (error) { 
+        core.setFailed(error)
     }
-    return result;
-    
 }
 function getDockerTag (dockerLink: string){
     const regExpDocker = /(?<=:).*/;
