@@ -100,7 +100,7 @@ function run() {
                     if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
                         GITHUB_TOKEN = process.env.GITHUB_TOKEN;
                     prComments = {
-                        downloadLink: 'Download artifact URL:',
+                        downloadLink: core.getInput("downloadComment"),
                         qaTask: 'QA-test:',
                         demoTask: 'Demo-test:'
                     };

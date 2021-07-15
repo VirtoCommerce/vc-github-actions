@@ -13,6 +13,11 @@ Gets artifact link and task numbers from PR body
     description: "repo org"
     default: "VirtoCommerce"
 
+### downloadComment:
+
+    description: "Comment template"
+    default: "Download artifact URL:"
+
 ## outputs:
 
 ### artifactUrl:

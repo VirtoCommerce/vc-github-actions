@@ -8,6 +8,10 @@ inputs:
     description: "Repo org"
     required: false
     default: "VirtoCommerce"
+  downloadComment:
+    description: "Comment template"
+    required: false
+    default: "Download artifact URL:"
 
 outputs:
   artifactUrl:
