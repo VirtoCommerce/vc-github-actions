@@ -3,17 +3,16 @@ import * as core from '@actions/core'
 
 async function run(): Promise<void> {
     
-    const downloadComment = 'Download artifact URL:'
     let GITHUB_TOKEN = core.getInput("githubToken");
     if(!GITHUB_TOKEN  && process.env.GITHUB_TOKEN !== undefined) GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 
     let repoOrg = core.getInput("repoOrg");
     let artifactUrl = core.getInput("artifactUrl");
     let octokit = github.getOctokit(GITHUB_TOKEN);
-
+    
+    const downloadComment = core.getInput("downloadComment");
     let downloadUrlBody = `${downloadComment} ${artifactUrl}`;
     const regexp = RegExp(downloadComment + '\s*.*');
-    
 
     let currentPr = await octokit.pulls.get({
         owner: repoOrg,
@@ -36,7 +35,6 @@ async function run(): Promise<void> {
     // Get UrL from body
     //let result = body.match(regexp)[0].match(/[-a-zA-Z0-9@:%_\+.~#?&\/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&\/=]*)?/gi)[0]
     //console.log(result); 
-
 
     octokit.pulls.update({
         owner: repoOrg,
