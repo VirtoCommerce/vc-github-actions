@@ -60,19 +60,19 @@ var core = __importStar(require("@actions/core"));
 function run() {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
-        var downloadComment, GITHUB_TOKEN, repoOrg, artifactUrl, octokit, downloadUrlBody, currentPr, body, regexp;
+        var GITHUB_TOKEN, repoOrg, artifactUrl, octokit, downloadComment, downloadUrlBody, regexp, currentPr, body;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
-                    downloadComment = 'Download artifact URL:';
                     GITHUB_TOKEN = core.getInput("githubToken");
                     if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
                         GITHUB_TOKEN = process.env.GITHUB_TOKEN;
                     repoOrg = core.getInput("repoOrg");
                     artifactUrl = core.getInput("artifactUrl");
                     octokit = github.getOctokit(GITHUB_TOKEN);
+                    downloadComment = core.getInput("downloadComment");
                     downloadUrlBody = downloadComment + " " + artifactUrl;
-                    console.log(downloadUrlBody);
+                    regexp = RegExp(downloadComment + '\s*.*');
                     return [4, octokit.pulls.get({
                             owner: repoOrg,
                             repo: github.context.repo.repo,
@@ -82,7 +82,6 @@ function run() {
                     currentPr = _e.sent();
                     body = currentPr.data.body;
                     if (body.includes(downloadComment)) {
-                        regexp = RegExp(downloadComment + '\s*.*');
                         body = body.replace(regexp, downloadUrlBody);
                     }
                     else {

@@ -11,6 +11,10 @@ inputs:
   artifactUrl:
     description: "Link to artifact"
     required: true
+  downloadComment:
+    description: "Comment template"
+    required: false
+    default: "Download artifact URL:"
 
 runs:
   using: 'node12'
