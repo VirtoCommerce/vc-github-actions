@@ -56,7 +56,7 @@ async function run(): Promise<void> {
     if(!GITHUB_TOKEN  && process.env.GITHUB_TOKEN !== undefined) GITHUB_TOKEN = process.env.GITHUB_TOKEN;
     
     const prComments: PrComments = {
-        downloadLink: 'Download artifact URL:',
+        downloadLink: core.getInput("downloadComment"),
         qaTask: 'QA-test:',
         demoTask: 'Demo-test:'
     }
