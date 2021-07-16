@@ -22,8 +22,8 @@ async function run()
     
     let coverageReportPath = `coverage/${repoName}/lcov.info`;
     let testExecutionReportPath = `coverage/${repoName}/report.xml`;
-    let hasCoverageReport = await utils.findFiles(coverageReportPath);
-    let hasTestExecutionReport = await utils.findFiles(testExecutionReportPath);
+    let hasCoverageReport = await utils.findArtifact(coverageReportPath);
+    let hasTestExecutionReport = await utils.findArtifact(testExecutionReportPath);
     let coverageArg = hasCoverageReport ? `-Dsonar.javascript.lcov.reportPaths=${coverageReportPath}` : '';
     let testExecutionArg = hasCoverageReport ? `-Dsonar.testExecutionReportPaths=${testExecutionReportPath}` : '';
 
