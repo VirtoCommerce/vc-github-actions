@@ -174,7 +174,7 @@ function setConfigMap (key: string, keyValue:string, cmBody:string){
         } else {
             if(key.indexOf(moduleKey) > -1){ //  Module deployment
                 console.log('setConfigMap: Module deployment')
-                const regexp = RegExp('"PackageUrl":\s*.*' + key +'.*');
+                const regexp = RegExp('"PackageUrl":\s*.*' + key +'_\d+\.\d+\.\d+.*');
                 result = cmBody.replace(regexp, `"PackageUrl": "${keyValue}"`);
             } else { //  Theme deployment
                 console.log('setConfigMap: Theme deployment')
