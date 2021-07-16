@@ -19,6 +19,13 @@ async function run()
     let projectKey = process.env.GITHUB_REPOSITORY.replace('/', '_');
     let projectVersionArg = projectVersion ? `-Dsonar.projectVersion=${projectVersion}` : "";
     let branchTargetArg = sonarLongLiveBranches.includes(branchName) ? "" : `-Dsonar.branch.target=${branchTarget}`;
+    
+    let coverageReportPath = `coverage/${repoName}/lcov.info`;
+    let testExecutionReportPath = `coverage/${repoName}/report.xml`;
+    let hasCoverageReport = await utils.findFiles(coverageReportPath);
+    let hasTestExecutionReport = await utils.findFiles(testExecutionReportPath);
+    let coverageArg = hasCoverageReport ? `-Dsonar.javascript.lcov.reportPaths=${coverageReportPath}` : '';
+    let testExecutionArg = hasCoverageReport ? `-Dsonar.testExecutionReportPaths=${testExecutionReportPath}` : '';
 
     if (isDependencies) {
         console.log(`Pull request contain "dependencies" label, SonarScanner steps skipped.`);
@@ -28,9 +35,9 @@ async function run()
     if(isPullRequest)
     {
         let prTitle = github.context.payload.pull_request.title.split("\"").join("");
-        await exec.exec(`sonar-scanner -Dsonar.projectKey=${projectKey} -Dsonar.projectName=${repoName} -Dsonar.organization=virto-commerce -Dsonar.login=${process.env.SONAR_TOKEN} ${projectVersionArg} -Dsonar.host.url=https://sonarcloud.io -Dsonar.pullrequest.base=\"${github.context.payload.pull_request.base.ref}\" -Dsonar.pullrequest.branch=\"${prTitle}\" -Dsonar.pullrequest.key=\"${github.context.payload.pull_request.number}\" -Dsonar.pullrequest.github.repository=\"${process.env.GITHUB_REPOSITORY}\" -Dsonar.pullrequest.provider=GitHub -Dsonar.javascript.lcov.reportPaths=coverage/${repoName}/lcov.info -Dsonar.testExecutionReportPaths=coverage/${repoName}/report.xml -Dsonar.coverage.exclusions=**/*.module.ts,**spec.js,**/*spec.ts,**/*conf*.js`);
+        await exec.exec(`sonar-scanner -Dsonar.projectKey=${projectKey} -Dsonar.projectName=${repoName} -Dsonar.organization=virto-commerce -Dsonar.login=${process.env.SONAR_TOKEN} ${projectVersionArg} -Dsonar.host.url=https://sonarcloud.io -Dsonar.pullrequest.base=\"${github.context.payload.pull_request.base.ref}\" -Dsonar.pullrequest.branch=\"${prTitle}\" -Dsonar.pullrequest.key=\"${github.context.payload.pull_request.number}\" -Dsonar.pullrequest.github.repository=\"${process.env.GITHUB_REPOSITORY}\" -Dsonar.pullrequest.provider=GitHub ${coverageArg} ${testExecutionArg} -Dsonar.coverage.exclusions=**/*.module.ts,**spec.js,**/*spec.ts,**/*conf*.js`);
     } else {
-        await exec.exec(`sonar-scanner -Dsonar.projectKey=${projectKey} -Dsonar.projectName=${repoName} -Dsonar.organization=virto-commerce -Dsonar.login=${process.env.SONAR_TOKEN} ${projectVersionArg} -Dsonar.host.url=https://sonarcloud.io -Dsonar.branch.name=${branchName} ${branchTargetArg} -Dsonar.javascript.lcov.reportPaths=coverage/${repoName}/lcov.info -Dsonar.testExecutionReportPaths=coverage/${repoName}/report.xml -Dsonar.coverage.exclusions=**/*.module.ts,**spec.js,**/*spec.ts,**/*conf*.js`);
+        await exec.exec(`sonar-scanner -Dsonar.projectKey=${projectKey} -Dsonar.projectName=${repoName} -Dsonar.organization=virto-commerce -Dsonar.login=${process.env.SONAR_TOKEN} ${projectVersionArg} -Dsonar.host.url=https://sonarcloud.io -Dsonar.branch.name=${branchName} ${branchTargetArg} ${coverageArg} ${testExecutionArg} -Dsonar.coverage.exclusions=**/*.module.ts,**spec.js,**/*spec.ts,**/*conf*.js`);
     }
 }
 
