@@ -176,9 +176,11 @@ function setConfigMap (key: string, keyValue:string, cmBody:string){
                 console.log('setConfigMap: Module deployment');
                 console.log(`key: ${key}`)
                 console.log(`keyValue: ${keyValue}`);
+                console.log(`"PackageUrl": "${keyValue}"`);
                 
-                const regexp = RegExp('"PackageUrl":\s*.*' + key +'_\d+\.\d+\.\d+.*');
-                console.log(`match: ${cmBody.match(regexp)}`);
+                const regexp = RegExp('"PackageUrl":\s*.*' + key +'_.*');
+                console.log(`regexp: ${regexp}`);
+                console.log(`test: ${regexp.test(`"PackageUrl": "${keyValue}"`)}`);
                 result = cmBody.replace(regexp, `"PackageUrl": "${keyValue}"`);
             } else { //  Theme deployment
                 console.log('setConfigMap: Theme deployment')
