@@ -224,7 +224,10 @@ function setConfigMap(key, keyValue, cmBody) {
         else {
             if (key.indexOf(moduleKey) > -1) {
                 console.log('setConfigMap: Module deployment');
+                console.log("key: " + key);
+                console.log("keyValue: " + keyValue);
                 var regexp = RegExp('"PackageUrl":\s*.*' + key + '_\d+\.\d+\.\d+.*');
+                console.log("match: " + cmBody.match(regexp));
                 result = cmBody.replace(regexp, "\"PackageUrl\": \"" + keyValue + "\"");
             }
             else {
