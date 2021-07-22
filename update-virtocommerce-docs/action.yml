@@ -1,0 +1,47 @@
+name: 'Update virtocommerce.com/docs'
+description: 'Makes and updates documentation for virtocommerce.com/docs'
+inputs:
+  azureSubscriptionId:
+    description: "Azure Subscription ID"
+    required: true
+  azureResourceGroupName:
+    description: "Azure Resource Group Name"
+    required: true
+  azureWebAppName:
+    description: "Azure WebApp Name"
+    required: true
+  azureTenantId:
+    description: ""
+    required: true
+  azureApiKey:
+    description: ""
+    required: true
+  azureAppId:
+    description: ""
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Preparing
+      shell: pwsh
+      run: ${{ github.action_path }}/scripts/vc_docs_get_sources.ps1 -ErrorAction Stop
+
+    - name: Build Docs
+      working-directory: ${{ github.workspace }}/vc-platform
+      shell: pwsh
+      run: |
+        mkdocs build
+        Compress-Archive -Path site/* -DestinationPath ${{ github.workspace }}/site.zip
+        
+    - name: Upload docs
+      shell: pwsh
+      env: 
+        AzureSubscriptionIDProd: ${{ inputs.azureSubscriptionId }}
+        AzureResourceGroupNameProd: ${{ inputs.azureResourceGroupName }}
+        AzureWebAppNameProd: ${{ inputs.azureWebAppName }}
+        ArtifactPath: ${{ github.workspace }}/site.zip
+        AzureAPIKey: ${{ inputs.azureApiKey }}
+        AzureTenantID: ${{ inputs.azureTenantId }}
+        AzureAppID: ${{ inputs.azureAppId }}
+      run: ${{ github.action_path }}/scripts/DocsUpdate.ps1

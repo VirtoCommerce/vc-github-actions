@@ -1,0 +1,22 @@
+name: virtocommerce.com docs
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: windows-2019
+
+    steps:
+
+      - name: mkdocs install
+        run: pip install mkdocs
+
+      - name: Docker Env
+        uses: VirtoCommerce/vc-github-actions/update-virtocommere-docs@master
+        with:
+          azureSubscriptionId: ${{ secrets.AzureSubscriptionId }}
+          azureResourceGroupName: ${{ secrets.AzureResourceGroupName }}
+          azureWebAppName: ${{ secrets.AzureWebAppName }}
+          azureApiKey: ${{ secrets.AzureApiKey }}
+          azureTenantId: ${{ secrets.AzureTenantId }}
+          azureAppId: ${{ secrets.AzureAppId }}
