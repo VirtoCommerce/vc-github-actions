@@ -34,6 +34,7 @@ jobs:
       PUBLISH_TO_DOCKER: "true"
       UPDATE_LATEST_TAG: "true"
       VERSION_SUFFIX: ""
+      IMAGE_NAME: "platform"
 
     steps:
 
@@ -167,3 +168,11 @@ jobs:
           docker_token: ${{ secrets.DOCKER_TOKEN }}
           docker_hub: ${{ env.PUBLISH_TO_DOCKER }}
           update_latest: ${{ env.UPDATE_LATEST_TAG }}
+
+    - name: Invoke VC image deployment workflow
+      if: ${{ github.ref == 'refs/heads/master' && github.event_name != 'workflow_dispatch' }}
+      uses: benc-uk/workflow-dispatch@v1
+      with:
+        workflow: VC deployment
+        token: ${{ secrets.REPO_TOKEN }}
+        inputs: '{ "artifactUrl": "ghcr.io/${{ github.repository }}/${{ env.IMAGE_NAME }}:${{ steps.image.outputs.taggedVersion }}" }'

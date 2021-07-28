@@ -1,0 +1,16 @@
+name: Deploy Github Actions for Platform
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:  
+    runs-on: ubuntu-latest
+    steps:
+    - name: vc-platform
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        USER: ${{ env.GITHUB_USER }}
+        GHA_DEPLOYMENT_FOLDER: "platform"
+        REPOSITORY: "vc-platform"
+
