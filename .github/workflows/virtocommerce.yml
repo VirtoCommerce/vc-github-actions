@@ -11,6 +11,11 @@ jobs:
       - name: mkdocs install
         run: pip install mkdocs
 
+      - name: Setup Git Credentials
+        uses: VirtoCommerce/vc-github-actions/setup-git-credentials-github@master
+        with: 
+          githubToken: ${{ secrets.REPO_TOKEN }}
+
       - name: Update docs
         uses: VirtoCommerce/vc-github-actions/update-virtocommerce-docs@master
         with:
