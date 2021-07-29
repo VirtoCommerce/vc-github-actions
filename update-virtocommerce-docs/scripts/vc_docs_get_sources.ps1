@@ -9,7 +9,7 @@ Copy-Item -Path "vc-build\docs\CLI-tools\*" -Destination "vc-platform\docs\CLI-t
 # Get all modules from master branch
 $modulesv3=Invoke-RestMethod https://raw.githubusercontent.com/VirtoCommerce/vc-modules/master/modules_v3.json
 foreach ($module in $modulesv3) {
-	$moduleName=$module.Versions.PackageUrl[0]
+	$moduleName= Get-GithubPackageUrl -Versions $module.Versions #$module.Versions.PackageUrl[0]
 	$substingStartCut="module-"
 	$substingEndCut="/releases"
 	$substingStartCut=$moduleName.IndexOf($substingStartCut)+$substingStartCut.Length
@@ -27,4 +27,16 @@ foreach ($module in $modulesv3) {
         Copy-Item -Path "docs" -Destination "..\vc-platform\docs\modules\$moduleName" -Recurse -Force
 		Set-Location  ..
 	}
+}
+
+function Get-GithubPackageUrl {
+	param (
+		$Versions
+	)
+	foreach($version in $Versions){
+		if($version.PackageUrl[0].Contains("github.com")){
+			return $version.PackageUrl[0]
+		}
+	}
+	return $null
 }
