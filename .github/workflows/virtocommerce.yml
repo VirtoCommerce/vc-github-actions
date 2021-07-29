@@ -14,9 +14,9 @@ jobs:
       - name: Docker Env
         uses: VirtoCommerce/vc-github-actions/update-virtocommere-docs@master
         with:
-          azureSubscriptionId: ${{ secrets.AzureSubscriptionId }}
-          azureResourceGroupName: ${{ secrets.AzureResourceGroupName }}
-          azureWebAppName: ${{ secrets.AzureWebAppName }}
-          azureApiKey: ${{ secrets.AzureApiKey }}
-          azureTenantId: ${{ secrets.AzureTenantId }}
-          azureAppId: ${{ secrets.AzureAppId }}
+          azureSubscriptionId: ${{ secrets.AZURESUBSCRIPTIONID }}
+          azureResourceGroupName: ${{ secrets.AZURERESOURCEGROUPNAME }}
+          azureWebAppName: ${{ secrets.AZUREWEBAPPNAME }}
+          azureApiKey: ${{ secrets.AZUREAPIKEY }}
+          azureTenantId: ${{ secrets.AZURETENANTID }}
+          azureAppId: ${{ secrets.AZUREAPPID }}
