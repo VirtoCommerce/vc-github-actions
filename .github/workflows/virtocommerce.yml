@@ -1,4 +1,4 @@
-name: virtocommerce.com docs
+name: "virtocommerce.com docs"
 on:
   workflow_dispatch:
 
@@ -11,7 +11,7 @@ jobs:
       - name: mkdocs install
         run: pip install mkdocs
 
-      - name: Docker Env
+      - name: Update docs
         uses: VirtoCommerce/vc-github-actions/update-virtocommere-docs@master
         with:
           azureSubscriptionId: ${{ secrets.AZURESUBSCRIPTIONID }}
