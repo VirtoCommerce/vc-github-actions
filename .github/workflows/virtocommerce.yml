@@ -9,7 +9,9 @@ jobs:
     steps:
 
       - name: mkdocs install
-        run: pip install mkdocs
+        run: |
+          pip install mkdocs
+          pip install mkdocs-awesome-pages-plugin mkdocs-git-revision-date-localized-plugin mkdocs-material mkdocs-minify-plugin mkdocs-redirects pymdown-extensions
 
       - name: Setup Git Credentials
         uses: VirtoCommerce/vc-github-actions/setup-git-credentials-github@master
