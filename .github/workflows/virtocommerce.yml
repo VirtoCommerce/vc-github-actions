@@ -12,7 +12,7 @@ jobs:
         run: pip install mkdocs
 
       - name: Update docs
-        uses: VirtoCommerce/vc-github-actions/update-virtocommere-docs@master
+        uses: VirtoCommerce/vc-github-actions/update-virtocommerce-docs@master
         with:
           azureSubscriptionId: ${{ secrets.AZURESUBSCRIPTIONID }}
           azureResourceGroupName: ${{ secrets.AZURERESOURCEGROUPNAME }}
