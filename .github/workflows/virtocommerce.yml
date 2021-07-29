@@ -10,6 +10,7 @@ jobs:
 
       - name: mkdocs install
         run: |
+          Import-Module AzureRM -Versbose
           pip install mkdocs
           pip install mkdocs-awesome-pages-plugin mkdocs-git-revision-date-localized-plugin mkdocs-material mkdocs-minify-plugin mkdocs-redirects pymdown-extensions
 
