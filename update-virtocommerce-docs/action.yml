@@ -25,6 +25,7 @@ runs:
   steps:
     - name: Preparing
       shell: pwsh
+      working-directory: ${{ github.workspace }}
       run: |
         & ${{ github.action_path }}/scripts/vc_docs_get_sources.ps1 -ErrorAction Continue
 
