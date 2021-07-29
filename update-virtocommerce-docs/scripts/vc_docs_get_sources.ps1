@@ -1,5 +1,17 @@
 $ErrorActionPreference = 'Continue'
 
+function Get-GithubPackageUrl {
+	param (
+		$Versions
+	)
+	foreach($version in $Versions){
+		if($version.PackageUrl[0].Contains("github.com")){
+			return $version.PackageUrl[0]
+		}
+	}
+	return $null
+}
+
 #Get platform src
 git clone https://github.com/VirtoCommerce/vc-platform.git --branch master --single-branch
 
@@ -10,6 +22,9 @@ Copy-Item -Path "vc-build\docs\CLI-tools\*" -Destination "vc-platform\docs\CLI-t
 $modulesv3=Invoke-RestMethod https://raw.githubusercontent.com/VirtoCommerce/vc-modules/master/modules_v3.json
 foreach ($module in $modulesv3) {
 	$moduleName= Get-GithubPackageUrl -Versions $module.Versions #$module.Versions.PackageUrl[0]
+	if($null -eq $moduleName){
+		continue
+	}
 	$substingStartCut="module-"
 	$substingEndCut="/releases"
 	$substingStartCut=$moduleName.IndexOf($substingStartCut)+$substingStartCut.Length
@@ -27,16 +42,4 @@ foreach ($module in $modulesv3) {
         Copy-Item -Path "docs" -Destination "..\vc-platform\docs\modules\$moduleName" -Recurse -Force
 		Set-Location  ..
 	}
-}
-
-function Get-GithubPackageUrl {
-	param (
-		$Versions
-	)
-	foreach($version in $Versions){
-		if($version.PackageUrl[0].Contains("github.com")){
-			return $version.PackageUrl[0]
-		}
-	}
-	return $null
 }
