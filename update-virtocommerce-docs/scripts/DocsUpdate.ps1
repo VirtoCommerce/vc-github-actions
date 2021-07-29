@@ -30,7 +30,8 @@ $xml = Get-AzureRmWebAppPublishingProfile -Name $DestWebAppName `
 $contentPath = $DestContentPath
 $msdeploy = "msdeploy.exe"
 $sourcewebapp_msdeployUrl = "https://${DestWebAppName}.scm.azurewebsites.net/msdeploy.axd?site=${DestWebAppName}"
-& $msdeploy -verb:sync -dest:contentPath="D:\home\site\wwwdocs\latest\$contentPath",computerName=$sourcewebapp_msdeployUrl,publishSettings=$tmpPublishProfile -source:package=$ZipFile
+# & $msdeploy -verb:sync -dest:contentPath="D:\home\site\wwwdocs\latest\$contentPath",computerName=$sourcewebapp_msdeployUrl,publishSettings=$tmpPublishProfile -source:package=$ZipFile
+& $msdeploy
 if($LASTEXITCODE -ne 0)
 {
     exit 1
