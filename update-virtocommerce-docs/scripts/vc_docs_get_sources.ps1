@@ -5,8 +5,8 @@ function Get-GithubPackageUrl {
 		$Versions
 	)
 	foreach($version in $Versions){
-		if($version.PackageUrl[0].Contains("github.com")){
-			return $version.PackageUrl[0]
+		if($version.PackageUrl.Contains("github.com")){
+			return $version.PackageUrl
 		}
 	}
 	return $null
