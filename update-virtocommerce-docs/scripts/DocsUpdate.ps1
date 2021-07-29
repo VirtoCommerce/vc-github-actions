@@ -9,21 +9,21 @@ $psCred = New-Object System.Management.Automation.PSCredential($ApplicationID, $
 $TenantID = "${env:AzureTenantID}"
 $SubscriptionID = "${env:AzureSubscriptionIDProd}"
 
-Add-AzureRmAccount -Credential $psCred -TenantId $TenantID -ServicePrincipal
-Select-AzureRmSubscription -SubscriptionId $SubscriptionID
+Add-AzAccount -Credential $psCred -TenantId $TenantID -ServicePrincipal
+Select-AzSubscription -SubscriptionId $SubscriptionID
 
 $DestResourceGroupName = "${env:AzureResourceGroupNameProd}"
 $DestWebAppName = "${env:AzureWebAppNameProd}"
 
 # Write-Host "Stop WebApp $DestWebAppName"
-# Stop-AzureRmWebApp -ResourceGroupName $DestResourceGroupName -Name $DestWebAppName
+# Stop-AzWebApp -ResourceGroupName $DestResourceGroupName -Name $DestWebAppName
 
 # Start-Sleep -s 35
 
 # Getting Publish Profile
 Write-Output "Getting publishing profile for $DestWebAppName app"
 $tmpPublishProfile = [System.IO.Path]::GetTempFileName() + ".xml"
-$xml = Get-AzureRmWebAppPublishingProfile -Name $DestWebAppName `
+$xml = Get-AzWebAppPublishingProfile -Name $DestWebAppName `
            -ResourceGroupName $DestResourceGroupName `
            -OutputFile $tmpPublishProfile -Format WebDeploy -ErrorAction Continue
 
@@ -40,6 +40,6 @@ if($LASTEXITCODE -ne 0)
 # Start-Sleep -s 5
 
 # Write-Host "Start WebApp $DestWebAppName"
-# Start-AzureRmWebApp -ResourceGroupName $DestResourceGroupName -Name $DestWebAppName
+# Start-AzWebApp -ResourceGroupName $DestResourceGroupName -Name $DestWebAppName
 
 Remove-Item $tmpPublishProfile -Force
