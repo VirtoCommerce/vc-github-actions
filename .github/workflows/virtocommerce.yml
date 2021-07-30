@@ -8,8 +8,9 @@ jobs:
 
     steps:
 
-      - name: mkdocs install
+      - name: Install Dependencies
         run: |
+          Enable-AzureRmAlias -Scope CurrentUser
           pip install mkdocs
           pip install mkdocs-awesome-pages-plugin mkdocs-git-revision-date-localized-plugin mkdocs-material mkdocs-minify-plugin mkdocs-redirects pymdown-extensions
 
