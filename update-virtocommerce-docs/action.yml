@@ -34,7 +34,7 @@ runs:
       shell: powershell
       run: |
         mkdocs build
-        7z a ${{ github.workspace }}/site.zip site/* -r
+        7z a ${{ github.workspace }}/site.zip ./site/* -r
         
     - name: Upload docs
       shell: powershell
