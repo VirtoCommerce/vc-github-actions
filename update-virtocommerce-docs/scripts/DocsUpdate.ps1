@@ -28,7 +28,7 @@ $xml = Get-AzureRmWebAppPublishingProfile -Name $DestWebAppName `
            -OutputFile $tmpPublishProfile -Format WebDeploy -ErrorAction Continue
 
 $contentPath = $DestContentPath
-$msdeploy = "msdeploy.exe"
+$msdeploy = "C:\Program Files (x86)\IIS\Microsoft Web Deploy V3\msdeploy.exe"
 $sourcewebapp_msdeployUrl = "https://${DestWebAppName}.scm.azurewebsites.net/msdeploy.axd?site=${DestWebAppName}"
 # & $msdeploy -verb:sync -dest:contentPath="D:\home\site\wwwdocs\latest\$contentPath",computerName=$sourcewebapp_msdeployUrl,publishSettings=$tmpPublishProfile -source:package=$ZipFile
 & $msdeploy

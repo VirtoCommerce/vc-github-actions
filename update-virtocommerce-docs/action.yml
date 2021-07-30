@@ -46,4 +46,6 @@ runs:
         AzureAPIKey: ${{ inputs.azureApiKey }}
         AzureTenantID: ${{ inputs.azureTenantId }}
         AzureAppID: ${{ inputs.azureAppId }}
-      run: ${{ github.action_path }}/scripts/DocsUpdate.ps1
+      run: |
+        Disable-AzureDataCollection
+        ${{ github.action_path }}/scripts/DocsUpdate.ps1
