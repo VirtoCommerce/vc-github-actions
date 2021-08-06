@@ -3,6 +3,9 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '30 19 * * *'
+  push:
+    paths:
+      - ""
 
 jobs:
   publish:
@@ -21,6 +24,7 @@ jobs:
           githubToken: ${{ secrets.REPO_TOKEN }}
 
       - name: Update docs
+        working-directory: 
         uses: VirtoCommerce/vc-github-actions/update-virtocommerce-docs@master
         with:
           azureSubscriptionId: ${{ secrets.AZURESUBSCRIPTIONID }}
