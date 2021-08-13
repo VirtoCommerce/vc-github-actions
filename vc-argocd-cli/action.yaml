@@ -1,0 +1,23 @@
+name: 'argocd-cli'
+description: 'ArgoCD command line action'
+inputs:
+  server:
+    description: 'ArgoCD server'
+    required: true
+  username:
+    description: 'ArgoCD username'
+    required: true
+  password:
+    description: 'ArgoCD password'
+    required: true
+  command:
+    description: 'Run ArgoCD command'
+    required: false
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.server }}
+    - ${{ inputs.username }}
+    - ${{ inputs.password }}
+    - ${{ inputs.command }}
