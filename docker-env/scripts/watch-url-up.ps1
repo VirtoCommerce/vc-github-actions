@@ -35,11 +35,11 @@ function Watch-Url-Up {
 
     if ($responseStatus -eq 200) {
         Write-Host "$ApiUrl is up!"
-        $result = true
+        $result = $true
     }
     else {
         Write-Host "$ApiUrl may be down, please check!"
-        $result = false
+        $result = $false
     }
 
     return $result

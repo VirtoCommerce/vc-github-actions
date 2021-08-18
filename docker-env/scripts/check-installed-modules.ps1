@@ -1,3 +1,5 @@
+. "./scripts/watch-url-up.ps1"
+
 Param(
     [parameter(Mandatory = $true)]
     $ApiUrl,
@@ -26,28 +28,33 @@ function Get-AuthToken {
     return $responseContent.access_token
 }
 
-Start-Sleep -Seconds 180
+#Start-Sleep -Seconds 180
 
-$authToken = (Get-AuthToken $appAuthUrl $Username $Password)[1]
-$headers = @{}
-$headers.Add("Authorization", "Bearer $authToken")
-$modules = Invoke-RestMethod $checkModulesUrl -Method Get -Headers $headers -SkipCertificateCheck -MaximumRetryCount 5 -RetryIntervalSec 5
-$installedModules = 0
-if ($modules.Length -le 0) {
-    Write-Output "No module's info returned"
-    exit 1
-}
-Foreach ($module in $modules) {
-    if ($module.isInstalled) {
-        $installedModules++
+$platformIsUp = (Watch-Url-Up $appAuthUrl 15 15 60)
+
+if ($platformIsUp) {
+    $authToken = (Get-AuthToken $appAuthUrl $Username $Password)[1]
+    $headers = @{}
+    $headers.Add("Authorization", "Bearer $authToken")
+    $modules = Invoke-RestMethod $checkModulesUrl -Method Get -Headers $headers -SkipCertificateCheck -MaximumRetryCount 5 -RetryIntervalSec 5
+    $installedModules = 0
+    if ($modules.Length -le 0) {
+        Write-Output "No module's info returned"
+        exit 1
     }
-    if ($module.validationErrors.Length -gt 0) {
-        Write-Output $module.id
-        Write-Output $module.validationErrors
+    Foreach ($module in $modules) {
+        if ($module.isInstalled) {
+            $installedModules++
+        }
+        if ($module.validationErrors.Length -gt 0) {
+            Write-Output $module.id
+            Write-Output $module.validationErrors
+            exit 1
+        }
+    }
+    Write-Output "Modules installed: $installedModules"
+    if($installedModules -lt 23){
         exit 1
     }
 }
-Write-Output "Modules installed: $installedModules"
-if($installedModules -lt 23){
-    exit 1
-}
+
