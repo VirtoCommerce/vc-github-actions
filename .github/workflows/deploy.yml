@@ -297,21 +297,21 @@ jobs:
         GHA_DEPLOYMENT_FOLDER: "modules"
         REPOSITORY: "vc-module-changes-collector"
 
-    # - name: vc-storefront
-    #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-    #     USER: ${{ env.GITHUB_USER }}
-    #     GHA_DEPLOYMENT_FOLDER: "storefront"
-    #     REPOSITORY: "vc-storefront"
+    - name: vc-storefront
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        USER: ${{ env.GITHUB_USER }}
+        GHA_DEPLOYMENT_FOLDER: "storefront"
+        REPOSITORY: "vc-storefront"
 
-    # - name: vc-platform
-    #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-    #     USER: ${{ env.GITHUB_USER }}
-    #     GHA_DEPLOYMENT_FOLDER: "platform"
-    #     REPOSITORY: "vc-platform"
+    - name: vc-platform
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        USER: ${{ env.GITHUB_USER }}
+        GHA_DEPLOYMENT_FOLDER: "platform"
+        REPOSITORY: "vc-platform"
 
     # - name: vc-theme-default
     #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
@@ -337,29 +337,29 @@ jobs:
     #     GHA_DEPLOYMENT_FOLDER: "themes"
     #     REPOSITORY: "vc-theme-material"
 
-    # - name: vc-module-event-bus
-    #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-    #     USER: ${{ env.GITHUB_USER }}
-    #     GHA_DEPLOYMENT_FOLDER: "modules"
-    #     REPOSITORY: "vc-module-event-bus"
+    - name: vc-module-event-bus
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        USER: ${{ env.GITHUB_USER }}
+        GHA_DEPLOYMENT_FOLDER: "modules"
+        REPOSITORY: "vc-module-event-bus"
 
-    # - name: vc-module-Authorize.Net
-    #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-    #     USER: ${{ env.GITHUB_USER }}
-    #     GHA_DEPLOYMENT_FOLDER: "modules"
-    #     REPOSITORY: "vc-module-Authorize.Net"
+    - name: vc-module-Authorize.Net
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        USER: ${{ env.GITHUB_USER }}
+        GHA_DEPLOYMENT_FOLDER: "modules"
+        REPOSITORY: "vc-module-Authorize.Net"
 
-    # - name: vc-module-avatax
-    #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-    #     USER: ${{ env.GITHUB_USER }}
-    #     GHA_DEPLOYMENT_FOLDER: "modules"
-    #     REPOSITORY: "vc-module-avatax"
+    - name: vc-module-avatax
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        USER: ${{ env.GITHUB_USER }}
+        GHA_DEPLOYMENT_FOLDER: "modules"
+        REPOSITORY: "vc-module-avatax"
 
     ###################################
     #                                 #
@@ -367,13 +367,13 @@ jobs:
     #                                 #
     ###################################
 
-    # - name: vc-demo-storefront-ci
-    #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-    #     USER: ${{ env.GITHUB_USER }}
-    #     GHA_DEPLOYMENT_FOLDER: "demo-storefront"
-    #     REPOSITORY: "vc-demo-storefront"
+    - name: vc-demo-storefront-ci
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        USER: ${{ env.GITHUB_USER }}
+        GHA_DEPLOYMENT_FOLDER: "demo-storefront"
+        REPOSITORY: "vc-demo-storefront"
 
     # - name: vc-demo-theme-b2b-ci
     #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
@@ -391,45 +391,45 @@ jobs:
     #     GHA_DEPLOYMENT_FOLDER: "demo-themes"
     #     REPOSITORY: "vc-demo-theme-default"
 
-    # - name: vc-module-customer-export-import-ci
-    #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-    #     USER: ${{ env.GITHUB_USER }}
-    #     GHA_DEPLOYMENT_FOLDER: "demo-modules"
-    #     REPOSITORY: "vc-module-customer-export-import"
+    - name: vc-module-customer-export-import-ci
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        USER: ${{ env.GITHUB_USER }}
+        GHA_DEPLOYMENT_FOLDER: "demo-modules"
+        REPOSITORY: "vc-module-customer-export-import"
 
-    # - name: vc-module-demo-customer-segments-ci
-    #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-    #     USER: ${{ env.GITHUB_USER }}
-    #     GHA_DEPLOYMENT_FOLDER: "demo-modules"
-    #     REPOSITORY: "vc-module-demo-customer-segments"
+    - name: vc-module-demo-customer-segments-ci
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        USER: ${{ env.GITHUB_USER }}
+        GHA_DEPLOYMENT_FOLDER: "demo-modules"
+        REPOSITORY: "vc-module-demo-customer-segments"
 
-    # - name: vc-module-demo-features-ci
-    #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-    #     USER: ${{ env.GITHUB_USER }}
-    #     GHA_DEPLOYMENT_FOLDER: "demo-modules"
-    #     REPOSITORY: "vc-module-demo-features"
+    - name: vc-module-demo-features-ci
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        USER: ${{ env.GITHUB_USER }}
+        GHA_DEPLOYMENT_FOLDER: "demo-modules"
+        REPOSITORY: "vc-module-demo-features"
 
-    # - name: vc-module-feature-flags-ci
-    #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-    #     USER: ${{ env.GITHUB_USER }}
-    #     GHA_DEPLOYMENT_FOLDER: "demo-modules"
-    #     REPOSITORY: "vc-module-feature-flags"
+    - name: vc-module-feature-flags-ci
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        USER: ${{ env.GITHUB_USER }}
+        GHA_DEPLOYMENT_FOLDER: "demo-modules"
+        REPOSITORY: "vc-module-feature-flags"
 
-    # - name: vc-module-simple-export-import-ci
-    #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-    #     USER: ${{ env.GITHUB_USER }}
-    #     GHA_DEPLOYMENT_FOLDER: "demo-modules"
-    #     REPOSITORY: "vc-module-simple-export-import"
+    - name: vc-module-simple-export-import-ci
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        USER: ${{ env.GITHUB_USER }}
+        GHA_DEPLOYMENT_FOLDER: "demo-modules"
+        REPOSITORY: "vc-module-simple-export-import"
 
     ###################################
     #                                 #
