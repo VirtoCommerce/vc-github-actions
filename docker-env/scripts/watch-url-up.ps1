@@ -17,19 +17,17 @@ function Watch-Url-Up {
     $responseStatus = 0
     do 
     {
-        Start-Sleep -s $RetrySeconds
+        
+        Write-Host "Try to open $ApiUrl. Attempt # $attempt of $maxRepeat."
         try {
-            Write-Host "Try to open $ApiUrl. Attempt # $attempt of $maxRepeat."
-            $HTTP_Request = [System.Net.WebRequest]::Create($ApiUrl) # First we create the request.
-            $response = $HTTP_Request.GetResponse()
+            $response = Invoke-WebRequest $ApiUrl -Method Get
             $responseStatus = [int] $response.StatusCode
         }
-        finally {
-            $attempt ++
-            if ( $null -ne $response ) 
-            {
-                $response.Close()  # Finally, we clean up the http request by closing it.
+        catch{
+            if ($maxRepeat -gt $attempt) {
+                Start-Sleep -s $RetrySeconds
             }
+            $attempt ++
         }
     } until ($responseStatus -eq 200 -or $maxRepeat -lt $attempt)
 
@@ -43,6 +41,4 @@ function Watch-Url-Up {
     }
 
     return $result
-
 }
-
