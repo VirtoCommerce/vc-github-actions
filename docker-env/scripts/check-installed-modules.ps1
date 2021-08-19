@@ -29,7 +29,13 @@ function Get-AuthToken {
 
 #Start-Sleep -Seconds 180
 
-$platformIsUp = (Watch-Url-Up $appAuthUrl 15 15 60)
+Write-Host "Check platform is started"
+try {
+    $platformIsUp = (Watch-Url-Up $appAuthUrl 15 15 60)
+}
+finally {
+    Write-Host $platformIsUp
+}
 
 if ($platformIsUp) {
     $authToken = (Get-AuthToken $appAuthUrl $Username $Password)[1]
