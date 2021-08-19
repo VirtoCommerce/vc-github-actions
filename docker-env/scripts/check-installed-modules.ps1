@@ -29,7 +29,7 @@ function Get-AuthToken {
 
 #Start-Sleep -Seconds 180
 
-$platformIsUp = (Watch-Url-Up $appAuthUrl 15 15 60)
+$platformIsUp = (Watch-Url-Up $ApiUrl 15 15 60)
 
 if ($platformIsUp) {
     $authToken = (Get-AuthToken $appAuthUrl $Username $Password)[1]
