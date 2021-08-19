@@ -1,5 +1,3 @@
-. "./scripts/watch-url-up.ps1"
-
 Param(
     [parameter(Mandatory = $true)]
     $ApiUrl,
@@ -7,6 +5,7 @@ Param(
     $Password = "store"
 )
 
+. "./scripts/watch-url-up.ps1"
 
 $appAuthUrl = "$ApiUrl/connect/token"
 $checkModulesUrl = "$ApiUrl/api/platform/modules"
