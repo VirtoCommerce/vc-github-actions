@@ -2,7 +2,8 @@ Param(
     [parameter(Mandatory = $true)]
     $ApiUrl,
     $Username = "admin",
-    $Password = "store"
+    $Password = "store",
+    $ContainerId = "virtocommerce_vc-platform-web_1"
 )
 
 . "./scripts/watch-url-up.ps1"
@@ -27,9 +28,11 @@ function Get-AuthToken {
     return $responseContent.access_token
 }
 
-#Start-Sleep -Seconds 180
+Write-Host "Container $ContainerId restarted"
+docker restart $ContainerId
+docker logs $ContainerId
 
-$platformIsUp = (Watch-Url-Up $ApiUrl 15 15 60)
+$platformIsUp = (Watch-Url-Up -ApiUrl $ApiUrl -TimeoutMinutes 15 -RetrySeconds 15 -WaitSeconds 60)
 
 if ($platformIsUp) {
     $authToken = (Get-AuthToken $appAuthUrl $Username $Password)[1]

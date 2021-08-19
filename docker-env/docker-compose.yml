@@ -45,7 +45,7 @@ services:
       - vc-db
     volumes:
       - cms-content-volume:/opt/virtocommerce/platform/wwwroot/cms-content
-      - modules-volume:/opt/virtocommerce/platform/modules
+      - ./modules:/opt/virtocommerce/platform/modules
     networks:
       - virto
 
@@ -68,8 +68,8 @@ services:
 volumes:
   cms-content-volume:
     name: cms-content-data
-  modules-volume:
-    name: modules-data
+#  modules-volume:
+#    name: modules-data
 
 networks:
   virto:

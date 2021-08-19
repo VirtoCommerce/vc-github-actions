@@ -40,7 +40,7 @@ jobs:
       #     dotnet-version: '3.1.x'
 
       # - name: Install VirtoCommerce.GlobalTool
-      #   run: dotnet tool update --global VirtoCommerce.GlobalTool
+      #   run: dotnet tool install --global VirtoCommerce.GlobalTool --version 2.0.0-alpha.26
 
       - name: Docker Login
         uses: azure/docker-login@v1

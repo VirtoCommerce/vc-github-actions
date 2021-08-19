@@ -47,6 +47,24 @@ inputs:
 runs:
   using: "composite"
   steps:
+
+    - name: Install VirtoCommerce.GlobalTool
+      shell: pwsh
+      run: dotnet tool install --global VirtoCommerce.GlobalTool --version 2.0.0-alpha.36
+
+    - name: Install Modules
+      working-directory: ${{ github.action_path }}
+      shell: pwsh
+      run: |
+        if("${{ inputs.installModules }}" -eq "true")
+        {
+          Write-Host "Install Modules step started"
+          New-Item -Path "./" -Name "modules" -ItemType "directory"
+          Push-Location ./modules
+          vc-build install -skip InstallPlatform
+          Pop-Location
+        }
+
     - name: Start containers
       env:
         PLATFORM_IMAGE: ${{ inputs.platformImage }}
@@ -58,36 +76,17 @@ runs:
       run: |
         docker-compose --project-name virtocommerce up -d 
 
-    - name: Install Modules
+    - name: Check Installed Modules
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
-        if("${{ inputs.installModules }}" -ne "true")
+        if("${{ inputs.installModules }}" -eq "true")
         {
-          exit 0
+          Write-Host "Check Installed Modules step started"
+          $platformContainer = "virtocommerce_vc-platform-web_1"
+          scripts/check-installed-modules.ps1 -ApiUrl http://localhost:8090 -ContainerId $platformContainer -Verbose -Debug
         }
-        $platformContainer = "virtocommerce_vc-platform-web_1"
-        scripts/setup-modules.ps1 -ApiUrl http://localhost:8090 -NeedRestart -ContainerId $platformContainer -Verbose -Debug
-        
-        if("${{ inputs.installModule }}" -eq "true")
-        {
-          $workspace = $env:GITHUB_WORKSPACE
-          Write-Output "Workspace: $workspace"
-          $artifacts = Get-ChildItem "$($workspace)/artifacts/*.zip"
-          $moduleArtifactPath = "$($workspace)/artifacts/$($artifacts[0].Name)"
-          $moduleDir = "${{ inputs.moduleId }}"
-          Write-Output $moduleDir
-          docker ps -a
-          Expand-Archive -Path $moduleArtifactPath -DestinationPath ./$($moduleDir)
-          $containerDest = "/opt/virtocommerce/platform/Modules"
-          Write-Output "Remove previous module version"
-          docker exec $platformContainer sh -c "rm -rf ${containerDest}/${moduleDir}"
-          docker cp ${moduleDir}/. ${platformContainer}:${containerDest}
-          Write-Output "Start Restart: $($platformContainer)"
-          docker restart $platformContainer
-        }
-        scripts/check-installed-modules.ps1 -ApiUrl http://localhost:8090 -Verbose -Debug
-        
+
     - name: Install Sample Data
       working-directory: ${{ github.action_path }}
       shell: pwsh
@@ -96,7 +95,9 @@ runs:
         {
           exit 0
         }
+        Write-Host "Install Sample Data step started"
         scripts/setup-sampledata.ps1 -ApiUrl http://localhost:8090 -Verbose -Debug
+
 
     - name: Swagger Schema Validation
       shell: pwsh
