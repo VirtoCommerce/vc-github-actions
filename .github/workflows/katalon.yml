@@ -34,13 +34,13 @@ jobs:
       #   with:
       #     java-version: 1.11
 
-      - name: Set up .net Core 3.1.x for vc-build #GitHib Actions migrates to .net Core 5.x. To vc-build work properly need to manually install .net Core 3.1.x
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '3.1.x'
+      # - name: Set up .net Core 3.1.x for vc-build #GitHib Actions migrates to .net Core 5.x. To vc-build work properly need to manually install .net Core 3.1.x
+      #   uses: actions/setup-dotnet@v1
+      #   with:
+      #     dotnet-version: '3.1.x'
 
-      - name: Install VirtoCommerce.GlobalTool
-        run: dotnet tool update --global VirtoCommerce.GlobalTool
+      # - name: Install VirtoCommerce.GlobalTool
+      #   run: dotnet tool update --global VirtoCommerce.GlobalTool
 
       - name: Docker Login
         uses: azure/docker-login@v1
@@ -60,31 +60,31 @@ jobs:
           storefrontImage: ghcr.io/virtocommerce/storefront
           validateSwagger: 'false'
 
-      - name: Getting tests
-        shell: sh
-        run: git clone https://github.com/VirtoCommerce/vc-quality-gate-katalon.git --branch ${{ github.event.inputs.testBranch }}
+      # - name: Getting tests
+      #   shell: sh
+      #   run: git clone https://github.com/VirtoCommerce/vc-quality-gate-katalon.git --branch ${{ github.event.inputs.testBranch }}
 
-      - name: Katalon Studio Github Action
-        uses: VirtoCommerce/vc-github-actions/katalon-studio-github-action@master
-        with:
-          version: '7.9.1'
-          projectPath: '${{ github.workspace }}/vc-quality-gate-katalon/platform_storefront.prj'
-          args: '-noSplash -retry=0  -testSuitePath="${{ github.event.inputs.testSuite }}" -browserType="Chrome" -apiKey= ${{ secrets.KATALON_API_KEY }} -g_urlBack="http://localhost:8090" -g_urlFront="http://localhost:8080" -executionProfile="default"'
+      # - name: Katalon Studio Github Action
+      #   uses: VirtoCommerce/vc-github-actions/katalon-studio-github-action@master
+      #   with:
+      #     version: '7.9.1'
+      #     projectPath: '${{ github.workspace }}/vc-quality-gate-katalon/platform_storefront.prj'
+      #     args: '-noSplash -retry=0  -testSuitePath="${{ github.event.inputs.testSuite }}" -browserType="Chrome" -apiKey= ${{ secrets.KATALON_API_KEY }} -g_urlBack="http://localhost:8090" -g_urlFront="http://localhost:8080" -executionProfile="default"'
 
-      - name: 'Katalon Reports'
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: reports
-          path: |
-            vc-quality-gate-katalon/Reports
-            /home/runner/.katalon/*/Katalon_Studio_Engine_Linux_*/configuration/*.log.
-          retention-days: 5
+      # - name: 'Katalon Reports'
+      #   if: always()
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: reports
+      #     path: |
+      #       vc-quality-gate-katalon/Reports
+      #       /home/runner/.katalon/*/Katalon_Studio_Engine_Linux_*/configuration/*.log.
+      #     retention-days: 5
 
-      - name: Katalon Report
-        if: ${{ success() || failure() }}
-        uses: VirtoCommerce/vc-github-actions/publish-katalon-report@master
-        with: 
-          testProjectPath: ${{ github.workspace }}
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
-          publishComment: 'false'
+      # - name: Katalon Report
+      #   if: ${{ success() || failure() }}
+      #   uses: VirtoCommerce/vc-github-actions/publish-katalon-report@master
+      #   with: 
+      #     testProjectPath: ${{ github.workspace }}
+      #     githubToken: ${{ secrets.GITHUB_TOKEN }}
+      #     publishComment: 'false'
