@@ -58,14 +58,15 @@ runs:
       run: |
         if("${{ inputs.installModules }}" -eq "true")
         {
-          Write-Host "Install Modules step started"
+          Write-Host "`e[33mInstall Modules step started."
           New-Item -Path "./" -Name "modules" -ItemType "directory"
           Push-Location ./modules
           vc-build install -skip InstallPlatform
           Pop-Location
+          Write-Host "`e[32mModules installed."
         }
 
-    - name: Start containers
+    - name: Start Containers
       env:
         PLATFORM_IMAGE: ${{ inputs.platformImage }}
         STOREFRONT_IMAGE: ${{ inputs.storefrontImage }}
@@ -74,12 +75,15 @@ runs:
       shell: pwsh
       working-directory: ${{ github.action_path }}
       run: |
-        . "./scripts/inspect-docker-status.ps1"
+        Write-Host "`e[33mStart Containers step started."
         $platformContainer = "virtocommerce_vc-platform-web_1"
-        
+        . "./scripts/inspect-docker-status.ps1"
+
         docker-compose --project-name virtocommerce up -d
 
         InspectContainerStatus -ContainerId $platformContainer
+        
+        Write-Host "`e[32mContainers started."
 
 
 
@@ -89,9 +93,10 @@ runs:
       run: |
         if("${{ inputs.installModules }}" -eq "true")
         {
-          Write-Host "Check Installed Modules step started"
+          Write-Host "`e[33mCheck Installed Modules step started."
           $platformContainer = "virtocommerce_vc-platform-web_1"
           scripts/check-installed-modules.ps1 -ApiUrl http://localhost:8090 -ContainerId $platformContainer -Verbose -Debug
+          Write-Host "`e[32mInstalled Modules checked."
         }
 
     - name: Install Sample Data
@@ -102,8 +107,9 @@ runs:
         {
           exit 0
         }
-        Write-Host "Install Sample Data step started"
+        Write-Host "`e[33Install Sample Data step started."
         scripts/setup-sampledata.ps1 -ApiUrl http://localhost:8090 -Verbose -Debug
+        Write-Host "`e[32Sample Data installed."
 
 
     - name: Swagger Schema Validation
@@ -113,6 +119,7 @@ runs:
         {
           exit 0
         }
+        Write-Host "`e[33Swagger Schema Validation step started."
         docker pull swaggerapi/swagger-validator-v2
         docker run -d -p 85:8080 swaggerapi/swagger-validator-v2
         Start-Sleep -Seconds 30
@@ -121,3 +128,4 @@ runs:
         Get-ChildItem ${{ github.action_path }}
         Get-Content -Path ${{ github.action_path }}/swaggerSchema.json -TotalCount 10
         vc-build ValidateSwaggerSchema -SwaggerSchemaPath ${{ github.action_path }}/swaggerSchema.json -SwaggerValidatorUri http://localhost:85/validator/debug
+        Write-Host "`e[32Swagger Schema validated."
