@@ -74,7 +74,14 @@ runs:
       shell: pwsh
       working-directory: ${{ github.action_path }}
       run: |
-        docker-compose --project-name virtocommerce up -d 
+        . "./scripts/inspect-docker-status.ps1"
+        $platformContainer = "virtocommerce_vc-platform-web_1"
+        
+        docker-compose --project-name virtocommerce up -d
+
+        InspectContainerStatus -ContainerId $platformContainer
+
+
 
     - name: Check Installed Modules
       working-directory: ${{ github.action_path }}

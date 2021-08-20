@@ -29,7 +29,7 @@ function Get-AuthToken {
 }
 
 Write-Host "Container $ContainerId restarted"
-docker restart $ContainerId
+#docker restart $ContainerId
 docker logs $ContainerId
 
 $platformIsUp = (Watch-Url-Up -ApiUrl $ApiUrl -TimeoutMinutes 15 -RetrySeconds 15 -WaitSeconds 60)
