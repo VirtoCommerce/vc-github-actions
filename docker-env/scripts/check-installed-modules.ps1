@@ -7,6 +7,7 @@ Param(
 )
 
 . "./scripts/watch-url-up.ps1"
+. "./scripts/inspect-docker-status.ps1"
 
 $appAuthUrl = "$ApiUrl/connect/token"
 $checkModulesUrl = "$ApiUrl/api/platform/modules"
@@ -28,11 +29,11 @@ function Get-AuthToken {
     return $responseContent.access_token
 }
 
-Write-Host "Container $ContainerId restarted"
+#Write-Host "Container $ContainerId restarted"
 #docker restart $ContainerId
-docker logs $ContainerId
+#docker logs $ContainerId
 
-$platformIsUp = (Watch-Url-Up -ApiUrl $ApiUrl -TimeoutMinutes 15 -RetrySeconds 15 -WaitSeconds 60)
+$platformIsUp = (Watch-Url-Up -ApiUrl $ApiUrl -TimeoutMinutes 15 -RetrySeconds 15 -WaitSeconds 0)
 
 if ($platformIsUp) {
     $authToken = (Get-AuthToken $appAuthUrl $Username $Password)[1]

@@ -8,17 +8,17 @@ function InspectContainerStatus {
 
     [int]$maxRepeat = $TimeoutMinutes * 60 / $RetrySeconds
 
-    Write-Host "Wait before start attempts for $WaitSeconds seconds"
+    Write-Host "Wait before check $ContainerId container status attempts for $WaitSeconds seconds"
     Start-Sleep -s $WaitSeconds
 
     $attempt = 1
     do 
     {
-        Write-Host "Check $ContainerId status. Attempt # $attempt of $maxRepeat."
+        Write-Host "Check $ContainerId container status. Attempt # $attempt of $maxRepeat."
         $status = (docker container inspect -f '{{.State.Status}}' $ContainerId)
         Write-Output ("$ContainerId container current status is $status")
+        docker logs $ContainerId
         if ($maxRepeat -gt $attempt -and $status -ne "running") {
-            docker logs $ContainerId
             Start-Sleep -s $RetrySeconds
         }
         $attempt ++
