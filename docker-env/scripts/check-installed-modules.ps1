@@ -31,13 +31,8 @@ function Get-AuthToken {
 Write-Host "Container $ContainerId restarted"
 Start-Sleep -s 30
 docker restart $ContainerId
-Start-Sleep -s 60
-Write-Host "Container $ContainerId logs"
-docker logs $ContainerId
-Write-Host "Container virtocommerce_vc-db_1 logs"
-docker logs virtocommerce_vc-db_1
 
-$platformIsUp = (Watch-Url-Up -ApiUrl $ApiUrl -TimeoutMinutes 15 -RetrySeconds 15 -WaitSeconds 60)
+$platformIsUp = (Watch-Url-Up -ApiUrl $ApiUrl -TimeoutMinutes 15 -RetrySeconds 15 -WaitSeconds 30)
 
 if ($platformIsUp) {
     $authToken = (Get-AuthToken $appAuthUrl $Username $Password)[1]
