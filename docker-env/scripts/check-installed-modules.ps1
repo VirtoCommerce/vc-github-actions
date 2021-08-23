@@ -30,6 +30,7 @@ function Get-AuthToken {
 
 Write-Host "Container $ContainerId restarted"
 docker restart $ContainerId
+Start-Sleep -s 30
 docker logs $ContainerId
 
 $platformIsUp = (Watch-Url-Up -ApiUrl $ApiUrl -TimeoutMinutes 15 -RetrySeconds 15 -WaitSeconds 60)
