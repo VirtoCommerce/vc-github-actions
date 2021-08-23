@@ -28,7 +28,7 @@ jobs:
         with:
           githubUser: ${{ env.GITHUB_ACTOR }}
           githubToken: ${{ env.GITHUB_TOKEN }}
-          platformDockerTag: 'dev-linux-latest'
+          platformDockerTag: 'linux-latest'
           storefrontDockerTag: 'dev-linux-latest'
           platformImage: ghcr.io/virtocommerce/platform
           storefrontImage: ghcr.io/virtocommerce/storefront
