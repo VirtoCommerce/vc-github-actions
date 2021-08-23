@@ -29,8 +29,9 @@ function Get-AuthToken {
 }
 
 Write-Host "Container $ContainerId restarted"
-docker restart $ContainerId
 Start-Sleep -s 30
+docker restart $ContainerId
+Start-Sleep -s 60
 Write-Host "Container $ContainerId logs"
 docker logs $ContainerId
 Write-Host "Container virtocommerce_vc-db_1 logs"
