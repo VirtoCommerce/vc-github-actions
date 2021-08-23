@@ -69,7 +69,7 @@ function getDeployConfig(repo, deployConfigPath, octokit) {
                             owner: repo.repoOrg,
                             repo: repo.repoName,
                             ref: repo.branchName,
-                            path: deployConfigPath
+                            path: deployConfigPath.replace(/['"]+/g, '')
                         })];
                 case 1:
                     cmData = (_a.sent()).data;
@@ -99,7 +99,9 @@ function run() {
                         core.setFailed("\"envName\" input variable should contain \"dev\", \"qa\" or \"prod\" value. Actual \"envName\" value is: " + envName);
                     }
                     octokit = github.getOctokit(GITHUB_TOKEN);
-                    branchName = github.context.ref;
+                    branchName = github.context.eventName.startsWith('pull_request') ? 'refs/heads/' + github.context.payload.pull_request.head.ref : github.context.ref;
+                    console.log("Current branch ref " + branchName);
+                    console.log("PR branch ref " + github.context.ref);
                     prRepo = {
                         repoOrg: github.context.repo.owner,
                         repoName: github.context.repo.repo,
