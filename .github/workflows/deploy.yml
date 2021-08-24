@@ -431,6 +431,15 @@ jobs:
         GHA_DEPLOYMENT_FOLDER: "demo-modules"
         REPOSITORY: "vc-module-simple-export-import"
 
+    - name: vc-module-description-export-import-ci
+      uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        USER: ${{ env.GITHUB_USER }}
+        GHA_DEPLOYMENT_FOLDER: "demo-modules"
+        REPOSITORY: "vc-module-description-export-import"
+
+
     ###################################
     #                                 #
     #   Demo solution deployment      #
@@ -500,3 +509,12 @@ jobs:
     #     USER: ${{ env.GITHUB_USER }}
     #     GHA_DEPLOYMENT_FOLDER: "demo-deployment"
     #     REPOSITORY: "vc-module-simple-export-import"
+
+    # - name: vc-module-description-export-import-deployment
+    #   uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+    #     USER: ${{ env.GITHUB_USER }}
+    #     GHA_DEPLOYMENT_FOLDER: "demo-deployment"
+    #     REPOSITORY: "vc-module-description-export-import"
+
