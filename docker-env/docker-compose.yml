@@ -48,6 +48,7 @@ services:
       - ./modules:/opt/virtocommerce/platform/modules
     networks:
       - virto
+    restart: unless-stopped
 
   vc-storefront-web:
     image: ${STOREFRONT_IMAGE:-virtocommerce/storefront}:${STOREFRONT_DOCKER_TAG:-latest}

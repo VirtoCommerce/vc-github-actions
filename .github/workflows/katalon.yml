@@ -15,7 +15,6 @@ jobs:
   katalon-tests:
     runs-on: ubuntu-18.04
     steps:
-
       - name: Docker Login
         uses: azure/docker-login@v1
         with:
@@ -28,15 +27,15 @@ jobs:
         with:
           githubUser: ${{ env.GITHUB_ACTOR }}
           githubToken: ${{ env.GITHUB_TOKEN }}
-          platformDockerTag: 'linux-latest'
+          platformDockerTag: 'dev-linux-latest'
           storefrontDockerTag: 'dev-linux-latest'
           platformImage: ghcr.io/virtocommerce/platform
           storefrontImage: ghcr.io/virtocommerce/storefront
           validateSwagger: 'false'
 
       - name: Getting tests
-        shell: sh
-        run: git clone https://github.com/VirtoCommerce/vc-quality-gate-katalon.git --branch ${{ github.event.inputs.testBranch }}
+         shell: sh
+         run: git clone https://github.com/VirtoCommerce/vc-quality-gate-katalon.git --branch ${{ github.event.inputs.testBranch }}
 
       - name: Katalon Studio Github Action
         uses: VirtoCommerce/vc-github-actions/katalon-studio-github-action@master

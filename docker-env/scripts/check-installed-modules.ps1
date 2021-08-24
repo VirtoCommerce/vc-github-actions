@@ -24,15 +24,10 @@ function Get-AuthToken {
     $body = @{username=$username; password=$password; grant_type=$grant_type}
     $response = Invoke-WebRequest -Uri $appAuthUrl -Method Post -ContentType $content_type -Body $body -SkipCertificateCheck -MaximumRetryCount 5 -RetryIntervalSec 5
     $responseContent = $response.Content | ConvertFrom-Json
-    #return "$($responseContent.token_type) $($responseContent.access_token)"
     return $responseContent.access_token
 }
 
-Write-Host "Container $ContainerId restarted"
-Start-Sleep -s 30
-docker restart $ContainerId
-
-$platformIsUp = (Watch-Url-Up -ApiUrl $ApiUrl -TimeoutMinutes 15 -RetrySeconds 15 -WaitSeconds 30)
+$platformIsUp = (Watch-Url-Up -ApiUrl $ApiUrl -TimeoutMinutes 15 -RetrySeconds 15 -WaitSeconds 15)
 
 if ($platformIsUp) {
     $authToken = (Get-AuthToken $appAuthUrl $Username $Password)[1]
