@@ -31,12 +31,13 @@ async function getDeployConfig(repo: RepoData, deployConfigPath: string, octokit
 
     try {
         console.log('Get deployment config content');
+        
         //Get deployment config content
         const { data: cmData} = await octokit.repos.getContent({
             owner: repo.repoOrg,
             repo: repo.repoName,
             ref: repo.branchName,
-            path: deployConfigPath
+            path: deployConfigPath.replace(/['"]+/g, '')
         });
     
         return Buffer.from(cmData.content, 'base64').toString();
@@ -62,7 +63,9 @@ async function run(): Promise<void> {
 
     const octokit = github.getOctokit(GITHUB_TOKEN);
 
-    const branchName =  github.context.ref;
+    const branchName = github.context.eventName.startsWith('pull_request') ? 'refs/heads/' + github.context.payload.pull_request.head.ref : github.context.ref;
+    console.log(`Current branch ref ${branchName}`)
+    console.log(`PR branch ref ${github.context.ref}`)
 
     const prRepo: RepoData = {
         repoOrg: github.context.repo.owner,

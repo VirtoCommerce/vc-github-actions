@@ -11,6 +11,7 @@ function Watch-Url-Up {
     $responseStatus = 0
     [int]$maxRepeat = $TimeoutMinutes * 60 / $RetrySeconds
 
+
     Write-Host "`e[33mWait before $ApiUrl check status attempts for $WaitSeconds seconds."
     Start-Sleep -s $WaitSeconds
 

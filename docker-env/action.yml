@@ -58,15 +58,17 @@ runs:
       run: |
         if("${{ inputs.installModules }}" -eq "true")
         {
+
           Write-Host "`e[33mInstall Modules step started."
           New-Item -Path "./" -Name "modules" -ItemType "directory"
           Push-Location ./modules
           vc-build install -skip InstallPlatform
           Pop-Location
+
           Write-Host "`e[32mModules installed."
         }
 
-    - name: Start Containers
+    - name: Start containers
       env:
         PLATFORM_IMAGE: ${{ inputs.platformImage }}
         STOREFRONT_IMAGE: ${{ inputs.storefrontImage }}
@@ -79,13 +81,12 @@ runs:
         $platformContainer = "virtocommerce_vc-platform-web_1"
         . "./scripts/inspect-docker-status.ps1"
 
+
         docker-compose --project-name virtocommerce up -d
 
         InspectContainerStatus -ContainerId $platformContainer
         
         Write-Host "`e[32mContainers started."
-
-
 
     - name: Check Installed Modules
       working-directory: ${{ github.action_path }}
@@ -93,6 +94,7 @@ runs:
       run: |
         if("${{ inputs.installModules }}" -eq "true")
         {
+
           Write-Host "`e[33mCheck Installed Modules step started."
           $platformContainer = "virtocommerce_vc-platform-web_1"
           scripts/check-installed-modules.ps1 -ApiUrl http://localhost:8090 -ContainerId $platformContainer
@@ -107,9 +109,11 @@ runs:
         {
           exit 0
         }
+
         Write-Host "`e[33mInstall Sample Data step started."
         scripts/setup-sampledata.ps1 -ApiUrl http://localhost:8090 -Verbose -Debug
         Write-Host "`e[32mSample Data installed."
+
 
 
     - name: Swagger Schema Validation

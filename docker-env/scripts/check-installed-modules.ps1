@@ -27,7 +27,6 @@ function Get-AuthToken {
     return $responseContent.access_token
 }
 
-
 $platformIsUp = (Watch-Url-Up -ApiUrl $ApiUrl -TimeoutMinutes 15 -RetrySeconds 15 -WaitSeconds 15)
 
 if ($platformIsUp) {
