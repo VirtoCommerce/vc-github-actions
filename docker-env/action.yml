@@ -107,9 +107,9 @@ runs:
         {
           exit 0
         }
-        Write-Host "`e[33Install Sample Data step started."
+        Write-Host "`e[33mInstall Sample Data step started."
         scripts/setup-sampledata.ps1 -ApiUrl http://localhost:8090 -Verbose -Debug
-        Write-Host "`e[32Sample Data installed."
+        Write-Host "`e[32mSample Data installed."
 
 
     - name: Swagger Schema Validation
@@ -119,7 +119,7 @@ runs:
         {
           exit 0
         }
-        Write-Host "`e[33Swagger Schema Validation step started."
+        Write-Host "`e[33mSwagger Schema Validation step started."
         docker pull swaggerapi/swagger-validator-v2
         docker run -d -p 85:8080 swaggerapi/swagger-validator-v2
         Start-Sleep -Seconds 30
@@ -128,4 +128,4 @@ runs:
         Get-ChildItem ${{ github.action_path }}
         Get-Content -Path ${{ github.action_path }}/swaggerSchema.json -TotalCount 10
         vc-build ValidateSwaggerSchema -SwaggerSchemaPath ${{ github.action_path }}/swaggerSchema.json -SwaggerValidatorUri http://localhost:85/validator/debug
-        Write-Host "`e[32Swagger Schema validated."
+        Write-Host "`e[32mSwagger Schema validated."
