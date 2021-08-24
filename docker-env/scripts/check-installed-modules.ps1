@@ -7,7 +7,6 @@ Param(
 )
 
 . "./scripts/watch-url-up.ps1"
-. "./scripts/inspect-docker-status.ps1"
 
 $appAuthUrl = "$ApiUrl/connect/token"
 $checkModulesUrl = "$ApiUrl/api/platform/modules"

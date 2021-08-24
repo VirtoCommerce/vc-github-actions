@@ -95,7 +95,7 @@ runs:
         {
           Write-Host "`e[33mCheck Installed Modules step started."
           $platformContainer = "virtocommerce_vc-platform-web_1"
-          scripts/check-installed-modules.ps1 -ApiUrl http://localhost:8090 -ContainerId $platformContainer -Verbose -Debug
+          scripts/check-installed-modules.ps1 -ApiUrl http://localhost:8090 -ContainerId $platformContainer
           Write-Host "`e[32mInstalled Modules checked."
         }
 
@@ -120,12 +120,17 @@ runs:
           exit 0
         }
         Write-Host "`e[33mSwagger Schema Validation step started."
-        docker pull swaggerapi/swagger-validator-v2
-        docker run -d -p 85:8080 swaggerapi/swagger-validator-v2
-        Start-Sleep -Seconds 30
-        ${{ github.action_path }}/scripts/get-swagger.ps1 -ApiUrl http://localhost:8090 -OutFile ${{ github.action_path }}/swaggerSchema.json -Verbose -Debug
-        Get-ChildItem
-        Get-ChildItem ${{ github.action_path }}
-        Get-Content -Path ${{ github.action_path }}/swaggerSchema.json -TotalCount 10
-        vc-build ValidateSwaggerSchema -SwaggerSchemaPath ${{ github.action_path }}/swaggerSchema.json -SwaggerValidatorUri http://localhost:85/validator/debug
+        . "./scripts/watch-url-up.ps1"
+        $platformIsUp = (Watch-Url-Up -ApiUrl $ApiUrl -TimeoutMinutes 15 -RetrySeconds 15 -WaitSeconds 15)
+        if ($platformIsUp) {
+          docker pull swaggerapi/swagger-validator-v2
+          docker run -d -p 85:8080 swaggerapi/swagger-validator-v2
+          Write-Host "`e[33mWait before swagger-validator-v2 start for for seconds."
+          Start-Sleep -Seconds 30
+          ${{ github.action_path }}/scripts/get-swagger.ps1 -ApiUrl http://localhost:8090 -OutFile ${{ github.action_path }}/swaggerSchema.json -Verbose -Debug
+          Get-ChildItem
+          Get-ChildItem ${{ github.action_path }}
+          Get-Content -Path ${{ github.action_path }}/swaggerSchema.json -TotalCount 10
+          vc-build ValidateSwaggerSchema -SwaggerSchemaPath ${{ github.action_path }}/swaggerSchema.json -SwaggerValidatorUri http://localhost:85/validator/debug
+        }
         Write-Host "`e[32mSwagger Schema validated."
