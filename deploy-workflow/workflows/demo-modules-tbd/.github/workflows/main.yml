@@ -1,26 +1,33 @@
-# v1.4.1.vc-demo-module
+# v2.0.vc-demo-module Trunk base development
 name: Module CI
 
 on:
   workflow_dispatch:
   push:
     branches:
-      [master, dev]
+      [ master ]
     paths-ignore:
       - '.github/**'
       - 'docs/**'
       - 'build/**'
       - 'README.md'
       - 'LICENSE'
+      - 'Directory.Build.props'
+      - 'src/*/module.manifest'
+      - 'package.json'
   pull_request:
     branches:
-      [master, dev]
+      [ master ]
     paths-ignore:
       - '.github/**'
       - 'docs/**'
       - 'build/**'
       - 'README.md'
       - 'LICENSE'
+      - 'Directory.Build.props'
+      - 'src/*/module.manifest'
+      - 'package.json'
+
 
 jobs:
   ci:
@@ -48,6 +55,17 @@ jobs:
 
       - name: Install dotnet-sonarscanner
         run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Setup Git Credentials
+        uses: VirtoCommerce/vc-github-actions/setup-git-credentials-github@master
+        with: 
+          githubToken: ${{ secrets.REPO_TOKEN }}
+
+      - name: Set version up
+        uses: VirtoCommerce/vc-github-actions/set-version-up@master
+        with:
+          githubToken: ${{ secrets.REPO_TOKEN }}
+          versionLabel: 'minor'
 
       - name: Get changelog
         id: changelog
@@ -98,11 +116,11 @@ jobs:
         run: vc-build Compress -skip Clean+Restore+Compile+Test
 
 #      - name: Publish Nuget
-#        if: ${{ github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'}}
+#        if: ${{ github.ref == 'refs/heads/master'}}
 #        uses: VirtoCommerce/vc-github-actions/publish-nuget@master
 
       - name: Publish to Blob
-        if: ${{ github.ref == 'refs/heads/dev' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master')}}
+        if: ${{ github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master')}}
         id: blobRelease
         uses: VirtoCommerce/vc-github-actions/publish-blob-release@master
         with:
@@ -121,20 +139,14 @@ jobs:
           changelog: ${{ steps.changelog.outputs.changelog }}
         uses: VirtoCommerce/vc-github-actions/publish-github-release@master
 
-      - name: Setup Git Credentials
-        if: ${{ (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master') && github.event_name != 'workflow_dispatch' }}
-        uses: VirtoCommerce/vc-github-actions/setup-git-credentials-github@master
-        with:
-          githubToken: ${{ secrets.REPO_TOKEN }}
-
       - name: Publish Manifest
-        if: ${{ (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master') && github.event_name != 'workflow_dispatch' }}
+        if: ${{ github.ref == 'refs/heads/master' && github.event_name != 'workflow_dispatch' }}
         uses: VirtoCommerce/vc-github-actions/publish-manifest@master
         with:
           packageUrl: ${{ steps.blobRelease.outputs.packageUrl }}
 
       - name: Invoke Module deployment workflow
-        if: ${{ github.ref == 'refs/heads/dev' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master')}}
+        if: ${{ github.ref == 'refs/heads/master' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master')}}
         uses: benc-uk/workflow-dispatch@v1
         with:
           workflow: VC deployment

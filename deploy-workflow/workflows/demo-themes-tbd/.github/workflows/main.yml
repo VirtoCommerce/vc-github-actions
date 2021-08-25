@@ -1,4 +1,4 @@
-# v1.4.vc-demo-theme
+# v2.0.vc-demo-theme Trunk base development
 name: Theme CI
 on:
   workflow_dispatch:
@@ -9,17 +9,23 @@ on:
       - 'build/**'
       - 'README.md'
       - 'LICENSE'
+      - 'Directory.Build.props'
+      - 'src/*/module.manifest'
+      - 'package.json'
     branches:
-      [master, dev]
+      [ master ]
   pull_request:
     branches:
-      [master, dev]
+      [ master ]
     paths-ignore:
       - '.github/**'
       - 'docs/**'
       - 'build/**'
       - 'README.md'
       - 'LICENSE'
+      - 'Directory.Build.props'
+      - 'src/*/module.manifest'
+      - 'package.json'
 
 jobs:
   ci:
@@ -31,12 +37,27 @@ jobs:
       VERSION_SUFFIX: ""
 
     steps:
+
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
 
+      - name: Install VirtoCommerce.GlobalTool
+        uses: VirtoCommerce/vc-github-actions/setup-vcbuild@master
+
       - name: Setup sonarqube
         uses: warchant/setup-sonar-scanner@v3
+
+      - name: Setup Git Credentials
+        uses: VirtoCommerce/vc-github-actions/setup-git-credentials-github@master
+        with: 
+          githubToken: ${{ secrets.REPO_TOKEN }}
+
+      - name: Set version up
+        uses: VirtoCommerce/vc-github-actions/set-version-up@master
+        with:
+          githubToken: ${{ secrets.REPO_TOKEN }}
+          versionLabel: 'minor'
 
       - name: Get Image Version
         uses: VirtoCommerce/vc-github-actions/get-image-version@master
@@ -66,14 +87,14 @@ jobs:
           projectVersion: ${{ env.VERSION_SUFFIX }}
 
       - name: Build
-        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' }}
+        if: ${{ github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' }}
         id: build
         uses: VirtoCommerce/vc-github-actions/build-theme@master
         with:
           versionSuffix:  ${{ env.VERSION_SUFFIX }}
 
       - name: Publish
-        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master')}}
+        if: ${{ github.ref == 'refs/heads/master' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master')}}
         id: publish
         uses: VirtoCommerce/vc-github-actions/publish-theme@master
         with:
@@ -108,7 +129,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: Invoke Theme deployment workflow
-        if: ${{ github.ref == 'refs/heads/dev' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master')}}
+        if: ${{ github.ref == 'refs/heads/master' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master')}}
         uses: benc-uk/workflow-dispatch@v1
         with:
           workflow: VC deployment
