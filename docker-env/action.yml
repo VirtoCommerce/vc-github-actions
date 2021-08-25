@@ -50,7 +50,7 @@ runs:
 
     - name: Install VirtoCommerce.GlobalTool
       shell: pwsh
-      run: dotnet tool install --global VirtoCommerce.GlobalTool --version 2.0.0-alpha.36
+      run: dotnet tool install --global VirtoCommerce.GlobalTool --version 2.0.0
 
     - name: Install Modules
       working-directory: ${{ github.action_path }}
