@@ -11,15 +11,15 @@ function Watch-Url-Up {
     $responseStatus = 0
     [int]$maxRepeat = $TimeoutMinutes * 60 / $RetrySeconds
 
-    Write-Host "Wait before start attempts for $WaitSeconds seconds"
+
+    Write-Host "`e[33mWait before $ApiUrl check status attempts for $WaitSeconds seconds."
     Start-Sleep -s $WaitSeconds
 
     $attempt = 1
     $responseStatus = 0
     do 
     {
-        
-        Write-Host "Try to open $ApiUrl. Attempt # $attempt of $maxRepeat."
+        Write-Host "`e[33mTry to open $ApiUrl. Attempt # $attempt of $maxRepeat."
         try {
             $response = Invoke-WebRequest $ApiUrl -Method Get
             $responseStatus = [int] $response.StatusCode
@@ -33,11 +33,11 @@ function Watch-Url-Up {
     } until ($responseStatus -eq 200 -or $maxRepeat -lt $attempt)
 
     if ($responseStatus -eq 200) {
-        Write-Host "$ApiUrl is up!"
+        Write-Host "`e[32m$ApiUrl is up!"
         $result = $true
     }
     else {
-        Write-Host "$ApiUrl may be down, please check!"
+        Write-Host "`e[31m$ApiUrl may be down, please check!"
         $result = $false
     }
 
