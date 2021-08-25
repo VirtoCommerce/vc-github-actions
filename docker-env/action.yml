@@ -116,6 +116,7 @@ runs:
         {
           exit 0
         }
+        $waitForSwaggerSec = 30
         Write-Host "`e[33mSwagger Schema Validation step started."
         $platformContainer = "virtocommerce_vc-platform-web_1"
         . "${{ github.action_path }}/scripts/watch-url-up.ps1"
@@ -123,8 +124,8 @@ runs:
         if ($platformIsUp) {
           docker pull swaggerapi/swagger-validator-v2
           docker run -d -p 85:8080 swaggerapi/swagger-validator-v2
-          Write-Host "`e[33mWait before swagger-validator-v2 start for for seconds."
-          Start-Sleep -Seconds 30
+          Write-Host "`e[33mWait before swagger-validator-v2 start for $waitForSwaggerSec seconds."
+          Start-Sleep -Seconds $waitForSwaggerSec
           ${{ github.action_path }}/scripts/get-swagger.ps1 -ApiUrl http://localhost:8090 -OutFile ${{ github.action_path }}/swaggerSchema.json -Verbose -Debug
           Get-ChildItem
           Get-ChildItem ${{ github.action_path }}
