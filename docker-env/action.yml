@@ -48,10 +48,6 @@ runs:
   using: "composite"
   steps:
 
-    - name: Install VirtoCommerce.GlobalTool
-      shell: pwsh
-      run: dotnet tool install --global VirtoCommerce.GlobalTool --version 2.0.0
-
     - name: Install Modules
       working-directory: ${{ github.action_path }}
       shell: pwsh
@@ -80,7 +76,6 @@ runs:
         Write-Host "`e[33mStart Containers step started."
         $platformContainer = "virtocommerce_vc-platform-web_1"
         . "./scripts/inspect-docker-status.ps1"
-
 
         docker-compose --project-name virtocommerce up -d
 
@@ -114,8 +109,6 @@ runs:
         scripts/setup-sampledata.ps1 -ApiUrl http://localhost:8090 -Verbose -Debug
         Write-Host "`e[32mSample Data installed."
 
-
-
     - name: Swagger Schema Validation
       shell: pwsh
       run: |
@@ -124,8 +117,9 @@ runs:
           exit 0
         }
         Write-Host "`e[33mSwagger Schema Validation step started."
-        . "./scripts/watch-url-up.ps1"
-        $platformIsUp = (Watch-Url-Up -ApiUrl $ApiUrl -TimeoutMinutes 15 -RetrySeconds 15 -WaitSeconds 15)
+        $platformContainer = "virtocommerce_vc-platform-web_1"
+        . "${{ github.action_path }}/scripts/watch-url-up.ps1"
+        $platformIsUp = (Watch-Url-Up -ApiUrl http://localhost:8090 -TimeoutMinutes 15 -RetrySeconds 15 -WaitSeconds 0 -ContainerId $platformContainer)
         if ($platformIsUp) {
           docker pull swaggerapi/swagger-validator-v2
           docker run -d -p 85:8080 swaggerapi/swagger-validator-v2
