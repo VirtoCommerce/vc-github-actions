@@ -1,15 +1,6 @@
 name: Docker Environment test
 on:
   workflow_dispatch:
-    inputs:
-      testSuite:
-        description: "Test Suite"
-        required: false
-        default: "Test Suites/Platform_start"
-      testBranch:
-        description: "Branch of tests"
-        required: false
-        default: "dev"
 
 jobs:
   docker-env:
@@ -25,7 +16,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Docker Env
-        uses: VirtoCommerce/vc-github-actions/docker-env@VCI-132
+        uses: VirtoCommerce/vc-github-actions/docker-env@master
         with:
           githubUser: ${{ env.GITHUB_ACTOR }}
           githubToken: ${{ env.GITHUB_TOKEN }}
