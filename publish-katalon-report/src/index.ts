@@ -44,6 +44,12 @@ async function getTestResult(reportPath:string): Promise<TestResult> {
 async function run(): Promise<void> {
     let GITHUB_TOKEN = core.getInput("githubToken");
     if(!GITHUB_TOKEN  && process.env.GITHUB_TOKEN !== undefined) GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+
+    if (!GITHUB_TOKEN) {
+        core.error(`Required GITHUB_TOKEN parameter is empty. Step skipped.`);
+        return;
+    }
+
     let repoOrg = core.getInput("repoOrg");
     let katalonProjectDir = core.getInput("testProjectPath");
     let publishComment = core.getInput("publishComment") === "true";

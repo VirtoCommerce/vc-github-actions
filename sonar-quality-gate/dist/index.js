@@ -179,6 +179,10 @@ function run() {
         let password = core.getInput("password");
         let sonarHost = core.getInput("sonarHost");
         let projectKey = core.getInput("projectKey");
+        if (!login) {
+            core.error(`Required "login" parameter is empty. Step skipped.`);
+            return;
+        }
         if (projectKey === "") {
             projectKey = (_b = (_a = process.env.GITHUB_REPOSITORY) === null || _a === void 0 ? void 0 : _a.replace("/", "_")) !== null && _b !== void 0 ? _b : "None";
         }
