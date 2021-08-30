@@ -14,13 +14,6 @@ jobs:
     if: ${{ github.actor != 'dependabot[bot]' && (github.event.pull_request.head.repo.full_name == github.repository || github.event.pull_request.head.repo.full_name == '') }}  # Check that PR not from forked repo and not from Dependabot
     runs-on: ubuntu-latest
     steps:
-      - name: Info
-        shell: pwsh
-        run: |
-          Write-Host "github.actor = ${{ github.actor }}"
-          Write-Host "github.event.pull_request.head.repo.full_name = ${{ github.event.pull_request.head.repo.full_name }}"
-          Write-Host "github.repository = ${{ github.repository }}"
-          Write-Host "github.repository_owner ${{ github.repository_owner }}"
       - name: Dump GitHub context
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
