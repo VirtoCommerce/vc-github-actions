@@ -1,0 +1,20 @@
+name: test-fork-pr
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      [master, dev]
+  pull_request:
+    branches:
+      [master, dev]
+
+jobs:
+  ci:
+    if: ${{ github.actor != 'dependabot[bot]' || github.event.pull_request.head.repo.full_name == github.repository || github.event.pull_request.head.repo.full_name = "" }}  # Check that PR not from forked repo and not from Dependabot
+    runs-on: ubuntu-latest
+    steps:
+      - name: Containers info
+        shell: pwsh
+        run: Write-Host "Test"
+
