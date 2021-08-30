@@ -21,4 +21,5 @@ jobs:
           Write-Host "github.event.pull_request.head.repo.full_name = ${{ github.pull_request.head.repo.full_name }}"
           Write-Host "github.repository = ${{ github.repository }}"
           Write-Host "github.repository_owner ${{ github.repository_owner }}"
+          Write-Host "github. ${{ github }}"
 
