@@ -24,5 +24,5 @@ jobs:
           Write-Host "github. ${{ github }}"
       - name: github info
         run: |
-           echo $GITHUB
+           echo $GITHUB_CONTEXT
 
