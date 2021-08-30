@@ -16,5 +16,8 @@ jobs:
     steps:
       - name: Containers info
         shell: pwsh
-        run: Write-Host "Test from fork"
+        run: |
+          Write-Host "github.actor = ${{ github.actor }}"
+          Write-Host "github.event.pull_request.head.repo.full_name = ${{ pull_request.head.repo.full_name }}"
+          Write-Host "github.repository = ${{ github.repository }}"
 
