@@ -22,7 +22,6 @@ jobs:
           Write-Host "github.repository = ${{ github.repository }}"
           Write-Host "github.repository_owner ${{ github.repository_owner }}"
           Write-Host "github. ${{ github }}"
-      - name: github info
-        run: echo "$GITHUB_CONTEXT"
+      - run: echo "$GITHUB_CONTEXT"
            
 
