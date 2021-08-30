@@ -11,7 +11,7 @@ on:
 
 jobs:
   ci:
-    if: ${{ github.actor != 'dependabot[bot]' || github.event.pull_request.head.repo.full_name == github.repository || github.event.pull_request.head.repo.full_name == '' }}  # Check that PR not from forked repo and not from Dependabot
+    if: ${{ github.actor != 'dependabot[bot]' || github.event.pull_request.head.repo.full_name == github.repository || (github.event.pull_request.head.repo.full_name == '') }}  # Check that PR not from forked repo and not from Dependabot
     runs-on: ubuntu-latest
     steps:
       - name: Containers info
@@ -20,4 +20,5 @@ jobs:
           Write-Host "github.actor = ${{ github.actor }}"
           Write-Host "github.event.pull_request.head.repo.full_name = ${{ github.pull_request.head.repo.full_name }}"
           Write-Host "github.repository = ${{ github.repository }}"
+          Write-Host "github.repository_owner ${{ github.repository_owner }}'
 
