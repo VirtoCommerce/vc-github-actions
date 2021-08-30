@@ -16,5 +16,5 @@ jobs:
     steps:
       - name: Containers info
         shell: pwsh
-        run: Write-Host "Test"
+        run: Write-Host "Test from fork"
 
