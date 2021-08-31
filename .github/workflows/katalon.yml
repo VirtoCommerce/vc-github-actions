@@ -48,6 +48,16 @@ jobs:
           projectPath: '${{ github.workspace }}/vc-quality-gate-katalon/platform_storefront.prj'
           args: '-noSplash -retry=0  -testSuitePath="${{ github.event.inputs.testSuite }}" -browserType="Chrome" -apiKey= ${{ secrets.KATALON_API_KEY }} -g_urlBack="http://localhost:8090" -g_urlFront="http://localhost:8080" -executionProfile="default"'
 
+      - name: Katalon Report Uploader
+        if: always()
+        uses: katalon-studio/report-uploader@v0.0.7.11
+        env:
+          PASSWORD: ${{ secrets.KATALON_API_KEY }}
+          PROJECT_ID: 171535
+          TYPE: junit
+          REPORT_PATH: vc-quality-gate-katalon/Reports
+
+
       - name: 'Katalon Reports'
         if: always()
         uses: actions/upload-artifact@v2
