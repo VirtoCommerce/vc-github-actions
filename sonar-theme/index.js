@@ -27,8 +27,8 @@ async function run()
     let coverageArg = hasCoverageReport ? `-Dsonar.javascript.lcov.reportPaths=${coverageReportPath}` : '';
     let testExecutionArg = hasCoverageReport ? `-Dsonar.testExecutionReportPaths=${testExecutionReportPath}` : '';
 
-    if (isDependencies) {
-        console.log(`Pull request contain "dependencies" label, SonarScanner steps skipped.`);
+    if (!process.env.SONAR_TOKEN) {
+        core.error(`Required SONAR_TOKEN parameter is empty. Step skipped.`);
         return;
     }
 

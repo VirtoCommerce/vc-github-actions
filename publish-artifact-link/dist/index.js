@@ -67,6 +67,10 @@ function run() {
                     GITHUB_TOKEN = core.getInput("githubToken");
                     if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
                         GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+                    if (!GITHUB_TOKEN) {
+                        core.error("Required GITHUB_TOKEN parameter is empty. Step skipped.");
+                        return [2];
+                    }
                     repoOrg = core.getInput("repoOrg");
                     artifactUrl = core.getInput("artifactUrl");
                     octokit = github.getOctokit(GITHUB_TOKEN);

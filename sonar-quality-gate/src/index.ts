@@ -161,6 +161,12 @@ async function run(): Promise<void> {
   let password = core.getInput("password");
   let sonarHost = core.getInput("sonarHost");
   let projectKey = core.getInput("projectKey");
+  
+  if (!login) {
+    core.error(`Required "login" parameter is empty. Step skipped.`);
+    return;
+  }
+  
   if(projectKey === "")
   {
     projectKey = process.env.GITHUB_REPOSITORY?.replace("/", "_") ?? "None";

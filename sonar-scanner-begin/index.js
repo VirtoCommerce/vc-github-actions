@@ -6,7 +6,7 @@ const utils = require('@virtocommerce/vc-actions-lib');
 async function run()
 {
     let isPullRequest = await utils.isPullRequest(github);
-    let isDependencies = await utils.isDependencies(github);
+    let SonarAuthToken = process.env.SONAR_TOKEN;
 
     let prArg = isPullRequest ? '-PullRequest' : '';
     let branchName = await utils.getBranchName(github);
@@ -17,9 +17,8 @@ async function run()
     let ghRepoArg = "";
     let prProviderArg = "";
 
-
-    if (isDependencies) {
-        console.log(`Pull request contain "dependencies" label, SonarScanner steps skipped.`);
+    if (!SonarAuthToken) {
+        core.error(`Required SONAR_TOKEN parameter is empty. Step skipped.`);
         return;
     }
 
@@ -32,7 +31,7 @@ async function run()
         ghRepoArg = `-SonarGithubRepo "${process.env.GITHUB_REPOSITORY}"`;
         prProviderArg = `-SonarPRProvider "GitHub"`
     }
-    let SonarAuthToken = process.env.SONAR_TOKEN;
+
     let sonarAuthArg = `-SonarAuthToken ${SonarAuthToken}`;
     let repoNameArg = `-RepoName ${repoName}`;
 

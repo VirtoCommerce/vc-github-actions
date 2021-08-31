@@ -1,17 +1,15 @@
 const core = require('@actions/core');
-const github = require('@actions/github');
 const exec = require('@actions/exec');
-const utils = require('@virtocommerce/vc-actions-lib');
 const fs = require('fs');
 
 async function run()
 {
-    let isDependencies = await utils.isDependencies(github);
 
-    if (isDependencies) {
-         console.log(`Pull request contain "dependencies" label, SonarScanner steps skipped.`);
-         return;
+    if (!process.env.SONAR_TOKEN) {
+        core.error(`Required SONAR_TOKEN parameter is empty. Step skipped.`);
+        return;
     }
+
     const emptyCoverageContent = '<coverage version="1"></coverage>';
     const coveragePath = './.tmp/coverage.xml'
     if(!fs.existsSync(coveragePath)){
