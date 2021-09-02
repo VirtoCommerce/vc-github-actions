@@ -1,0 +1,21 @@
+{
+  "name": "get-env-from-deployment",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@actions/core": "^1.5.0",
+    "@actions/exec": "^1.1.0",
+    "@actions/github": "^5.0.0",
+    "yaml": "^1.10.2"
+  },
+  "devDependencies": {
+    "@types/node": "^16.7.10"
+  }
+}

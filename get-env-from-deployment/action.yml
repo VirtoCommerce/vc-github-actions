@@ -1,0 +1,11 @@
+name: 'get-env-from-deployment'
+description: 'Gets modules, platform, theme and storefront from deployment-cm'
+inputs:
+  deploymentUrl:
+    description: "Direct url to the deployment-cm file"
+    default: "https://raw.githubusercontent.com/VirtoCommerce/vc-deploy-apps/master/loadtest-app/overlays/dev/deployment-cm.yaml"
+    required: false
+
+runs:
+  using: 'node12'
+  main: 'dist/index.js' 
