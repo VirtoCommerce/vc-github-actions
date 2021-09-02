@@ -14,6 +14,7 @@ async function prepareDockerfile(urls)
             console.log(`Filename: ${filename}`);
             let outName = `artifacts/${filename}`;
             console.log(outName);
+            await exec.exec(`cat ${outName}`);
             await utils.downloadFile(url, outName);
         }
     }
