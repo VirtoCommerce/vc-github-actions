@@ -14,10 +14,10 @@ async function prepareDockerfile(urls)
             console.log(`Filename: ${filename}`);
             let outName = `artifacts/${filename}`;
             console.log(outName);
-            await exec.exec(`cat ${env.GITHUB_WORKSPACE}/${outName}`);
             await utils.downloadFile(url, outName);
         }
     }
+    await exec.exec(`cat ${outName}`);
 }
 
 async function buildImage(imageName, tag)
