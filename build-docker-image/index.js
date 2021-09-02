@@ -17,7 +17,7 @@ async function prepareDockerfile(urls)
             await utils.downloadFile(url, outName);
         }
     }
-    await exec.exec(`cat ${outName}`);
+    await exec.exec(`cat artifacts/Dockerfile`);
 }
 
 async function buildImage(imageName, tag)
