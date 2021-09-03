@@ -2,6 +2,28 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const exec = require('@actions/exec');
 const utils = require('@virtocommerce/vc-actions-lib');
+const Axios = require('axios');
+
+async function downloadFile(url, outFile) {
+    const path = outFile;
+    const writer = fs.createWriteStream(path);
+  
+    const response = await Axios({
+      url,
+      method: 'GET',
+      responseType: 'stream',
+      headers: {
+          'Accept': 'application/octet-stream'
+      }
+    })
+    
+    response.data.pipe(writer)
+  
+    return new Promise((resolve, reject) => {
+      writer.on('finish', resolve)
+      writer.on('error', reject)
+    })
+}
 
 async function prepareDockerfile(urls)
 {
@@ -14,7 +36,7 @@ async function prepareDockerfile(urls)
             console.log(`Filename: ${filename}`);
             let outName = `artifacts/${filename}`;
             console.log(outName);
-            await utils.downloadFile(url, outName);
+            await downloadFile(url, outName);
         }
     }
     await exec.exec(`cat artifacts/Dockerfile`);
