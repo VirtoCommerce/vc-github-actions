@@ -5,7 +5,22 @@ inputs:
     description: "Direct url to the deployment-cm file"
     default: "https://raw.githubusercontent.com/VirtoCommerce/vc-deploy-apps/master/loadtest-app/overlays/dev/deployment-cm.yaml"
     required: false
-
+  platformDir:
+    description: "Destination directory for the platform"
+    required: false
+    default: "./platform"
+  modulesDir:
+    description: "Destination directory for modules"
+    required: false
+    default: "./platform/modules"
+  storefrontDir:
+    description: "Destination directory for the storefront"
+    required: false
+    default: "./storefront"
+  themeDir:
+    description: "Theme destination"
+    required: false
+    default: "./storefront/wwwroot/Themes"
 runs:
   using: 'node12'
-  main: 'dist/index.js' 
+  main: 'dist/index.js'
