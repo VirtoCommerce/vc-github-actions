@@ -3,6 +3,7 @@ const github = require('@actions/github');
 const exec = require('@actions/exec');
 const utils = require('@virtocommerce/vc-actions-lib');
 const Axios = require('axios');
+const fs = require('fs');
 
 async function downloadFile(url, outFile) {
     const path = outFile;
