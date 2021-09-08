@@ -49,6 +49,7 @@ async function buildImage(imageName, tag)
     let repoOwner = repo.split('/')[0];
     let imageFullName = `ghcr.io/${repoOwner}/${imageName}`;
     core.setOutput("imageName", imageFullName);
+    core.info(`imageFullName is: ${imageFullName}`);
     let command = `docker build artifacts --build-arg SOURCE=. --tag "${imageFullName}:${tag}"`;
     await exec.exec(command);
 }
