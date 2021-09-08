@@ -32,7 +32,6 @@ String.prototype.replaceAll = function (find, replace)
 
 async function run()
 {
-    
     let isPullRequest = await utils.isPullRequest(github);
     let prArg = isPullRequest ? '-PullRequest' : '';
     let branchName = await utils.getBranchName(github);
@@ -45,6 +44,10 @@ async function run()
     const updateLatest = core.getInput("update_latest").toLocaleLowerCase();
     const dockerOrg = core.getInput("dockerOrg");
 
+    core.info(`imageName: ${imageName}`)
+    core.info(`Tag: ${tag}`)
+    core.info('pushImage to github')
+    
     await pushImage(imageName, tag); //github
 
     if (updateLatest === 'true')
