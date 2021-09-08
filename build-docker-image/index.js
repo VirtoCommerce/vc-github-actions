@@ -45,9 +45,7 @@ async function prepareDockerfile(urls)
 
 async function buildImage(imageName, tag)
 {
-    let repo = process.env.GITHUB_REPOSITORY.toLowerCase();
-    let repoOwner = repo.split('/')[0];
-    let imageFullName = `ghcr.io/${repoOwner}/${imageName}`;
+    let imageFullName = `ghcr.io/${github.context.repo.owner}/${imageName}`;
     core.setOutput("imageName", imageFullName);
     core.info(`imageFullName is: ${imageFullName}`);
     let command = `docker build artifacts --build-arg SOURCE=. --tag "${imageFullName}:${tag}"`;
