@@ -55,7 +55,7 @@ Version value formatted as branchName-prefix-suffix-sha
 
 ```
 - name: Get Image version
-  uses: VirtoCommerce/vc-github-actions/get-image-versiong@v3.0.1
+  uses: VirtoCommerce/vc-github-actions/get-image-version@v3.0.1
   id: image
 ```
 
