@@ -13,6 +13,7 @@ Jira keys that were found in push/pull request in comma delimited format
 ```yml
 - name: Parse Jira Keys from All Commits
   uses: VirtoCommerce/vc-github-actions/get-jira-keys@master
+  if: always()
   id: jira_keys
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
