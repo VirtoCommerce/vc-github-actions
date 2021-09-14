@@ -14,6 +14,6 @@
     "@actions/exec": "^1.1.0",
     "@actions/github": "^5.0.0",
     "@virtocommerce/vc-actions-lib": "^1.0.1",
-    "axios": "^0.21.1"
+    "axios": "^0.21.2"
   }
 }
