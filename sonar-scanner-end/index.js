@@ -16,7 +16,18 @@ async function run()
         fs.writeFileSync(coveragePath, emptyCoverageContent);
     }
     delete process.env.JAVA_TOOL_OPTIONS;
-    await exec.exec(`vc-build SonarQubeEnd -SonarAuthToken ${process.env.SONAR_TOKEN} -skip`)
+    try {
+        await exec.exec(`vc-build SonarQubeEnd -SonarAuthToken ${process.env.SONAR_TOKEN} -skip`).then(exitCode => {
+            if(exitCode != 0)
+            {
+                core.setFailed("vc-build SonarQubeEnd failed");
+            }
+        });
+    } catch (error) {
+        core.info('\x1b[41mError while vc-build SonarQubeEnd executed detected:\x1b[0m');
+        core.info(error.message);
+    }
+
 }
 
 run().catch(err => core.setFailed(err.message));
