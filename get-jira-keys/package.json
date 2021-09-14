@@ -1,0 +1,18 @@
+{
+  "name": "@virtocommerce/get-jira-keys",
+  "version": "1.0.0",
+  "description": "Find issue keys inside event",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Maksim Kopnov",
+  "license": "ISC",
+  "dependencies": {
+    "@actions/core": "^1.5.0",
+    "@actions/github": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^16.9.1"
+  }
+}
