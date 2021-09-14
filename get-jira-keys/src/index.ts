@@ -1,20 +1,16 @@
 import * as github from '@actions/github'
 import * as core from '@actions/core'
-import * as matchAll from 'match-all'
 
 const regex = /((([A-Z]+)|([0-9]+))+-\d+)/g;
 
-async function matchKeys(commit: any) {
-    let resultArr: any = [];
-    const matches = matchAll(commit.message, regex).toArray();
-    matches.forEach((match: any) => {
-        if (resultArr.find((element: any) => element == match)) {
-            // console.log(match + " is already included in result array");
-        } else {
-            // console.log(" adding " + match + " to result array");
-            resultArr.push(match);
-        }
-    });
+function onlyUnique(value, index, self) {
+    return self.indexOf(value) === index;
+}
+
+function matchKeys(message: string) {
+    console.log(`Parse commit message: ${message}`)
+    const matches = message?.match(regex);
+    const resultArr = matches?.filter(onlyUnique);
     return resultArr;
 }
 
@@ -35,8 +31,10 @@ async function getJiraKeysFromPr() {
         });
 
         data.forEach((item: any) => {
-            let matchedKeys = matchKeys(item.commit);
-            resultArr.push(matchedKeys);
+            let matchedKeys = matchKeys(item.commit.message);
+            if (matchedKeys) {
+                resultArr.push(matchedKeys);
+            }
         });
 
         return resultArr.join(',');
@@ -52,15 +50,11 @@ async function getJiraKeysFromPush() {
         let resultArr: any = [];
 
         payload.commits.forEach((commit: any) => {
-            let matchedKeys = matchKeys(commit);
-            resultArr.push(matchedKeys);
+            let matchedKeys = matchKeys(commit.message);
+            if (matchedKeys) {
+                resultArr.push(matchedKeys);
+            }
         });
-
-        // console.log("parse-all-commits input val is false");
-        // console.log("head_commit: ", payload.head_commit);
-        // const matches = matchAll(payload.head_commit.message, regex).toArray();
-        // const result = matches.join(',');
-        // core.setOutput("jira-keys", result);
 
         return resultArr.join(',');
     } catch (error) {
@@ -84,14 +78,14 @@ async function run(): Promise<void> {
     }
 
     if (result) {
-        console.log(`Detected issue's key: ${result}`)
+        console.log(`Detected Jira keys: ${result}`)
 
-        // Expose created issue's key as an output
+        // Expose created Jira keys as an output
         core.setOutput('jira-keys', result)
         return;
       }
 
-      console.log('No issue keys found.')
+      console.log('No Jira keys found.')
 
 }
 run().catch(error => core.setFailed(error.message));

@@ -4119,105 +4119,6 @@ exports.isPlainObject = isPlainObject;
 
 /***/ }),
 
-/***/ 281:
-/***/ ((module) => {
-
-"use strict";
-
-
-/**
- * matchAll
- * Get all the matches for a regular expression in a string.
- *
- * @name matchAll
- * @function
- * @param {String} s The input string.
- * @param {RegExp} r The regular expression.
- * @return {Object} An object containing the following fields:
- *
- *  - `input` (String): The input string.
- *  - `regex` (RegExp): The regular expression.
- *  - `next` (Function): Get the next match.
- *  - `toArray` (Function): Get all the matches.
- *  - `reset` (Function): Reset the index.
- */
-module.exports = function matchAll(s, r) {
-    return {
-        input: s,
-        regex: r
-
-        /**
-         * next
-         * Get the next match in single group match.
-         *
-         * @name next
-         * @function
-         * @return {String|null} The matched snippet.
-         */
-        , next: function next() {
-            var c = this.nextRaw();
-            if (c) {
-                for (var i = 1; i < c.length; i++) {
-                    if (c[i]) {
-                        return c[i];
-                    }
-                }
-            }
-            return null;
-        }
-
-        /**
-         * nextRaw
-         * Get the next match in raw regex output. Usefull to get another group match.
-         *
-         * @name nextRaw
-         * @function
-         * @returns {Array|null} The matched snippet
-         */
-        ,
-        nextRaw: function nextRaw() {
-            var c = this.regex.exec(this.input);
-            return c;
-        }
-
-        /**
-         * toArray
-         * Get all the matches.
-         *
-         * @name toArray
-         * @function
-         * @return {Array} The matched snippets.
-         */
-        ,
-        toArray: function toArray() {
-            var res = [],
-                c = null;
-
-            while (c = this.next()) {
-                res.push(c);
-            }
-
-            return res;
-        }
-
-        /**
-         * reset
-         * Reset the index.
-         *
-         * @name reset
-         * @function
-         * @param {Number} i The new index (default: `0`).
-         * @return {Number} The new index.
-         */
-        ,
-        reset: function reset(i) {
-            return this.regex.lastIndex = i || 0;
-        }
-    };
-};
-
-/***/ }),
-
 /***/ 114:
 /***/ ((module, exports, __nccwpck_require__) => {
 
@@ -6333,24 +6234,15 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 var github = __importStar(__nccwpck_require__(782));
 var core = __importStar(__nccwpck_require__(739));
-var matchAll = __importStar(__nccwpck_require__(281));
 var regex = /((([A-Z]+)|([0-9]+))+-\d+)/g;
-function matchKeys(commit) {
-    return __awaiter(this, void 0, void 0, function () {
-        var resultArr, matches;
-        return __generator(this, function (_a) {
-            resultArr = [];
-            matches = matchAll(commit.message, regex).toArray();
-            matches.forEach(function (match) {
-                if (resultArr.find(function (element) { return element == match; })) {
-                }
-                else {
-                    resultArr.push(match);
-                }
-            });
-            return [2, resultArr];
-        });
-    });
+function onlyUnique(value, index, self) {
+    return self.indexOf(value) === index;
+}
+function matchKeys(message) {
+    console.log("Parse commit message: " + message);
+    var matches = message === null || message === void 0 ? void 0 : message.match(regex);
+    var resultArr = matches === null || matches === void 0 ? void 0 : matches.filter(onlyUnique);
+    return resultArr;
 }
 function getJiraKeysFromPr() {
     return __awaiter(this, void 0, void 0, function () {
@@ -6372,8 +6264,10 @@ function getJiraKeysFromPr() {
                 case 1:
                     data = (_a.sent()).data;
                     data.forEach(function (item) {
-                        var matchedKeys = matchKeys(item.commit);
-                        resultArr_1.push(matchedKeys);
+                        var matchedKeys = matchKeys(item.commit.message);
+                        if (matchedKeys) {
+                            resultArr_1.push(matchedKeys);
+                        }
                     });
                     return [2, resultArr_1.join(',')];
                 case 2:
@@ -6394,8 +6288,10 @@ function getJiraKeysFromPush() {
                 payload = github.context.payload;
                 resultArr_2 = [];
                 payload.commits.forEach(function (commit) {
-                    var matchedKeys = matchKeys(commit);
-                    resultArr_2.push(matchedKeys);
+                    var matchedKeys = matchKeys(commit.message);
+                    if (matchedKeys) {
+                        resultArr_2.push(matchedKeys);
+                    }
                 });
                 return [2, resultArr_2.join(',')];
             }
@@ -6429,11 +6325,11 @@ function run() {
                 case 5: return [3, 6];
                 case 6:
                     if (result) {
-                        console.log("Detected issue's key: " + result);
+                        console.log("Detected Jira keys: " + result);
                         core.setOutput('jira-keys', result);
                         return [2];
                     }
-                    console.log('No issue keys found.');
+                    console.log('No Jira keys found.');
                     return [2];
             }
         });
