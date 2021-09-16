@@ -1,0 +1,12 @@
+name: Env variables output test
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  env-output:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print all environment variables
+        run:  env
