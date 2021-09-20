@@ -20,7 +20,7 @@ async function run() {
     let blobUrl = core.getInput("blobUrl");
     let blobSAS = core.getInput("blobSAS") ?? process.env.BLOB_SAS;
 
-    if (!process.env.SONAR_TOKEN) {
+    if (!process.env.BLOB_SAS) {
         core.error(`Required BLOB_SAS parameter is empty. Step skipped.`);
         return;
     }

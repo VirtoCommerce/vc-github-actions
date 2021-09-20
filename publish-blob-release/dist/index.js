@@ -71,7 +71,7 @@ function run() {
                 case 0:
                     blobUrl = core.getInput("blobUrl");
                     blobSAS = (_a = core.getInput("blobSAS")) !== null && _a !== void 0 ? _a : process.env.BLOB_SAS;
-                    if (!process.env.SONAR_TOKEN) {
+                    if (!process.env.BLOB_SAS) {
                         core.error("Required BLOB_SAS parameter is empty. Step skipped.");
                         return [2];
                     }
