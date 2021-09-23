@@ -8446,9 +8446,15 @@ var github = __importStar(__nccwpck_require__(9782));
 var core = __importStar(__nccwpck_require__(739));
 var argoDeploy_json_1 = __importDefault(__nccwpck_require__(587));
 var githubToken = process.env['GITHUB_TOKEN'];
+var NOT_FOUND_ERROR_CODE = 404;
+function initDeployConf() {
+    var artifactKey = core.getInput("artifactKey");
+    argoDeploy_json_1.default.artifactKey = artifactKey;
+    return argoDeploy_json_1.default;
+}
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var repoName, branchName, artifactKey, configPath, gitUserName, gitUserEmail, octokit, data, error_1;
+        var repoName, branchName, configPath, gitUserName, gitUserEmail, octokit, deployConf, deployConfStr, deployConfSha, deployConfContent, error_1, data, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -8458,21 +8464,48 @@ function run() {
                     }
                     repoName = core.getInput("repoName");
                     branchName = core.getInput("branchName");
-                    artifactKey = core.getInput("artifactKey");
                     configPath = core.getInput("configPath");
                     gitUserName = core.getInput("gitUserName");
                     gitUserEmail = core.getInput("gitUserEmail");
                     octokit = github.getOctokit(githubToken);
-                    argoDeploy_json_1.default.artifactKey = artifactKey;
+                    deployConf = initDeployConf();
                     _a.label = 1;
                 case 1:
-                    _a.trys.push([1, 3, , 4]);
+                    _a.trys.push([1, 7, , 8]);
+                    deployConfStr = JSON.stringify(deployConf, null, '    ');
+                    deployConfSha = void 0;
+                    _a.label = 2;
+                case 2:
+                    _a.trys.push([2, 4, , 5]);
+                    console.log("Try to get argoDeploy config content from " + repoName + "/" + branchName + "/" + configPath);
+                    return [4, octokit.rest.repos.getContent({
+                            repo: repoName,
+                            owner: github.context.repo.owner,
+                            path: configPath,
+                            ref: branchName,
+                        })];
+                case 3:
+                    deployConfContent = (_a.sent()).data;
+                    deployConfSha = deployConfContent['sha'];
+                    return [3, 5];
+                case 4:
+                    error_1 = _a.sent();
+                    if (error_1.status !== NOT_FOUND_ERROR_CODE) {
+                        core.setFailed(error_1.message);
+                        return [2];
+                    }
+                    console.log("File " + configPath + " not found in " + repoName + "/" + branchName + " repository branch.");
+                    console.log("Trying to create a new one.");
+                    return [3, 5];
+                case 5:
+                    console.log("Push argoDeploy config content to " + repoName + "/" + branchName + "/" + configPath);
                     return [4, octokit.rest.repos.createOrUpdateFileContents({
                             repo: repoName,
                             owner: github.context.repo.owner,
                             path: configPath,
                             branch: branchName,
-                            content: Buffer.from(JSON.stringify(argoDeploy_json_1.default)).toString("base64"),
+                            content: Buffer.from(deployConfStr).toString("base64"),
+                            sha: deployConfSha,
                             message: "Automated update " + configPath + " deployment config",
                             committer: {
                                 name: gitUserName,
@@ -8483,15 +8516,16 @@ function run() {
                                 email: gitUserEmail
                             },
                         })];
-                case 2:
+                case 6:
                     data = (_a.sent()).data;
-                    console.log(data);
-                    return [3, 4];
-                case 3:
-                    error_1 = _a.sent();
-                    console.log(error_1);
-                    return [3, 4];
-                case 4: return [2];
+                    console.log("argoDeploy config successfully deployed to " + repoName + "/" + branchName + "/" + configPath);
+                    return [3, 8];
+                case 7:
+                    error_2 = _a.sent();
+                    console.log(error_2);
+                    core.setFailed(error_2);
+                    return [3, 8];
+                case 8: return [2];
             }
         });
     });

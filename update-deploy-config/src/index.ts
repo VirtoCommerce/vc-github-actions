@@ -4,19 +4,13 @@ import * as core from '@actions/core'
 import argoDeploy from './argoDeploy.json'
 
 const githubToken = process.env['GITHUB_TOKEN'];
+const NOT_FOUND_ERROR_CODE = 404;
 
-interface GitUser 
-{
-    name: string,
-    email: string
-}
+function initDeployConf() {
+    const artifactKey = core.getInput("artifactKey");
+    argoDeploy.artifactKey = artifactKey;
 
-interface RepoData
-{
-    repoOrg: string,
-    repoName: string,
-    branchName?: string,
-    configPath?: string
+    return argoDeploy;
 }
 
 async function run(): Promise<void> {
@@ -28,23 +22,46 @@ async function run(): Promise<void> {
 
     const repoName = core.getInput("repoName");
     const branchName = core.getInput("branchName");
-    const artifactKey = core.getInput("artifactKey");
+    
     const configPath = core.getInput("configPath");
     const gitUserName = core.getInput("gitUserName");
     const gitUserEmail = core.getInput("gitUserEmail");
 
     const octokit = github.getOctokit(githubToken);
 
-    
-    argoDeploy.artifactKey = artifactKey;
+    const deployConf = initDeployConf();
 
     try {
+        const deployConfStr = JSON.stringify(deployConf, null, '    ');
+
+        let deployConfSha: string;
+        try {
+            console.log(`Try to get argoDeploy config content from ${repoName}/${branchName}/${configPath}`);
+            //Get deployment config map content
+            const { data: deployConfContent } = await octokit.rest.repos.getContent({
+                repo: repoName,
+                owner: github.context.repo.owner,
+                path: configPath,
+                ref: branchName,
+            });
+            deployConfSha = deployConfContent['sha'];
+        } catch (error) {
+            if (error.status !== NOT_FOUND_ERROR_CODE) {
+                 core.setFailed(error.message);
+                 return;
+            }
+            console.log(`File ${configPath} not found in ${repoName}/${branchName} repository branch.`);
+            console.log(`Trying to create a new one.`);
+        }
+        console.log(`Push argoDeploy config content to ${repoName}/${branchName}/${configPath}`);
+        //Push deployment config map content to target directory
         const { data } = await octokit.rest.repos.createOrUpdateFileContents({
             repo: repoName,
             owner: github.context.repo.owner,
             path: configPath,
             branch: branchName,
-            content: Buffer.from(JSON.stringify(argoDeploy)).toString("base64"),
+            content: Buffer.from(deployConfStr).toString("base64"),
+            sha: deployConfSha,
             message: `Automated update ${configPath} deployment config`,
             committer:{
                 name: gitUserName,
@@ -55,9 +72,10 @@ async function run(): Promise<void> {
                 email: gitUserEmail
             },
         });
-        console.log(data);
+        console.log(`argoDeploy config successfully deployed to ${repoName}/${branchName}/${configPath}`);
     } catch (error) {
         console.log(error);
+        core.setFailed(error);
     }
 }
 
