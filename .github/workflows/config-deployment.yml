@@ -1,0 +1,19 @@
+name: Deploy argoDeploy config
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  deploy:  
+    runs-on: ubuntu-latest
+    steps:
+    - name: Update Deploy Config 
+      uses: VirtoCommerce/vc-github-actions/update-deploy-config@PT-4530
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        repoName: 'vc-module-catalog'
+        branchName: 'PT-4530'
+        artifactKey: 'VirtoCommerce.Catalog'
+        configPath: '.deployments/argoDeploy.json'
