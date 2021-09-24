@@ -15,6 +15,7 @@ on:
       - 'Directory.Build.props'
       - 'src/*/module.manifest'
       - 'package.json'
+      - '**/argoDeploy.json'
   pull_request:
     branches:
       [ master ]
@@ -27,6 +28,7 @@ on:
       - 'Directory.Build.props'
       - 'src/*/module.manifest'
       - 'package.json'
+      - '**/argoDeploy.json'
 
 
 jobs:

@@ -9,6 +9,7 @@ on:
       - 'docs/**'
       - 'README.md'
       - 'LICENSE'
+      - '**/argoDeploy.json'
     branches: [ main ]
 
 jobs:
