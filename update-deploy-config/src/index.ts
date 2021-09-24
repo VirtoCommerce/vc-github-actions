@@ -7,8 +7,13 @@ const githubToken = process.env['GITHUB_TOKEN'];
 const NOT_FOUND_ERROR_CODE = 404;
 
 function initDeployConf() {
-    const artifactKey = core.getInput("artifactKey");
-    argoDeploy.artifactKey = artifactKey;
+    argoDeploy.artifactKey = core.getInput("artifactKey");
+    argoDeploy.deployRepo = core.getInput("deployRepo");
+    argoDeploy.cmPath = core.getInput("cmPath");
+    argoDeploy.dev.deployAppName = core.getInput("deployAppNameDev");
+    argoDeploy.dev.deployBranch = core.getInput("deployBranchDev");
+    argoDeploy.qa.deployAppName = core.getInput("deployAppNameQa");
+    argoDeploy.qa.deployBranch = core.getInput("deployBranchQa");
 
     return argoDeploy;
 }
@@ -22,7 +27,6 @@ async function run(): Promise<void> {
 
     const repoName = core.getInput("repoName");
     const branchName = core.getInput("branchName");
-    
     const configPath = core.getInput("configPath");
     const gitUserName = core.getInput("gitUserName");
     const gitUserEmail = core.getInput("gitUserEmail");

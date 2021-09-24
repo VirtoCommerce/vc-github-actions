@@ -16,17 +16,37 @@ inputs:
     description: 'Repository branch where deployment config file should be created/updated'
     required: true
     default: 'dev'
-  artifactKey:
-    description: 'artifactKey config file value. For example   "artifactKey": "VirtoCommerce.Catalog"'
-    required: true
-  templatePath:
-    description: 'Path where config template file placed'
-    required: true
-    default: '../templates/argoDeploy.json'
   configPath:
     description: 'Path where config file placed in a `repoName` repository'
     required: true
-    default: './argoDeploy.json'
+    default: 'argoDeploy.json'
+  artifactKey:
+    description: 'artifactKey config file value. For example "artifactKey": "VirtoCommerce.Catalog" (Artifact key in the deployment config map)'
+    required: true
+  deployRepo:
+    description: 'deployRepo config file value. For example "deployRepo": "vc-deploy-dev" (Repository name where application deployment config placed)'
+    required: true
+    default: 'vc-deploy-dev'
+  cmPath:
+    description: 'cmPath config file value. For example  "cmPath": "platform-dev/resources/deployment-cm.yaml" (Path to the config map in the deployment repository)'
+    required: true
+    default: 'platform-dev/resources/deployment-cm.yaml'
+  deployAppNameDev:
+    description: 'dev.deployAppName config file value. For example "dev": {"deployAppName": "vcplatform-dev"} (ArgoCD application name in the dev environment)'
+    required: true
+    default: 'vcplatform-dev'
+  deployBranchDev:
+    description: 'dev.deployBranch config file value. For example "dev": {"deployBranch": "dev"} (Branch name in the deployment repository for the dev environment)'
+    required: true
+    default: 'dev'
+  deployAppNameQa:
+    description: 'qa.deployAppName config file value. For example "qa": {"deployAppName": "vcplatform-qa"} (ArgoCD application name in the qa environment)'
+    required: true
+    default: 'vcplatform-qa'
+  deployBranchQa:
+    description: 'qa.deployBranch config file value. For example "qa": {"deployBranch": "qa"} (Branch name in the deployment repository for the qa environment)'
+    required: true
+    default: 'qa'
 
 runs:
   using: 'node12'

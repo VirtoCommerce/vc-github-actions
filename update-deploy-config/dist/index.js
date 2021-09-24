@@ -13,7 +13,7 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"artifactKey":"VirtoCommerce.Orders","deployRepo":"vc-deploy-dev","dev":{"deployAppName":"vcplatform-dev","deployBranch":"dev"},"qa":{"deployAppName":"vcplatform-qa","deployBranch":"qa"},"cmPath":"platform-dev/resources/deployment-cm.yaml"}');
+module.exports = JSON.parse('{"artifactKey":"VirtoCommerce.Orders","deployRepo":"vc-deploy-dev","cmPath":"platform-dev/resources/deployment-cm.yaml","dev":{"deployAppName":"vcplatform-dev","deployBranch":"dev"},"qa":{"deployAppName":"vcplatform-qa","deployBranch":"qa"}}');
 
 /***/ }),
 
@@ -8448,8 +8448,13 @@ var argoDeploy_json_1 = __importDefault(__nccwpck_require__(587));
 var githubToken = process.env['GITHUB_TOKEN'];
 var NOT_FOUND_ERROR_CODE = 404;
 function initDeployConf() {
-    var artifactKey = core.getInput("artifactKey");
-    argoDeploy_json_1.default.artifactKey = artifactKey;
+    argoDeploy_json_1.default.artifactKey = core.getInput("artifactKey");
+    argoDeploy_json_1.default.deployRepo = core.getInput("deployRepo");
+    argoDeploy_json_1.default.cmPath = core.getInput("cmPath");
+    argoDeploy_json_1.default.dev.deployAppName = core.getInput("deployAppNameDev");
+    argoDeploy_json_1.default.dev.deployBranch = core.getInput("deployBranchDev");
+    argoDeploy_json_1.default.qa.deployAppName = core.getInput("deployAppNameQa");
+    argoDeploy_json_1.default.qa.deployBranch = core.getInput("deployBranchQa");
     return argoDeploy_json_1.default;
 }
 function run() {
