@@ -21,4 +21,3 @@ jobs:
         repoName:  ${{ matrix.repoName }}
         branchName: 'PT-4530'
         artifactKey:  ${{ matrix.artifactKey }}
-        configPath: '.deployments/argoDeploy.json'
