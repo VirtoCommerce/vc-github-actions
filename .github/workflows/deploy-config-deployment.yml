@@ -111,7 +111,7 @@ jobs:
 
     steps:
     - name: Update Deploy Config 
-      uses: VirtoCommerce/vc-github-actions/update-deploy-config@PT-4530
+      uses: VirtoCommerce/vc-github-actions/update-deploy-config@master
       env:
         GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
       with:
