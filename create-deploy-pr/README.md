@@ -72,10 +72,10 @@
     if: ${{ github.event_name == 'pull_request' }}
     uses: VirtoCommerce/vc-github-actions/create-deploy-pr@master
     with:
-    deployRepo: "vc-webstore-deploy"
-    deployBranch: "demo"
-    artifactKey: "B2B_THEME_URL"
-    artifactUrl: "${{ steps.artifactLink.outputs.artifactUrl }}"
-    taskNumber: "${{ steps.artifactLink.outputs.demoTaskNumber }}"
-
+        deployRepo: "vc-webstore-deploy"
+        deployBranch: "demo"
+        artifactKey: "B2B_THEME_URL"
+        artifactUrl: "${{ steps.artifactLink.outputs.artifactUrl }}"
+        taskNumber: "${{ steps.artifactLink.outputs.demoTaskNumber }}"
+    
 ```
