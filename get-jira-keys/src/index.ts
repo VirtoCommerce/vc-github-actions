@@ -89,9 +89,15 @@ async function getJiraKeysFromRelease() {
             since: sinceIsoString,
             per_page: 100,
         });
-        
+
         commitsArr = octokitResult['data'];
-        console.log(JSON.stringify(commitsArr, null, '  '));
+//        console.log(JSON.stringify(commitsArr, null, '  '));
+
+        for (let index = 0; index < commitsArr.length; index++) {
+            const elementMessage = commitsArr[index]['commit']['message'];
+            const elementDate = commitsArr[index]['commit']['committer']['date'];
+            console.log(`${elementDate} - ${elementMessage}`)
+        }
 
         // commitsArr.forEach((commit: any) => {
         //     let matchedKeys = matchKeys(commit.message);
