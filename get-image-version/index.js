@@ -119,7 +119,8 @@ async function run()
             iconUrl = versionInfo.iconUrl;
 
             if(prefix !== buildPropsVersionInfo.prefix || suffix !== buildPropsVersionInfo.suffix){
-                core.setFailed(`Versions in module.manifest and Directory.Build.props are different! (${prefix}-${suffix} vs. ${buildPropsVersionInfo.prefix}-${buildPropsVersionInfo.suffix})`);
+                core.setFailed(`Versions in module.manifest and Directory.Build.props are different! module.manifest: ${prefix}-${suffix} vs. Directory.Build.props: ${buildPropsVersionInfo.prefix}-${buildPropsVersionInfo.suffix}`);
+                console.log('Try to set an equal version number in module.manifest and Directory.Build.props');
                 return;
             }
             break;
