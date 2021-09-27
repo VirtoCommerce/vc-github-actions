@@ -22,10 +22,6 @@ function matchKeys(message: string) {
     return resultArr;
 }
 
-function matchRelease(message: string) {
-    return releaseRgx.test(message);
-}
-
 async function getJiraKeysFromPr() {
     try {
         console.log("Get Jira keys from pull request");
@@ -115,14 +111,8 @@ async function getJiraKeysFromRelease() {
                 resultArr.push(matchedKeys);
             }
         }
-        // commitsArr.forEach((commit: any) => {
-        //     let matchedKeys = matchKeys(commit.message);
-        //     if (matchedKeys) {
-        //         resultArr.push(matchedKeys);
-        //     }
-        // });
-        resultArr = resultArr?.filter(onlyUnique);
-        return resultArr.join(',');
+        let result = resultArr?.filter(onlyUnique);
+        return result.join(',');
     } catch (error) {
         core.setFailed(error.message);
     }

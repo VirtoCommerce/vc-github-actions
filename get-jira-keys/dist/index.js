@@ -6249,9 +6249,6 @@ function matchKeys(message) {
     var resultArr = matches === null || matches === void 0 ? void 0 : matches.filter(onlyUnique);
     return resultArr;
 }
-function matchRelease(message) {
-    return releaseRgx.test(message);
-}
 function getJiraKeysFromPr() {
     return __awaiter(this, void 0, void 0, function () {
         var octokit, resultArr_1, data, error_1;
@@ -6309,7 +6306,7 @@ function getJiraKeysFromPush() {
 }
 function getJiraKeysFromRelease() {
     return __awaiter(this, void 0, void 0, function () {
-        var releaseMsgNum, resultArr, commitsArr, date, sinceIsoString, octokit, octokitResult, releaseCount, index, elementMessage, elementDate, matchedKeys, error_2;
+        var releaseMsgNum, resultArr, commitsArr, date, sinceIsoString, octokit, octokitResult, releaseCount, index, elementMessage, elementDate, matchedKeys, result, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -6346,8 +6343,8 @@ function getJiraKeysFromRelease() {
                             resultArr.push(matchedKeys);
                         }
                     }
-                    resultArr = resultArr === null || resultArr === void 0 ? void 0 : resultArr.filter(onlyUnique);
-                    return [2, resultArr.join(',')];
+                    result = resultArr === null || resultArr === void 0 ? void 0 : resultArr.filter(onlyUnique);
+                    return [2, result.join(',')];
                 case 2:
                     error_2 = _a.sent();
                     core.setFailed(error_2.message);
