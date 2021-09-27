@@ -110,12 +110,19 @@ async function run()
             let manifests = await utils.findFiles(manifestPathTemplate);
             let manifestPath = manifests[0];
             versionInfo = await utils.getInfoFromModuleManifest(manifestPath);
+            let buildPropsVersionInfo = await utils.getInfoFromDirectoryBuildProps(`${path}/Directory.Build.props`);
             prefix = versionInfo.prefix;
             suffix = versionInfo.suffix;
             moduleId = versionInfo.moduleId;
             moduleDescription = versionInfo.moduleDescription;
             projectUrl = versionInfo.projectUrl;
-            iconUrl = versionInfo.iconUrl
+            iconUrl = versionInfo.iconUrl;
+
+            if(prefix !== buildPropsVersionInfo.prefix || suffix !== buildPropsVersionInfo.suffix){
+                core.setFailed(`Versions in module.manifest and Directory.Build.props are different! module.manifest: ${prefix}-${suffix} vs. Directory.Build.props: ${buildPropsVersionInfo.prefix}-${buildPropsVersionInfo.suffix}`);
+                console.log('Try to set an equal version number in module.manifest and Directory.Build.props');
+                return;
+            }
             break;
         case utils.projectTypePlatform:
         case utils.projectTypeStorefront:
