@@ -6346,6 +6346,7 @@ function getJiraKeysFromRelease() {
                             resultArr.push(matchedKeys);
                         }
                     }
+                    resultArr = resultArr === null || resultArr === void 0 ? void 0 : resultArr.filter(onlyUnique);
                     return [2, resultArr.join(',')];
                 case 2:
                     error_2 = _a.sent();

@@ -121,6 +121,7 @@ async function getJiraKeysFromRelease() {
         //         resultArr.push(matchedKeys);
         //     }
         // });
+        resultArr = resultArr?.filter(onlyUnique);
         return resultArr.join(',');
     } catch (error) {
         core.setFailed(error.message);
