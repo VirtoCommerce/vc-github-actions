@@ -6305,7 +6305,7 @@ function getJiraKeysFromPush() {
 }
 function getJiraKeysFromRelease() {
     return __awaiter(this, void 0, void 0, function () {
-        var resultArr, commitsArr, date, sinceIsoString, octokit, data, error_2;
+        var resultArr, commitsArr, date, sinceIsoString, octokit, octokitResult, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -6326,10 +6326,9 @@ function getJiraKeysFromRelease() {
                             per_page: 100,
                         })];
                 case 1:
-                    data = _a.sent();
-                    console.log(data);
-                    commitsArr = commitsArr.push(data);
-                    console.log(commitsArr);
+                    octokitResult = _a.sent();
+                    commitsArr = octokitResult['data'];
+                    console.log(JSON.stringify(commitsArr, null, '  '));
                     return [2, resultArr.join(',')];
                 case 2:
                     error_2 = _a.sent();

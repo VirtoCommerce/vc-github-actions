@@ -82,16 +82,16 @@ async function getJiraKeysFromRelease() {
 
         const octokit = github.getOctokit(githubToken);
 
-        const data = await octokit.rest.repos.listCommits({
+        const octokitResult = await octokit.rest.repos.listCommits({
             owner: payload.repository.owner.login,
             repo: payload.repository.name,
             sha: ref,
             since: sinceIsoString,
             per_page: 100,
         });
-        console.log(data);
-        commitsArr = commitsArr.push(data);
-        console.log(commitsArr);
+        
+        commitsArr = octokitResult['data'];
+        console.log(JSON.stringify(commitsArr, null, '  '));
 
         // commitsArr.forEach((commit: any) => {
         //     let matchedKeys = matchKeys(commit.message);
