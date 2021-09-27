@@ -12,6 +12,7 @@ const releaseRgx = /(release+)\/([0-9]+)\.([0-9]+)\.([0-9])/gi
 const COMMITS_SEARCH_DEPTH :number = Number(core.getInput('searchDepth')); // Commit search history depth in days
 
 function onlyUnique(value, index, self) {
+
     return self.indexOf(value) === index;
 }
 
@@ -39,9 +40,11 @@ async function getJiraKeysFromPr() {
         data.forEach((item: any) => {
             let matchedKeys = matchKeys(item.commit.message);
             if (matchedKeys) {
-                resultArr.push(matchedKeys);
+                resultArr = resultArr.concat(matchedKeys);
             }
         });
+
+        resultArr = resultArr?.filter(onlyUnique);
 
         return resultArr.join(',');
     } catch (error) {
@@ -58,9 +61,11 @@ async function getJiraKeysFromPush() {
         payload.commits.forEach((commit: any) => {
             let matchedKeys = matchKeys(commit.message);
             if (matchedKeys) {
-                resultArr.push(matchedKeys);
+                resultArr = resultArr.concat(matchedKeys);
             }
         });
+
+        resultArr = resultArr?.filter(onlyUnique);
 
         return resultArr.join(',');
     } catch (error) {
@@ -102,17 +107,22 @@ async function getJiraKeysFromRelease() {
         for (let index = 0; (index < commitsArr.length) && (releaseCount < releaseMsgNum) ; index++) {
             const elementMessage = commitsArr[index]['commit']['message'];
             const elementDate = commitsArr[index]['commit']['committer']['date'];
+
             console.log(`${elementDate} - ${elementMessage}`)
+
             if (releaseRgx.test(elementMessage)) {
                 releaseCount++;
             }
+
             let matchedKeys = matchKeys(elementMessage);
             if (matchedKeys) {
-                resultArr.push(matchedKeys);
+                resultArr = resultArr.concat(matchedKeys);
             }
         }
-        let result = resultArr?.filter(onlyUnique);
-        return result.join(',');
+
+        resultArr = resultArr?.filter(onlyUnique);
+
+        return resultArr.join(',');
     } catch (error) {
         core.setFailed(error.message);
     }

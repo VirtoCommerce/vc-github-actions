@@ -6269,9 +6269,10 @@ function getJiraKeysFromPr() {
                     data.forEach(function (item) {
                         var matchedKeys = matchKeys(item.commit.message);
                         if (matchedKeys) {
-                            resultArr_1.push(matchedKeys);
+                            resultArr_1 = resultArr_1.concat(matchedKeys);
                         }
                     });
+                    resultArr_1 = resultArr_1 === null || resultArr_1 === void 0 ? void 0 : resultArr_1.filter(onlyUnique);
                     return [2, resultArr_1.join(',')];
                 case 2:
                     error_1 = _a.sent();
@@ -6292,9 +6293,10 @@ function getJiraKeysFromPush() {
                 payload.commits.forEach(function (commit) {
                     var matchedKeys = matchKeys(commit.message);
                     if (matchedKeys) {
-                        resultArr_2.push(matchedKeys);
+                        resultArr_2 = resultArr_2.concat(matchedKeys);
                     }
                 });
+                resultArr_2 = resultArr_2 === null || resultArr_2 === void 0 ? void 0 : resultArr_2.filter(onlyUnique);
                 return [2, resultArr_2.join(',')];
             }
             catch (error) {
@@ -6306,7 +6308,7 @@ function getJiraKeysFromPush() {
 }
 function getJiraKeysFromRelease() {
     return __awaiter(this, void 0, void 0, function () {
-        var releaseMsgNum, resultArr, commitsArr, date, sinceIsoString, octokit, octokitResult, releaseCount, index, elementMessage, elementDate, matchedKeys, result, error_2;
+        var releaseMsgNum, resultArr, commitsArr, date, sinceIsoString, octokit, octokitResult, releaseCount, index, elementMessage, elementDate, matchedKeys, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -6340,11 +6342,11 @@ function getJiraKeysFromRelease() {
                         }
                         matchedKeys = matchKeys(elementMessage);
                         if (matchedKeys) {
-                            resultArr.push(matchedKeys);
+                            resultArr = resultArr.concat(matchedKeys);
                         }
                     }
-                    result = resultArr === null || resultArr === void 0 ? void 0 : resultArr.filter(onlyUnique);
-                    return [2, result.join(',')];
+                    resultArr = resultArr === null || resultArr === void 0 ? void 0 : resultArr.filter(onlyUnique);
+                    return [2, resultArr.join(',')];
                 case 2:
                     error_2 = _a.sent();
                     core.setFailed(error_2.message);
