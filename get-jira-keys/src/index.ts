@@ -1,7 +1,13 @@
 import * as github from '@actions/github'
 import * as core from '@actions/core'
+import { release } from 'os';
+
+const githubToken = process.env['GITHUB_TOKEN'];
+const ref = github.context.ref;
+const payload = github.context.payload;
 
 const regex = /((([A-Z]+)|([0-9]+))+-\d+)/g;
+const COMMITS_SEARCH_DEPTH :number = Number(core.getInput('searchDepth')); // Commit search history depth in days
 
 function onlyUnique(value, index, self) {
     return self.indexOf(value) === index;
@@ -18,10 +24,8 @@ async function getJiraKeysFromPr() {
     try {
         console.log("Get Jira keys from pull request");
 
-        const payload = github.context.payload;
-        const githubToken = process.env['GITHUB_TOKEN'];
-
         const octokit = github.getOctokit(githubToken);
+
         let resultArr: any = [];
 
         const { data } = await octokit.rest.pulls.listCommits({
@@ -46,7 +50,7 @@ async function getJiraKeysFromPr() {
 async function getJiraKeysFromPush() {
     try {
         console.log("Get Jira keys from Push");
-        const payload = github.context.payload;
+
         let resultArr: any = [];
 
         payload.commits.forEach((commit: any) => {
@@ -62,17 +66,60 @@ async function getJiraKeysFromPush() {
     }
 }
 
-async function run(): Promise<void> {
+async function getJiraKeysFromRelease() {
+    try {
+        console.log("Get Jira keys from from latest release");
 
+        let resultArr: any = [];
+        let commitsArr: any = [];
+        let date = new Date();
+
+        //Set commits search history depth
+        date.setDate(date.getDate() - COMMITS_SEARCH_DEPTH);
+        const sinceIsoString = date.toISOString();
+
+        console.log(`Trying to search all commits in ${ref} brunch since ${sinceIsoString}`);
+
+        const octokit = github.getOctokit(githubToken);
+
+        const data = await octokit.rest.repos.listCommits({
+            owner: payload.repository.owner.login,
+            repo: payload.repository.name,
+            sha: ref,
+            since: sinceIsoString,
+            per_page: 100,
+        });
+        console.log(data);
+        commitsArr = commitsArr.push(data);
+        console.log(commitsArr);
+
+        // commitsArr.forEach((commit: any) => {
+        //     let matchedKeys = matchKeys(commit.message);
+        //     if (matchedKeys) {
+        //         resultArr.push(matchedKeys);
+        //     }
+        // });
+
+        return resultArr.join(',');
+    } catch (error) {
+        core.setFailed(error.message);
+    }
+}
+
+async function run(): Promise<void> {
+    const release: boolean = core.getInput(`release`).includes(`true`);
     let result;
     switch (github.context.eventName) {
         case 'pull_request':
             result = await getJiraKeysFromPr();
             break;
         case 'push':
-            result = await getJiraKeysFromPush();
+            if (release) {
+                result = await getJiraKeysFromRelease();
+            } else {
+                result = await getJiraKeysFromPush();
+            }
             break;
-            
         default:
             break;
     }

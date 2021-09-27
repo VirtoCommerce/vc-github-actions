@@ -13,6 +13,6 @@
     "@actions/github": "^5.0.0"
   },
   "devDependencies": {
-    "@types/node": "^16.9.1"
+    "@types/node": "^16.10.1"
   }
 }
