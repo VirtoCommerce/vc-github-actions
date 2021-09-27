@@ -120,6 +120,7 @@ async function run()
 
             if(prefix !== buildPropsVersionInfo.prefix || suffix !== buildPropsVersionInfo.suffix){
                 core.setFailed(`Versions in module.manifest and Directory.Build.props are different! (${prefix}-${suffix} vs. ${buildPropsVersionInfo.prefix}-${buildPropsVersionInfo.suffix})`);
+                return;
             }
             break;
         case utils.projectTypePlatform:
