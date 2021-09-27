@@ -6240,14 +6240,25 @@ var payload = github.context.payload;
 var keyRgx = /((([A-Z]+)|([0-9]+))+-\d+)/g;
 var releaseRgx = /(release+)\/([0-9]+)\.([0-9]+)\.([0-9])/gi;
 var COMMITS_SEARCH_DEPTH = Number(core.getInput('searchDepth'));
+var SKIP_FIRST_RELEASE_COMMIT = 1;
 function onlyUnique(value, index, self) {
     return self.indexOf(value) === index;
 }
-function matchKeys(message) {
-    console.log("Parse commit message: " + message);
-    var matches = message === null || message === void 0 ? void 0 : message.match(keyRgx);
+function matchKeys(msg) {
+    console.log("Parse commit message: " + msg);
+    var matches = msg === null || msg === void 0 ? void 0 : msg.match(keyRgx);
     var resultArr = matches === null || matches === void 0 ? void 0 : matches.filter(onlyUnique);
     return resultArr;
+}
+function matchRelease(msg) {
+    return releaseRgx.test(msg);
+}
+function initFirstArrIdx(msg) {
+    var result = 0;
+    if (matchRelease(msg)) {
+        result = SKIP_FIRST_RELEASE_COMMIT;
+    }
+    return result;
 }
 function getJiraKeysFromPr() {
     return __awaiter(this, void 0, void 0, function () {
@@ -6308,13 +6319,13 @@ function getJiraKeysFromPush() {
 }
 function getJiraKeysFromRelease() {
     return __awaiter(this, void 0, void 0, function () {
-        var releaseMsgNum, resultArr, commitsArr, date, sinceIsoString, octokit, octokitResult, releaseCount, index, elementMessage, elementDate, matchedKeys, error_2;
+        var releaseMsgNum, resultArr, commitsArr, date, sinceIsoString, octokit, octokitResult, releaseCount, firstArrayIdx, index, elementMessage, matchedKeys, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
-                    console.log("Get Jira keys from from latest release");
-                    releaseMsgNum = 2;
+                    console.log("Get Jira keys for latest release");
+                    releaseMsgNum = 1;
                     resultArr = [];
                     commitsArr = [];
                     date = new Date();
@@ -6332,12 +6343,18 @@ function getJiraKeysFromRelease() {
                 case 1:
                     octokitResult = _a.sent();
                     commitsArr = octokitResult['data'];
+                    if (!commitsArr) {
+                        return [2, []];
+                    }
                     releaseCount = 0;
-                    for (index = 0; (index < commitsArr.length) && (releaseCount < releaseMsgNum); index++) {
+                    firstArrayIdx = 0;
+                    firstArrayIdx = initFirstArrIdx(commitsArr[0]['commit']['message']);
+                    if (firstArrayIdx !== 0) {
+                        console.log("First commit contains '" + commitsArr[0]['commit']['message'] + "'. Commit skipped.");
+                    }
+                    for (index = firstArrayIdx; (index < commitsArr.length) && (releaseCount < releaseMsgNum); index++) {
                         elementMessage = commitsArr[index]['commit']['message'];
-                        elementDate = commitsArr[index]['commit']['committer']['date'];
-                        console.log(elementDate + " - " + elementMessage);
-                        if (releaseRgx.test(elementMessage)) {
+                        if (matchRelease(elementMessage)) {
                             releaseCount++;
                         }
                         matchedKeys = matchKeys(elementMessage);

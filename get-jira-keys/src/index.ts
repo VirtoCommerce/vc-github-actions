@@ -10,17 +10,30 @@ const keyRgx = /((([A-Z]+)|([0-9]+))+-\d+)/g;
 const releaseRgx = /(release+)\/([0-9]+)\.([0-9]+)\.([0-9])/gi
 
 const COMMITS_SEARCH_DEPTH :number = Number(core.getInput('searchDepth')); // Commit search history depth in days
+const SKIP_FIRST_RELEASE_COMMIT :number = 1; // Iterate commits array from a second value if first is release commit
 
 function onlyUnique(value, index, self) {
 
     return self.indexOf(value) === index;
 }
 
-function matchKeys(message: string) {
-    console.log(`Parse commit message: ${message}`)
-    const matches = message?.match(keyRgx);
+function matchKeys(msg: string) {
+    console.log(`Parse commit message: ${msg}`)
+    const matches = msg?.match(keyRgx);
     const resultArr = matches?.filter(onlyUnique);
     return resultArr;
+}
+
+function matchRelease(msg: string) {
+    return releaseRgx.test(msg);
+}
+
+function initFirstArrIdx(msg: string) {
+    let result = 0;
+    if (matchRelease(msg)) {
+        result = SKIP_FIRST_RELEASE_COMMIT;
+    }
+    return result;
 }
 
 async function getJiraKeysFromPr() {
@@ -75,10 +88,10 @@ async function getJiraKeysFromPush() {
 
 async function getJiraKeysFromRelease() {
     try {
-        console.log("Get Jira keys from from latest release");
+        console.log("Get Jira keys for latest release");
 
         //Commits number contains 'release/x.x.x' message
-        const releaseMsgNum = 2; 
+        const releaseMsgNum = 1; 
 
         let resultArr: any = [];
         let commitsArr: any = [];
@@ -102,15 +115,24 @@ async function getJiraKeysFromRelease() {
 
         commitsArr = octokitResult['data'];
         
+        if (!commitsArr) {
+            return[];
+        }
         let releaseCount = 0;
+        let firstArrayIdx = 0;
 
-        for (let index = 0; (index < commitsArr.length) && (releaseCount < releaseMsgNum) ; index++) {
+        
+        firstArrayIdx = initFirstArrIdx(commitsArr[0]['commit']['message']);
+        
+        if (firstArrayIdx !== 0) {
+            console.log(`First commit contains '${commitsArr[0]['commit']['message']}'. Commit skipped.`)
+        }
+
+        for (let index = firstArrayIdx; (index < commitsArr.length) && (releaseCount < releaseMsgNum) ; index++) {
+
             const elementMessage = commitsArr[index]['commit']['message'];
-            const elementDate = commitsArr[index]['commit']['committer']['date'];
 
-            console.log(`${elementDate} - ${elementMessage}`)
-
-            if (releaseRgx.test(elementMessage)) {
+            if (matchRelease(elementMessage)) {
                 releaseCount++;
             }
 
