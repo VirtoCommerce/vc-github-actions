@@ -6237,16 +6237,20 @@ var core = __importStar(__nccwpck_require__(739));
 var githubToken = process.env['GITHUB_TOKEN'];
 var ref = github.context.ref;
 var payload = github.context.payload;
-var regex = /((([A-Z]+)|([0-9]+))+-\d+)/g;
+var keyRgx = /((([A-Z]+)|([0-9]+))+-\d+)/g;
+var releaseRgx = /(release+)\/([0-9]+)\.([0-9]+)\.([0-9])/gi;
 var COMMITS_SEARCH_DEPTH = Number(core.getInput('searchDepth'));
 function onlyUnique(value, index, self) {
     return self.indexOf(value) === index;
 }
 function matchKeys(message) {
     console.log("Parse commit message: " + message);
-    var matches = message === null || message === void 0 ? void 0 : message.match(regex);
+    var matches = message === null || message === void 0 ? void 0 : message.match(keyRgx);
     var resultArr = matches === null || matches === void 0 ? void 0 : matches.filter(onlyUnique);
     return resultArr;
+}
+function matchRelease(message) {
+    return releaseRgx.test(message);
 }
 function getJiraKeysFromPr() {
     return __awaiter(this, void 0, void 0, function () {
@@ -6305,12 +6309,13 @@ function getJiraKeysFromPush() {
 }
 function getJiraKeysFromRelease() {
     return __awaiter(this, void 0, void 0, function () {
-        var resultArr, commitsArr, date, sinceIsoString, octokit, octokitResult, index, elementMessage, elementDate, error_2;
+        var releaseMsgNum, resultArr, commitsArr, date, sinceIsoString, octokit, octokitResult, releaseCount, index, elementMessage, elementDate, matchedKeys, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
                     console.log("Get Jira keys from from latest release");
+                    releaseMsgNum = 2;
                     resultArr = [];
                     commitsArr = [];
                     date = new Date();
@@ -6328,10 +6333,18 @@ function getJiraKeysFromRelease() {
                 case 1:
                     octokitResult = _a.sent();
                     commitsArr = octokitResult['data'];
-                    for (index = 0; index < commitsArr.length; index++) {
+                    releaseCount = 0;
+                    for (index = 0; (index < commitsArr.length) && (releaseCount < releaseMsgNum); index++) {
                         elementMessage = commitsArr[index]['commit']['message'];
                         elementDate = commitsArr[index]['commit']['committer']['date'];
                         console.log(elementDate + " - " + elementMessage);
+                        if (releaseRgx.test(elementMessage)) {
+                            releaseCount++;
+                        }
+                        matchedKeys = matchKeys(elementMessage);
+                        if (matchedKeys) {
+                            resultArr.push(matchedKeys);
+                        }
                     }
                     return [2, resultArr.join(',')];
                 case 2:

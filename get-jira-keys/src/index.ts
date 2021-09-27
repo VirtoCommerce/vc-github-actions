@@ -1,12 +1,14 @@
 import * as github from '@actions/github'
 import * as core from '@actions/core'
-import { release } from 'os';
+
 
 const githubToken = process.env['GITHUB_TOKEN'];
 const ref = github.context.ref;
 const payload = github.context.payload;
 
-const regex = /((([A-Z]+)|([0-9]+))+-\d+)/g;
+const keyRgx = /((([A-Z]+)|([0-9]+))+-\d+)/g;
+const releaseRgx = /(release+)\/([0-9]+)\.([0-9]+)\.([0-9])/gi
+
 const COMMITS_SEARCH_DEPTH :number = Number(core.getInput('searchDepth')); // Commit search history depth in days
 
 function onlyUnique(value, index, self) {
@@ -15,9 +17,13 @@ function onlyUnique(value, index, self) {
 
 function matchKeys(message: string) {
     console.log(`Parse commit message: ${message}`)
-    const matches = message?.match(regex);
+    const matches = message?.match(keyRgx);
     const resultArr = matches?.filter(onlyUnique);
     return resultArr;
+}
+
+function matchRelease(message: string) {
+    return releaseRgx.test(message);
 }
 
 async function getJiraKeysFromPr() {
@@ -70,6 +76,9 @@ async function getJiraKeysFromRelease() {
     try {
         console.log("Get Jira keys from from latest release");
 
+        //Commits number contains 'release/x.x.x' message
+        const releaseMsgNum = 2; 
+
         let resultArr: any = [];
         let commitsArr: any = [];
         let date = new Date();
@@ -91,21 +100,27 @@ async function getJiraKeysFromRelease() {
         });
 
         commitsArr = octokitResult['data'];
-//        console.log(JSON.stringify(commitsArr, null, '  '));
+        
+        let releaseCount = 0;
 
-        for (let index = 0; index < commitsArr.length; index++) {
+        for (let index = 0; (index < commitsArr.length) && (releaseCount < releaseMsgNum) ; index++) {
             const elementMessage = commitsArr[index]['commit']['message'];
             const elementDate = commitsArr[index]['commit']['committer']['date'];
             console.log(`${elementDate} - ${elementMessage}`)
+            if (releaseRgx.test(elementMessage)) {
+                releaseCount++;
+            }
+            let matchedKeys = matchKeys(elementMessage);
+            if (matchedKeys) {
+                resultArr.push(matchedKeys);
+            }
         }
-
         // commitsArr.forEach((commit: any) => {
         //     let matchedKeys = matchKeys(commit.message);
         //     if (matchedKeys) {
         //         resultArr.push(matchedKeys);
         //     }
         // });
-
         return resultArr.join(',');
     } catch (error) {
         core.setFailed(error.message);
