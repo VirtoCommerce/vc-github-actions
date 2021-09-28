@@ -6269,6 +6269,7 @@ function getJiraKeysFromPr() {
                     _a.trys.push([0, 2, , 3]);
                     console.log("Get Jira keys from pull request");
                     octokit = github.getOctokit(githubToken);
+                    jiraKeys_1 = [];
                     return [4, octokit.rest.pulls.listCommits({
                             owner: payload.repository.owner.login,
                             repo: payload.repository.name,
@@ -6299,6 +6300,7 @@ function getJiraKeysFromPush() {
         return __generator(this, function (_a) {
             try {
                 console.log("Get Jira keys from Push");
+                jiraKeys_2 = [];
                 payload.commits.forEach(function (commit) {
                     var matchedKeys = matchKeys(commit.message);
                     if (matchedKeys) {
@@ -6324,7 +6326,7 @@ function getJiraKeysFromRelease() {
                     _a.trys.push([0, 2, , 3]);
                     console.log("Get Jira keys for latest release");
                     releaseMsgNum = 1;
-                    jiraKeys = void 0;
+                    jiraKeys = [];
                     commits = [];
                     date = new Date();
                     date.setDate(date.getDate() - COMMITS_SEARCH_DEPTH);

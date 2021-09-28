@@ -44,7 +44,7 @@ async function getJiraKeysFromPr() {
 
         const octokit = github.getOctokit(githubToken);
 
-        let jiraKeys: string[];
+        let jiraKeys: string[] = [];
 
         const { data } = await octokit.rest.pulls.listCommits({
             owner: payload.repository.owner.login,
@@ -71,7 +71,7 @@ async function getJiraKeysFromPush() {
     try {
         console.log("Get Jira keys from Push");
 
-        let jiraKeys: string[];
+        let jiraKeys: string[] = [];
 
         payload.commits.forEach((commit: any) => {
             let matchedKeys = matchKeys(commit.message);
@@ -95,7 +95,7 @@ async function getJiraKeysFromRelease() {
         //Commits number contains 'release/x.x.x' message
         const releaseMsgNum = 1; 
 
-        let jiraKeys: string[];
+        let jiraKeys: string[] = [];
         let commits: any = [];
         let date = new Date();
 
