@@ -6,9 +6,6 @@ const githubToken = process.env['GITHUB_TOKEN'];
 const ref = github.context.ref;
 const payload = github.context.payload;
 
-const keyRgx = /((([A-Z]+)|([0-9]+))+-\d+)/g;
-const releaseRgx = /(release+)\/([0-9]+)\.([0-9]+)\.([0-9])/gi
-
 const COMMITS_SEARCH_DEPTH :number = Number(core.getInput('searchDepth')); // Commit search history depth in days
 const SKIP_FIRST_RELEASE_COMMIT :number = 1; // Iterate commits array from a second value if first is release commit
 
@@ -19,12 +16,17 @@ function onlyUnique(value, index, self) {
 
 function matchKeys(msg: string) {
     console.log(`Parse commit message: ${msg}`)
-    const matches = msg?.match(keyRgx);
-    const resultArr = matches?.filter(onlyUnique);
-    return resultArr;
+    
+    const jiraKeyRgx = /((([A-Z]+)|([0-9]+))+-\d+)/g;
+    
+    const matches = msg?.match(jiraKeyRgx);
+    const result = matches?.filter(onlyUnique);
+    
+    return result;
 }
 
 function matchRelease(msg: string) {
+    const releaseRgx = /(release+)\/([0-9]+)\.([0-9]+)\.([0-9])/gi
     return releaseRgx.test(msg);
 }
 
@@ -42,7 +44,7 @@ async function getJiraKeysFromPr() {
 
         const octokit = github.getOctokit(githubToken);
 
-        let resultArr: any = [];
+        let jiraKeys: string[];
 
         const { data } = await octokit.rest.pulls.listCommits({
             owner: payload.repository.owner.login,
@@ -53,13 +55,13 @@ async function getJiraKeysFromPr() {
         data.forEach((item: any) => {
             let matchedKeys = matchKeys(item.commit.message);
             if (matchedKeys) {
-                resultArr = resultArr.concat(matchedKeys);
+                jiraKeys = jiraKeys.concat(matchedKeys);
             }
         });
 
-        resultArr = resultArr?.filter(onlyUnique);
+        jiraKeys = jiraKeys?.filter(onlyUnique);
 
-        return resultArr.join(',');
+        return jiraKeys.join(',');
     } catch (error) {
         core.setFailed(error.message);
     }
@@ -69,18 +71,18 @@ async function getJiraKeysFromPush() {
     try {
         console.log("Get Jira keys from Push");
 
-        let resultArr: any = [];
+        let jiraKeys: string[];
 
         payload.commits.forEach((commit: any) => {
             let matchedKeys = matchKeys(commit.message);
             if (matchedKeys) {
-                resultArr = resultArr.concat(matchedKeys);
+                jiraKeys = jiraKeys.concat(matchedKeys);
             }
         });
 
-        resultArr = resultArr?.filter(onlyUnique);
+        jiraKeys = jiraKeys?.filter(onlyUnique);
 
-        return resultArr.join(',');
+        return jiraKeys.join(',');
     } catch (error) {
         core.setFailed(error.message);
     }
@@ -93,8 +95,8 @@ async function getJiraKeysFromRelease() {
         //Commits number contains 'release/x.x.x' message
         const releaseMsgNum = 1; 
 
-        let resultArr: any = [];
-        let commitsArr: any = [];
+        let jiraKeys: string[];
+        let commits: any = [];
         let date = new Date();
 
         //Set commits search history depth
@@ -113,24 +115,24 @@ async function getJiraKeysFromRelease() {
             per_page: 100,
         });
 
-        commitsArr = octokitResult['data'];
-        
-        if (!commitsArr) {
+        commits = octokitResult['data'];
+        if (!commits) {  // Exit if no commits on push
             return[];
         }
+
         let releaseCount = 0;
         let firstArrayIdx = 0;
 
         
-        firstArrayIdx = initFirstArrIdx(commitsArr[0]['commit']['message']);
+        firstArrayIdx = initFirstArrIdx(commits[0]['commit']['message']);
         
         if (firstArrayIdx !== 0) {
-            console.log(`First commit contains '${commitsArr[0]['commit']['message']}'. Commit skipped.`)
+            console.log(`First commit contains '${commits[0]['commit']['message']}'. Commit skipped.`)
         }
 
-        for (let index = firstArrayIdx; (index < commitsArr.length) && (releaseCount < releaseMsgNum) ; index++) {
+        for (let index = firstArrayIdx; (index < commits.length) && (releaseCount < releaseMsgNum) ; index++) {
 
-            const elementMessage = commitsArr[index]['commit']['message'];
+            const elementMessage = commits[index]['commit']['message'];
 
             if (matchRelease(elementMessage)) {
                 releaseCount++;
@@ -138,13 +140,13 @@ async function getJiraKeysFromRelease() {
 
             let matchedKeys = matchKeys(elementMessage);
             if (matchedKeys) {
-                resultArr = resultArr.concat(matchedKeys);
+                jiraKeys = jiraKeys.concat(matchedKeys);
             }
         }
 
-        resultArr = resultArr?.filter(onlyUnique);
+        jiraKeys = jiraKeys?.filter(onlyUnique);
 
-        return resultArr.join(',');
+        return jiraKeys.join(',');
     } catch (error) {
         core.setFailed(error.message);
     }

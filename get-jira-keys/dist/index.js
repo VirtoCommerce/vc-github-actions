@@ -6237,8 +6237,6 @@ var core = __importStar(__nccwpck_require__(739));
 var githubToken = process.env['GITHUB_TOKEN'];
 var ref = github.context.ref;
 var payload = github.context.payload;
-var keyRgx = /((([A-Z]+)|([0-9]+))+-\d+)/g;
-var releaseRgx = /(release+)\/([0-9]+)\.([0-9]+)\.([0-9])/gi;
 var COMMITS_SEARCH_DEPTH = Number(core.getInput('searchDepth'));
 var SKIP_FIRST_RELEASE_COMMIT = 1;
 function onlyUnique(value, index, self) {
@@ -6246,11 +6244,13 @@ function onlyUnique(value, index, self) {
 }
 function matchKeys(msg) {
     console.log("Parse commit message: " + msg);
-    var matches = msg === null || msg === void 0 ? void 0 : msg.match(keyRgx);
-    var resultArr = matches === null || matches === void 0 ? void 0 : matches.filter(onlyUnique);
-    return resultArr;
+    var jiraKeyRgx = /((([A-Z]+)|([0-9]+))+-\d+)/g;
+    var matches = msg === null || msg === void 0 ? void 0 : msg.match(jiraKeyRgx);
+    var result = matches === null || matches === void 0 ? void 0 : matches.filter(onlyUnique);
+    return result;
 }
 function matchRelease(msg) {
+    var releaseRgx = /(release+)\/([0-9]+)\.([0-9]+)\.([0-9])/gi;
     return releaseRgx.test(msg);
 }
 function initFirstArrIdx(msg) {
@@ -6262,14 +6262,13 @@ function initFirstArrIdx(msg) {
 }
 function getJiraKeysFromPr() {
     return __awaiter(this, void 0, void 0, function () {
-        var octokit, resultArr_1, data, error_1;
+        var octokit, jiraKeys_1, data, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
                     console.log("Get Jira keys from pull request");
                     octokit = github.getOctokit(githubToken);
-                    resultArr_1 = [];
                     return [4, octokit.rest.pulls.listCommits({
                             owner: payload.repository.owner.login,
                             repo: payload.repository.name,
@@ -6280,11 +6279,11 @@ function getJiraKeysFromPr() {
                     data.forEach(function (item) {
                         var matchedKeys = matchKeys(item.commit.message);
                         if (matchedKeys) {
-                            resultArr_1 = resultArr_1.concat(matchedKeys);
+                            jiraKeys_1 = jiraKeys_1.concat(matchedKeys);
                         }
                     });
-                    resultArr_1 = resultArr_1 === null || resultArr_1 === void 0 ? void 0 : resultArr_1.filter(onlyUnique);
-                    return [2, resultArr_1.join(',')];
+                    jiraKeys_1 = jiraKeys_1 === null || jiraKeys_1 === void 0 ? void 0 : jiraKeys_1.filter(onlyUnique);
+                    return [2, jiraKeys_1.join(',')];
                 case 2:
                     error_1 = _a.sent();
                     core.setFailed(error_1.message);
@@ -6296,19 +6295,18 @@ function getJiraKeysFromPr() {
 }
 function getJiraKeysFromPush() {
     return __awaiter(this, void 0, void 0, function () {
-        var resultArr_2;
+        var jiraKeys_2;
         return __generator(this, function (_a) {
             try {
                 console.log("Get Jira keys from Push");
-                resultArr_2 = [];
                 payload.commits.forEach(function (commit) {
                     var matchedKeys = matchKeys(commit.message);
                     if (matchedKeys) {
-                        resultArr_2 = resultArr_2.concat(matchedKeys);
+                        jiraKeys_2 = jiraKeys_2.concat(matchedKeys);
                     }
                 });
-                resultArr_2 = resultArr_2 === null || resultArr_2 === void 0 ? void 0 : resultArr_2.filter(onlyUnique);
-                return [2, resultArr_2.join(',')];
+                jiraKeys_2 = jiraKeys_2 === null || jiraKeys_2 === void 0 ? void 0 : jiraKeys_2.filter(onlyUnique);
+                return [2, jiraKeys_2.join(',')];
             }
             catch (error) {
                 core.setFailed(error.message);
@@ -6319,15 +6317,15 @@ function getJiraKeysFromPush() {
 }
 function getJiraKeysFromRelease() {
     return __awaiter(this, void 0, void 0, function () {
-        var releaseMsgNum, resultArr, commitsArr, date, sinceIsoString, octokit, octokitResult, releaseCount, firstArrayIdx, index, elementMessage, matchedKeys, error_2;
+        var releaseMsgNum, jiraKeys, commits, date, sinceIsoString, octokit, octokitResult, releaseCount, firstArrayIdx, index, elementMessage, matchedKeys, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
                     console.log("Get Jira keys for latest release");
                     releaseMsgNum = 1;
-                    resultArr = [];
-                    commitsArr = [];
+                    jiraKeys = void 0;
+                    commits = [];
                     date = new Date();
                     date.setDate(date.getDate() - COMMITS_SEARCH_DEPTH);
                     sinceIsoString = date.toISOString();
@@ -6342,28 +6340,28 @@ function getJiraKeysFromRelease() {
                         })];
                 case 1:
                     octokitResult = _a.sent();
-                    commitsArr = octokitResult['data'];
-                    if (!commitsArr) {
+                    commits = octokitResult['data'];
+                    if (!commits) {
                         return [2, []];
                     }
                     releaseCount = 0;
                     firstArrayIdx = 0;
-                    firstArrayIdx = initFirstArrIdx(commitsArr[0]['commit']['message']);
+                    firstArrayIdx = initFirstArrIdx(commits[0]['commit']['message']);
                     if (firstArrayIdx !== 0) {
-                        console.log("First commit contains '" + commitsArr[0]['commit']['message'] + "'. Commit skipped.");
+                        console.log("First commit contains '" + commits[0]['commit']['message'] + "'. Commit skipped.");
                     }
-                    for (index = firstArrayIdx; (index < commitsArr.length) && (releaseCount < releaseMsgNum); index++) {
-                        elementMessage = commitsArr[index]['commit']['message'];
+                    for (index = firstArrayIdx; (index < commits.length) && (releaseCount < releaseMsgNum); index++) {
+                        elementMessage = commits[index]['commit']['message'];
                         if (matchRelease(elementMessage)) {
                             releaseCount++;
                         }
                         matchedKeys = matchKeys(elementMessage);
                         if (matchedKeys) {
-                            resultArr = resultArr.concat(matchedKeys);
+                            jiraKeys = jiraKeys.concat(matchedKeys);
                         }
                     }
-                    resultArr = resultArr === null || resultArr === void 0 ? void 0 : resultArr.filter(onlyUnique);
-                    return [2, resultArr.join(',')];
+                    jiraKeys = jiraKeys === null || jiraKeys === void 0 ? void 0 : jiraKeys.filter(onlyUnique);
+                    return [2, jiraKeys.join(',')];
                 case 2:
                     error_2 = _a.sent();
                     core.setFailed(error_2.message);
