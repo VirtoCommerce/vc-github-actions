@@ -2,6 +2,16 @@
 
 This action grabs issue keys inside event commits.
 
+## Inputs
+
+### `release`
+
+Release branch Jira keys search
+
+### `searchDepth`
+
+Release branch commits search history depth in days
+
 ## Outputs
 
 ### `jira-keys`

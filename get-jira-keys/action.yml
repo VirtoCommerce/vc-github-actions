@@ -1,5 +1,14 @@
 name: 'get-jira-keys'
 description: 'Find issue keys inside event commits'
+inputs:
+  release:
+    description: 'Release branch Jira keys search'
+    default: 'false'
+    required: true
+  searchDepth:
+    description: 'Release branch commits search history depth in days'
+    default: '21'
+    required: true
 outputs:
   jira-keys:
     description: 'Jira keys that were found in push/pull request in comma delimited format'
