@@ -6,11 +6,11 @@ This action grabs issue keys inside event commits.
 
 ### `release`
 
-Find Jira keys between 2 release commits
+Release branch Jira keys search
 
 ### `searchDepth`
 
-Commit search history depth in days
+Release branch commits search history depth in days
 
 ## Outputs
 

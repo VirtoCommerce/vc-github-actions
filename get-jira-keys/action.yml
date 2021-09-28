@@ -2,11 +2,11 @@ name: 'get-jira-keys'
 description: 'Find issue keys inside event commits'
 inputs:
   release:
-    description: 'Find Jira keys between 2 release commits'
+    description: 'Release branch Jira keys search'
     default: 'false'
     required: true
   searchDepth:
-    description: 'Commit search history depth in days'
+    description: 'Release branch commits search history depth in days'
     default: '21'
     required: true
 outputs:
