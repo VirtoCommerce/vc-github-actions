@@ -26,7 +26,7 @@ function matchKeys(msg: string) {
 }
 
 function matchRelease(msg: string) {
-    const releaseRgx = /(release+)\/([0-9]+)\.([0-9]+)\.([0-9])/gi
+    const releaseRgx = /([0-9]+)\.([0-9]+)\.([0-9])/g
     return releaseRgx.test(msg);
 }
 

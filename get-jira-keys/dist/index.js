@@ -6250,7 +6250,7 @@ function matchKeys(msg) {
     return result;
 }
 function matchRelease(msg) {
-    var releaseRgx = /(release+)\/([0-9]+)\.([0-9]+)\.([0-9])/gi;
+    var releaseRgx = /([0-9]+)\.([0-9]+)\.([0-9])/g;
     return releaseRgx.test(msg);
 }
 function initFirstArrIdx(msg) {
