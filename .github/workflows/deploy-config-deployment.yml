@@ -117,3 +117,4 @@ jobs:
       with:
         repoName:  ${{ matrix.repoName }}
         artifactKey:  ${{ matrix.artifactKey }}
+        configPath: '.deployment/module/argoDeploy.json'
