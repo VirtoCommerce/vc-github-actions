@@ -1,13 +1,26 @@
 {
-    "artifactKey": "VirtoCommerce.Orders",
+    "artifactKey": "VirtoCommerce.Notifications",
     "deployRepo": "vc-deploy-dev",
     "cmPath": "platform-dev/resources/deployment-cm.yaml",
     "dev": {
         "deployAppName": "vcplatform-dev",
-        "deployBranch": "dev"
+        "deployBranch": "dev",
+        "environmentId" : "dev",
+        "environmentName" : "Development",
+        "environmentType" : "Development"
     },
     "qa": {
         "deployAppName": "vcplatform-qa",
-        "deployBranch": "qa"
+        "deployBranch": "qa",
+        "environmentId" : "qa",
+        "environmentName" : "QA",
+        "environmentType" : "Staging"
+    },
+    "prod": {
+        "deployAppName": "vcplatform-demo",
+        "deployBranch": "master",
+        "environmentId" : "prod",
+        "environmentName" : "Demo",
+        "environmentType" : "Production"
     }
 }
