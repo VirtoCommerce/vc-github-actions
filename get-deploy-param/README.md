@@ -43,6 +43,21 @@ description: 'Get deployment parameters for ArgoCD deployments'
 
     description: 'Path to config map'
 
+### environmentId:
+
+    description: 'Environment Id'
+Used for Jira integration
+
+### environmentName:
+
+    description: 'Environment name'
+Used for Jira integration
+
+### environmentType:
+
+    description: 'Environment type (Development/Staging/Production)'
+Used for Jira integration
+
 ### deployConfig:
 
     description: 'Full deploy config(for all environments)'
