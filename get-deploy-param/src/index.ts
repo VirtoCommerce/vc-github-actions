@@ -1,23 +1,23 @@
 import * as github from '@actions/github'
 import * as core from '@actions/core'
 
+interface EnvironmentConfig
+{
+    deployAppName: string;
+    deployBranch: string;
+    environmentId : string;
+    environmentName : string;
+    environmentType : string;
+}
+
 interface DeployConfig
 {
     artifactKey: string;
     deployRepo: string;
-    dev:{
-        deployAppName: string;
-        deployBranch: string;
-    },
-    qa:{
-        deployAppName: string;
-        deployBranch: string;
-    },
-    prod:{
-        deployAppName: string;
-        deployBranch: string;
-    }
     cmPath: string;
+    dev: EnvironmentConfig;
+    qa: EnvironmentConfig;
+    prod: EnvironmentConfig;
 }
 
 interface RepoData
@@ -83,15 +83,19 @@ async function run(): Promise<void> {
 
     core.setOutput("artifactKey", deployConfig.artifactKey);
     core.setOutput("deployRepo", deployConfig.deployRepo);
+    core.setOutput("cmPath", deployConfig.cmPath);
     core.setOutput("deployAppName", deployConfig[envName].deployAppName);
     core.setOutput("deployBranch", deployConfig[envName].deployBranch);
-    core.setOutput("cmPath", deployConfig.cmPath);
     core.setOutput("deployConfig", deployConfig);
 
     console.log(`artifactKey is: ${deployConfig.artifactKey}`);
     console.log(`deployRepo is: ${deployConfig.deployRepo}`);
+    console.log(`cmPath is: ${deployConfig.cmPath}`);
     console.log(`${envName} deployAppName is: ${deployConfig[envName].deployAppName}`);
     console.log(`${envName} deployBranch is: ${deployConfig[envName].deployBranch}`);
-    console.log(`cmPath is: ${deployConfig.cmPath}`);
+    console.log(`${envName} environmentId is: ${deployConfig[envName].environmentId}`);
+    console.log(`${envName} environmentName is: ${deployConfig[envName].environmentName}`);
+    console.log(`${envName} environmentType is: ${deployConfig[envName].environmentType}`);
+
 }
 run().catch(error => core.setFailed(error.message));
