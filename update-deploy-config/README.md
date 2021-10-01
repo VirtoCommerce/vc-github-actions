@@ -22,7 +22,7 @@ Repository branch where deployment config file should be created/updated. Defaul
 
 ### `configPath`
 
-Path where deployment config file placed in a `repoName` repository. Deployment file will be place to the reposytory root by default. The argoDeploy.json deployment config file will be placed to the repository root by default. If you want to place the deployment file in a special folder, you can specify the full path to the file. For example `configPath: '.deployments/argoDeploy.json'` argoDeploy.json deployment config file will be placed in the `.deployments/` folder. Also, you can specify your own deployment config filename `configPath: 'yourDeploy.json'`
+Path where deployment config file placed in a `repoName` repository. Deployment file will be place to the reposytory root by default. The argoDeploy.json deployment config file will be placed to the repository root by default. If you want to place the deployment file in a special folder, you can specify the full path to the file. For example `configPath: '.deployment/argoDeploy.json'` argoDeploy.json deployment config file will be placed in the `.deployment/` folder. Also, you can specify your own deployment config filename `configPath: 'yourDeploy.json'`
 
 ### `artifactKey`
 
