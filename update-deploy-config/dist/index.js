@@ -13,7 +13,7 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"artifactKey":"VirtoCommerce.Notifications","deployRepo":"vc-deploy-dev","cmPath":"platform-dev/resources/deployment-cm.yaml","dev":{"deployAppName":"vcplatform-dev","deployBranch":"dev","environmentId":"dev","environmentName":"Development","environmentType":"Development"},"qa":{"deployAppName":"vcplatform-qa","deployBranch":"qa","environmentId":"qa","environmentName":"QA","environmentType":"Staging"},"prod":{"deployAppName":"vcplatform-demo","deployBranch":"master","environmentId":"prod","environmentName":"Demo","environmentType":"Production"}}');
+module.exports = JSON.parse('{"artifactKey":"VirtoCommerce.Notifications","deployRepo":"vc-deploy-dev","cmPath":"platform-dev/resources/deployment-cm.yaml","dev":{"deployAppName":"vcplatform-dev","deployBranch":"dev","environmentId":"dev","environmentName":"Development","environmentType":"Development","environmentUrl":"https://vcplatform-platform.dev.govirto.com/"},"qa":{"deployAppName":"vcplatform-qa","deployBranch":"qa","environmentId":"qa","environmentName":"QA","environmentType":"Staging","environmentUrl":"https://vcplatform-platform.qa.govirto.com/"},"prod":{"deployAppName":"vcplatform-demo","deployBranch":"master","environmentId":"prod","environmentName":"Demo","environmentType":"Production","environmentUrl":"https://vcplatform-platform.demo.govirto.com/"}}');
 
 /***/ }),
 
