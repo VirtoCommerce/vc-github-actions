@@ -28,7 +28,7 @@ outputs:
   environmentName:
     description: 'Environment name'
   environmentType:
-    description: 'Environment type (Development/Staging/Production)'
+    description: 'Environment type Allowed values are: [production, staging, testing, development, unmapped]'
   environmentUrl:
     description: 'Link to deployed app'
   deployConfig:
