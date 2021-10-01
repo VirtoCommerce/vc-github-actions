@@ -2,7 +2,6 @@ name: Context variables output test
 
 on:
   workflow_dispatch:
-  push:
 
 jobs:
   one:
