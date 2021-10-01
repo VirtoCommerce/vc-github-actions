@@ -170,7 +170,7 @@ jobs:
       id: deployConfig
       with:
         envName: ${{ matrix.environment }}
-        deployConfigPath: '.deployment/samples/argoDeploy.json'
+        deployConfigPath: '.deployment/sample/argoDeploy.json'
 
     - name: Start deployment
       uses: bobheadxi/deployments@master
@@ -240,7 +240,7 @@ jobs:
         update-sequence-number: ${{ github.run_id }}
         issue-keys: ${{ needs.ci.outputs.jira-keys }}
         display-name: ${{ steps.deployConfig.outputs.deployAppName }}
-        url: 'https://vcplatform-platform.dev.govirto.com/'
+        url: ${{ steps.deployConfig.outputs.environmentUrl }}
         description: 'Deployment to the ${{ steps.deployConfig.outputs.environmentName }} environment'
         last-updated: '${{github.event.head_commit.timestamp}}'
         state: '${{ env.DEPLOY_STATE }}'
