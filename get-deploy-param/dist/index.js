@@ -8371,6 +8371,10 @@ function run() {
                     core.setOutput("cmPath", deployConfig.cmPath);
                     core.setOutput("deployAppName", deployConfig[envName].deployAppName);
                     core.setOutput("deployBranch", deployConfig[envName].deployBranch);
+                    core.setOutput("environmentId", deployConfig[envName].environmentId);
+                    core.setOutput("environmentName", deployConfig[envName].environmentName);
+                    core.setOutput("environmentType", deployConfig[envName].environmentType);
+                    core.setOutput("environmentUrl", deployConfig[envName].environmentUrl);
                     core.setOutput("deployConfig", deployConfig);
                     console.log("artifactKey is: " + deployConfig.artifactKey);
                     console.log("deployRepo is: " + deployConfig.deployRepo);
@@ -8380,6 +8384,7 @@ function run() {
                     console.log(envName + " environmentId is: " + deployConfig[envName].environmentId);
                     console.log(envName + " environmentName is: " + deployConfig[envName].environmentName);
                     console.log(envName + " environmentType is: " + deployConfig[envName].environmentType);
+                    console.log(envName + " environmentUrl is: " + deployConfig[envName].environmentUrl);
                     return [2];
             }
         });

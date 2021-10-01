@@ -29,6 +29,8 @@ outputs:
     description: 'Environment name'
   environmentType:
     description: 'Environment type (Development/Staging/Production)'
+  environmentUrl:
+    description: 'Link to deployed app'
   deployConfig:
     description: 'Full deploy config(for all environments)'
 

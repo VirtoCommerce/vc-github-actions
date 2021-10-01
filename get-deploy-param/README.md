@@ -58,6 +58,10 @@ Used for Jira integration
     description: 'Environment type (Development/Staging/Production)'
 Used for Jira integration
 
+### environmentUrl:
+
+    description: 'Link to deployed app'
+
 ### deployConfig:
 
     description: 'Full deploy config(for all environments)'

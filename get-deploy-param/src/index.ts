@@ -8,6 +8,7 @@ interface EnvironmentConfig
     environmentId : string;
     environmentName : string;
     environmentType : string;
+    environmentUrl : string;
 }
 
 interface DeployConfig
@@ -63,10 +64,8 @@ async function run(): Promise<void> {
 
     const octokit = github.getOctokit(GITHUB_TOKEN);
 
-//    const branchName = github.context.eventName.startsWith('pull_request') ? 'refs/heads/' + github.context.payload.pull_request.head.ref : github.context.ref;
     const branchName = github.context.ref;
     console.log(`Current branch ref ${branchName}`)
-//    console.log(`PR branch ref ${github.context.ref}`)
 
     const prRepo: RepoData = {
         repoOrg: github.context.repo.owner,
@@ -86,6 +85,10 @@ async function run(): Promise<void> {
     core.setOutput("cmPath", deployConfig.cmPath);
     core.setOutput("deployAppName", deployConfig[envName].deployAppName);
     core.setOutput("deployBranch", deployConfig[envName].deployBranch);
+    core.setOutput("environmentId", deployConfig[envName].environmentId);
+    core.setOutput("environmentName", deployConfig[envName].environmentName);
+    core.setOutput("environmentType", deployConfig[envName].environmentType);
+    core.setOutput("environmentUrl", deployConfig[envName].environmentUrl);
     core.setOutput("deployConfig", deployConfig);
 
     console.log(`artifactKey is: ${deployConfig.artifactKey}`);
@@ -96,6 +99,7 @@ async function run(): Promise<void> {
     console.log(`${envName} environmentId is: ${deployConfig[envName].environmentId}`);
     console.log(`${envName} environmentName is: ${deployConfig[envName].environmentName}`);
     console.log(`${envName} environmentType is: ${deployConfig[envName].environmentType}`);
+    console.log(`${envName} environmentUrl is: ${deployConfig[envName].environmentUrl}`);
 
 }
 run().catch(error => core.setFailed(error.message));
