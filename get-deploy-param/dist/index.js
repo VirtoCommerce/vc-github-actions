@@ -8308,15 +8308,16 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 var github = __importStar(__nccwpck_require__(9782));
 var core = __importStar(__nccwpck_require__(739));
-function getDeployConfig(repo, deployConfigPath, octokit) {
+function getDeployConfig(repo, deployConfigPath, githubToken) {
     return __awaiter(this, void 0, void 0, function () {
-        var cmData, error_1;
+        var octokit, cmData, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
+                    octokit = github.getOctokit(githubToken);
                     console.log('Get deployment config content');
-                    return [4, octokit.repos.getContent({
+                    return [4, octokit.rest.repos.getContent({
                             owner: repo.repoOrg,
                             repo: repo.repoName,
                             ref: repo.branchName,
@@ -8324,7 +8325,7 @@ function getDeployConfig(repo, deployConfigPath, octokit) {
                         })];
                 case 1:
                     cmData = (_a.sent()).data;
-                    return [2, Buffer.from(cmData.content, 'base64').toString()];
+                    return [2, Buffer.from(cmData['content'], 'base64').toString()];
                 case 2:
                     error_1 = _a.sent();
                     core.setFailed(error_1.message);
@@ -8336,7 +8337,7 @@ function getDeployConfig(repo, deployConfigPath, octokit) {
 }
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var environments, deployConfig, GITHUB_TOKEN, deployConfigPath, envName, octokit, branchName, prRepo, content;
+        var environments, deployConfig, GITHUB_TOKEN, deployConfigPath, envName, branchName, prRepo, content;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -8349,7 +8350,6 @@ function run() {
                     if (!environments.includes(envName)) {
                         core.setFailed("\"envName\" input variable should contain \"dev\", \"qa\" or \"prod\" value. Actual \"envName\" value is: " + envName);
                     }
-                    octokit = github.getOctokit(GITHUB_TOKEN);
                     branchName = github.context.ref;
                     console.log("Current branch ref " + branchName);
                     prRepo = {
@@ -8357,7 +8357,7 @@ function run() {
                         repoName: github.context.repo.repo,
                         branchName: branchName
                     };
-                    return [4, getDeployConfig(prRepo, deployConfigPath, octokit)];
+                    return [4, getDeployConfig(prRepo, deployConfigPath, GITHUB_TOKEN)];
                 case 1:
                     content = _a.sent();
                     try {

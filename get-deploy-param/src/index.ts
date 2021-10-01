@@ -28,20 +28,23 @@ interface RepoData
     branchName: string,
 }
 
-async function getDeployConfig(repo: RepoData, deployConfigPath: string, octokit: any): Promise <string>{
+async function getDeployConfig(repo: RepoData, deployConfigPath: string, githubToken: string ): Promise <string>{
 
     try {
+        
+        const octokit = github.getOctokit(githubToken);
+
         console.log('Get deployment config content');
         
         //Get deployment config content
-        const { data: cmData} = await octokit.repos.getContent({
+        const { data: cmData} = await octokit.rest.repos.getContent({
             owner: repo.repoOrg,
             repo: repo.repoName,
             ref: repo.branchName,
             path: deployConfigPath.replace(/['"]+/g, '')
         });
     
-        return Buffer.from(cmData.content, 'base64').toString();
+        return Buffer.from(cmData['content'], 'base64').toString();
     
     } catch(error) {
         core.setFailed(error.message)
@@ -62,8 +65,6 @@ async function run(): Promise<void> {
         core.setFailed(`"envName" input variable should contain "dev", "qa" or "prod" value. Actual "envName" value is: ${envName}`)
     }
 
-    const octokit = github.getOctokit(GITHUB_TOKEN);
-
     const branchName = github.context.ref;
     console.log(`Current branch ref ${branchName}`)
 
@@ -73,7 +74,7 @@ async function run(): Promise<void> {
         branchName: branchName
     };
 
-    const content: string = await getDeployConfig(prRepo, deployConfigPath, octokit);
+    const content: string = await getDeployConfig(prRepo, deployConfigPath, GITHUB_TOKEN);
     try {
         deployConfig = JSON.parse(content);
     } catch (error) {
