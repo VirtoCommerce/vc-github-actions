@@ -17,12 +17,20 @@ outputs:
     description: 'artifactKey value'
   deployRepo: 
     description: 'deployRepo value'
+  cmPath:
+    description: 'Path to config map'
   deployAppName:
     description: 'Required environment deployAppName value'
   deployBranch:
     description: 'Required environment deployBranch value'
-  cmPath:
-    description: 'Path to config map'
+  environmentId:
+    description: 'Environment Id'
+  environmentName:
+    description: 'Environment name'
+  environmentType:
+    description: 'Environment type Allowed values are: [production, staging, testing, development, unmapped]'
+  environmentUrl:
+    description: 'Link to deployed app'
   deployConfig:
     description: 'Full deploy config(for all environments)'
 
