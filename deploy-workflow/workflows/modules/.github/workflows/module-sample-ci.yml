@@ -1,30 +1,18 @@
-# v1.1.9
-name: Module CI
+# v1.0.0
+name: Module Sample CI
 
 on:
   workflow_dispatch:
   push:
-    paths-ignore:
-      - '.github/**'
-      - 'docs/**'
-      - 'build/**'
-      - 'README.md'
-      - 'LICENSE'
-      - '**/argoDeploy.json'
-      - samples/**
     branches:
       [master, dev]
+    paths:
+      ['samples/**', '!**/argoDeploy.json']
   pull_request:
     branches:
       [master, dev]
-    paths-ignore:
-      - 'docs/**'
-      - 'build/**'
-      - 'README.md'
-      - 'LICENSE'
-      - '**/argoDeploy.json'
-      - samples/**
-    
+    paths:
+      ['samples/**', '!**/argoDeploy.json']
 jobs:
   ci:
     if: ${{ github.actor != 'dependabot[bot]' && (github.event.pull_request.head.repo.full_name == github.repository || github.event.pull_request.head.repo.full_name == '') }}  # Check that PR not from forked repo and not from Dependabot
@@ -62,7 +50,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install VirtoCommerce.GlobalTool
-        uses: VirtoCommerce/vc-github-actions/setup-vcbuild@master
+        run: dotnet tool install --global VirtoCommerce.GlobalTool --version 2.1.0-alpha.14
 
       - name: Install dotnet-sonarscanner
         run: dotnet tool install --global dotnet-sonarscanner
@@ -92,10 +80,10 @@ jobs:
         uses: VirtoCommerce/vc-github-actions/sonar-scanner-begin@master
 
       - name: Build
-        run: vc-build Compile
+        run: vc-build Compile -DefaultProject "SampleModule.Web"
 
       - name: Unit Tests
-        run: vc-build Test -skip
+        run: vc-build Test -skip -DefaultProject "SampleModule.Web"
 
       - name: SonarCloud End
         uses: VirtoCommerce/vc-github-actions/sonar-scanner-end@master
@@ -106,12 +94,8 @@ jobs:
           login: ${{secrets.SONAR_TOKEN}}
 
       - name: Packaging
-        run: vc-build Compress -skip Clean+Restore+Compile+Test
+        run: vc-build Compress -skip Clean+Restore+Compile+Test -DefaultProject "SampleModule.Web"
       
-      - name: Publish Nuget
-        if: ${{ (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master') && github.event_name != 'workflow_dispatch' }}
-        uses: VirtoCommerce/vc-github-actions/publish-nuget@master
-
       - name: Publish to Blob
         if: ${{ github.ref == 'refs/heads/dev' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master') }}
         id: blobRelease
@@ -131,30 +115,6 @@ jobs:
         with:
           changelog: ${{ steps.changelog.outputs.changelog }}
         uses: VirtoCommerce/vc-github-actions/publish-github-release@master
-
-      - name: Setup Git Credentials
-        if: ${{ (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master') && github.event_name != 'workflow_dispatch' }}
-        uses: VirtoCommerce/vc-github-actions/setup-git-credentials-github@master
-        with: 
-          githubToken: ${{ secrets.REPO_TOKEN }}
-        
-      - name: Publish Manifest
-        if: ${{ (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master') && github.event_name != 'workflow_dispatch' }}
-        uses: VirtoCommerce/vc-github-actions/publish-manifest@master
-        with:
-          packageUrl: ${{ steps.blobRelease.outputs.packageUrl }}
-
-      - name: Update virtocommerce.com
-        if: ${{ github.ref == 'refs/heads/master' }}
-        uses: VirtoCommerce/vc-github-actions/update-virtocommercecom@master
-        with:
-          githubToken: ${{ secrets.REPO_TOKEN }}
-          login: ${{ secrets.VIRTOCOMMERCE_APP_ID }}
-          password: ${{ secrets.VIRTOCOMMERCE_SECRET }}
-          moduleId: ${{ steps.image.outputs.moduleId }}
-          moduleDescription: ${{ steps.image.outputs.moduleDescription }}
-          projectUrl: ${{ steps.image.outputs.projectUrl }}
-          iconUrl: ${{ steps.image.outputs.iconUrl }}
 
       - name: Parse Jira Keys from All Commits
         uses: VirtoCommerce/vc-github-actions/get-jira-keys@master
@@ -194,6 +154,10 @@ jobs:
     if: ${{ github.ref == 'refs/heads/dev' && github.event_name != 'workflow_dispatch' }}
     needs: ci
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [dev, qa]
+
     env:
       GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
       CLOUD_INSTANCE_BASE_URL: ${{secrets.CLOUD_INSTANCE_BASE_URL}}
@@ -201,12 +165,12 @@ jobs:
       CLIENT_SECRET: ${{secrets.CLIENT_SECRET}}
 
     steps: 
-
     - name: Read deployment config
       uses: VirtoCommerce/vc-github-actions/get-deploy-param@master
       id: deployConfig
       with:
-        envName: 'dev'
+        envName: ${{ matrix.environment }}
+        deployConfigPath: '.deployment/samples/argoDeploy.json'
 
     - name: Start deployment
       uses: bobheadxi/deployments@master
