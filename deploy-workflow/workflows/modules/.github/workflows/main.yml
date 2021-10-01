@@ -214,7 +214,7 @@ jobs:
       with:
         step: start
         token: ${{ secrets.GITHUB_TOKEN }}
-        env: Development
+        env: ${{ steps.deployConfig.outputs.environmentName }}
         no_override: false
 
     - name: Update deployment-cm
@@ -277,12 +277,12 @@ jobs:
         issue-keys: ${{ needs.ci.outputs.jira-keys }}
         display-name: ${{ steps.deployConfig.outputs.deployAppName }}
         url: 'https://vcplatform-platform.dev.govirto.com/'
-        description: 'Deployment to the Development environment'
+        description: 'Deployment to the ${{ steps.deployConfig.outputs.environmentName }} environment'
         last-updated: '${{github.event.head_commit.timestamp}}'
         state: '${{ env.DEPLOY_STATE }}'
         pipeline-id: '${{ github.repository }} ${{ github.workflow }}'
         pipeline-display-name: 'Workflow: ${{ github.workflow }} (#${{ github.run_number }})'
         pipeline-url: '${{github.event.repository.html_url}}/actions/runs/${{github.run_id}}'
-        environment-id: 'development'
-        environment-display-name: 'Dev'
-        environment-type: 'development'
+        environment-id: ${{ steps.deployConfig.outputs.environmentId }}
+        environment-display-name: ${{ steps.deployConfig.outputs.environmentName }}
+        environment-type: ${{ steps.deployConfig.outputs.environmentType }}
