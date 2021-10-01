@@ -170,7 +170,7 @@ jobs:
       id: deployConfig
       with:
         envName: ${{ matrix.environment }}
-        deployConfigPath: '.deployment/sample/argoDeploy.json'
+        deployConfigPath: '.deployment/samples/argoDeploy.json'
 
     - name: Start deployment
       uses: bobheadxi/deployments@master
