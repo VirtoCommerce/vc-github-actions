@@ -10,104 +10,114 @@ jobs:
     strategy:
       matrix:
         include:
-        - artifactKey: VirtoCommerce.AuthorizeNet
-          repoName: vc-module-Authorize.Net
+        # - artifactKey: VirtoCommerce.AuthorizeNet
+        #   repoName: vc-module-Authorize.Net
 
-        - artifactKey: VirtoCommerce.AvalaraTax
-          repoName: vc-module-avatax
+        # - artifactKey: VirtoCommerce.AvalaraTax
+        #   repoName: vc-module-avatax
 
-        - artifactKey: VirtoCommerce.AzureSearch
-          repoName: vc-module-azure-search
+        # - artifactKey: VirtoCommerce.AzureSearch
+        #   repoName: vc-module-azure-search
 
-        - artifactKey: VirtoCommerce.BulkActionsModule
-          repoName: vc-module-bulk-actions
+        # - artifactKey: VirtoCommerce.BulkActionsModule
+        #   repoName: vc-module-bulk-actions
 
-        - artifactKey: VirtoCommerce.Cart
-          repoName: vc-module-cart
+        # - artifactKey: VirtoCommerce.Cart
+        #   repoName: vc-module-cart
 
-        - artifactKey: VirtoCommerce.Catalog
-          repoName: vc-module-catalog
+        # - artifactKey: VirtoCommerce.Catalog
+        #   repoName: vc-module-catalog
 
-        - artifactKey: VirtoCommerce.CatalogCsvImportModule
-          repoName: vc-module-catalog-csv-import
+        # - artifactKey: VirtoCommerce.CatalogCsvImportModule
+        #   repoName: vc-module-catalog-csv-import
 
-        - artifactKey: VirtoCommerce.CatalogPersonalization
-          repoName: vc-module-catalog-personalization
+        # - artifactKey: VirtoCommerce.CatalogPersonalization
+        #   repoName: vc-module-catalog-personalization
 
-        - artifactKey: VirtoCommerce.CatalogPublishing
-          repoName: vc-module-catalog-publishing
+        # - artifactKey: VirtoCommerce.CatalogPublishing
+        #   repoName: vc-module-catalog-publishing
 
-        - artifactKey: VirtoCommerce.Content
-          repoName: vc-module-content
+        # - artifactKey: VirtoCommerce.Content
+        #   repoName: vc-module-content
 
-        - artifactKey: VirtoCommerce.Core
-          repoName: vc-module-core
+        # - artifactKey: VirtoCommerce.Core
+        #   repoName: vc-module-core
 
-        - artifactKey: VirtoCommerce.Customer
-          repoName: vc-module-customer
+        # - artifactKey: VirtoCommerce.Customer
+        #   repoName: vc-module-customer
 
-        - artifactKey: VirtoCommerce.CustomerReviews
-          repoName: vc-module-customer-review
+        # - artifactKey: VirtoCommerce.CustomerReviews
+        #   repoName: vc-module-customer-review
 
-        - artifactKey: VirtoCommerce.DynamicAssociationsModule
-          repoName: vc-module-dynamic-associations
+        # - artifactKey: VirtoCommerce.DynamicAssociationsModule
+        #   repoName: vc-module-dynamic-associations
 
-        - artifactKey: VirtoCommerce.ElasticSearch
-          repoName: vc-module-elastic-search
+        # - artifactKey: VirtoCommerce.ElasticSearch
+        #   repoName: vc-module-elastic-search
 
-        - artifactKey: VirtoCommerce.ExperienceApi
-          repoName: vc-module-experience-api
+        # - artifactKey: VirtoCommerce.ExperienceApi
+        #   repoName: vc-module-experience-api
 
-        - artifactKey: VirtoCommerce.Export
-          repoName: vc-module-export
+        # - artifactKey: VirtoCommerce.Export
+        #   repoName: vc-module-export
 
-        - artifactKey: VirtoCommerce.GoogleEcommerceAnalytics
-          repoName: vc-module-google-ecommerce-analytics
+        # - artifactKey: VirtoCommerce.GoogleEcommerceAnalytics
+        #   repoName: vc-module-google-ecommerce-analytics
 
-        - artifactKey: VirtoCommerce.ImageTools
-          repoName: vc-module-image-tools
+        # - artifactKey: VirtoCommerce.ImageTools
+        #   repoName: vc-module-image-tools
 
-        - artifactKey: VirtoCommerce.Inventory
-          repoName: vc-module-inventory
+        # - artifactKey: VirtoCommerce.Inventory
+        #   repoName: vc-module-inventory
 
-        - artifactKey: VirtoCommerce.LuceneSearch
-          repoName: vc-module-lucene-search
+        # - artifactKey: VirtoCommerce.LuceneSearch
+        #   repoName: vc-module-lucene-search
 
-        - artifactKey: VirtoCommerce.Marketing
-          repoName: vc-module-marketing
+        # - artifactKey: VirtoCommerce.Marketing
+        #   repoName: vc-module-marketing
 
-        - artifactKey: VirtoCommerce.Notifications
+        # - artifactKey: VirtoCommerce.Notifications
+        #   repoName: vc-module-notification
+
+        # - artifactKey: VirtoCommerce.Orders
+        #   repoName: vc-module-order
+
+        # - artifactKey: VirtoCommerce.Payment
+        #   repoName: vc-module-payment
+
+        # - artifactKey: VirtoCommerce.Pricing
+        #   repoName: vc-module-pricing
+
+        # - artifactKey: VirtoCommerce.Quote
+        #   repoName: vc-module-quote
+
+        # - artifactKey: VirtoCommerce.Search
+        #   repoName: vc-module-search
+
+        # - artifactKey: VirtoCommerce.Shipping
+        #   repoName: vc-module-shipping
+
+        # - artifactKey: VirtoCommerce.Sitemaps
+        #   repoName: vc-module-sitemaps
+
+        # - artifactKey: VirtoCommerce.Store
+        #   repoName: vc-module-store
+
+        # - artifactKey: VirtoCommerce.Subscription
+        #   repoName: vc-module-subscription
+
+        # - artifactKey: VirtoCommerce.Tax
+        #   repoName: vc-module-tax
+
+        - artifactKey: VirtoCommerce.NotificationsSample
           repoName: vc-module-notification
 
-        - artifactKey: VirtoCommerce.Orders
-          repoName: vc-module-order
+        - artifactKey: VirtoCommerce.CustomerSample
+          repoName: vc-module-customer
 
-        - artifactKey: VirtoCommerce.Payment
-          repoName: vc-module-payment
+        - artifactKey: VirtoCommerce.NotificationsSample
+          repoName: vc-module-notification
 
-        - artifactKey: VirtoCommerce.Pricing
-          repoName: vc-module-pricing
-
-        - artifactKey: VirtoCommerce.Quote
-          repoName: vc-module-quote
-
-        - artifactKey: VirtoCommerce.Search
-          repoName: vc-module-search
-
-        - artifactKey: VirtoCommerce.Shipping
-          repoName: vc-module-shipping
-
-        - artifactKey: VirtoCommerce.Sitemaps
-          repoName: vc-module-sitemaps
-
-        - artifactKey: VirtoCommerce.Store
-          repoName: vc-module-store
-
-        - artifactKey: VirtoCommerce.Subscription
-          repoName: vc-module-subscription
-
-        - artifactKey: VirtoCommerce.Tax
-          repoName: vc-module-tax
 
     steps:
     - name: Update Deploy Config 
@@ -117,4 +127,4 @@ jobs:
       with:
         repoName:  ${{ matrix.repoName }}
         artifactKey:  ${{ matrix.artifactKey }}
-        configPath: '.deployment/module/argoDeploy.json'
+        configPath: '.deployment/samples/argoDeploy.json'
