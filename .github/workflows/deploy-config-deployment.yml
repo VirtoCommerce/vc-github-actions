@@ -157,6 +157,10 @@ jobs:
       ##configPath: '.deployment/samples/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.NotificationsSample
+          repoName: sandbox-module-notification
+          configPath: '.deployment/samples/argoDeploy.json'
+
+        - artifactKey: VirtoCommerce.NotificationsSample
           repoName: vc-module-notification
           configPath: '.deployment/samples/argoDeploy.json'
 
