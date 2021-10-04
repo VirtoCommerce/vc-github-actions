@@ -80,7 +80,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
         branch: targetBranchName,
         content: Buffer.from(deployContent).toString("base64"),
         sha: cmData.sha,
-        message: `Automated update ${baseRepo.repoName} from PR ${baseRepo.pullNumber}`,
+        message: `ci: Automated update ${baseRepo.repoName} from PR ${baseRepo.pullNumber}`,
         committer:{
             name: gitUser.name,
             email: gitUser.email
