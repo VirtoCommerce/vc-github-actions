@@ -12,113 +12,149 @@ jobs:
         include:
         - artifactKey: VirtoCommerce.AuthorizeNet
           repoName: vc-module-Authorize.Net
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.AvalaraTax
           repoName: vc-module-avatax
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.AzureSearch
           repoName: vc-module-azure-search
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.BulkActionsModule
           repoName: vc-module-bulk-actions
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.Cart
           repoName: vc-module-cart
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.Catalog
           repoName: vc-module-catalog
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.CatalogCsvImportModule
           repoName: vc-module-catalog-csv-import
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.CatalogPersonalization
           repoName: vc-module-catalog-personalization
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.CatalogPublishing
           repoName: vc-module-catalog-publishing
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.Content
           repoName: vc-module-content
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.Core
           repoName: vc-module-core
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.Customer
           repoName: vc-module-customer
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.CustomerReviews
           repoName: vc-module-customer-review
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.DynamicAssociationsModule
           repoName: vc-module-dynamic-associations
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.ElasticSearch
           repoName: vc-module-elastic-search
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.ExperienceApi
           repoName: vc-module-experience-api
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.Export
           repoName: vc-module-export
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.GoogleEcommerceAnalytics
           repoName: vc-module-google-ecommerce-analytics
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.ImageTools
           repoName: vc-module-image-tools
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.Inventory
           repoName: vc-module-inventory
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.LuceneSearch
           repoName: vc-module-lucene-search
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.Marketing
           repoName: vc-module-marketing
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.Notifications
           repoName: vc-module-notification
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.Orders
           repoName: vc-module-order
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.Payment
           repoName: vc-module-payment
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.Pricing
           repoName: vc-module-pricing
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.Quote
           repoName: vc-module-quote
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.Search
           repoName: vc-module-search
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.Shipping
           repoName: vc-module-shipping
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.Sitemaps
           repoName: vc-module-sitemaps
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.Store
           repoName: vc-module-store
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.Subscription
           repoName: vc-module-subscription
+          configPath: '.deployment/module/argoDeploy.json'
 
         - artifactKey: VirtoCommerce.Tax
           repoName: vc-module-tax
+          configPath: '.deployment/module/argoDeploy.json'
 
       ##configPath: '.deployment/samples/argoDeploy.json'
 
         # - artifactKey: VirtoCommerce.NotificationsSample
         #   repoName: vc-module-notification
+        #   configPath: '.deployment/samples/argoDeploy.json'
 
         # - artifactKey: VirtoCommerce.CustomerSample
         #   repoName: vc-module-customer
+        #   configPath: '.deployment/samples/argoDeploy.json'
 
         # - artifactKey: VirtoCommerce.OrdersSample
         #   repoName: vc-module-order
+        #   configPath: '.deployment/samples/argoDeploy.json'
 
     steps:
     - name: Update Deploy Config 
@@ -128,4 +164,4 @@ jobs:
       with:
         repoName:  ${{ matrix.repoName }}
         artifactKey:  ${{ matrix.artifactKey }}
-        configPath: '.deployment/module/argoDeploy.json'
+        configPath: ${{ matrix.configPath }}
