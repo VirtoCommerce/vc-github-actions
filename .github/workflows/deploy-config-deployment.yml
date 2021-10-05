@@ -10,6 +10,18 @@ jobs:
     strategy:
       matrix:
         include:
+        - artifactKey: VirtoCommerce.Assets
+          repoName: vc-module-assets
+          configPath: '.deployment/module/argoDeploy.json'
+
+        - artifactKey: VirtoCommerce.AzureblobAssets
+          repoName: vc-module-azureblob-assets
+          configPath: '.deployment/module/argoDeploy.json'
+
+        - artifactKey: VirtoCommerce.FilesystemAssets
+          repoName: vc-module-filesystem-assets
+          configPath: '.deployment/module/argoDeploy.json'
+
         - artifactKey: VirtoCommerce.EventBus
           repoName: vc-module-event-bus
           configPath: '.deployment/module/argoDeploy.json'
