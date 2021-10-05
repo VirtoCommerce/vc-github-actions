@@ -30,84 +30,84 @@ jobs:
           repoName: vc-module-azureblob-assets
         - deploymentFolder: modules
           repoName: vc-module-filesystem-assets
-        # - deploymentFolder: modules
-        #   repoName: vc-module-metadata
-        # - deploymentFolder: modules
-        #   repoName: vc-module-cart
-        # - deploymentFolder: modules
-        #   repoName: vc-module-azure-search
-        # - deploymentFolder: modules
-        #   repoName: vc-module-webhooks
-        # - deploymentFolder: modules
-        #   repoName: vc-module-core
-        # - deploymentFolder: modules
-        #   repoName: vc-module-content
-        # - deploymentFolder: modules
-        #   repoName: vc-module-order
-        # - deploymentFolder: modules
-        #   repoName: vc-module-customer
-        # - deploymentFolder: modules
-        #   repoName: vc-module-elastic-search
-        # - deploymentFolder: modules
-        #   repoName: vc-module-export
-        # - deploymentFolder: modules
-        #   repoName: vc-experience-gateway
-        # - deploymentFolder: modules
-        #   repoName: vc-module-image-tools
-        # - deploymentFolder: modules
-        #   repoName: vc-module-inventory
-        # - deploymentFolder: modules
-        #   repoName: vc-module-lucene-search
-        # - deploymentFolder: modules
-        #   repoName: vc-module-marketing
-        # - deploymentFolder: modules
-        #   repoName: vc-module-notification
-        # - deploymentFolder: modules
-        #   repoName: vc-module-payment
-        # - deploymentFolder: modules
-        #   repoName: vc-module-pricing
-        # - deploymentFolder: modules
-        #   repoName: vc-module-search
-        # - deploymentFolder: modules
-        #   repoName: vc-module-shipping
-        # - deploymentFolder: modules
-        #   repoName: vc-module-sitemaps
-        # - deploymentFolder: modules
-        #   repoName: vc-module-store
-        # - deploymentFolder: modules
-        #   repoName: vc-module-subscription
-        # - deploymentFolder: modules
-        #   repoName: vc-module-tax
-        # - deploymentFolder: modules
-        #   repoName: vc-module-customer-review
-        # - deploymentFolder: modules
-        #   repoName: vc-module-catalog
-        # - deploymentFolder: modules
-        #   repoName: vc-module-catalog-personalization
-        # - deploymentFolder: modules
-        #   repoName: vc-module-catalog-publishing
-        # - deploymentFolder: modules
-        #   repoName: vc-module-pagebuilder
-        # - deploymentFolder: modules
-        #   repoName: vc-module-catalog-csv-import
-        # - deploymentFolder: modules
-        #   repoName: vc-module-bulk-actions
-        # - deploymentFolder: modules
-        #   repoName: vc-module-quote
-        # - deploymentFolder: modules
-        #   repoName: vc-module-dynamic-associations
-        # - deploymentFolder: modules
-        #   repoName: vc-module-google-ecommerce-analytics
-        # - deploymentFolder: modules
-        #   repoName: vc-module-experience-api
-        # - deploymentFolder: modules
-        #   repoName: vc-module-changes-collector
-        # - deploymentFolder: modules
-        #   repoName: vc-module-event-bus
-        # - deploymentFolder: modules
-        #   repoName: vc-module-Authorize.Net
-        # - deploymentFolder: modules
-        #   repoName: vc-module-avatax
+        - deploymentFolder: modules
+          repoName: vc-module-metadata
+        - deploymentFolder: modules
+          repoName: vc-module-cart
+        - deploymentFolder: modules
+          repoName: vc-module-azure-search
+        - deploymentFolder: modules
+          repoName: vc-module-webhooks
+        - deploymentFolder: modules
+          repoName: vc-module-core
+        - deploymentFolder: modules
+          repoName: vc-module-content
+        - deploymentFolder: modules
+          repoName: vc-module-order
+        - deploymentFolder: modules
+          repoName: vc-module-customer
+        - deploymentFolder: modules
+          repoName: vc-module-elastic-search
+        - deploymentFolder: modules
+          repoName: vc-module-export
+        - deploymentFolder: modules
+          repoName: vc-experience-gateway
+        - deploymentFolder: modules
+          repoName: vc-module-image-tools
+        - deploymentFolder: modules
+          repoName: vc-module-inventory
+        - deploymentFolder: modules
+          repoName: vc-module-lucene-search
+        - deploymentFolder: modules
+          repoName: vc-module-marketing
+        - deploymentFolder: modules
+          repoName: vc-module-notification
+        - deploymentFolder: modules
+          repoName: vc-module-payment
+        - deploymentFolder: modules
+          repoName: vc-module-pricing
+        - deploymentFolder: modules
+          repoName: vc-module-search
+        - deploymentFolder: modules
+          repoName: vc-module-shipping
+        - deploymentFolder: modules
+          repoName: vc-module-sitemaps
+        - deploymentFolder: modules
+          repoName: vc-module-store
+        - deploymentFolder: modules
+          repoName: vc-module-subscription
+        - deploymentFolder: modules
+          repoName: vc-module-tax
+        - deploymentFolder: modules
+          repoName: vc-module-customer-review
+        - deploymentFolder: modules
+          repoName: vc-module-catalog
+        - deploymentFolder: modules
+          repoName: vc-module-catalog-personalization
+        - deploymentFolder: modules
+          repoName: vc-module-catalog-publishing
+        - deploymentFolder: modules
+          repoName: vc-module-pagebuilder
+        - deploymentFolder: modules
+          repoName: vc-module-catalog-csv-import
+        - deploymentFolder: modules
+          repoName: vc-module-bulk-actions
+        - deploymentFolder: modules
+          repoName: vc-module-quote
+        - deploymentFolder: modules
+          repoName: vc-module-dynamic-associations
+        - deploymentFolder: modules
+          repoName: vc-module-google-ecommerce-analytics
+        - deploymentFolder: modules
+          repoName: vc-module-experience-api
+        - deploymentFolder: modules
+          repoName: vc-module-changes-collector
+        - deploymentFolder: modules
+          repoName: vc-module-event-bus
+        - deploymentFolder: modules
+          repoName: vc-module-Authorize.Net
+        - deploymentFolder: modules
+          repoName: vc-module-avatax
 # Module samples workflows
         # - deploymentFolder: modules-sample
         #   repoName: vc-module-order
