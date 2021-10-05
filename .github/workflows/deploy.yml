@@ -24,6 +24,12 @@ jobs:
         # - deploymentFolder: storefront
         #   repoName: vc-storefront
 # Module workflows
+        - deploymentFolder: modules
+          repoName: vc-module-assets
+        - deploymentFolder: modules
+          repoName: vc-module-azureblob-assets
+        - deploymentFolder: modules
+          repoName: vc-module-filesystem-assets
         # - deploymentFolder: modules
         #   repoName: vc-module-metadata
         # - deploymentFolder: modules
@@ -103,12 +109,12 @@ jobs:
         # - deploymentFolder: modules
         #   repoName: vc-module-avatax
 # Module samples workflows
-        - deploymentFolder: modules-sample
-          repoName: vc-module-order
-        - deploymentFolder: modules-sample
-          repoName: vc-module-customer
-        - deploymentFolder: modules-sample
-          repoName: vc-module-notification
+        # - deploymentFolder: modules-sample
+        #   repoName: vc-module-order
+        # - deploymentFolder: modules-sample
+        #   repoName: vc-module-customer
+        # - deploymentFolder: modules-sample
+        #   repoName: vc-module-notification
 
     steps:
 
