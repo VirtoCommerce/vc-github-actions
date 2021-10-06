@@ -11,7 +11,7 @@ description: 'Get deployment parameters for ArgoCD deployments'
 
 ### envName:
 
-    description: 'Name for required environment parameters. Allowed values is: dev, qa, prod'
+    description: 'Name for required environment parameters. Allowed values are: dev, qa, prod'
     required: true
     default: 'dev'
 

@@ -5,7 +5,7 @@ inputs:
     description: 'GitHub token'
     required: false
   envName:
-    description: 'Name for required environment parameters. Allowed values is: dev, qa, prod'
+    description: 'Name for required environment parameters. Allowed values are: dev, qa, prod'
     required: true
     default: 'dev'
   deployConfigPath:
