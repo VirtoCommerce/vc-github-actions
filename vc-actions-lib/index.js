@@ -34,16 +34,18 @@ async function getLatestRelease(repo)
             authorization: process.env.GITHUB_TOKEN
         }
     });
-    releases = result.data;
-    console.log(releases);
-    for(let release of releases)
+   
+    for (let release of result.data)
     {
         if(!release.name.startsWith("v2") && release.prerelease === false)
         {
+            console.log(release);
             return release;
         }
     }
+
     console.log("No github releases found");
+
     return null;
 }
 
@@ -53,6 +55,7 @@ async function getBranchName(github)
     if (branchName.indexOf('refs/heads/') > -1) {
         branchName = branchName.slice('refs/heads/'.length);
     }
+
     return branchName;
 }
 
