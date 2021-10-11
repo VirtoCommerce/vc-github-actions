@@ -1,0 +1,47 @@
+{
+    "manifestVersion": 1,
+    "id": "virtocommerce-backend-pack",
+    "name": "VirtoCommerce backend pack",
+    "version": "1.0.7",
+    "publisher": "Virto-Commerce",
+    "galleryFlags": [
+        "Public"
+    ],
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],
+    "description": "Create a VirtoCommerce backend release package from manifest file",
+    "categories": [
+        "Azure Pipelines"
+    ],
+    "icons": {
+        "default": "images/logo.png"
+    },
+    "files": [
+        {
+            "path": "backendPack"
+        }
+    ],
+    "content": {
+        "details": {
+            "path": "overview.md"
+        },
+        "license": {
+            "path": "license.txt"
+        }
+    },
+    "contributions": [
+        {
+            "id": "virtocommerce-backend-pack-task",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "backendPack"
+            }
+        }
+    ]
+}
