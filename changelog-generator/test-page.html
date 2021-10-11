@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Test page for action</title>
+</head>
+<body>
+    <script src="index.js"></script>
+    <script>
+        function test() {
+            var testMessage = `HASH: 32734a33e MSG:Feat/ccit 343 (#2391)  BODY: (* feat: Fix broken links
+
+                * feat: Fix broken links v2)
+                HASH: 1d4f01b0d MSG:CCIT-343: Migrate lesson 1 for Platform 3 (#2379)  BODY: (* CCIT-343: Migrate lesson 1 for Platform 3
+                
+                * CCIT-343: PR review fix)
+                HASH: 4b300d03a MSG:3.84.0  BODY: ()
+                HASH: e21a8d94f MSG:fix: Azure assets: repair search by keyword for folders in the root  BODY: ()
+                HASH: 3a694336c MSG:fix: Fix an error in absolute URI checker (#2386)  BODY: ()
+                HASH: 431a6ec99 MSG:Fixed misspeling (#2387)  BODY: (fix: Fixed wrong value for License Type on platform information blade, if the license is activated.)
+                HASH: 84331cbe4 MSG:Added News Digests  BODY: ()
+                HASH: 4cb2db85c MSG:PT-0: Improve a type incompatibility exception message for the changes detector  BODY: ()
+                HASH: 0884f098b MSG:Updating Github Action workflows.  BODY: ()
+                HASH: 4666aaa61 MSG:PT-3771: Provide option to show user-friendly errors (#2378)  BODY: (* PT-3771: Provide option to show user-friendly errors
+                
+                * PT-3771: Suppressing stack traces for non-development environments
+                
+                * PT-3771: Refactor code
+                
+                * PT-3771: Consider modules errors
+                
+                * PT-3771: Checking error handling
+                
+                * PT-3771: Check logs
+                
+                * PT-3771: Fix bug)`;
+            
+            cleanMessages(testMessage);
+        }
+    </script>
+    <button onclick="test()">Run</button>
+</body>
+</html>
