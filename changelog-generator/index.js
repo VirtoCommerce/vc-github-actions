@@ -142,7 +142,7 @@ function cleanMessages(messages)
     function generateGroup(title, items) {
         let result = `<h3>${title}</h3>`;
         result += "<ul>"
-        items.forEach(item => result += `<li>${item}</li>`);
+        items.filter(function(e){ return !!e }).forEach(item => result += `<li>${item}</li>`);
         result += "</ul>"
 
         return result;
