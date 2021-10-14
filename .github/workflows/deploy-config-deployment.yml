@@ -166,8 +166,6 @@ jobs:
           repoName: vc-module-tax
           configPath: '.deployment/module/argoDeploy.json'
 
-      ##configPath: '.deployment/samples/argoDeploy.json'
-
         # - artifactKey: VirtoCommerce.NotificationsSample
         #   repoName: vc-module-notification
         #   configPath: '.deployment/samples/argoDeploy.json'
