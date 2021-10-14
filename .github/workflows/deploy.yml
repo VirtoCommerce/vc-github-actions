@@ -20,7 +20,7 @@ jobs:
 # Platform workflows
         # - deploymentFolder: platform
         #   repoName: vc-platform
-# Srorefront workflows
+# Storefront workflows
         # - deploymentFolder: storefront
         #   repoName: vc-storefront
 # Module workflows
