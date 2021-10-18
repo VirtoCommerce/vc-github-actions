@@ -27,31 +27,31 @@ jobs:
           - deploymentFolder: demo-deployment
             repoName: vc-demo-theme-default
 #Demo Modules workflows
-         - deploymentFolder: demo-modules
-           repoName: vc-module-customer-export-import
-         - deploymentFolder: demo-modules
-           repoName: vc-module-demo-customer-segments
-         - deploymentFolder: demo-modules
-           repoName: vc-module-demo-features
-         - deploymentFolder: demo-modules
-           repoName: vc-module-feature-flags
+          - deploymentFolder: demo-modules
+            repoName: vc-module-customer-export-import
+          - deploymentFolder: demo-modules
+            repoName: vc-module-demo-customer-segments
+          - deploymentFolder: demo-modules
+            repoName: vc-module-demo-features
+          - deploymentFolder: demo-modules
+            repoName: vc-module-feature-flags
         #  - deploymentFolder: demo-modules
         #    repoName: vc-module-simple-export-import
-         - deploymentFolder: demo-modules
-           repoName: vc-module-catalog-export-import 
+          - deploymentFolder: demo-modules
+            repoName: vc-module-catalog-export-import 
  #Demo solution deployment workflows
-         - deploymentFolder: demo-deployment
-           repoName: vc-module-customer-export-import
-         - deploymentFolder: demo-deployment
-           repoName: vc-module-demo-customer-segments
-         - deploymentFolder: demo-deployment
-           repoName: vc-module-demo-features
-         - deploymentFolder: demo-deployment
-           repoName: vc-module-feature-flags
+          - deploymentFolder: demo-deployment
+            repoName: vc-module-customer-export-import
+          - deploymentFolder: demo-deployment
+            repoName: vc-module-demo-customer-segments
+          - deploymentFolder: demo-deployment
+            repoName: vc-module-demo-features
+          - deploymentFolder: demo-deployment
+            repoName: vc-module-feature-flags
         #  - deploymentFolder: demo-deployment
         #    repoName: vc-module-simple-export-import
-         - deploymentFolder: demo-deployment
-           repoName: vc-module-catalog-export-import 
+          - deploymentFolder: demo-deployment
+            repoName: vc-module-catalog-export-import 
     steps:
       - name: Deploy workflows
         uses: VirtoCommerce/vc-github-actions/deploy-workflow@master
