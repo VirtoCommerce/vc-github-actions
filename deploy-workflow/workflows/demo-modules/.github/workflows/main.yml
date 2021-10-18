@@ -215,9 +215,9 @@ jobs:
       - name: Get Demo-test Jira key from commit message
         id: demoKey
         run: |
-          ISSUE_ID=$(echo "${{ github.event.head_commit.message }}" | awk "/Demo-test:\s*.*/" | grep -o -P "((?!([A-Z0-9a-z]{1,10})-?$)[A-Z]{1}[A-Z0-9]+-\d+)")
+          (ISSUE_ID=$(echo "${{ github.event.head_commit.message }}" | awk "/Demo-test:\s*.*/" | grep -o -P "((?!([A-Z0-9a-z]{1,10})-?$)[A-Z]{1}[A-Z0-9]+-\d+)")
           echo ::set-output name=VALUE::$ISSUE_ID
-          echo "Deploy demo jira key is" $ISSUE_ID
+          echo "Deploy demo jira key is" $ISSUE_ID)||(true)
 
       - name: Create deploy PR in Demo
         if: steps.demoKey.outputs.VALUE != ''
