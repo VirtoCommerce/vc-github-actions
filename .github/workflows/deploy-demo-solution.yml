@@ -35,8 +35,8 @@ jobs:
            repoName: vc-module-demo-features
          - deploymentFolder: demo-modules
            repoName: vc-module-feature-flags
-         - deploymentFolder: demo-modules
-           repoName: vc-module-simple-export-import
+        #  - deploymentFolder: demo-modules
+        #    repoName: vc-module-simple-export-import
          - deploymentFolder: demo-modules
            repoName: vc-module-catalog-export-import 
  #Demo solution deployment workflows
@@ -48,8 +48,8 @@ jobs:
            repoName: vc-module-demo-features
          - deploymentFolder: demo-deployment
            repoName: vc-module-feature-flags
-         - deploymentFolder: demo-deployment
-           repoName: vc-module-simple-export-import
+        #  - deploymentFolder: demo-deployment
+        #    repoName: vc-module-simple-export-import
          - deploymentFolder: demo-deployment
            repoName: vc-module-catalog-export-import 
     steps:
