@@ -11,21 +11,21 @@ jobs:
       matrix:
         include:
 # #Demo Storefront workflows
-#          - deploymentFolder: demo-storefront
-#            repoName: vc-demo-storefront
+          - deploymentFolder: demo-storefront
+            repoName: vc-demo-storefront
 # #Demo solution deployment workflows
-#          - deploymentFolder: demo-deployment
-#            repoName: vc-demo-storefront
+          - deploymentFolder: demo-deployment
+            repoName: vc-demo-storefront
 # #Demo Theme workflows
-#          - deploymentFolder: demo-themes
-#            repoName: vc-demo-theme-b2b
-#          - deploymentFolder: demo-themes
-#            repoName: vc-demo-theme-default
-#  #Demo solution deployment workflows
-#          - deploymentFolder: demo-deployment
-#            repoName: vc-demo-theme-b2b
-#          - deploymentFolder: demo-deployment
-#            repoName: vc-demo-theme-default
+          - deploymentFolder: demo-themes
+            repoName: vc-demo-theme-b2b
+          - deploymentFolder: demo-themes
+            repoName: vc-demo-theme-default
+#Demo solution deployment workflows
+          - deploymentFolder: demo-deployment
+            repoName: vc-demo-theme-b2b
+          - deploymentFolder: demo-deployment
+            repoName: vc-demo-theme-default
 #Demo Modules workflows
          - deploymentFolder: demo-modules
            repoName: vc-module-customer-export-import
