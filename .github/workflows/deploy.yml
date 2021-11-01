@@ -33,6 +33,8 @@ jobs:
         - deploymentFolder: modules
           repoName: vc-module-metadata
         - deploymentFolder: modules
+          repoName: vc-module-gdpr
+        - deploymentFolder: modules
           repoName: vc-module-cart
         - deploymentFolder: modules
           repoName: vc-module-azure-search
