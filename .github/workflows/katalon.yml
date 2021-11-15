@@ -54,7 +54,7 @@ jobs:
         env:
           PASSWORD: ${{ secrets.KATALON_API_KEY }}
           PROJECT_ID: 263280
-          TYPE: junit
+          TYPE: katalon
           REPORT_PATH: ${{ github.workspace }}/vc-quality-gate-katalon/Reports
 
 
