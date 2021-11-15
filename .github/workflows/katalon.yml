@@ -53,7 +53,7 @@ jobs:
         uses: katalon-studio/report-uploader@v0.0.7.11
         env:
           PASSWORD: ${{ secrets.KATALON_API_KEY }}
-          PROJECT_ID: 171535
+          PROJECT_ID: 263280
           TYPE: junit
           REPORT_PATH: ${{ github.workspace }}/vc-quality-gate-katalon/Reports
 
