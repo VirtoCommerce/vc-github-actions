@@ -58,6 +58,23 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var tl = __importStar(require("azure-pipelines-task-lib/task"));
 var fs = __importStar(require("fs"));
 var path = __importStar(require("path"));
+var Module = (function () {
+    function Module(id, version) {
+        this.Id = "";
+        this.Version = "";
+        this.Id = id;
+        this.Version = version;
+    }
+    return Module;
+}());
+var Manifest = (function () {
+    function Manifest() {
+        this.PlatformVersion = "";
+        this.ModuleSources = ["https://raw.githubusercontent.com/VirtoCommerce/vc-modules/master/modules_v3.json"];
+        this.Modules = [];
+    }
+    return Manifest;
+}());
 function downloadArtifact(feed, name, version, path, organization, project) {
     return __awaiter(this, void 0, void 0, function () {
         var orgArg, projectArg, feedArg, nameArg, pathArg, versionArg, exitCode;
@@ -74,20 +91,47 @@ function downloadArtifact(feed, name, version, path, organization, project) {
         });
     });
 }
-function run() {
+function convertManifest(srcPath, dstPath) {
     return __awaiter(this, void 0, void 0, function () {
-        var manifestPath, platformPath, modulesPath, organization, project, tmpPath, feed, manifestContent, jsonManifest, _i, _a, artifact, artifactFileName, artifactPath, _b, _c, artifact, err_1;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
+        var manifestContent, jsonManifest, platformVersion, virtoModules, dst, _i, virtoModules_1, module_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4, fs.readFileSync(srcPath)];
+                case 1:
+                    manifestContent = _a.sent();
+                    jsonManifest = JSON.parse(manifestContent.toString());
+                    platformVersion = jsonManifest.platform;
+                    virtoModules = jsonManifest["virtoCommerce"];
+                    dst = new Manifest;
+                    dst.PlatformVersion = platformVersion;
+                    for (_i = 0, virtoModules_1 = virtoModules; _i < virtoModules_1.length; _i++) {
+                        module_1 = virtoModules_1[_i];
+                        dst.Modules.push(new Module(module_1.name, module_1.version));
+                    }
+                    return [4, fs.writeFileSync(dstPath, JSON.stringify(dst))];
+                case 2:
+                    _a.sent();
+                    return [2];
+            }
+        });
+    });
+}
+function run() {
+    var _a;
+    return __awaiter(this, void 0, void 0, function () {
+        var manifestPath, platformPath, modulesPath, organization, project, tmpPath, vcbuildManifestPath, feed, manifestContent, jsonManifest, _i, _b, artifact, artifactFileName, artifactPath, err_1;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
-                    _d.trys.push([0, 6, , 7]);
-                    manifestPath = tl.getInput("manifestPath");
+                    _c.trys.push([0, 7, , 8]);
+                    manifestPath = (_a = tl.getInput("manifestPath")) !== null && _a !== void 0 ? _a : './packages.json';
                     platformPath = tl.getInput("platformPath");
                     modulesPath = tl.getInput("modulesPath");
                     organization = tl.getInput("organization");
                     project = tl.getInput("project");
                     console.log("manifestPath: " + manifestPath);
                     tmpPath = "./tmp";
+                    vcbuildManifestPath = "./vc-package.json";
                     if (!fs.existsSync(platformPath))
                         tl.mkdirP(platformPath);
                     if (!fs.existsSync(modulesPath))
@@ -95,39 +139,39 @@ function run() {
                     if (!fs.existsSync(tmpPath))
                         tl.mkdirP(tmpPath);
                     feed = tl.getInput("feed");
-                    return [4, fs.readFileSync(manifestPath)];
+                    return [4, convertManifest(manifestPath, vcbuildManifestPath)];
                 case 1:
-                    manifestContent = _d.sent();
-                    jsonManifest = JSON.parse(manifestContent.toString());
-                    tl.execSync('vc-build', "cleartemp install -platform -version " + jsonManifest.platform + " --root " + platformPath);
-                    _i = 0, _a = jsonManifest["custom"];
-                    _d.label = 2;
+                    _c.sent();
+                    return [4, fs.readFileSync(manifestPath)];
                 case 2:
-                    if (!(_i < _a.length)) return [3, 5];
-                    artifact = _a[_i];
+                    manifestContent = _c.sent();
+                    jsonManifest = JSON.parse(manifestContent.toString());
+                    tl.execSync('vc-build', "cleartemp installplatform -PackageManifestPath " + vcbuildManifestPath + " --root " + platformPath);
+                    _i = 0, _b = jsonManifest["custom"];
+                    _c.label = 3;
+                case 3:
+                    if (!(_i < _b.length)) return [3, 6];
+                    artifact = _b[_i];
                     artifactFileName = artifact.name + "_" + artifact.version + ".zip";
                     console.log("Download artifact: " + artifactFileName);
                     artifactPath = path.join(tmpPath, artifactFileName);
                     return [4, downloadArtifact(feed, artifact.name, artifact.version, artifactPath, organization, project)];
-                case 3:
-                    _d.sent();
-                    tl.execSync('7z', "x " + artifactPath + " -o" + path.resolve(path.join(modulesPath, artifact.name)));
-                    _d.label = 4;
                 case 4:
-                    _i++;
-                    return [3, 2];
+                    _c.sent();
+                    tl.execSync('7z', "x " + artifactPath + " -o" + path.resolve(path.join(modulesPath, artifact.name)));
+                    _c.label = 5;
                 case 5:
-                    for (_b = 0, _c = jsonManifest["virtoCommerce"]; _b < _c.length; _b++) {
-                        artifact = _c[_b];
-                        tl.execSync('vc-build', "Install -module " + artifact.name + " -version " + artifact.version + " -DiscoveryPath " + modulesPath + " -ProbingPath " + path.join(platformPath, "app_data", "modules") + " -SkipDependencySolving -skip InstallPlatform");
-                    }
-                    tl.execSync('vc-build', "cleartemp");
-                    return [3, 7];
+                    _i++;
+                    return [3, 3];
                 case 6:
-                    err_1 = _d.sent();
+                    tl.execSync('vc-build', "InstallModules -PackageManifestPath " + vcbuildManifestPath + " -DiscoveryPath " + modulesPath + " -ProbingPath " + path.join(platformPath, "app_data", "modules") + " -SkipDependencySolving -skip InstallPlatform");
+                    tl.execSync('vc-build', "cleartemp");
+                    return [3, 8];
+                case 7:
+                    err_1 = _c.sent();
                     tl.setResult(tl.TaskResult.Failed, err_1.message);
-                    return [3, 7];
-                case 7: return [2];
+                    return [3, 8];
+                case 8: return [2];
             }
         });
     });

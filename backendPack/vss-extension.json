@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "virtocommerce-backend-pack",
     "name": "VirtoCommerce backend pack",
-    "version": "1.0.7",
+    "version": "1.0.9",
     "publisher": "Virto-Commerce",
     "galleryFlags": [
         "Public"
