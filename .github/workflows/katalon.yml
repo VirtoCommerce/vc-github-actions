@@ -5,7 +5,7 @@ on:
       testSuite:
         description: "Test Suite"
         required: false
-        default: "Test Suites/Platform_start"
+        default: "Test Suites/Platform_E2E_Hybrid"
       testBranch:
         description: "Branch of tests"
         required: false
@@ -54,7 +54,7 @@ jobs:
         env:
           PASSWORD: ${{ secrets.KATALON_API_KEY }}
           PROJECT_ID: 263280
-          TYPE: katalon
+          TYPE: junit
           REPORT_PATH: ${{ github.workspace }}/vc-quality-gate-katalon/Reports
 
 
