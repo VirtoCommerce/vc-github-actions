@@ -1,0 +1,24 @@
+name: 'publish-jira-links'
+description: 'Publish links on the Jira tasks in PR description'
+inputs:
+  githubToken:
+    description: "GitHub token"
+    required: false
+  repoOrg:
+    description: "repo org"
+    required: false
+    default: "VirtoCommerce"
+  branchName:
+    description: "Pull request branch name"
+    required: true
+  baseURL:
+    description: "Base Jira URL"
+    required: false
+    default: 'https://virtocommerce.atlassian.net/browse/'
+  downloadComment:
+    description: "Comment template"
+    required: false
+    default: "Jira-link:"
+runs:
+  using: 'node12'
+  main: 'dist/index.js' 
