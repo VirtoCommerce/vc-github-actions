@@ -1,4 +1,4 @@
-name: 'publish-jira-links'
+name: 'publish-jira-link'
 description: 'Publish links on the Jira tasks in PR description'
 inputs:
   githubToken:
