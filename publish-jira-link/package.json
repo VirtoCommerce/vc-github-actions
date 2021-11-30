@@ -1,0 +1,21 @@
+{
+  "name": "@virtocommerce/publish-jira-link",
+  "version": "1.0.0",
+  "description": "Publish link on the Jira task in PR description",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Pavel Matantsev",
+  "license": "ISC",
+  "dependencies": {
+    "@actions/core": "^1.2.6",
+    "@actions/exec": "^1.0.4",
+    "@actions/github": "^4.0.0",
+    "@virtocommerce/vc-actions-lib": "^1.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.10"
+  }
+}
