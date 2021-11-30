@@ -7,19 +7,29 @@ This action publish link on Jira task in PR description.
 ### githubToken:
 
     description: "GitHub token"
+    required: false
 
 ### repoOrg:
 
     description: "repo org"
+    required: false
     default: "VirtoCommerce"
 
 ### branchName:
 
-    description: "The name of a PR branch"
+    description: "Pull request branch name"
+    required: true
+
+### baseURL:
+
+    description: "Base Jira URL"
+    required: false
+    default: 'https://virtocommerce.atlassian.net/browse/'
 
 ### downloadComment:
 
     description: "Comment template"
+    required: false
     default: "Jira-link:"
 
 ## Example of usage
@@ -30,7 +40,6 @@ This action publish link on Jira task in PR description.
   uses: VirtoCommerce/vc-github-actions/publish-jira-link@master
   with:
       branchName: ${{ steps.extract_branch.outputs.branch }}
-      downloadComment: "Jira-link:"
   env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
