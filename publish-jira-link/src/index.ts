@@ -30,19 +30,8 @@ async function run(): Promise<void> {
 
     let body = currentPr.data.body ?? "";
 
-    const jiraLinks = jiraKeys.map((key) => baseUrl.concat(key));
-
-    let caption = "";
-    let publishString = "";
-
-    if (jiraLinks.length === 1) {
-        caption = downloadComment + " ";
-        publishString = caption.concat(jiraLinks[0]);
-    } else {
-        //In case of plural replace last symbol to "s:" and add new line after caption
-        caption = downloadComment.replace(downloadComment[downloadComment.length - 1], "s:\n");
-        publishString = caption.concat(jiraLinks.join("\n"));
-    }
+    const jiraLinks = jiraKeys.map((key) => baseUrl.concat(key)).filter((jiraLink) => !body.includes(jiraLink));
+    const publishString = downloadComment.concat("\n").concat(jiraLinks.join("\n"));
 
     if (body.includes(downloadComment)) {
         body = body.replace(downloadComment, publishString);

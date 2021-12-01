@@ -8539,7 +8539,7 @@ var core = __importStar(__nccwpck_require__(2583));
 function run() {
     var _a, _b, _c, _d, _e, _f;
     return __awaiter(this, void 0, void 0, function () {
-        var GITHUB_TOKEN, repoOrg, branchName, baseUrl, downloadComment, octokit, jiraKeyRgx, jiraKeys, currentPr, body, jiraLinks, caption, publishString;
+        var GITHUB_TOKEN, repoOrg, branchName, baseUrl, downloadComment, octokit, jiraKeyRgx, jiraKeys, currentPr, body, jiraLinks, publishString;
         return __generator(this, function (_g) {
             switch (_g.label) {
                 case 0:
@@ -8567,17 +8567,8 @@ function run() {
                 case 1:
                     currentPr = _g.sent();
                     body = (_d = currentPr.data.body) !== null && _d !== void 0 ? _d : "";
-                    jiraLinks = jiraKeys.map(function (key) { return baseUrl.concat(key); });
-                    caption = "";
-                    publishString = "";
-                    if (jiraLinks.length === 1) {
-                        caption = downloadComment + " ";
-                        publishString = caption.concat(jiraLinks[0]);
-                    }
-                    else {
-                        caption = downloadComment.replace(downloadComment[downloadComment.length - 1], "s:\n");
-                        publishString = caption.concat(jiraLinks.join("\n"));
-                    }
+                    jiraLinks = jiraKeys.map(function (key) { return baseUrl.concat(key); }).filter(function (jiraLink) { return !body.includes(jiraLink); });
+                    publishString = downloadComment.concat("\n").concat(jiraLinks.join("\n"));
                     if (body.includes(downloadComment)) {
                         body = body.replace(downloadComment, publishString);
                     }
