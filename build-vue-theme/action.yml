@@ -1,0 +1,19 @@
+name: 'build-vue-theme'
+description: 'Builds vue theme'
+inputs:
+   releaseBranch:
+    description: "Branch support preparation of a new production release"
+    required: false
+    default: "master"
+   versionSuffix:
+    description: "Suffix for prereleases"
+    required: true
+outputs:
+  artifactPath:
+    description: 'Path to artifact'
+  artifactName:
+    description: 'Name of artifact'
+
+runs:
+  using: 'node16'
+  main: 'index.js'
