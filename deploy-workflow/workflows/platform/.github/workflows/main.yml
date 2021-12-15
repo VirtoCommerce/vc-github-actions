@@ -1,4 +1,4 @@
-# v1.1.10
+# v1.1.11
 name: Platform CI
 
 on:
@@ -176,12 +176,20 @@ jobs:
       run: |
         echo ::set-output name=DOCKER_URL::${{ env.PACKAGE_SERVER }}/${{github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.image.outputs.taggedVersion }}
         echo ::set-output name=BLOB_URL::${{ steps.blobRelease.outputs.packageUrl }}
+        
+    - name: Add Jira link
+      if: ${{ github.event_name == 'pull_request' }}
+      uses: VirtoCommerce/vc-github-actions/publish-jira-link@master
+      with:
+        branchName: ${{ github.head_ref }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}        
 
     - name: Add link to PR
       if: ${{ github.event_name == 'pull_request' }}
       uses: VirtoCommerce/vc-github-actions/publish-artifact-link@master
       with:
-        artifactUrl: ${{ steps.artifactUrl.outputs.DOCKER_URL }}
+        artifactUrl: ${{ steps.artifactUrl.outputs.BLOB_URL }}
         downloadComment: 'Artifact URL:'
       
     - name: Publish Github Release
