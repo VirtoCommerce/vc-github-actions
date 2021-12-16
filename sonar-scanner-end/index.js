@@ -13,6 +13,7 @@ async function run()
     const emptyCoverageContent = '<coverage version="1"></coverage>';
     const coveragePath = './.tmp/coverage.xml'
     if(!fs.existsSync(coveragePath)){
+        fs.mkdirSync("./.tmp");
         fs.writeFileSync(coveragePath, emptyCoverageContent);
     }
     delete process.env.JAVA_TOOL_OPTIONS;
