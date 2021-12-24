@@ -29,3 +29,6 @@ jobs:
           azureApiKey: ${{ secrets.AZUREAPIKEY }}
           azureTenantId: ${{ secrets.AZURETENANTID }}
           azureAppId: ${{ secrets.AZUREAPPID }}
+          dockerRegistry: ${{ secrets.DOCKER_REGISTRY }}
+          dockerUsr: ${{ secrets.DOCKER_USER }}
+          dockerPwd: ${{ secrets.DOCKER_PASSWORD }}
