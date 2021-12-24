@@ -64,5 +64,4 @@ runs:
         AzureTenantID: ${{ inputs.azureTenantId }}
         AzureAppID: ${{ inputs.azureAppId }}
       run: |
-        Disable-AzureDataCollection
         pwsh -file ${{ github.action_path }}/scripts/DocsUpdate.ps1
