@@ -37,7 +37,7 @@ runs:
       shell: powershell
       working-directory: ${{ github.workspace }}
       run: |
-        & ${{ github.action_path }}/scripts/vc_docs_get_sources.ps1 -ErrorAction Continue
+        pwsh -file ${{ github.action_path }}/scripts/vc_docs_get_sources.ps1 -ErrorAction Continue
 
     - name: Build Docs
       working-directory: ${{ github.workspace }}/vc-platform
@@ -65,4 +65,4 @@ runs:
         AzureAppID: ${{ inputs.azureAppId }}
       run: |
         Disable-AzureDataCollection
-        ${{ github.action_path }}/scripts/DocsUpdate.ps1
+        pwsh -file ${{ github.action_path }}/scripts/DocsUpdate.ps1
