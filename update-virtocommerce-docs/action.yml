@@ -34,27 +34,27 @@ runs:
   using: "composite"
   steps:
     - name: Preparing
-      shell: powershell
+      shell: pwsh
       working-directory: ${{ github.workspace }}
       run: |
         pwsh -file ${{ github.action_path }}/scripts/vc_docs_get_sources.ps1 -ErrorAction Continue
 
     - name: Build Docs
       working-directory: ${{ github.workspace }}/vc-platform
-      shell: powershell
+      shell: pwsh
       run: |
         mkdocs build
         7z a ${{ github.workspace }}/site.zip ./site/* -r
 
     - name: Docker
-      shell: powershell
+      shell: pwsh
       run: |
         dotnet tool install --global VirtoCommerce.GlobalTool --version 2.2.0-alpha.29
         Copy-Item -Path ${{ github.action_path }}/docker/* -Destination ./ -Recurse -Force
         vc-build BuildAndPush -DockerUsername ${{ inputs.dockerUsr }} -DockerPassword ${{ inputs.dockerPwd }} -DockerfilePath ./Dockerfile -DockerImageName ${{ inputs.dockerRegistry }}/vccom/docs -DockerImageTag latest -DockerRegistryUrl ${{ inputs.dockerRegistry }}
         
     - name: Upload docs
-      shell: powershell
+      shell: pwsh
       env: 
         AzureSubscriptionIDProd: ${{ inputs.azureSubscriptionId }}
         AzureResourceGroupNameProd: ${{ inputs.azureResourceGroupName }}
