@@ -13,10 +13,17 @@ function Get-GithubPackageUrl {
 }
 
 #Get platform src
-git clone https://github.com/VirtoCommerce/vc-platform.git --branch dev --single-branch
+git clone https://github.com/VirtoCommerce/vc-platform.git --branch "support/2.x"
+Copy-Item -Path ./vc-platform/docs/* -Destination ./2.0 -Recurse -Force
+cd vc-platform
+git checkout dev
+cd ..
+Copy-Item -Path ./2.0 -Destination ./vc-platform/docs/2.0 -Force
 
 git clone https://github.com/VirtoCommerce/vc-build.git --branch dev --single-branch
 Copy-Item -Path "vc-build\docs\CLI-tools\*" -Destination "vc-platform\docs\CLI-tools" -Recurse -Force
+
+
 
 # Get all modules from master branch
 $modulesv3=Invoke-RestMethod https://raw.githubusercontent.com/VirtoCommerce/vc-modules/master/modules_v3.json
