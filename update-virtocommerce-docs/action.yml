@@ -50,8 +50,8 @@ runs:
       working-directory: ${{ github.workspace }}/2.0
       shell: pwsh
       run: |
-        mkdocs build
-        7z a ${{ github.workspace }}/site_old.zip ./site/* -r
+        wget https://vc3prerelease.blob.core.windows.net/packages/docs2.0.zip -O olddocs.zip
+        unzip olddocs.zip -d ./site
 
     - name: Docker
       shell: pwsh
