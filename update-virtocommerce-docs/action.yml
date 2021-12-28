@@ -45,6 +45,13 @@ runs:
       run: |
         mkdocs build
         7z a ${{ github.workspace }}/site.zip ./site/* -r
+  
+    - name: Build Old Docs
+      working-directory: ${{ github.workspace }}/2.0
+      shell: pwsh
+      run: |
+        mkdocs build
+        7z a ${{ github.workspace }}/site_old.zip ./site/* -r
 
     - name: Docker
       shell: pwsh
