@@ -14,7 +14,7 @@ function Get-GithubPackageUrl {
 
 #Get platform src
 git clone https://github.com/VirtoCommerce/vc-platform.git --branch "support/2.x"
-Copy-Item -Path ./vc-platform/docs/* -Destination ./2.0 -Recurse -Force
+Copy-Item -Path ./vc-platform/docs -Destination ./2.0 -Recurse -Force
 cd vc-platform
 git checkout dev
 cd ..
