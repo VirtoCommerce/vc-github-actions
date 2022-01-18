@@ -40,4 +40,4 @@ jobs:
           server: argo.govirto.com
           username: ${{ secrets.ARGOCD_LOGIN }}
           password: ${{ secrets.ARGOCD_PASSWORD }}
-          command: 'app set vccom-main --helm-set advanced.service.image.tag=${{ env.GITHUB_RUN_NUMBER }}'
+          command: 'app set vccom-main --helm-set advanced.service.image.tag=${{ github.run_number }}'
