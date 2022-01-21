@@ -89,6 +89,9 @@ jobs:
           repoName: vc-module-search
         - deploymentFolder: platform_3_200
           repoName: vc-module-shipping
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-sitemaps
+
 
 # Module samples workflows
         # - deploymentFolder: modules-sample
