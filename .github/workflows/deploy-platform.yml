@@ -11,6 +11,6 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
         USER: ${{ env.GITHUB_USER }}
-        GHA_DEPLOYMENT_FOLDER: "platform"
+        GHA_DEPLOYMENT_FOLDER: "platform_3_200"
         REPOSITORY: "vc-platform"
 
