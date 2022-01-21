@@ -1,4 +1,4 @@
-name: Deploy Github Actions
+name: Deploy Module workflows
 
 on:
   workflow_dispatch:
