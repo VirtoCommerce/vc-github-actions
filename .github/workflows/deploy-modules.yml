@@ -11,94 +11,94 @@ jobs:
       matrix:
         include:
 # Module workflows
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-assets
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-Authorize.Net
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-avatax
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-azureblob-assets 
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-azure-search
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-bulk-actions
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-cart
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-catalog
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-catalog-csv-import
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-catalog-export-import
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-catalog-personalization
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-catalog-publishing
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-content
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-core
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-customer
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-customer-export-import
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-customer-review 
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-dynamic-associations
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-elastic-search
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-event-bus
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-experience-api
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-export
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-filesystem-assets
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-gdpr
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-google-ecommerce-analytics
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-image-tools
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-inventory
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-lucene-search
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-marketing
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-metadata
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-notification
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-order
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-payment
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-price-export-import
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-pricing
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-profile-experience-api
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-quote
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-search
-        # - deploymentFolder: platform_3_200
-        #   repoName: vc-module-shipping
-         - deploymentFolder: platform_3_200
-           repoName: vc-module-sitemaps
-         - deploymentFolder: platform_3_200
-           repoName: vc-module-subscription
-         - deploymentFolder: platform_3_200
-           repoName: vc-module-store
-         - deploymentFolder: platform_3_200
-           repoName: vc-module-tax
-         - deploymentFolder: platform_3_200
-           repoName: vc-module-webhooks
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-assets
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-Authorize.Net
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-avatax
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-azureblob-assets 
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-azure-search
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-bulk-actions
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-cart
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-catalog
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-catalog-csv-import
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-catalog-export-import
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-catalog-personalization
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-catalog-publishing
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-content
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-core
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-customer
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-customer-export-import
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-customer-review 
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-dynamic-associations
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-elastic-search
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-event-bus
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-experience-api
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-export
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-filesystem-assets
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-gdpr
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-google-ecommerce-analytics
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-image-tools
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-inventory
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-lucene-search
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-marketing
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-metadata
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-notification
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-order
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-payment
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-price-export-import
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-pricing
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-profile-experience-api
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-quote
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-search
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-shipping
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-sitemaps
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-subscription
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-store
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-tax
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-webhooks
 
 
 # Module samples workflows
