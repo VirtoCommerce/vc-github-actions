@@ -91,6 +91,10 @@ jobs:
           repoName: vc-module-shipping
         - deploymentFolder: platform_3_200
           repoName: vc-module-sitemaps
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-store
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-webhooks
 
 
 # Module samples workflows
