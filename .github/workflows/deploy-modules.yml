@@ -92,6 +92,8 @@ jobs:
         - deploymentFolder: platform_3_200
           repoName: vc-module-sitemaps
         - deploymentFolder: platform_3_200
+          repoName: vc-module-subscription
+        - deploymentFolder: platform_3_200
           repoName: vc-module-store
         - deploymentFolder: platform_3_200
           repoName: vc-module-tax
