@@ -4,6 +4,12 @@ Builds a docker image
 
 ## inputs
 
+
+###  outputs:
+
+    description: "Output destination"
+    default: ''
+    required: false
 ### imageName:
 
     description: "Name of Docker Image"
@@ -29,10 +35,10 @@ Builds a docker image
 
 ```
 - name: Build Docker Image
-  if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev' }}
   id: dockerBuild
-  uses: VirtoCommerce/vc-github-actions/build-docker-image@dev
+  uses: VirtoCommerce/vc-github-actions/build-docker-image@master
   with:
+    outputs: type=docker,dest=/tmp/platform_image.tar
     imageName: "platform"
     tag: ${{ steps.image.outputs.taggedVersion }}
     dockerFiles: "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh"

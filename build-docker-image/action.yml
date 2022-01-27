@@ -1,6 +1,10 @@
 name: 'build-docker-image'
 description: 'Build docker image'
 inputs:
+  outputs:
+    description: "Output destination"
+    default: ''
+    required: false
   imageName: 
     description: "Name of Docker Image"
     required: true
@@ -10,9 +14,10 @@ inputs:
   dockerFiles:
     description: "Files urls for build docker image"
     required: true
+
 outputs:
   imageName: 
     description: "Name of Docker Image"
 runs:
   using: 'node12'
-  main: 'index.js'
+  main: 'dist/index.js'
