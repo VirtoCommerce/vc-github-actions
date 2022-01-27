@@ -13669,6 +13669,7 @@ async function buildImage(imageName, tag, outputs)
     core.setOutput("imageName", imageFullName);
     core.info(`imageFullName is: ${imageFullName}`);
     let command = `docker build artifacts --build-arg SOURCE=. --tag "${imageFullName}:${tag}" ${outputs}`;
+    console.log(command)
     await exec.exec(command);
 }
 

@@ -2,8 +2,12 @@
 
 Builds a docker image
 
-## inputs
+## How to build
 
+* Install vercel/ncc by running this command in your terminal. `npm i -g @vercel/ncc`
+* Compile your index.js file. `ncc build index.js --license licenses.txt`
+
+## inputs
 
 ###  outputs:
 
