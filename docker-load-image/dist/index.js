@@ -2907,12 +2907,10 @@ function run() {
                     return [4, exec.exec('docker', ['load', '--input', dockerTar], options)];
                 case 1:
                     _a.sent();
-                    console.log(execOutput);
-                    console.log(execError);
                     if (execOutput) {
                         splittedOutput = execOutput.split(':', 3);
-                        image = splittedOutput[1];
-                        tag = splittedOutput[2];
+                        image = splittedOutput[1].trim();
+                        tag = splittedOutput[2].trim();
                         core.setOutput('image', image);
                         core.setOutput('tag', tag);
                         console.log("image: " + image);

@@ -17,12 +17,10 @@ async function run(): Promise<void> {
     };
     const dockerTar = core.getInput('dockerTar')
     await exec.exec('docker', ['load', '--input', dockerTar], options );
-    console.log(execOutput);
-    console.log(execError);
     if (execOutput) {
         const splittedOutput = execOutput.split(':',3);
-        const image = splittedOutput[1];
-        const tag = splittedOutput[2];
+        const image = splittedOutput[1].trim();
+        const tag = splittedOutput[2].trim();
 
         core.setOutput('image', image);
         core.setOutput('tag', tag);
