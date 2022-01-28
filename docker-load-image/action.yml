@@ -6,8 +6,10 @@ inputs:
     default: 'platform_image.tar'
     required: false
 outputs:
-  imageName:
+  image:
     description: 'Published image name'
+  tag:
+    description: 'Published image tag'
 
 runs:
   using: 'node12'

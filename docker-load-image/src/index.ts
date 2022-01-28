@@ -2,23 +2,35 @@ import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 
 async function run(): Promise<void> {
-    let myOutput = '';
-    let myError = '';
+    let execOutput = '';
+    let execError = '';
     
     const options = {
       listeners: {
         stdout: (data: Buffer) => {
-          myOutput += data.toString();
+          execOutput += data.toString();
         },
         stderr: (data: Buffer) => {
-          myError += data.toString();
+          execError += data.toString();
         }
       }
     };
     const dockerTar = core.getInput('dockerTar')
-    exec.exec('docker', ['load', '--input', dockerTar], options )
-    console.log(myOutput);
-    console.log(myError);
+    exec.exec('docker', ['load', '--input', dockerTar], options );
+    console.log(execOutput);
+    console.log(execError);
+    if (execOutput) {
+        const splittedOutput = execOutput.split(':',3);
+        const image = splittedOutput[1];
+        const tag = splittedOutput[2];
+
+        core.setOutput('image', image);
+        core.setOutput('tag', tag);
+
+        console.log(`image: ${image}`);
+        console.log(`tag: ${tag}`);
+
+    }
 }
 
 run().catch(error => core.setFailed(error.message));

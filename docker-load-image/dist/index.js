@@ -2887,24 +2887,33 @@ var core = __importStar(__nccwpck_require__(739));
 var exec = __importStar(__nccwpck_require__(323));
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var myOutput, myError, options, dockerTar;
+        var execOutput, execError, options, dockerTar, splittedOutput, image, tag;
         return __generator(this, function (_a) {
-            myOutput = '';
-            myError = '';
+            execOutput = '';
+            execError = '';
             options = {
                 listeners: {
                     stdout: function (data) {
-                        myOutput += data.toString();
+                        execOutput += data.toString();
                     },
                     stderr: function (data) {
-                        myError += data.toString();
+                        execError += data.toString();
                     }
                 }
             };
             dockerTar = core.getInput('dockerTar');
             exec.exec('docker', ['load', '--input', dockerTar], options);
-            console.log(myOutput);
-            console.log(myError);
+            console.log(execOutput);
+            console.log(execError);
+            if (execOutput) {
+                splittedOutput = execOutput.split(':', 3);
+                image = splittedOutput[1];
+                tag = splittedOutput[2];
+                core.setOutput('image', image);
+                core.setOutput('tag', tag);
+                console.log("image: " + image);
+                console.log("tag: " + tag);
+            }
             return [2];
         });
     });
