@@ -1,0 +1,12 @@
+{
+  "name": "@virtocommerce/docker-load-image",
+  "version": "1.0.0",
+  "description": "Load docker image from tar",
+  "devDependencies": {
+    "@types/node": "^16.10.1"
+  },
+  "dependencies": {
+    "@actions/core": "^1.6.0",
+    "@actions/exec": "^1.1.0"
+  }
+}
