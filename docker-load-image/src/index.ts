@@ -16,7 +16,7 @@ async function run(): Promise<void> {
       }
     };
     const dockerTar = core.getInput('dockerTar')
-    exec.exec('docker', ['load', '--input', dockerTar], options );
+    await exec.exec('docker', ['load', '--input', dockerTar], options );
     console.log(execOutput);
     console.log(execError);
     if (execOutput) {

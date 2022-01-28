@@ -2889,32 +2889,37 @@ function run() {
     return __awaiter(this, void 0, void 0, function () {
         var execOutput, execError, options, dockerTar, splittedOutput, image, tag;
         return __generator(this, function (_a) {
-            execOutput = '';
-            execError = '';
-            options = {
-                listeners: {
-                    stdout: function (data) {
-                        execOutput += data.toString();
-                    },
-                    stderr: function (data) {
-                        execError += data.toString();
+            switch (_a.label) {
+                case 0:
+                    execOutput = '';
+                    execError = '';
+                    options = {
+                        listeners: {
+                            stdout: function (data) {
+                                execOutput += data.toString();
+                            },
+                            stderr: function (data) {
+                                execError += data.toString();
+                            }
+                        }
+                    };
+                    dockerTar = core.getInput('dockerTar');
+                    return [4, exec.exec('docker', ['load', '--input', dockerTar], options)];
+                case 1:
+                    _a.sent();
+                    console.log(execOutput);
+                    console.log(execError);
+                    if (execOutput) {
+                        splittedOutput = execOutput.split(':', 3);
+                        image = splittedOutput[1];
+                        tag = splittedOutput[2];
+                        core.setOutput('image', image);
+                        core.setOutput('tag', tag);
+                        console.log("image: " + image);
+                        console.log("tag: " + tag);
                     }
-                }
-            };
-            dockerTar = core.getInput('dockerTar');
-            exec.exec('docker', ['load', '--input', dockerTar], options);
-            console.log(execOutput);
-            console.log(execError);
-            if (execOutput) {
-                splittedOutput = execOutput.split(':', 3);
-                image = splittedOutput[1];
-                tag = splittedOutput[2];
-                core.setOutput('image', image);
-                core.setOutput('tag', tag);
-                console.log("image: " + image);
-                console.log("tag: " + tag);
+                    return [2];
             }
-            return [2];
         });
     });
 }
