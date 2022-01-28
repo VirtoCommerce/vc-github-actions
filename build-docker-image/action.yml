@@ -1,10 +1,6 @@
 name: 'build-docker-image'
 description: 'Build docker image'
 inputs:
-  outputs:
-    description: "Output destination"
-    default: ''
-    required: false
   imageName: 
     description: "Name of Docker Image"
     required: true

@@ -43,19 +43,17 @@ async function prepareDockerfile(urls)
     await exec.exec(`cat artifacts/Dockerfile`);
 }
 
-async function buildImage(imageName, tag, outputs)
+async function buildImage(imageName, tag)
 {
     let imageFullName = `ghcr.io/${github.context.repo.owner.toLowerCase()}/${imageName}`;
     core.setOutput("imageName", imageFullName);
     core.info(`imageFullName is: ${imageFullName}`);
-    let command = `docker build artifacts --build-arg SOURCE=. --tag "${imageFullName}:${tag}" ${outputs}`;
-    console.log(command)
+    let command = `docker build artifacts --build-arg SOURCE=. --tag "${imageFullName}:${tag}"`;
     await exec.exec(command);
 }
 
 async function run()
 {
-    let outputs = core.getInput("outputs") === '' ? '' : `--output ${core.getInput("outputs")}`;
     let dockerTag = core.getInput("tag");
     let imageName = core.getInput("imageName");
     let dockerfiles = core.getInput("dockerFiles");
@@ -64,7 +62,7 @@ async function run()
         imageName = await utils.getProjectType();
     }
     await prepareDockerfile(dockerfiles);
-    await buildImage(imageName, dockerTag, outputs)
+    await buildImage(imageName, dockerTag)
 }
 
 run().catch(err => core.setFailed(err.message));
