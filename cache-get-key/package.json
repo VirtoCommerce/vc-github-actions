@@ -1,0 +1,11 @@
+{
+    "name": "@virtocommerce/cache-get-key",
+    "version": "1.0.0",
+    "devDependencies": {
+        "@types/node": "^16.10.1"
+    },
+    "dependencies": {
+        "@actions/core": "^1.6.0",
+        "@actions/github": "^5.0.0"
+    }
+}

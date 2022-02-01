@@ -1,0 +1,20 @@
+name: 'cache-get-key'
+description: 'Calculate unique key for artifact caching'
+inputs:
+  runnerOs:
+    description: 'OS runner'
+    default: 'Linux'
+    required: false
+  artifactName:
+    description: 'Artifact name'
+    default: 'platform_image'
+    required: false
+outputs:
+  shortKey:
+    description: 'Short cache key'
+  fullKey:
+    description: 'Full cache key'
+
+runs:
+  using: 'node12'
+  main: 'dist/index.js' 
