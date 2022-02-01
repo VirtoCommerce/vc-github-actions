@@ -8390,7 +8390,7 @@ function run() {
             runnerOs = core.getInput('runnerOs');
             artifactName = core.getInput('artifactName');
             sha = github.context.eventName.startsWith('pull_request') ? github.context.payload.pull_request.head.sha.substring(0, 8) : github.context.sha.substring(0, 8);
-            PR = github.context.eventName.startsWith('pull_request') ? "-" + github.context.payload.pull_request.number : '';
+            PR = github.context.eventName.startsWith('pull_request') ? "-PR-" + github.context.payload.pull_request.number : '';
             branchName = "-" + getBranchName();
             shortKey = runnerOs + "-" + artifactName + branchName + PR;
             fullKey = shortKey + "-" + sha;

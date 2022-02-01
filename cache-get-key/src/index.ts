@@ -22,7 +22,7 @@ async function run(): Promise<void> {
     const runnerOs = core.getInput('runnerOs');
     const artifactName = core.getInput('artifactName');
     const sha = github.context.eventName.startsWith('pull_request') ? github.context.payload.pull_request.head.sha.substring(0, 8) : github.context.sha.substring(0, 8);
-    const PR = github.context.eventName.startsWith('pull_request') ? `-${github.context.payload.pull_request.number}` : '';
+    const PR = github.context.eventName.startsWith('pull_request') ? `-PR-${github.context.payload.pull_request.number}` : '';
     
     let branchName = `-` + getBranchName();
 
