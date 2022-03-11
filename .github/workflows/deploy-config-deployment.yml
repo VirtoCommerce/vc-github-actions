@@ -166,6 +166,22 @@ jobs:
           repoName: vc-module-tax
           configPath: '.deployment/module/argoDeploy.json'
 
+        - artifactKey: VirtoCommerce.CatalogExportImport
+          repoName: vc-module-catalog-export-import
+          configPath: '.deployment/module/argoDeploy.json'
+
+        - artifactKey: VirtoCommerce.CustomerExportImport
+          repoName: vc-module-customer-export-import
+          configPath: '.deployment/module/argoDeploy.json'
+
+        - artifactKey: VirtoCommerce.ElasticAppSearch
+          repoName: vc-module-elastic-app-search
+          configPath: '.deployment/module/argoDeploy.json'
+
+        - artifactKey: VirtoCommerce.ProfileExperienceApiModule
+          repoName: vc-module-profile-experience-api
+          configPath: '.deployment/module/argoDeploy.json'
+
         # - artifactKey: VirtoCommerce.NotificationsSample
         #   repoName: vc-module-notification
         #   configPath: '.deployment/samples/argoDeploy.json'
