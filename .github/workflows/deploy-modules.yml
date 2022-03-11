@@ -18,7 +18,7 @@ jobs:
         - deploymentFolder: platform_3_200
           repoName: vc-module-avatax
         - deploymentFolder: platform_3_200
-          repoName: vc-module-azureblob-assets 
+          repoName: vc-module-azureblob-assets
         - deploymentFolder: platform_3_200
           repoName: vc-module-azure-search
         - deploymentFolder: platform_3_200
@@ -44,9 +44,11 @@ jobs:
         - deploymentFolder: platform_3_200
           repoName: vc-module-customer-export-import
         - deploymentFolder: platform_3_200
-          repoName: vc-module-customer-review 
+          repoName: vc-module-customer-review
         - deploymentFolder: platform_3_200
           repoName: vc-module-dynamic-associations
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-elastic-app-search
         - deploymentFolder: platform_3_200
           repoName: vc-module-elastic-search
         - deploymentFolder: platform_3_200
@@ -92,9 +94,9 @@ jobs:
         - deploymentFolder: platform_3_200
           repoName: vc-module-sitemaps
         - deploymentFolder: platform_3_200
-          repoName: vc-module-subscription
-        - deploymentFolder: platform_3_200
           repoName: vc-module-store
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-subscription
         - deploymentFolder: platform_3_200
           repoName: vc-module-tax
         - deploymentFolder: platform_3_200
