@@ -69,6 +69,8 @@ qa.deployBranch config file value. For example "qa": {"deployBranch": "qa"} (Bra
 
 ## Compile action
 
+Action should compiled in case if *argoDeploy.json* or *index.ts* files changed.
+
 Use @vercel/ncc tool to compile your code and modules into one file used for distribution.
 
 - Install vercel/ncc by running this command in your terminal.
