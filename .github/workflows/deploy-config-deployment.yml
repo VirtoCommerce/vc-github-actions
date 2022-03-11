@@ -182,6 +182,15 @@ jobs:
           repoName: vc-module-profile-experience-api
           configPath: '.deployment/module/argoDeploy.json'
 
+        - artifactKey: VirtoCommerce.GDPR
+          repoName: vc-module-gdpr
+          configPath: '.deployment/module/argoDeploy.json'
+
+        - artifactKey: VirtoCommerce.PriceExportImport
+          repoName: vc-module-price-export-import
+          configPath: '.deployment/module/argoDeploy.json'
+
+
         # - artifactKey: VirtoCommerce.NotificationsSample
         #   repoName: vc-module-notification
         #   configPath: '.deployment/samples/argoDeploy.json'
