@@ -33,7 +33,7 @@ async function getDownloadUrl() {
         result = downloadUrl;
 
     } else {
-        console.log(`\033[33mWarning!\033[0m The download URL could not be generated because the version number is empty.`)
+        console.log("\x1b[33mWarning!\x1b[0m The download URL could not be generated because the version number is empty.")
     }
 
     return result;

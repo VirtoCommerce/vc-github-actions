@@ -22,7 +22,7 @@ Publish github release or prerelease dependant to github.ref
     default: "VirtoCommerce"
     required: false
 
-###  version:
+### version:
 
     description: "Version number in xx.yy.zz format"
     default: ""
