@@ -13,6 +13,14 @@ inputs:
     description: "Organization name"
     default: "VirtoCommerce"
     required: false
+  version:
+    description: "Version number in xx.yy.zz format"
+    default: ""
+    required: false
+
+outputs:
+  downloadUrl:
+    description: "GitHub release download URL"
 
 runs:
   using: 'node12'
