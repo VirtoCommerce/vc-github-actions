@@ -131,9 +131,20 @@ jobs:
 
       - name: Publish Github Release
         if: ${{ github.ref == 'refs/heads/master' }}
+        id: githubRelease
         with:
           changelog: ${{ steps.changelog.outputs.changelog }}
+          version: ${{ steps.artifact_ver.outputs.shortVersion }}
         uses: VirtoCommerce/vc-github-actions/publish-github-release@master
+
+      - name: Set artifactUrl value
+        id: artifactUrl
+        run: |
+          if [ '${{ github.ref }}' = 'refs/heads/master' ]; then
+            echo ::set-output name=BLOB_URL::${{ steps.githubRelease.outputs.downloadUrl }}
+          else
+            echo ::set-output name=BLOB_URL::${{ steps.blobRelease.outputs.packageUrl }}
+          fi;
 
       - name: Setup Git Credentials
         if: ${{ (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master') && github.event_name != 'workflow_dispatch' }}

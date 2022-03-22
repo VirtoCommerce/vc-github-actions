@@ -40,7 +40,7 @@ Publish github release or prerelease dependant to github.ref
 - name: Publish Github Release
   with:
     changelog: ${{ steps.changelog.outputs.changelog }}
-    version: ${{ steps.image.outputs.shortVersion }}
+    version: ${{ steps.artifact_ver.outputs.shortVersion }}
   uses: VirtoCommerce/vc-github-actions/publish-github-release@master
 ```
 
