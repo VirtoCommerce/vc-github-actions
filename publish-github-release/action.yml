@@ -13,7 +13,7 @@ inputs:
     description: "Organization name"
     default: "VirtoCommerce"
     required: false
-  version:
+  version: #Outdated. Will be removed in next version
     description: "Version number in xx.yy.zz format"
     default: ""
     required: false

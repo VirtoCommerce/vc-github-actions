@@ -16,9 +16,9 @@ async function installGithubRelease()
 
 async function getDownloadUrl() {
     
-    const version = core.getInput("version");
+    const buildPropsVersionInfo = await utils.getInfoFromDirectoryBuildProps(`./Directory.Build.props`);
     let result = "";
-    if (version) {
+    if (buildPropsVersionInfo) {
         const ownerName = github.context.repo.owner;
         const repoName = github.context.repo.repo;
         const artifactPath = await utils.findArtifact("artifacts/*.zip");
@@ -27,7 +27,7 @@ async function getDownloadUrl() {
         const artifactFileName = artifactPath.split(path.sep).pop();
         console.log(artifactFileName);
     
-        const downloadUrl = `https://github.com/${ownerName}/${repoName}/releases/download/${version}/${artifactFileName}`;
+        const downloadUrl = `https://github.com/${ownerName}/${repoName}/releases/download/${buildPropsVersionInfo.prefix}/${artifactFileName}`;
         console.log(`Download url: ${downloadUrl}`);
 
         result = downloadUrl;

@@ -17402,16 +17402,16 @@ function installGithubRelease() {
 }
 function getDownloadUrl() {
     return __awaiter(this, void 0, void 0, function* () {
-        const version = core.getInput("version");
+        const buildPropsVersionInfo = yield utils.getInfoFromDirectoryBuildProps(`./Directory.Build.props`);
         let result = "";
-        if (version) {
+        if (buildPropsVersionInfo) {
             const ownerName = github.context.repo.owner;
             const repoName = github.context.repo.repo;
             const artifactPath = yield utils.findArtifact("artifacts/*.zip");
             console.log(artifactPath);
             const artifactFileName = artifactPath.split(path_1.default.sep).pop();
             console.log(artifactFileName);
-            const downloadUrl = `https://github.com/${ownerName}/${repoName}/releases/download/${version}/${artifactFileName}`;
+            const downloadUrl = `https://github.com/${ownerName}/${repoName}/releases/download/${buildPropsVersionInfo.prefix}/${artifactFileName}`;
             console.log(`Download url: ${downloadUrl}`);
             result = downloadUrl;
         }
