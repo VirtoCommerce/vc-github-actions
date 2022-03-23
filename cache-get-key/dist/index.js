@@ -8394,10 +8394,10 @@ function run() {
             branchName = "-" + getBranchName();
             shortKey = runnerOs + "-" + artifactName + branchName + PR;
             fullKey = shortKey + "-" + sha;
-            dockerShortKey = "docker-" + shortKey;
-            dockerFullKey = "docker-" + fullKey;
-            packageShortKey = "package-" + shortKey;
-            packageFullKey = "package-" + fullKey;
+            dockerShortKey = shortKey + "-docker";
+            dockerFullKey = fullKey + "-docker";
+            packageShortKey = shortKey + "-package";
+            packageFullKey = fullKey + "-package";
             core.setOutput('shortKey', shortKey);
             core.setOutput('fullKey', fullKey);
             core.setOutput('dockerShortKey', dockerShortKey);
