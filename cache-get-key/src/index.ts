@@ -29,11 +29,11 @@ async function run(): Promise<void> {
     const shortKey = `${runnerOs}-${artifactName}${branchName}${PR}`;
     const fullKey = `${shortKey}-${sha}`;
 
-    const dockerShortKey = `${shortKey}-docker`;
-    const dockerFullKey = `${fullKey}-docker`;
+    const dockerShortKey = `docker-${shortKey}`;
+    const dockerFullKey = `docker-${fullKey}`;
 
-    const packageShortKey = `${shortKey}-package`;
-    const packageFullKey = `${fullKey}-package`;
+    const packageShortKey = `package-${shortKey}`;
+    const packageFullKey = `package-${fullKey}`;
 
 
     core.setOutput('shortKey', shortKey);
