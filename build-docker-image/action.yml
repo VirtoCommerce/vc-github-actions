@@ -10,9 +10,10 @@ inputs:
   dockerFiles:
     description: "Files urls for build docker image"
     required: true
+
 outputs:
   imageName: 
     description: "Name of Docker Image"
 runs:
   using: 'node12'
-  main: 'index.js'
+  main: 'dist/index.js'

@@ -1,0 +1,16 @@
+name: 'docker-load-image'
+description: 'Load docker image from input tar. Set output full docker imageName:tag'
+inputs:
+  dockerTar:
+    description: 'Path to the image tar'
+    default: 'platform_image.tar'
+    required: false
+outputs:
+  image:
+    description: 'Published image name'
+  tag:
+    description: 'Published image tag'
+
+runs:
+  using: 'node12'
+  main: 'dist/index.js' 
