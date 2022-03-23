@@ -8385,7 +8385,7 @@ function getBranchName() {
 }
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var runnerOs, artifactName, sha, PR, branchName, shortKey, fullKey;
+        var runnerOs, artifactName, sha, PR, branchName, shortKey, fullKey, dockerShortKey, dockerFullKey, packageShortKey, packageFullKey;
         return __generator(this, function (_a) {
             runnerOs = core.getInput('runnerOs');
             artifactName = core.getInput('artifactName');
@@ -8394,10 +8394,22 @@ function run() {
             branchName = "-" + getBranchName();
             shortKey = runnerOs + "-" + artifactName + branchName + PR;
             fullKey = shortKey + "-" + sha;
+            dockerShortKey = "docker-" + shortKey;
+            dockerFullKey = "docker-" + fullKey;
+            packageShortKey = "package-" + shortKey;
+            packageFullKey = "package-" + fullKey;
             core.setOutput('shortKey', shortKey);
             core.setOutput('fullKey', fullKey);
+            core.setOutput('dockerShortKey', dockerShortKey);
+            core.setOutput('dockerFullKey', dockerFullKey);
+            core.setOutput('packageShortKey', packageShortKey);
+            core.setOutput('packageFullKey', packageFullKey);
             console.log("shortKey: " + shortKey);
             console.log("fullKey: " + fullKey);
+            console.log("dockerShortKey: " + dockerShortKey);
+            console.log("dockerFullKey: " + dockerFullKey);
+            console.log("packageShortKey: " + packageShortKey);
+            console.log("packageFullKey: " + packageFullKey);
             return [2];
         });
     });

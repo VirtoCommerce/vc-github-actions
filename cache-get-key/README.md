@@ -31,6 +31,23 @@ description: 'Short cache key'
 
 description: 'Full cache key'
 
+## dockerShortKey:
+
+description: 'Short cache key for docker image cache'
+
+### dockerFullKey:
+
+description: 'Full cache key for docker image cache'
+
+## packageShortKey:
+
+description: 'Short cache key for zip package cache'
+
+### packageFullKey:
+
+description: 'Full cache key for zip package cache'
+
+
 ## Example of usage
 
 ```
@@ -40,4 +57,20 @@ description: 'Full cache key'
       with:
         runnerOs: ${{ runner.os  }}
         artifactName: 'platform'
+```
+
+## Compile action
+
+Use @vercel/ncc tool to compile your code and modules into one file used for distribution.
+
+- Install vercel/ncc by running this command in your terminal.
+
+```bash
+npm i -g @vercel/ncc
+```
+
+- Compile your index.ts file.
+
+```bash
+ncc build ./src/index.ts --license licenses.txt
 ```

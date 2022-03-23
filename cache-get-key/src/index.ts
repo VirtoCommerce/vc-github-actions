@@ -26,14 +26,29 @@ async function run(): Promise<void> {
     
     let branchName = `-` + getBranchName();
 
-    let shortKey = `${runnerOs}-${artifactName}${branchName}${PR}`
-    let fullKey = `${shortKey}-${sha}`
+    const shortKey = `${runnerOs}-${artifactName}${branchName}${PR}`;
+    const fullKey = `${shortKey}-${sha}`;
+
+    const dockerShortKey = `docker-${shortKey}`;
+    const dockerFullKey = `docker-${fullKey}`;
+
+    const packageShortKey = `package-${shortKey}`;
+    const packageFullKey = `package-${fullKey}`;
+
 
     core.setOutput('shortKey', shortKey);
     core.setOutput('fullKey', fullKey);
+    core.setOutput('dockerShortKey', dockerShortKey);
+    core.setOutput('dockerFullKey', dockerFullKey);
+    core.setOutput('packageShortKey', packageShortKey);
+    core.setOutput('packageFullKey', packageFullKey);
+
     console.log(`shortKey: ${shortKey}`);
     console.log(`fullKey: ${fullKey}`);
-
+    console.log(`dockerShortKey: ${dockerShortKey}`);
+    console.log(`dockerFullKey: ${dockerFullKey}`);
+    console.log(`packageShortKey: ${packageShortKey}`);
+    console.log(`packageFullKey: ${packageFullKey}`);
 }
 
 run().catch(error => core.setFailed(error.message));
