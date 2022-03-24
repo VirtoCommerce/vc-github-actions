@@ -42,6 +42,7 @@ async function getDownloadUrl() {
 async function run()
 {
     const modulesJsonUrl = core.getInput("modulesJsonUrl");
+    const skipString = core.getInput("skipString");
     console.log(`modulesJsonUrl: ${modulesJsonUrl}`);
     
     let branchName = await utils.getBranchName(github);
@@ -51,7 +52,7 @@ async function run()
     let changelogFilePath = `artifacts/changelog.txt`;
     fs.writeFileSync(changelogFilePath, changelog);
     let releaseNotesArg = `-ReleaseNotes "${changelogFilePath}"`;
-    await exec.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip Clean+Restore+Compile+WebPackBuild+Test`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
+    await exec.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip ${skipString}`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
         if(exitCode != 0 && exitCode != 422)
         {
             console.log(`vc-build Release exit code: ${exitCode}`);

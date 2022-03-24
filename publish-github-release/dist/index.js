@@ -17425,6 +17425,7 @@ function run() {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         const modulesJsonUrl = core.getInput("modulesJsonUrl");
+        const skipString = core.getInput("skipString");
         console.log(`modulesJsonUrl: ${modulesJsonUrl}`);
         let branchName = yield utils.getBranchName(github);
         yield installGithubRelease();
@@ -17433,7 +17434,7 @@ function run() {
         let changelogFilePath = `artifacts/changelog.txt`;
         fs.writeFileSync(changelogFilePath, changelog);
         let releaseNotesArg = `-ReleaseNotes "${changelogFilePath}"`;
-        yield exec.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip Clean+Restore+Compile+WebPackBuild+Test`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
+        yield exec.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip ${skipString}`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
             if (exitCode != 0 && exitCode != 422) {
                 console.log(`vc-build Release exit code: ${exitCode}`);
             }
