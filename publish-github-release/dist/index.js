@@ -17433,7 +17433,7 @@ function run() {
         let changelogFilePath = `artifacts/changelog.txt`;
         fs.writeFileSync(changelogFilePath, changelog);
         let releaseNotesArg = `-ReleaseNotes "${changelogFilePath}"`;
-        yield exec.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip Clean+Restore+Compile+Test`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
+        yield exec.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip Clean+Restore+Compile+WebPackBuild+Test`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
             if (exitCode != 0 && exitCode != 422) {
                 console.log(`vc-build Release exit code: ${exitCode}`);
             }
