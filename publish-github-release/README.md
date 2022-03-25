@@ -22,10 +22,10 @@ Publish github release or prerelease dependant to github.ref
     default: "VirtoCommerce"
     required: false
 
-### version:
+### skipString:
 
-    description: "Version number in xx.yy.zz format"
-    default: ""
+    description: "vc-build skip string"
+    default: "Clean+Restore+Compile+WebPackBuild+Test"
     required: false
 
 ## outputs:
