@@ -134,7 +134,6 @@ jobs:
         id: githubRelease
         with:
           changelog: ${{ steps.changelog.outputs.changelog }}
-          version: ${{ steps.artifact_ver.outputs.prefix }}
         uses: VirtoCommerce/vc-github-actions/publish-github-release@master
         
       - name: Set artifactUrl value
