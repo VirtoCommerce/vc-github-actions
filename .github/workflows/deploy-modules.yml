@@ -88,6 +88,8 @@ jobs:
         - deploymentFolder: platform_3_200
           repoName: vc-module-quote
         - deploymentFolder: platform_3_200
+          repoName: vc-module-return
+        - deploymentFolder: platform_3_200
           repoName: vc-module-search
         - deploymentFolder: platform_3_200
           repoName: vc-module-shipping

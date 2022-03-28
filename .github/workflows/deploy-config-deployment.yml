@@ -190,6 +190,9 @@ jobs:
           repoName: vc-module-price-export-import
           configPath: '.deployment/module/argoDeploy.json'
 
+        - artifactKey: VirtoCommerce.Return
+          repoName: vc-module-return
+          configPath: '.deployment/module/argoDeploy.json'
 
         # - artifactKey: VirtoCommerce.NotificationsSample
         #   repoName: vc-module-notification
