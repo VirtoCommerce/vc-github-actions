@@ -22,8 +22,8 @@ Deploys workflows for platform, storefront, modules, themes
     description: "Folder name where the to-be-deployed Github Actions reside."
     required: false
 ### COMMIT_MESSAGE:
-    default: "Updating Github Action workflows."
-    description: "Custom message for commit. Default message: Updating Github Action workflows."
+    default: "ci: Updating Github Action workflows"
+    description: "Custom message for commit. Default message: ci: Updating Github Action workflows"
     required: false
 ### GHA_DEPLOY_BRANCH_NAME:
     default: "update_gha_source"

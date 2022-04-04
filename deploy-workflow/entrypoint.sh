@@ -50,7 +50,7 @@ ls .github/workflows -al
 git add .github/*
 
 if [ -z "$COMMIT_MESSAGE" ]; then
-    COMMIT_MESSAGE="Updating Github Action workflows."
+    COMMIT_MESSAGE="ci: Updating Github Action workflows"
 fi
 
 git commit -m "${COMMIT_MESSAGE}"
