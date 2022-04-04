@@ -66,7 +66,7 @@ async function run(): Promise<void> {
             branch: branchName,
             content: Buffer.from(deployConfStr).toString("base64"),
             sha: deployConfSha,
-            message: `Automated update ${configPath} deployment config`,
+            message: `ci: Updating ${configPath} deployment config`,
             committer:{
                 name: gitUserName,
                 email: gitUserEmail
