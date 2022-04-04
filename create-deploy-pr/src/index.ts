@@ -2,6 +2,8 @@ import * as yaml from 'js-yaml'
 import * as github from '@actions/github'
 import * as core from '@actions/core'
 
+
+const commitPrefix: string = 'ci: Automated update';
 interface GitUser 
 {
     name: string,
@@ -80,7 +82,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
         branch: targetBranchName,
         content: Buffer.from(deployContent).toString("base64"),
         sha: cmData.sha,
-        message: `ci: Automated update ${baseRepo.repoName} from PR ${baseRepo.pullNumber}`,
+        message: `${commitPrefix} ${baseRepo.repoName} from PR ${baseRepo.pullNumber}`,
         committer:{
             name: gitUser.name,
             email: gitUser.email
@@ -112,7 +114,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
             head: `refs/heads/${targetBranchName}`,
             base: `refs/heads/${targetRepo.branchName}`,
             title: targetBranchName,
-            body: `Automated update ${baseRepo.repoName} from PR ${baseRepo.pullNumber} ${baseRepo.pullHtmlUrl}`
+            body: `${commitPrefix} ${baseRepo.repoName} from PR ${baseRepo.pullNumber} ${baseRepo.pullHtmlUrl}`
         });
     }
 }
@@ -142,7 +144,7 @@ async function createDeployCommit(deployData: DeploymentData, targetRepo: RepoDa
         branch: targetRepo.branchName,
         content: Buffer.from(deployContent).toString("base64"),
         sha: cmData.sha,
-        message: `Automated update ${baseRepoName}`,
+        message: `${commitPrefix} ${baseRepoName}`,
         committer:{
             name: gitUser.name,
             email: gitUser.email
