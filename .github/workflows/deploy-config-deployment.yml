@@ -194,6 +194,11 @@ jobs:
           repoName: vc-module-return
           configPath: '.deployment/module/argoDeploy.json'
 
+        - artifactKey: VirtoCommerce.NativePaymentMethods
+          repoName: vc-module-native-payment-methods
+          configPath: '.deployment/module/argoDeploy.json'
+
+
         # - artifactKey: VirtoCommerce.NotificationsSample
         #   repoName: vc-module-notification
         #   configPath: '.deployment/samples/argoDeploy.json'
