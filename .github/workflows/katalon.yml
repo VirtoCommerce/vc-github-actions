@@ -50,7 +50,7 @@ jobs:
 
       - name: Katalon Report Uploader
         if: always()
-        uses: katalon-studio/report-uploader@v0.0.7.11
+        uses: katalon-studio/report-uploader@v0.0.8
         env:
           PASSWORD: ${{ secrets.KATALON_API_KEY }}
           PROJECT_ID: 263280
