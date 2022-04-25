@@ -105,6 +105,9 @@ jobs:
           repoName: vc-module-webhooks
         - deploymentFolder: platform_3_200
           repoName: vc-module-native-payment-methods
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-shipstation
+
 
 # Module samples workflows
         # - deploymentFolder: modules-sample
