@@ -44,6 +44,7 @@ runs:
       shell: pwsh
       run: |
         mkdocs build
+        ls -la
         7z a ${{ github.workspace }}/site.zip ./site/* -r
   
     - name: Build Old Docs
