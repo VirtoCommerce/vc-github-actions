@@ -67,6 +67,27 @@ runs:
 
           Write-Host "`e[32mModules installed."
         }
+        try {
+          if("${{ inputs.installCustomModule }}" -eq "true")
+          {
+            Write-Host "`e[33mInstall Custom Modules step started."
+            $customModuleZip = "./${{ inputs.customModuleId }}.zip"
+            Push-Location ./modules/modules
+            Write-Host "`e[33mDownload ${{ inputs.customModuleUrl}} to $($customModuleZip)."
+            Invoke-WebRequest -Uri ${{ inputs.customModuleUrl}} -OutFile $customModuleZip
+            Write-Host "`e[33mExpantd $($customModuleZip) from zip."
+            Expand-Archive $customModuleZip -Force
+            Write-Host "`e[33mDelete $($customModuleZip)."
+            Remove-Item -Path $customModuleZip
+            Write-Host "`e[33m$($customModuleZip) deleted."
+            Pop-Location
+
+            Write-Host "`e[32mCustom module installed."
+          }
+        }
+        catch {
+                Write-Host "`e[33mModule ${{ inputs.customModuleId }} uninstalled with errors."
+            }
 
 
     - name: Start containers
