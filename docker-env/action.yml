@@ -73,7 +73,7 @@ runs:
           $customModuleZip = "./${{ inputs.customModuleId }}.zip"
           Push-Location ./modules
           Write-Host "`e[33mUninstall ${{ inputs.customModuleId }}."
-          vc-build uninstall -module ${{ inputs.moduleId }}
+          vc-build uninstall -module ${{ inputs.customModuleId }}
           Pop-Location
           Push-Location ./modules/modules
           Write-Host "`e[33mDownload ${{ inputs.customModuleUrl}} to $($customModuleZip)."
