@@ -41,11 +41,9 @@ runs:
 
     - name: Build Docs
       working-directory: ${{ github.workspace }}/vc-platform
-      shell: pwsh
+      shell: bash
       run: |
-        mkdocs build
-        ls -la
-        7z a ${{ github.workspace }}/site.zip ./site/* -r
+        mkdocs build && ls -la && 7z a ${{ github.workspace }}/site.zip ./site/* -r
   
     - name: Build Old Docs
       working-directory: ${{ github.workspace }}/2.0
