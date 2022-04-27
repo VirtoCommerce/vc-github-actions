@@ -9,6 +9,9 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
+      - uses: actions/setup-python@v3
+        with:
+          python-version: '3.8.x'
 
       - name: Install Dependencies
         run: |
