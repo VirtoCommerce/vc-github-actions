@@ -85,6 +85,8 @@ runs:
             Remove-Item -Path $customModuleZip
             Write-Host "`e[33m$($customModuleZip) deleted."
             Pop-Location
+
+            Write-Host "`e[32mCustom module installed."
           }
         }
         catch {
