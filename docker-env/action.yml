@@ -74,7 +74,9 @@ runs:
           Push-Location ./modules
           Write-Host "`e[33mUninstall ${{ inputs.customModuleId }}."
           vc-build uninstall -module ${inputs.moduleId}
-          Write-Host "`e[33mDownload ${{ inputs.customModuleUrl}}to $($customModuleZip)."
+          Pop-Location
+          Push-Location ./modules/modules
+          Write-Host "`e[33mDownload ${{ inputs.customModuleUrl}} to $($customModuleZip)."
           Invoke-WebRequest -Uri ${{ inputs.customModuleUrl}} -OutFile $customModuleZip
           Write-Host "`e[33mExpantd $($customModuleZip) from zip."
           Expand-Archive $customModuleZip -Force
