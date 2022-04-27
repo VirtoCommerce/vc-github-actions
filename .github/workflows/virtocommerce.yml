@@ -12,8 +12,8 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pip install mkdocs==1.1.1
-          pip install mkdocs-awesome-pages-plugin mkdocs-git-revision-date-localized-plugin mkdocs-material mkdocs-minify-plugin mkdocs-redirects pymdown-extensions
+          pip install mkdocs==1.1.2
+          pip install mkdocs-awesome-pages-plugin==2.2.1 mkdocs-git-revision-date-localized-plugin==0.7 mkdocs-material==5.4.0 mkdocs-minify-plugin==0.3.0 mkdocs-redirects==1.0.1 pymdown-extensions==7.1
 
       - name: Setup Git Credentials
         uses: VirtoCommerce/vc-github-actions/setup-git-credentials-github@master
