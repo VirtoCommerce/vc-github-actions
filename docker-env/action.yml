@@ -85,8 +85,16 @@ runs:
           Invoke-WebRequest -Uri ${{ inputs.customModuleUrl}} -OutFile $customModuleZip
           Write-Host "`e[33mExpantd $($customModuleZip) from zip."
           Expand-Archive $customModuleZip -Force
-          Write-Host "`e[33mDelete $($customModuleZip)."
-          Remove-Item -Path $customModuleZip
+          try {
+            Write-Host "`e[33mDelete $($customModuleZip)."
+            Get-ChildItem
+            Remove-Item -Path $customModuleZip
+            Write-Host "`e[33m$($customModuleZip) deleted."
+          }
+          catch {
+              Write-Host "`e[33mModule ${{ inputs.customModuleId }} uninstalled with errors."
+          }
+
           Pop-Location
         }
 
