@@ -67,36 +67,31 @@ runs:
 
           Write-Host "`e[32mModules installed."
         }
-        if("${{ inputs.installCustomModule }}" -eq "true")
-        {
-          Write-Host "`e[33mInstall Custom Modules step started."
-          $customModuleZip = "./${{ inputs.customModuleId }}.zip"
-          Push-Location ./modules
-          Write-Host "`e[33mUninstall ${{ inputs.customModuleId }}."
-          try {
+        try {
+          if("${{ inputs.installCustomModule }}" -eq "true")
+          {
+            Write-Host "`e[33mInstall Custom Modules step started."
+            $customModuleZip = "./${{ inputs.customModuleId }}.zip"
+            Push-Location ./modules
+            Write-Host "`e[33mUninstall ${{ inputs.customModuleId }}."
             vc-build uninstall -module ${{ inputs.customModuleId }}
-          }
-          catch {
-              Write-Host "`e[33mModule ${{ inputs.customModuleId }} uninstalled with errors."
-          }
-          Pop-Location
-          Push-Location ./modules/modules
-          Write-Host "`e[33mDownload ${{ inputs.customModuleUrl}} to $($customModuleZip)."
-          Invoke-WebRequest -Uri ${{ inputs.customModuleUrl}} -OutFile $customModuleZip
-          Write-Host "`e[33mExpantd $($customModuleZip) from zip."
-          Expand-Archive $customModuleZip -Force
-          try {
+            Pop-Location
+            Push-Location ./modules/modules
+            Write-Host "`e[33mDownload ${{ inputs.customModuleUrl}} to $($customModuleZip)."
+            Invoke-WebRequest -Uri ${{ inputs.customModuleUrl}} -OutFile $customModuleZip
+            Write-Host "`e[33mExpantd $($customModuleZip) from zip."
+            Expand-Archive $customModuleZip -Force
             Write-Host "`e[33mDelete $($customModuleZip)."
-            Get-ChildItem
             Remove-Item -Path $customModuleZip
             Write-Host "`e[33m$($customModuleZip) deleted."
+            Pop-Location
           }
-          catch {
-              Write-Host "`e[33mModule ${{ inputs.customModuleId }} uninstalled with errors."
-          }
-
-          Pop-Location
         }
+        catch {
+                Write-Host "`e[33mModule ${{ inputs.customModuleId }} uninstalled with errors."
+            }
+
+
 
     - name: Start containers
       env:
