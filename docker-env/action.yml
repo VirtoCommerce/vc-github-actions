@@ -74,12 +74,7 @@ runs:
       shell: pwsh
       run: |
         . "./scripts/install-custom-module.ps1"
-        try
-        {
-          InstallCustomModule -InstallFolder ${{ env.INSTALL_FOLDER }} -CustomModuleId ${{ inputs.customModuleId }} -CustomModuleUrl ${{ inputs.customModuleUrl }}
-        }
-        catch
-        {}
+        InstallCustomModule -InstallFolder ${{ env.INSTALL_FOLDER }} -CustomModuleId ${{ inputs.customModuleId }} -CustomModuleUrl ${{ inputs.customModuleUrl }}
 
     - name: Start containers
       env:
