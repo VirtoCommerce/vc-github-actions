@@ -57,6 +57,7 @@ runs:
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
+        $ErrorActionPreference = 'SilentlyContinue'
         if("${{ inputs.installModules }}" -eq "true")
         {
           Write-Host "`e[33mInstall Modules step started."
