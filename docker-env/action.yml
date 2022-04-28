@@ -55,9 +55,8 @@ runs:
 
     - name: Install Modules
       working-directory: ${{ github.action_path }}
-      shell: pwsh
+      shell: powershell -Command "& '{0}'"
       run: |
-        $ErrorActionPreference = continue
         if("${{ inputs.installModules }}" -eq "true")
         {
           Write-Host "`e[33mInstall Modules step started."
@@ -86,9 +85,7 @@ runs:
             Remove-Item -Path $customModuleZip
             Write-Host "`e[33m$($customModuleZip) deleted."
             Pop-Location
-
             Write-Host "`e[32mCustom module installed."
-            exit 0
           }
         }
         catch {
