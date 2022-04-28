@@ -56,35 +56,25 @@ runs:
     - name: Install Commerce Bundle Modules
       if: ${{ inputs.installModules }}
       working-directory: ${{ github.action_path }}
+      env: 
+        INSTALL_FOLDER: 'modules'
       shell: pwsh
       run: |
         Write-Host "`e[33mInstall Modules step started."
-        New-Item -Path "./" -Name "modules" -ItemType "directory"
-        Push-Location ./modules
+        New-Item -Path "./" -Name "${{ env.INSTALL_FOLDER}}" -ItemType "directory"
+        Push-Location ./${{ env.INSTALL_FOLDER}}
         vc-build install -skip InstallPlatform
         Pop-Location
 
     - name: Install Custom Module
-      if: ${{ inputs.installCustomModule }}      
+      if: ${{ inputs.installCustomModule }}
+      env: 
+        INSTALL_FOLDER: 'modules'
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
-        Write-Host "`e[33mInstall Custom Modules step started."
-        $customModuleZip = "./${{ inputs.customModuleId }}.zip"
-        Push-Location ./modules
-        Write-Host "`e[33mUninstall ${{ inputs.customModuleId }}."
-        vc-build uninstall -module ${{ inputs.customModuleId }} & '{0}'
-        Pop-Location
-        Push-Location ./modules/modules
-        Write-Host "`e[33mDownload ${{ inputs.customModuleUrl}} to $($customModuleZip)."
-        Invoke-WebRequest -Uri ${{ inputs.customModuleUrl}} -OutFile $customModuleZip
-        Write-Host "`e[33mExpand $($customModuleZip) from zip."
-        Expand-Archive $customModuleZip -Force
-        Write-Host "`e[33mDelete $($customModuleZip)."
-        Remove-Item -Path $customModuleZip
-        Write-Host "`e[32m$($customModuleZip) deleted."
-        Pop-Location
-        Write-Host "`e[32mCustom module installed."
+        . "./scripts/install-custom-module.ps1"
+        InstallCustomModule -InstallFolder ${{ env.INSTALL_FOLDER}} -$CustomModuleId ${{ inputs.customModuleId }} -$CustomModuleUrl ${{ inputs.customModuleUrl}}
 
     - name: Start containers
       env:
@@ -106,38 +96,28 @@ runs:
         Write-Host "`e[32mContainers started."
 
     - name: Check Installed Modules
+      if: ${{ inputs.installModules }}
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
-        if("${{ inputs.installModules }}" -eq "true")
-        {
-
-          Write-Host "`e[33mCheck Installed Modules step started."
-          $platformContainer = "virtocommerce_vc-platform-web_1"
-          scripts/check-installed-modules.ps1 -ApiUrl http://localhost:8090 -ContainerId $platformContainer
-          Write-Host "`e[32mInstalled Modules checked."
-        }
+        Write-Host "`e[33mCheck Installed Modules step started."
+        $platformContainer = "virtocommerce_vc-platform-web_1"
+        scripts/check-installed-modules.ps1 -ApiUrl http://localhost:8090 -ContainerId $platformContainer
+        Write-Host "`e[32mInstalled Modules checked."
 
     - name: Install Sample Data
+      if: ${{ inputs.installSampleData }}
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
-        if("${{ inputs.installSampleData }}" -ne "true")
-        {
-          exit 0
-        }
-
         Write-Host "`e[33mInstall Sample Data step started."
         scripts/setup-sampledata.ps1 -ApiUrl http://localhost:8090 -Verbose -Debug
         Write-Host "`e[32mSample Data installed."
 
     - name: Swagger Schema Validation
+      if: ${{ inputs.validateSwagger }}
       shell: pwsh
       run: |
-        if("${{ inputs.validateSwagger }}" -ne "true")
-        {
-          exit 0
-        }
         $waitForSwaggerSec = 30
         Write-Host "`e[33mSwagger Schema Validation step started."
         $platformContainer = "virtocommerce_vc-platform-web_1"
