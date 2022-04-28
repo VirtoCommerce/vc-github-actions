@@ -88,6 +88,7 @@ runs:
             Pop-Location
 
             Write-Host "`e[32mCustom module installed."
+            exit 0
           }
         }
         catch {
