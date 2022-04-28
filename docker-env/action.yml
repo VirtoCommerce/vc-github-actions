@@ -55,8 +55,9 @@ runs:
 
     - name: Install Modules
       working-directory: ${{ github.action_path }}
-      shell: powershell -Command "& '{0}'"
+      shell: pwsh
       run: |
+
         if("${{ inputs.installModules }}" -eq "true")
         {
           Write-Host "`e[33mInstall Modules step started."
@@ -74,7 +75,7 @@ runs:
             $customModuleZip = "./${{ inputs.customModuleId }}.zip"
             Push-Location ./modules
             Write-Host "`e[33mUninstall ${{ inputs.customModuleId }}."
-            vc-build uninstall -module ${{ inputs.customModuleId }}
+            vc-build uninstall -module ${{ inputs.customModuleId }} & '{0}'
             Pop-Location
             Push-Location ./modules/modules
             Write-Host "`e[33mDownload ${{ inputs.customModuleUrl}} to $($customModuleZip)."
@@ -85,7 +86,9 @@ runs:
             Remove-Item -Path $customModuleZip
             Write-Host "`e[33m$($customModuleZip) deleted."
             Pop-Location
+
             Write-Host "`e[32mCustom module installed."
+
           }
         }
         catch {
