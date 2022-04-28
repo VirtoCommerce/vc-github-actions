@@ -72,6 +72,10 @@ runs:
           {
             Write-Host "`e[33mInstall Custom Modules step started."
             $customModuleZip = "./${{ inputs.customModuleId }}.zip"
+            Push-Location ./modules
+            Write-Host "`e[33mUninstall ${{ inputs.customModuleId }}."
+            vc-build uninstall -module ${{ inputs.customModuleId }}
+            Pop-Location
             Push-Location ./modules/modules
             Write-Host "`e[33mDownload ${{ inputs.customModuleUrl}} to $($customModuleZip)."
             Invoke-WebRequest -Uri ${{ inputs.customModuleUrl}} -OutFile $customModuleZip
@@ -87,6 +91,7 @@ runs:
         }
         catch {
                 Write-Host "`e[33mModule ${{ inputs.customModuleId }} uninstalled with errors."
+                exit 0
             }
 
 
