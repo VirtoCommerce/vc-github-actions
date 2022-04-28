@@ -29,4 +29,5 @@ function InstallCustomModule {
     Write-Host "`e[32m$($CustomModuleZip) deleted."
     Pop-Location
     Write-Host "`e[32mCustom module installed."
+    Exit 0
 }
