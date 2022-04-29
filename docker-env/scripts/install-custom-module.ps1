@@ -8,7 +8,7 @@ function InstallCustomModule {
     )
 
     Write-Host "`e[33mInstall Custom Modules step started."
-    $CustomModuleZip = "./$($CustomModuleId)"
+    $CustomModuleZip = "./$($CustomModuleId).zip"
     Push-Location "./$($InstallFolder)"
     Write-Host "`e[33mTry to uninstall $($CustomModuleId)."
     try {
