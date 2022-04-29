@@ -1,5 +1,10 @@
 name: 'publish-nuget'
 description: 'Publish nugets'
+inputs:
+  skipString:
+    description: 'vc-build -skip string. default value "Clean+Restore+Compile+Test"'
+    required: false
+    default: "Clean+Restore+Compile+Test"
 runs:
   using: 'node12'
-  main: 'index.js'
+  main: 'dist/index.js'
