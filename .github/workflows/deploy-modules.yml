@@ -107,7 +107,8 @@ jobs:
           repoName: vc-module-native-payment-methods
         - deploymentFolder: platform_3_200
           repoName: vc-module-shipstation
-
+        - deploymentFolder: platform_3_200
+          repoName: vc-module-authorize-net
 
 # Module samples workflows
         # - deploymentFolder: modules-sample
