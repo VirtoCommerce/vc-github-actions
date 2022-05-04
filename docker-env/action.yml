@@ -54,7 +54,7 @@ runs:
   steps:
 
     - name: Install Commerce Bundle Modules
-      if: ${{ inputs.installModules }}
+      if: ${{ inputs.installModules  == 'true' }}
       working-directory: ${{ github.action_path }}
       env: 
         INSTALL_FOLDER: 'modules'
@@ -67,13 +67,13 @@ runs:
         Pop-Location
 
     - name: Install Custom Module
-      if: ${{ inputs.installCustomModule }}
+      if: ${{ inputs.installCustomModule == 'true' }}
       env: 
         INSTALL_FOLDER: 'modules'
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
-        Write-Host "`e[33Install Custom Module started."
+        Write-Host "`e[33mInstall Custom Module started."
         . "./scripts/install-custom-module.ps1"
         InstallCustomModule -InstallFolder ${{ env.INSTALL_FOLDER }} -CustomModuleId ${{ inputs.customModuleId }} -CustomModuleUrl ${{ inputs.customModuleUrl }}
 
@@ -97,7 +97,7 @@ runs:
         Write-Host "`e[32mContainers started."
 
     - name: Check Installed Modules
-      if: ${{ inputs.installModules }}
+      if: ${{ inputs.installModules == 'true' }}
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
@@ -107,7 +107,7 @@ runs:
         Write-Host "`e[32mInstalled Modules checked."
 
     - name: Install Sample Data
-      if: ${{ inputs.installSampleData }}
+      if: ${{ inputs.installSampleData == 'true' }}
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
@@ -116,7 +116,7 @@ runs:
         Write-Host "`e[32mSample Data installed."
 
     - name: Swagger Schema Validation
-      if: ${{ inputs.validateSwagger }}
+      if: ${{ inputs.validateSwagger == 'true' }}
       shell: pwsh
       run: |
         $waitForSwaggerSec = 30
