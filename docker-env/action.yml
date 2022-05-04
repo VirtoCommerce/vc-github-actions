@@ -29,7 +29,7 @@ inputs:
     required: false
     default: 'true'
   installCustomModule:
-    description: 'Boolean param. true - to install custom module ver.'
+    description: 'Enable or disable custom module ver. installation'
     required: false
     default: 'false'
   customModuleId:
@@ -73,6 +73,7 @@ runs:
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
+        Write-Host "`e[33Install Custom Module started."
         . "./scripts/install-custom-module.ps1"
         InstallCustomModule -InstallFolder ${{ env.INSTALL_FOLDER }} -CustomModuleId ${{ inputs.customModuleId }} -CustomModuleUrl ${{ inputs.customModuleUrl }}
 
