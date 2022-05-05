@@ -1,0 +1,30 @@
+name: 'pr-body-get-link'
+description: 'Get jira keys, link to the artifact from PR body'
+inputs:
+  githubToken:
+    description: "GitHub token"
+    required: false
+  repoOrg:
+    description: "Repo org"
+    required: false
+    default: "VirtoCommerce"
+  downloadComment:
+    description: "Comment template"
+    required: false
+    default: "Download artifact URL:"
+  skipArtifactUrl:
+    description: "Get only jira keys, skip artifact url"
+    required: false
+    default: "false"
+
+outputs:
+  artifactUrl:
+    description: "Link to the deployment artifact"
+  qaTaskNumber:
+    description: "Jira task number to create deploy PR in QA environment"
+  demoTaskNumber:
+    description: "Jira task number to create deploy PR in Demo environment"
+
+runs:
+  using: 'node12'
+  main: 'dist/index.js' 
