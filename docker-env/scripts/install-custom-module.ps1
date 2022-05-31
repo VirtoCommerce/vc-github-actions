@@ -17,7 +17,7 @@ function InstallCustomModule {
         Write-Host "`e[32m$($CustomModuleId) successfull uninstalled."
     }
     catch {
-        Write-Host "`e[33mError ocure while $($CustomModuleId) uninstall."
+        Write-Host "`e[31mError ocure while $($CustomModuleId) uninstall."
     }
     Pop-Location
     Push-Location "./$($InstallFolder)/modules"
