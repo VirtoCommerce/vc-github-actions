@@ -57,9 +57,10 @@ do {
         $notify = $state.notifyEvents
         if ($notify.errorCount -gt 0) {
             Write-Output $notify
+            Write-Host "`e[31mSample data installation filed."
             exit 1
         }
     }
 }
 while (([string]::IsNullOrEmpty($notify.finished)) -and $cycleCount -lt 180)
-Write-Output "Sample data installation complete"
+Write-Host "`e[32mSample data installation complete."

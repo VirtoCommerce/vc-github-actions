@@ -113,7 +113,6 @@ runs:
       run: |
         Write-Host "`e[33mInstall Sample Data step started."
         scripts/setup-sampledata.ps1 -ApiUrl http://localhost:8090 -Verbose -Debug
-        Write-Host "`e[32mSample Data installed."
 
     - name: Swagger Schema Validation
       if: ${{ inputs.validateSwagger == 'true' }}
