@@ -25,8 +25,8 @@ async function run()
             }
         });
     } catch (error) {
-        core.info('\x1b[41mError while vc-build SonarQubeEnd executed detected:\x1b[0m');
         core.info(error.message);
+        core.setFailed('\x1b[41mError while vc-build SonarQubeEnd executed detected:\x1b[0m');
     }
 
 }
