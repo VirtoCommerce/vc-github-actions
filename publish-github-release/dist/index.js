@@ -17438,6 +17438,7 @@ function run() {
             yield exec.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip ${skipString}`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
                 if (exitCode != 0 && exitCode != 422) {
                     core.setFailed(`vc-build Release exit code: ${exitCode}`);
+                    process.exit();
                 }
             });
         }

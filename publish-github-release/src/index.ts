@@ -57,6 +57,7 @@ async function run()
             if(exitCode != 0 && exitCode != 422)
             {
                 core.setFailed(`vc-build Release exit code: ${exitCode}`);
+                process.exit();
             }
         });
     } catch (error) {
