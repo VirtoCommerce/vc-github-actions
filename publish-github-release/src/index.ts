@@ -52,12 +52,17 @@ async function run()
     let changelogFilePath = `artifacts/changelog.txt`;
     fs.writeFileSync(changelogFilePath, changelog);
     let releaseNotesArg = `-ReleaseNotes "${changelogFilePath}"`;
-    await exec.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip ${skipString}`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
-        if(exitCode != 0 && exitCode != 422)
-        {
-            console.log(`vc-build Release exit code: ${exitCode}`);
-        }
-    });
+    try {
+        await exec.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip ${skipString}`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
+            if(exitCode != 0 && exitCode != 422)
+            {
+                core.setFailed(`vc-build Release exit code: ${exitCode}`);
+            }
+        });
+    } catch (error) {
+        core.info(error.message);
+        core.setFailed('\x1b[41mError while vc-build Release executed detected:\x1b[0m');
+    }
     const downloadUrl = await getDownloadUrl();
     core.setOutput('downloadUrl',downloadUrl);
 }
