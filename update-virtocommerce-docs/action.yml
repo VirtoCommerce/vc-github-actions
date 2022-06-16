@@ -43,16 +43,8 @@ runs:
       working-directory: ${{ github.workspace }}/vc-platform
       shell: bash
       run: |
+        mkdocs build && ls -la
         cp ${{ github.action_path }}/site/* ./site/
-        mkdocs build && ls -la 
-        
-  
-    #- name: Build Old Docs
-    #  working-directory: ${{ github.workspace }}/2.0
-    #  shell: pwsh
-    #  run: |
-    #    wget https://vc3prerelease.blob.core.windows.net/packages/docs2.0.zip -O olddocs.zip
-    #    unzip olddocs.zip -d ./site
 
     - name: Docker
       shell: pwsh
