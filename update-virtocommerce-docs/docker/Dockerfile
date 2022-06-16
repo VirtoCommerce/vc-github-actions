@@ -5,7 +5,7 @@ RUN rm /usr/share/nginx/html/index.html \
     && apk update && apk add -u gettext
 
 COPY ./vc-platform/site /usr/share/nginx/html
-COPY ./2.0/site /usr/share/nginx/html/2.0
+
 COPY ./nginx.default.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
