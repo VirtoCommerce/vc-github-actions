@@ -1,5 +1,5 @@
-name: 'Update virtocommerce.com/docs'
-description: 'Makes and updates documentation for virtocommerce.com/docs'
+name: 'Update tokyo-environment1-docs.paas.govirto.com/docs'
+description: 'Makes and updates documentation for tokyo-environment1-docs.paas.govirto.com/docs'
 inputs:
   azureSubscriptionId:
     description: "Azure Subscription ID"
@@ -45,29 +45,17 @@ runs:
       run: |
         mkdocs build && ls -la && 7z a ${{ github.workspace }}/site.zip ./site/* -r
   
-    - name: Build Old Docs
-      working-directory: ${{ github.workspace }}/2.0
-      shell: pwsh
-      run: |
-        wget https://vc3prerelease.blob.core.windows.net/packages/docs2.0.zip -O olddocs.zip
-        unzip olddocs.zip -d ./site
+    #- name: Build Old Docs
+    #  working-directory: ${{ github.workspace }}/2.0
+    #  shell: pwsh
+    #  run: |
+    #    wget https://vc3prerelease.blob.core.windows.net/packages/docs2.0.zip -O olddocs.zip
+    #    unzip olddocs.zip -d ./site
 
     - name: Docker
       shell: pwsh
       run: |
         dotnet tool install --global VirtoCommerce.GlobalTool --version 2.2.0-alpha.29
         Copy-Item -Path ${{ github.action_path }}/docker/* -Destination ./ -Recurse -Force
-        vc-build BuildAndPush -DockerUsername ${{ inputs.dockerUsr }} -DockerPassword ${{ inputs.dockerPwd }} -DockerfilePath ./Dockerfile -DockerImageName ${{ inputs.dockerRegistry }}/vccom/docs -DockerImageTag $env:GITHUB_RUN_NUMBER -DockerRegistryUrl ${{ inputs.dockerRegistry }}
-        
-#     - name: Upload docs
-#       shell: pwsh
-#       env: 
-#         AzureSubscriptionIDProd: ${{ inputs.azureSubscriptionId }}
-#         AzureResourceGroupNameProd: ${{ inputs.azureResourceGroupName }}
-#         AzureWebAppNameProd: ${{ inputs.azureWebAppName }}
-#         ArtifactPath: ${{ github.workspace }}/site.zip
-#         AzureAPIKey: ${{ inputs.azureApiKey }}
-#         AzureTenantID: ${{ inputs.azureTenantId }}
-#         AzureAppID: ${{ inputs.azureAppId }}
-#       run: |
-#         pwsh -file ${{ github.action_path }}/scripts/DocsUpdate.ps1
+        vc-build BuildAndPush -DockerUsername ${{ inputs.dockerUsr }} -DockerPassword ${{ inputs.dockerPwd }} -DockerfilePath ./Dockerfile -DockerImageName ${{ inputs.dockerRegistry }}/tokyo/docs -DockerImageTag $env:GITHUB_RUN_NUMBER -DockerRegistryUrl ${{ inputs.dockerRegistry }}
+ 
