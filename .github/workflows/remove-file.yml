@@ -136,6 +136,7 @@ jobs:
       with:
         repository: '${{ github.repository_owner }}/${{ matrix.repoName }}'
         ref: '${{ github.event.inputs.branchName }}'
+        token: '${{ env.GITHUB_TOKEN }}'
 
     - name: Setup Git Credentials
       uses: VirtoCommerce/vc-github-actions/setup-git-credentials-github@master
