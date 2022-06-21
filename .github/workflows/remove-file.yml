@@ -15,7 +15,7 @@ on:
 
 jobs:
 
-  deploy:  
+  remove-file:  
     runs-on: ubuntu-latest
     strategy:
       matrix:
