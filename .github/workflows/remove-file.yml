@@ -17,6 +17,8 @@ jobs:
 
   remove-file:  
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
     strategy:
       matrix:
         include:
