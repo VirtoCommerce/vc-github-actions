@@ -20,6 +20,7 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
     strategy:
+      fail-fast: false
       matrix:
         include:
 # Module workflows
