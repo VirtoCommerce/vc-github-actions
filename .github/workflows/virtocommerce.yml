@@ -30,9 +30,9 @@ jobs:
           azureApiKey: ${{ secrets.AZUREAPIKEY }}
           azureTenantId: ${{ secrets.AZURETENANTID }}
           azureAppId: ${{ secrets.AZUREAPPID }}
-          dockerRegistry: ${{ secrets.DOCKER_REGISTRY }}
-          dockerUsr: ${{ secrets.DOCKER_USER }}
-          dockerPwd: ${{ secrets.DOCKER_PASSWORD }}
+          dockerRegistry: virtopaasregistrymain.azurecr.io
+          dockerUsr: tokyo
+          dockerPwd: ${{ secrets.DOCKER_TOKYO_PASSWORD }}
   
       - name: Deploy docs
         uses: VirtoCommerce/vc-github-actions/vc-argocd-cli@master # Uses an action in the root directory
