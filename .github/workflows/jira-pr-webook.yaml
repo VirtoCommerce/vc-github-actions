@@ -73,7 +73,7 @@ jobs:
             events: ["pull_request"],
             config: {
               url: "${{secrets.PR_JIRA_ISSUE_LINK}}",
-              content_type: "json"
-              insecure_ssl: "0",
+              content_type: "json",
+              insecure_ssl: "0"
             }
           })
