@@ -8930,6 +8930,7 @@ function run() {
                     webhookList = _a.sent();
                     webhooks = webhookList.data.filter(function (webhook) { return webhook.config.url === webhookUrl; });
                     if (!webhooks) return [3, 4];
+                    console.log("Updating webhook ".concat(webhooks[0].id));
                     return [4, octokit.rest.repos.updateWebhook({
                             owner: repoOwner,
                             repo: repoName,
@@ -8943,22 +8944,25 @@ function run() {
                 case 3:
                     _a.sent();
                     return [3, 6];
-                case 4: return [4, octokit.rest.repos.createWebhook({
-                        owner: repoOwner,
-                        repo: repoName,
-                        config: {
-                            url: webhookUrl,
-                            content_type: "json",
-                            insecure_ssl: "0"
-                        }
-                    })];
+                case 4:
+                    console.log("Creating new webhook");
+                    return [4, octokit.rest.repos.createWebhook({
+                            owner: repoOwner,
+                            repo: repoName,
+                            config: {
+                                url: webhookUrl,
+                                content_type: "json",
+                                insecure_ssl: "0"
+                            }
+                        })];
                 case 5:
                     _a.sent();
                     _a.label = 6;
                 case 6: return [3, 8];
                 case 7:
                     error_1 = _a.sent();
-                    console.log("\u001B[41mUpdate webhook failed:\u001B[0m ".concat(error_1));
+                    core.setFailed("\u001B[41mUpdate webhook failed:\u001B[0m ".concat(error_1));
+                    process.exit();
                     return [3, 8];
                 case 8:
                     console.log("\u001B[32mWebhook updated successfully\u001B[0m");

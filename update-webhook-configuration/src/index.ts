@@ -20,6 +20,7 @@ async function run(): Promise<void> {
         let webhooks = webhookList.data.filter(webhook => webhook.config.url === webhookUrl);
 
         if (webhooks) { // update existing webhook
+                console.log(`Updating webhook ${webhooks[0].id}`);
                 await octokit.rest.repos.updateWebhook({
                 owner: repoOwner,
                 repo: repoName,
@@ -31,6 +32,7 @@ async function run(): Promise<void> {
                 }
             })
         } else { // create new webhook if doesn't exist
+            console.log(`Creating new webhook`);
             await octokit.rest.repos.createWebhook({
                 owner: repoOwner,
                 repo: repoName,
@@ -42,7 +44,8 @@ async function run(): Promise<void> {
             })
         }
     } catch (error) {
-        console.log(`\x1b[41mUpdate webhook failed:\x1b[0m ${error}`);
+        core.setFailed(`\x1b[41mUpdate webhook failed:\x1b[0m ${error}`);
+        process.exit();
     }
     console.log(`\x1b[32mWebhook updated successfully\x1b[0m`);
 
