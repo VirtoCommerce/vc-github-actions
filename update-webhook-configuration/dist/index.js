@@ -8922,6 +8922,7 @@ function run() {
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 7, , 8]);
+                    console.log("Getting webhooks for repo ".concat(repoOwner, "/").concat(repoName));
                     return [4, octokit.rest.repos.listWebhooks({
                             owner: repoOwner,
                             repo: repoName

@@ -11,6 +11,7 @@ async function run(): Promise<void> {
     const octokit = github.getOctokit(GITHUB_TOKEN);
 
     try {
+        console.log(`Getting webhooks for repo ${repoOwner}/${repoName}`);
         let webhookList = await octokit.rest.repos.listWebhooks(
             {
                 owner: repoOwner,
