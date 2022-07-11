@@ -2,65 +2,16 @@ name: Create webhook for create Jira PR issue Logic App
 
 on:
   workflow_dispatch:
+    inputs:
+      repoName:
+        description: Repo name where webhook should be created
+        type: string
+        required: true
+
   
 jobs:
   update-webhook:  
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-# Repolist
-        repoName: [vc-module-assets
-                  # ,vc-module-Authorize.Net
-                  # ,vc-module-avatax
-                  # ,vc-module-azureblob-assets
-                  # ,vc-module-azure-search
-                  # ,vc-module-bulk-actions
-                  # ,vc-module-cart
-                  # ,vc-module-catalog
-                  # ,vc-module-catalog-csv-import
-                  # ,vc-module-catalog-export-import
-                  # ,vc-module-catalog-personalization
-                  # ,vc-module-catalog-publishing
-                  # ,vc-module-content
-                  # ,vc-module-core
-                  # ,vc-module-customer
-                  # ,vc-module-customer-export-import
-                  # ,vc-module-customer-review
-                  # ,vc-module-dynamic-associations
-                  # ,vc-module-elastic-app-search
-                  # ,vc-module-elastic-search
-                  # ,vc-module-event-bus
-                  # ,vc-module-experience-api
-                  # ,vc-module-export
-                  # ,vc-module-filesystem-assets
-                  # ,vc-module-gdpr
-                  # ,vc-module-google-ecommerce-analytics
-                  # ,vc-module-image-tools
-                  # ,vc-module-inventory
-                  # ,vc-module-lucene-search
-                  # ,vc-module-marketing
-                  # ,vc-module-metadata
-                  # ,vc-module-notification
-                  # ,vc-module-order
-                  # ,vc-module-payment
-                  # ,vc-module-price-export-import
-                  # ,vc-module-pricing
-                  # ,vc-module-profile-experience-api
-                  # ,vc-module-quote
-                  # ,vc-module-return
-                  # ,vc-module-search
-                  # ,vc-module-shipping
-                  # ,vc-module-sitemaps
-                  # ,vc-module-store
-                  # ,vc-module-subscription
-                  # ,vc-module-tax
-                  # ,vc-module-webhooks
-                  # ,vc-module-native-payment-methods
-                  # ,vc-module-shipstation
-                  # ,vc-module-authorize-net
-                  # ,vc-platform
-                  # ,vc-storefront
-                  ,vc-theme-b2b-vue]
     steps:
     - name: Create create Jira issue for contribution PR webhook
       uses: actions/github-script@v6
@@ -69,7 +20,7 @@ jobs:
         script: |
           github.rest.repos.createWebhook({
             owner: "VirtoCommerce",
-            repo: "${{matrix.repoName}}",
+            repo: "${{ github.event.inputs.repoName }}",
             events: ["pull_request"],
             config: {
               url: "${{secrets.PR_JIRA_ISSUE_LINK}}",
