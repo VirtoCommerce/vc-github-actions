@@ -63,7 +63,7 @@ jobs:
                   ,vc-theme-b2b-vue]
     steps:
     - name: Create create Jira issue for contribution PR webhook
-      run: actions/github-script@v6
+      uses: actions/github-script@v6
       with:
         script: |
           github.rest.createWebhook({
