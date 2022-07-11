@@ -65,6 +65,7 @@ jobs:
     - name: Create create Jira issue for contribution PR webhook
       uses: actions/github-script@v6
       with:
+        github-token: ${{ secrets.REPO_TOKEN }}
         script: |
           github.rest.repos.createWebhook({
             owner: "VirtoCommerce",
@@ -73,5 +74,6 @@ jobs:
             config: {
               url: "${{secrets.PR_JIRA_ISSUE_LINK}}",
               content_type: "json"
+              insecure_ssl: "0",
             }
           })
