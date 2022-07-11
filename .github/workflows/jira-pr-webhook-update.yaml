@@ -68,4 +68,4 @@ jobs:
       with:
         repoName: ${{ matrix.repoName }}
         webhookUrl: ${{secrets.PR_JIRA_ISSUE_LINK}}
-        githubToken: ${{secrets.GITHUB_TOKEN}}
+        githubToken: ${{secrets.REPO_TOKEN}}
