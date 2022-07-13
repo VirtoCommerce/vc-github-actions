@@ -87,13 +87,13 @@ runs:
       shell: bash
       working-directory: ${{ github.action_path }}
       run: |
-        cat <<EOT >> ./platform.env
+        cat <<EOT >>./platform.env
         ${{ inputs.customPlatformSettings }}
         EOT 
-        cat <<EOT >> ./storefront.env
+        cat ./platform.env 
+        cat <<EOT >>./storefront.env
         ${{ inputs.customSorefrontSettings }}
         EOT
-        cat ./platform.env 
         cat ./storefront.env 
 
     - name: Start containers
