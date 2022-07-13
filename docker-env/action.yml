@@ -77,11 +77,12 @@ runs:
         . "./scripts/install-custom-module.ps1"
         InstallCustomModule -InstallFolder ${{ env.INSTALL_FOLDER }} -CustomModuleId ${{ inputs.customModuleId }} -CustomModuleUrl ${{ inputs.customModuleUrl }}
 
-    - name: Save .env files
+    - name:  .env files
       shell: bash
       working-directory: ${{ github.action_path }}
       run: |
         echo -e '\033[33mSave .env files started.'
+        mkdir -p ./docker
         touch ./docker/platform.env
         touch ./storefront.env 
         echo -e 'Platform environment variables:'
