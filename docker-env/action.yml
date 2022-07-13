@@ -87,8 +87,8 @@ runs:
       shell: bash
       working-directory: ${{ github.action_path }}
       run: |
-        ${{ inputs.customPlatformSettings }} >> platform.env
-        ${{ inputs.customSorefrontSettings }} >> storefront.env
+        "${{ inputs.customPlatformSettings }}" >> platform.env
+        "${{ inputs.customSorefrontSettings }}" >> storefront.env
         cat platform.env 
         cat storefront.env 
 
