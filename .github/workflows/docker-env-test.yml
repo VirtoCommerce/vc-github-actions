@@ -29,5 +29,5 @@ jobs:
           storefrontImage: ghcr.io/virtocommerce/storefront
           validateSwagger: 'true'
           customPlatformSettings: |
-          |
-          Search:OrderFullTextSearchEnabled="true"
+            |
+            Search:OrderFullTextSearchEnabled="true"
