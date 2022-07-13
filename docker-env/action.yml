@@ -92,10 +92,12 @@ runs:
         cat <<EOT >>./platform.env
         ${{ inputs.customPlatformSettings }}
         EOT 
+
         cat ./platform.env 
         cat <<EOT >>./storefront.env
         ${{ inputs.customSorefrontSettings }}
         EOT
+
         cat ./storefront.env 
 
     - name: Start containers
