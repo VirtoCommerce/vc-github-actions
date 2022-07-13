@@ -82,6 +82,7 @@ runs:
       working-directory: ${{ github.action_path }}
       run: |
         echo -e '\033[33mSave .env files started.'
+        ls -l
         mkdir -p ./.docker
         touch ./.docker/platform.env
         touch ./.docker/storefront.env 
