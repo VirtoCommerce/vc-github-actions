@@ -48,6 +48,11 @@ inputs:
     description: 'Enable or disable "Install Sample Data" step'
     required: true
     default: 'true'
+  envDir:
+    description: 'Directory with environment files'
+    required: true
+    default: '.'
+
 
 runs:
   using: "composite"
@@ -82,18 +87,13 @@ runs:
       working-directory: ${{ github.action_path }}
       run: |
         echo -e '\033[33mSave .env files started.'
-        pushd ..
-        ls -l
-        popd    
-        ls - l ../.docker
-        cat ../.docker/platform.env
-        mkdir -p ../.docker
-        touch ../.docker/platform.env
-        touch ../.docker/storefront.env 
+        mkdir -p ${{ inputs.envDir }}/.docker
+        touch ${{ inputs.envDir }}/.docker/platform.env
+        touch ${{ inputs.envDir }}/.docker/storefront.env 
         echo -e 'Platform environment variables:'
-        cat ../.docker/platform.env
+        cat ${{ inputs.envDir }}/.docker/platform.env
         echo -e 'Storefront environment variables:'
-        cat ../.docker/storefront.env
+        cat ${{ inputs.envDir }}/.docker/storefront.env
 
     - name: Start containers
       env:
@@ -101,6 +101,7 @@ runs:
         STOREFRONT_IMAGE: ${{ inputs.storefrontImage }}
         PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
         STOREFRONT_DOCKER_TAG: ${{ inputs.storefrontDockerTag }}
+        ENV_DIR: ${{ inputs.envDir }}
       shell: pwsh
       working-directory: ${{ github.action_path }}
       run: |

@@ -34,7 +34,7 @@ services:
     ports:
       - "${DOCKER_PLATFORM_PORT:-8090}:80"
     env_file:
-      - ../.docker/platform.env
+      - ${ENV_DIR:-.}/.docker/platform.env
     environment:
       - ASPNETCORE_URLS=http://+
       - VirtoCommerce:AllowInsecureHttp=true
@@ -58,7 +58,7 @@ services:
     ports:
       - "${DOCKER_STOREFRONT_PORT:-8080}:80"
     env_file:
-      - ../.docker/storefront.env
+      - ${ENV_DIR:-.}/.docker/storefront.env
     environment:
       - VirtoCommerce:Endpoint:Url=http://vc-platform-web
       - VirtoCommerce:Endpoint:UserName=admin
