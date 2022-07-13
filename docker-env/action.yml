@@ -48,6 +48,12 @@ inputs:
     description: 'Enable or disable "Install Sample Data" step'
     required: true
     default: 'true'
+  customPlatformSettings:
+    description: 'Override the default platform settings'
+    required: false
+  customSorefrontSettings:
+    description: 'Override the default storefront settings'
+    required: false
 
 runs:
   using: "composite"
@@ -76,6 +82,15 @@ runs:
         Write-Host "`e[33mInstall Custom Module started."
         . "./scripts/install-custom-module.ps1"
         InstallCustomModule -InstallFolder ${{ env.INSTALL_FOLDER }} -CustomModuleId ${{ inputs.customModuleId }} -CustomModuleUrl ${{ inputs.customModuleUrl }}
+
+    - name: Save .env files
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        ${{ inputs.customPlatformSettings }} >> platform.env
+        ${{ inputs.customSorefrontSettings }} >> storefront.env
+        cat platform.env 
+        cat storefront.env 
 
     - name: Start containers
       env:
