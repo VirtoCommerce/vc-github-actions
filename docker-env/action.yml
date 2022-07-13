@@ -87,6 +87,8 @@ runs:
       shell: bash
       working-directory: ${{ github.action_path }}
       run: |
+        echo "`e[33mSave .env files started."
+        cat ./platform.env
         cat <<EOT >>./platform.env
         ${{ inputs.customPlatformSettings }}
         EOT 
