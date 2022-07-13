@@ -83,6 +83,7 @@ runs:
       run: |
         echo -e '\033[33mSave .env files started.'
         ls - l ../.docker
+        cat ../.docker/platform.env
         mkdir -p ../.docker
         touch ../.docker/platform.env
         touch ../.docker/storefront.env 
