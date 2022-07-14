@@ -57,7 +57,7 @@ runs:
       run: |
         dotnet tool install --global VirtoCommerce.GlobalTool --version 2.2.0-alpha.29
         Copy-Item -Path ${{ github.action_path }}/docker/* -Destination ./ -Recurse -Force
-        vc-build BuildAndPush -DockerUsername ${{ inputs.dockerUsr }} -DockerPassword ${{ inputs.dockerPwd }} -DockerfilePath ./Dockerfile -DockerImageName ${{ inputs.dockerRegistry }}/vccom/docs -DockerImageTag $env:GITHUB_RUN_NUMBER -DockerRegistryUrl ${{ inputs.dockerRegistry }}
+        vc-build BuildAndPush -DockerUsername ${{ inputs.dockerUsr }} -DockerPassword ${{ inputs.dockerPwd }} -DockerfilePath ./Dockerfile -DockerImageName ${{ inputs.dockerRegistry }}/vcpt/docs -DockerImageTag $env:GITHUB_RUN_NUMBER -DockerRegistryUrl ${{ inputs.dockerRegistry }}
         
 #     - name: Upload docs
 #       shell: pwsh

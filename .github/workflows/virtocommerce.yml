@@ -40,7 +40,7 @@ jobs:
         uses: VirtoCommerce/vc-github-actions/vc-argocd-cli@master # Uses an action in the root directory
         id: argocd-cli
         with:
-          server: argo.govirto.com
+          server: argocd.govirto.com
           username: ${{ secrets.ARGOCD_LOGIN }}
           password: ${{ secrets.ARGOCD_PASSWORD }}
           command: 'app set vccom-docs --helm-set custom.app1.image.tag=${{ github.run_number }}'
