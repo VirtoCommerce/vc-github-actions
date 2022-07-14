@@ -32,7 +32,7 @@ jobs:
           azureApiKey: ${{ secrets.AZUREAPIKEY }}
           azureTenantId: ${{ secrets.AZURETENANTID }}
           azureAppId: ${{ secrets.AZUREAPPID }}
-          dockerRegistry: virtopaasregistrymain.azurecr.io/vcpt/docs
+          dockerRegistry: virtopaasregistrymain.azurecr.io
           dockerUsr: vcpt-repo-saccess
           dockerPwd: 6cWgMnx7PNib50ZrtRxR/gKT7YJBLUrR
   
