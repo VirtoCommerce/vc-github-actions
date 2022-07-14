@@ -43,4 +43,4 @@ jobs:
           server: argocd.govirto.com
           username: ${{ secrets.ARGOCD_LOGIN }}
           password: ${{ secrets.ARGOCD_PASSWORD }}
-          command: 'app set vccom-docs --helm-set custom.app1.image.tag=${{ github.run_number }}'
+          command: 'app set vcpt-docs --helm-set custom.app1.image.tag=${{ github.run_number }}'
