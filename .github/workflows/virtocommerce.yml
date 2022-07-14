@@ -32,15 +32,15 @@ jobs:
           azureApiKey: ${{ secrets.AZUREAPIKEY }}
           azureTenantId: ${{ secrets.AZURETENANTID }}
           azureAppId: ${{ secrets.AZUREAPPID }}
-          dockerRegistry: ${{ secrets.DOCKER_REGISTRY }}
-          dockerUsr: ${{ secrets.DOCKER_USER }}
-          dockerPwd: ${{ secrets.DOCKER_PASSWORD }}
+          dockerRegistry: virtopaasregistrymain.azurecr.io/vcpt/docs
+          dockerUsr: vcpt-repo-saccess
+          dockerPwd: 6cWgMnx7PNib50ZrtRxR/gKT7YJBLUrR
   
       - name: Deploy docs
         uses: VirtoCommerce/vc-github-actions/vc-argocd-cli@master # Uses an action in the root directory
         id: argocd-cli
         with:
-          server: argo.govirto.com
-          username: ${{ secrets.ARGOCD_LOGIN }}
-          password: ${{ secrets.ARGOCD_PASSWORD }}
-          command: 'app set vccom-docs --helm-set custom.app1.image.tag=${{ github.run_number }}'
+          server: argocd.govirto.com
+          username: admin
+          password: BogRz8Zz1-gVONk4
+          command: 'app set vcpt-docs --helm-set custom.app1.image.tag=${{ github.run_number }}'
