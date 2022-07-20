@@ -9056,14 +9056,14 @@ function createDeployCommit(deployData, targetRepo, baseRepoName, gitUser, octok
         });
     });
 }
-function setPlatform(verValue, tagValue, cmBody) {
+function setPlatform(verValue, tagValue, content) {
     console.log('Set platform version');
     var version = "PlatformVersion";
     var imageTag = "PlatformImageTag";
-    var vcPacakge = JSON.parse(cmBody);
+    var vcPacakge = JSON.parse(content);
     vcPacakge[version] = verValue;
     vcPacakge[imageTag] = tagValue;
-    var result = JSON.stringify(vcPacakge);
+    var result = JSON.stringify(vcPacakge, null, 2);
     return result;
 }
 function setModule(moduleId, moduleVer, moduleLink, content) {

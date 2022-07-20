@@ -158,15 +158,15 @@ async function createDeployCommit(deployData: DeploymentData, targetRepo: RepoDa
     });
 }
 
-function setPlatform (verValue:string, tagValue:string, cmBody:string){
+function setPlatform (verValue:string, tagValue:string, content:string){
     console.log('Set platform version');
 
     const version = "PlatformVersion"
     const imageTag = "PlatformImageTag";
-    let vcPacakge = JSON.parse(cmBody);
+    let vcPacakge = JSON.parse(content);
     vcPacakge[version] = verValue;
     vcPacakge[imageTag] = tagValue;
-    let result = JSON.stringify(vcPacakge);
+    let result = JSON.stringify(vcPacakge, null, 2);
     return result;
 }
 
