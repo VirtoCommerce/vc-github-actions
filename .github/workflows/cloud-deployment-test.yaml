@@ -4,9 +4,7 @@ on:
 
 jobs:
   deploy:
-    needs:
-      publish
-    uses: VirtoCommerce/.github/.github/workflows/deploy.yml@v3.200.1
+    uses: VirtoCommerce/.github/.github/workflows/deploy-cloud.yml@main
     with:
       deploymentSource: platform
       platformVer: '3.231.0-alpha.12395'
