@@ -193,7 +193,7 @@ function setContent (deployData: DeploymentData, content: string): string {
             deployContent = setModule(deployData.moduleId, deployData.moduleVer, deployData.moduleLink, content);
             break;
         default:
-            console.log(`Deployment source type is not supported. Valid values: \033[0;32m${deploymentSourceTypes.join(', ')}\033[0m. Actual value: \033[0;31m${deployData.deploymentSource}\033[0m.`);
+            console.log(`Deployment source type is not supported. Valid values: \x1b[0;32m${deploymentSourceTypes.join(', ')}\x1b[0m. Actual value: \x1b[0;31m${deployData.deploymentSource}\x1b[0m.`);
     }
 
     return deployContent;
@@ -220,7 +220,7 @@ async function run(): Promise<void> {
     const forceCommit = core.getInput("forceCommit");
 
     if (deploymentSourceTypes.indexOf(deploymentSource) === -1) { 
-        core.setFailed(`Invalid deploymentSource. Valid values: \033[0;32m${deploymentSourceTypes.join(', ')}\033[0m. Actual value: \033[0;31m${deploymentSource}\033[0m.`);
+        core.setFailed(`Invalid deploymentSource. Valid values: \x1b[0;32m${deploymentSourceTypes.join(', ')}\x1b[0m. Actual value: \x1bs[0;31m${deploymentSource}\x1b[0m.`);
         return;
     }
     const octokit = github.getOctokit(GITHUB_TOKEN);

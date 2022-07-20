@@ -9085,7 +9085,7 @@ function setContent(deployData, content) {
             deployContent = setModule(deployData.moduleId, deployData.moduleVer, deployData.moduleLink, content);
             break;
         default:
-            console.log("Deployment source type is not supported. Valid values: \x0033[0;32m" + deploymentSourceTypes.join(', ') + "\x0033[0m. Actual value: \x0033[0;31m" + deployData.deploymentSource + "\x0033[0m.");
+            console.log("Deployment source type is not supported. Valid values: \u001B[0;32m" + deploymentSourceTypes.join(', ') + "\u001B[0m. Actual value: \u001B[0;31m" + deployData.deploymentSource + "\u001B[0m.");
     }
     return deployContent;
 }
@@ -9112,7 +9112,7 @@ function run() {
             configPath = core.getInput("configPath");
             forceCommit = core.getInput("forceCommit");
             if (deploymentSourceTypes.indexOf(deploymentSource) === -1) {
-                core.setFailed("Invalid deploymentSource. Valid values: \x0033[0;32m" + deploymentSourceTypes.join(', ') + "\x0033[0m. Actual value: \x0033[0;31m" + deploymentSource + "\x0033[0m.");
+                core.setFailed("Invalid deploymentSource. Valid values: \u001B[0;32m" + deploymentSourceTypes.join(', ') + "\u001B[0m. Actual value: \u001Bs[0;31m" + deploymentSource + "\u001B[0m.");
                 return [2];
             }
             octokit = github.getOctokit(GITHUB_TOKEN);
