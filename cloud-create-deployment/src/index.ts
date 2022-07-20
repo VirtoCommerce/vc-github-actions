@@ -29,13 +29,16 @@ interface DeploymentData
     configPath: string
 }
 
-async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, baseRepo: RepoData, gitUser: GitUser, octokit: any): Promise <void>{
+async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, baseRepo: RepoData, gitUser: GitUser, githubToken: string, sha: string, deployContent: string): Promise <void>{
 
+    console.log('Create deployment PR');
+
+    const octokit = github.getOctokit(githubToken);
     const targetBranchName = `${targetRepo.taskNumber}-${targetRepo.branchName}-deployment`;
-    
+
     console.log('Get base branch data');
     //Get base branch data
-    const { data: baseBranch } = await octokit.git.getRef({
+    const { data: baseBranch } = await octokit.rest.git.getRef({
         owner: targetRepo.repoOrg,
         repo: targetRepo.repoName,
         ref: `heads/${targetRepo.branchName}`
@@ -44,7 +47,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     //Check branch exists
     let branch;
     try{
-        branch = await octokit.repos.getBranch({
+        branch = await octokit.rest.repos.getBranch({
             owner: targetRepo.repoOrg,
             repo: targetRepo.repoName,
             branch: `refs/heads/${targetBranchName}`,
@@ -55,7 +58,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
         console.log('Create branch for deployment PR');
         //Create branch for deployment PR
 
-        const { data: targetBranch } = await octokit.git.createRef({
+        const { data: targetBranch } = await octokit.rest.git.createRef({
             owner: targetRepo.repoOrg,
             repo: targetRepo.repoName,
             ref: `refs/heads/${targetBranchName}`,
@@ -63,28 +66,15 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
         });
     }
 
-    console.log('Get deployment config map content');
-    //Get deployment config map content
-    const { data: cmData} = await octokit.repos.getContent({
-        owner: targetRepo.repoOrg,
-        repo: targetRepo.repoName,
-        ref: `refs/heads/${targetBranchName}`,
-        path: deployData.configPath
-    });
-
-    let content = Buffer.from(cmData.content, 'base64').toString();
-    //Set new values in deployment config map
-    let deployContent = setContent(deployData, content);
-
     console.log('Push deployment config map content to target directory');
     //Push deployment config map content to target directory
-    const { data: cmResult } = await octokit.repos.createOrUpdateFileContents({
+    const { data: cmResult } = await octokit.rest.repos.createOrUpdateFileContents({
         owner: targetRepo.repoOrg,
         repo: targetRepo.repoName,
         path: deployData.configPath,
         branch: targetBranchName,
         content: Buffer.from(deployContent).toString("base64"),
-        sha: cmData.sha,
+        sha: sha,
         message: `${commitPrefix} ${baseRepo.repoName} from PR ${baseRepo.pullNumber}`,
         committer:{
             name: gitUser.name,
@@ -99,7 +89,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     //Check pr exists
     let pr;
     try {
-        pr = await octokit.pulls.list({
+        pr = await octokit.rest.pulls.list({
             owner: targetRepo.repoOrg,
             repo: targetRepo.repoName,
             head: `${targetRepo.repoOrg}:refs/heads/${targetBranchName}`,
@@ -111,7 +101,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     if (typeof pr.data === 'undefined' || pr.data.length === 0) {
         console.log('Create PR to head branch');
         //Create PR to head branch
-        await octokit.pulls.create({
+        await octokit.rest.pulls.create({
             owner: targetRepo.repoOrg,
             repo: targetRepo.repoName,
             head: `refs/heads/${targetBranchName}`,
@@ -122,30 +112,21 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     }
 }
 
-async function createDeployCommit(deployData: DeploymentData, targetRepo: RepoData, baseRepoName: string, gitUser: GitUser, octokit: any): Promise <void>{
+async function createDeployCommit(deployData: DeploymentData, targetRepo: RepoData, baseRepoName: string, gitUser: GitUser, sha: string, githubToken: string, deployContent: string): Promise <void>{
 
-    console.log('Get deployment config map content');
-    //Get deployment config map content
-    const { data: cmData} = await octokit.repos.getContent({
-        owner: targetRepo.repoOrg,
-        repo: targetRepo.repoName,
-        ref: `refs/heads/${targetRepo.branchName}`,
-        path: deployData.configPath
-    });
+    console.log('Commit deployment config content');
 
-    const content = Buffer.from(cmData.content, 'base64').toString();
-    //Set new values in deployment config
-    let deployContent = setContent(deployData, content);
+    const octokit = github.getOctokit(githubToken);
 
-    console.log('Push deployment config map content to target directory');
+    console.log('Push deployment config content to the target directory');
     //Push deployment config map content to target directory
-    const { data: cmResult } = await octokit.repos.createOrUpdateFileContents({
+    const { data: cmResult } = await octokit.rest.repos.createOrUpdateFileContents({
         owner: targetRepo.repoOrg,
         repo: targetRepo.repoName,
         path: deployData.configPath,
         branch: targetRepo.branchName,
         content: Buffer.from(deployContent).toString("base64"),
-        sha: cmData.sha,
+        sha: sha,
         message: `${commitPrefix} ${baseRepoName}`,
         committer:{
             name: gitUser.name,
@@ -199,11 +180,41 @@ function setContent (deployData: DeploymentData, content: string): string {
     return deployContent;
 }
 
+async function updateConfigContent(githubToken: string, deployData: DeploymentData, targetRepo: RepoData, baseRepo: RepoData, gitUser: GitUser, forceCommit: string): Promise <void>{
+    console.log('Update config content');
+    
+    const octokit = github.getOctokit(githubToken);
+    console.log('Get config content');
+    //Get deployment config map content
+    const {data: config }= await octokit.rest.repos.getContent({
+        owner: targetRepo.repoOrg,
+        repo: targetRepo.repoName,
+        ref: `refs/heads/${targetRepo.branchName}`,
+        path: deployData.configPath
+    }) as { data: { sha: string, content: string } };
+
+    const content = Buffer.from(config.content, 'base64').toString();
+    //Set new values in deployment config
+    let deployContent = setContent(deployData, content);
+
+    switch(forceCommit){
+        case "false":
+            createDeployPr(deployData, targetRepo, baseRepo, gitUser, config.sha, githubToken, deployContent);
+            break;
+        case "true":
+            createDeployCommit(deployData, targetRepo, baseRepo.repoName, gitUser, config.sha, githubToken, deployContent);
+            break;
+        default:
+            console.log(`Input parameter forceCommit should contain "true" or "false". Current forceCommit value is "${forceCommit}"`)
+    }
+
+}
+
 async function run(): Promise<void> {
 
     let GITHUB_TOKEN = core.getInput("githubToken");
     if(!GITHUB_TOKEN  && process.env.GITHUB_TOKEN !== undefined) GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-    
+  
     const deployRepoName = core.getInput("deployRepo");
     const deployBranchName = core.getInput("deployBranch");
     const gitUserName = core.getInput("gitUserName");
@@ -220,10 +231,14 @@ async function run(): Promise<void> {
     const forceCommit = core.getInput("forceCommit");
 
     if (deploymentSourceTypes.indexOf(deploymentSource) === -1) { 
-        core.setFailed(`Invalid deploymentSource. Valid values: \x1b[0;32m${deploymentSourceTypes.join(', ')}\x1b[0m. Actual value: \x1bs[0;31m${deploymentSource}\x1b[0m.`);
+        core.setFailed(`Invalid deploymentSource. Input parameter deploymentSource should contain: \x1b[0;32m${deploymentSourceTypes.join(', ')}\x1b[0m. Actual value: \x1bs[0;31m${deploymentSource}\x1b[0m.`);
         return;
     }
-    const octokit = github.getOctokit(GITHUB_TOKEN);
+    
+    if (forceCommit !== "true" && forceCommit !== "false") { 
+        core.setFailed(`Invalid forceCommit. Input parameter deploymentSource should contain:: \x1b[0;32mtrue\x1b[0m or \x1b[0;32mfalse\x1b[0m. Actual value: \x1bs[0;31m${forceCommit}\x1b[0m.`);
+        return;
+    }
 
     const gitUser: GitUser = {
         name: gitUserName,
@@ -252,16 +267,7 @@ async function run(): Promise<void> {
         configPath: configPath
     }
 
-    switch(forceCommit){
-        case "false":
-            createDeployPr(deployData, deployRepo, prRepo, gitUser, octokit);
-            break;
-        case "true":
-            createDeployCommit(deployData, deployRepo, prRepo.repoName, gitUser, octokit);
-            break;
-        default:
-            console.log(`Input parameter forceCommit should contain "true" or "false". Current forceCommit value is "${forceCommit}"`)
-    }
+    updateConfigContent(GITHUB_TOKEN, deployData, deployRepo, prRepo, gitUser, forceCommit);
 
 }
 
