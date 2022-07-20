@@ -1,0 +1,18 @@
+name: Docker Environment test
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    needs:
+      publish
+    uses: VirtoCommerce/.github/.github/workflows/deploy.yml@v3.200.1
+    with:
+      deploymentSource: platform
+      platformVer: '3.231.0-alpha.12395'
+      platformTag: '3.231.0-alpha.12395-dev-5dca7c88'
+      matrix: '{"include":[{"envName": "qa", "confPath": "argoDeploy.json"}]}'
+    secrets:
+      envPAT: ${{ secrets.REPO_TOKEN }}
+      argoLogin: ${{ secrets.ARGOCD_LOGIN }}
+      argoPassword: ${{ secrets.ARGOCD_PASSWORD }}    
