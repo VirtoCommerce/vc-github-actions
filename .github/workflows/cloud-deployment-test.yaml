@@ -7,10 +7,9 @@ jobs:
     uses: VirtoCommerce/.github/.github/workflows/deploy-cloud.yml@main
     with:
       releaseSource: module
-      releaseType: AzureBlob
-      moduleId: "VirtoCommerce.ExperienceApi"
-      moduleVer: "3.222.0-alpha.993"
-      moduleBlob: "VirtoCommerce.ExperienceApi_3.222.0-alpha.993.zip"
+      releaseType: GithubReleases
+      moduleId: "VirtoCommerce.ElasticSearch"
+      moduleVer: "3.203.1"
       matrix: '{"include":[{"envName": "qa", "confPath": "argoDeploy.json"}]}'
     secrets:
       envPAT: ${{ secrets.REPO_TOKEN }}
