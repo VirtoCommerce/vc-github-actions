@@ -177,7 +177,8 @@ function setModule (deployData: DeploymentData, content: string): string {
         alphasArray = addModuleToArray(alphasArray, deployData);
     }
 
-    const resultPackage = setSources(vcPacakge, releasesArray, alphasArray);
+    const resultSources = setSources(vcPacakge, releasesArray, alphasArray);
+    const resultPackage = vcPacakge.Sources = resultSources;
     let result = JSON.stringify(resultPackage, null, 2);
     return result;
 }
