@@ -8,8 +8,8 @@ jobs:
     with:
       releaseSource: module
       releaseType: GithubReleases
-      moduleId: "VirtoCommerce.ElasticSearch"
-      moduleVer: "3.203.1"
+      moduleId: "VirtoCommerce.ExperienceApi"
+      moduleVer: "3.211.4"
       matrix: '{"include":[{"envName": "qa", "confPath": "argoDeploy.json"}]}'
     secrets:
       envPAT: ${{ secrets.REPO_TOKEN }}
