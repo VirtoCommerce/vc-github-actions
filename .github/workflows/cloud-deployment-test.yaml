@@ -6,7 +6,7 @@ jobs:
   deploy:
     uses: VirtoCommerce/.github/.github/workflows/deploy-cloud.yml@main
     with:
-      releaseSource: platform
+      releaseSource: module
       releaseType: AzureBlob
       moduleId: "VirtoCommerce.ExperienceApi"
       moduleVer: "3.222.0-alpha.993"
