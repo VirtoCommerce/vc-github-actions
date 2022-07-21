@@ -24,8 +24,11 @@ inputs:
     description: "Base branch for new deployment"
     required: true
     default: "vcpt"
-  deploymentSource:
-    description: "Deployment source. Allowed values: platform, module"
+  releaseSource:
+    description: "Release source. Allowed values: platform, module"
+    required: true
+  releaseType:
+    description: "Release type. Allowed values: 'GithubReleases', 'AzureBlob'"
     required: true
   platformVer:
     description: "Deploying Platform version"
@@ -39,8 +42,8 @@ inputs:
   moduleVer:
     description: "Deploying Module version"
     required: false
-  moduleLink:
-    description: "Deploying Module link"
+  moduleBlob:
+    description: "Deploying Module blob name"
     required: false
   taskNumber:
     description: "Jira task number to create deploy commit or PR in QA or Demo environment"

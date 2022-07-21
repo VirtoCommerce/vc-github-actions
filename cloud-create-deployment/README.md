@@ -37,9 +37,14 @@
     required: true
     default: "qa"
 
-### deploymentSource:
+### releaseSource:
 
-    description: "Deployment source. Allowed values: platform, module"
+    description: "Release source. Allowed values: platform, module"
+    required: true
+
+### releaseType:
+
+    description: "Release type. Allowed values: release, alpha"
     required: true
 
 ### platformVer:
@@ -92,9 +97,10 @@
     if: ${{ github.event_name == 'pull_request' }}
     uses: VirtoCommerce/vc-github-actions/create-deploy-pr@master
     with:
-        deployRepo: "vc-webstore-deploy"
+        deployRepo: "vc-deploy-dev"
         deployBranch: "vcpt"
-        deploymentSource: "platform"
+        releaseSource: "platform"
+        releaseType: "GithubReleases"
         platformVer: "1.0.0"
         platformTag: "1.0.0-master-1234abcd"
         taskNumber: "${{ steps.artifactLink.outputs.demoTaskNumber }}"

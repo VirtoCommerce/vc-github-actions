@@ -8904,7 +8904,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 var github = __importStar(__nccwpck_require__(9782));
 var core = __importStar(__nccwpck_require__(739));
-var deploymentSourceTypes = ['platform', 'module'];
+var githubReleases = 'GithubReleases';
+var azureBlobReleases = 'AzureBlob';
+var releaseSourceTypes = ['platform', 'module'];
+var releaseTypes = [githubReleases, azureBlobReleases];
 var commitPrefix = 'ci: Automated update';
 function createDeployPr(deployData, targetRepo, baseRepo, gitUser, githubToken, sha, deployContent) {
     return __awaiter(this, void 0, void 0, function () {
@@ -9048,28 +9051,86 @@ function setPlatform(verValue, tagValue, content) {
     var result = JSON.stringify(vcPacakge, null, 2);
     return result;
 }
-function setModule(moduleId, moduleVer, moduleLink, content) {
+function setModule(deployData, content) {
+    var _a, _b;
     console.log('Set module version');
-    var newContent = content;
-    newContent = newContent.replace(/\$\{moduleId\}/g, moduleId);
-    newContent = newContent.replace(/\$\{moduleVer\}/g, moduleVer);
-    newContent = newContent.replace(/\$\{moduleLink\}/g, moduleLink);
-    return newContent;
+    var vcPacakge = JSON.parse(content);
+    var releasesArray = (_a = (vcPacakge.Sources.filter(function (x) { return x.Name === githubReleases; }))) === null || _a === void 0 ? void 0 : _a[0].Modules;
+    var alphasArray = (_b = (vcPacakge.Sources.filter(function (x) { return x.Name === azureBlobReleases; }))) === null || _b === void 0 ? void 0 : _b[0].Modules;
+    if (releasesArray) {
+        releasesArray = removeModuleFromArray(releasesArray, deployData.moduleId);
+    }
+    if (alphasArray) {
+        alphasArray = removeModuleFromArray(alphasArray, deployData.moduleId);
+    }
+    if (deployData.releaseType === githubReleases) {
+        releasesArray = addModuleToArray(releasesArray, deployData);
+    }
+    else {
+        alphasArray = addModuleToArray(alphasArray, deployData);
+    }
+    var resultPackage = setSources(vcPacakge, releasesArray, alphasArray);
+    var result = JSON.stringify(resultPackage, null, 2);
+    return result;
+}
+function setSources(vcPackage, releasesArray, alphasArray) {
+    console.log('Set sources');
+    var sources = vcPackage.Sources;
+    if (releasesArray) {
+        sources = sources.map(function (x) {
+            if (x.Name === githubReleases) {
+                x.Modules = releasesArray;
+            }
+            return x;
+        });
+    }
+    if (alphasArray) {
+        sources = sources.map(function (x) {
+            if (x.Name === azureBlobReleases) {
+                x.Modules = alphasArray;
+            }
+            return x;
+        });
+    }
+    return sources;
+}
+function addModuleToArray(modules, deployData) {
+    console.log('Add module version');
+    switch (deployData.releaseType) {
+        case githubReleases:
+            modules.push({ "Id": deployData.moduleId, "Version": deployData.moduleVer });
+            break;
+        case azureBlobReleases:
+            modules.push({ "Id": deployData.moduleId, "BlobName": deployData.moduleBlob });
+            break;
+        default:
+            console.log("Invalid releaseType. Input parameter releaseType should contain: \u001B[0;32m" + releaseTypes.join(', ') + "\u001B[0m. Actual value: \u001Bs[0;31m" + deployData.releaseType + "\u001B[0m.");
+            break;
+    }
+    return modules;
 }
 function setContent(deployData, content) {
     console.log('Set content');
     var deployContent;
-    switch (deployData.deploymentSource) {
-        case deploymentSourceTypes[0]:
+    switch (deployData.releaseSource) {
+        case releaseSourceTypes[0]:
             deployContent = setPlatform(deployData.platformVer, deployData.platformTag, content);
             break;
-        case deploymentSourceTypes[1]:
-            deployContent = setModule(deployData.moduleId, deployData.moduleVer, deployData.moduleLink, content);
+        case releaseSourceTypes[1]:
+            deployContent = setModule(deployData, content);
             break;
         default:
-            console.log("Deployment source type is not supported. Valid values: \u001B[0;32m" + deploymentSourceTypes.join(', ') + "\u001B[0m. Actual value: \u001B[0;31m" + deployData.deploymentSource + "\u001B[0m.");
+            console.log("Deployment source type is not supported. Valid values: \u001B[0;32m" + releaseSourceTypes.join(', ') + "\u001B[0m. Actual value: \u001B[0;31m" + deployData.releaseSource + "\u001B[0m.");
     }
     return deployContent;
+}
+function removeModuleFromArray(modules, moduleId) {
+    console.log('Remove module from array');
+    var index = modules.findIndex(function (m) { return m.Id === moduleId; });
+    if (index > -1) {
+        modules.splice(index, 1);
+    }
+    return modules;
 }
 function updateConfigContent(githubToken, deployData, targetRepo, baseRepo, gitUser, forceCommit) {
     return __awaiter(this, void 0, void 0, function () {
@@ -9108,7 +9169,7 @@ function updateConfigContent(githubToken, deployData, targetRepo, baseRepo, gitU
 function run() {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function () {
-        var GITHUB_TOKEN, deployRepoName, deployBranchName, gitUserName, gitUserEmail, repoOrg, deploymentSource, platformVer, platformTag, moduleId, moduleVer, moduleLink, taskNumber, configPath, forceCommit, gitUser, prRepo, deployRepo, deployData;
+        var GITHUB_TOKEN, deployRepoName, deployBranchName, gitUserName, gitUserEmail, repoOrg, releaseSource, releaseType, platformVer, platformTag, moduleId, moduleVer, moduleBlob, taskNumber, configPath, forceCommit, gitUser, prRepo, deployRepo, deployData;
         return __generator(this, function (_d) {
             GITHUB_TOKEN = core.getInput("githubToken");
             if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
@@ -9118,21 +9179,26 @@ function run() {
             gitUserName = core.getInput("gitUserName");
             gitUserEmail = core.getInput("gitUserEmail");
             repoOrg = core.getInput("repoOrg");
-            deploymentSource = core.getInput("deploymentSource");
+            releaseSource = core.getInput("releaseSource");
+            releaseType = core.getInput("releaseType");
             platformVer = core.getInput("platformVer");
             platformTag = core.getInput("platformTag");
             moduleId = core.getInput("moduleId");
             moduleVer = core.getInput("moduleVer");
-            moduleLink = core.getInput("moduleLink");
+            moduleBlob = core.getInput("moduleBlob");
             taskNumber = core.getInput("taskNumber");
             configPath = core.getInput("configPath");
             forceCommit = core.getInput("forceCommit");
-            if (deploymentSourceTypes.indexOf(deploymentSource) === -1) {
-                core.setFailed("Invalid deploymentSource. Input parameter deploymentSource should contain: \u001B[0;32m" + deploymentSourceTypes.join(', ') + "\u001B[0m. Actual value: \u001Bs[0;31m" + deploymentSource + "\u001B[0m.");
+            if (releaseSourceTypes.indexOf(releaseSource) === -1) {
+                core.setFailed("Invalid releaseSource. Input parameter releaseSource should contain: \u001B[0;32m" + releaseSourceTypes.join(', ') + "\u001B[0m. Actual value: \u001Bs[0;31m" + releaseSource + "\u001B[0m.");
+                return [2];
+            }
+            if (releaseTypes.indexOf(releaseType) === -1) {
+                core.setFailed("Invalid releaseType. Input parameter releaseType should contain: \u001B[0;32m" + releaseTypes.join(', ') + "\u001B[0m. Actual value: \u001Bs[0;31m" + releaseType + "\u001B[0m.");
                 return [2];
             }
             if (forceCommit !== "true" && forceCommit !== "false") {
-                core.setFailed("Invalid forceCommit. Input parameter deploymentSource should contain:: \u001B[0;32mtrue\u001B[0m or \u001B[0;32mfalse\u001B[0m. Actual value: \u001Bs[0;31m" + forceCommit + "\u001B[0m.");
+                core.setFailed("Invalid forceCommit. Input parameter releaseSource should contain:: \u001B[0;32mtrue\u001B[0m or \u001B[0;32mfalse\u001B[0m. Actual value: \u001Bs[0;31m" + forceCommit + "\u001B[0m.");
                 return [2];
             }
             gitUser = {
@@ -9152,12 +9218,13 @@ function run() {
                 taskNumber: taskNumber
             };
             deployData = {
-                deploymentSource: deploymentSource,
+                releaseSource: releaseSource,
+                releaseType: releaseType,
                 platformVer: platformVer,
                 platformTag: platformTag,
                 moduleId: moduleId,
                 moduleVer: moduleVer,
-                moduleLink: moduleLink,
+                moduleBlob: moduleBlob,
                 configPath: configPath
             };
             updateConfigContent(GITHUB_TOKEN, deployData, deployRepo, prRepo, gitUser, forceCommit);
