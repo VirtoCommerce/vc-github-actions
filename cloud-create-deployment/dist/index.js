@@ -9070,7 +9070,8 @@ function setModule(deployData, content) {
         alphasArray = addModuleToArray(alphasArray, deployData);
     }
     var resultSources = setSources(vcPacakge, releasesArray, alphasArray);
-    var resultPackage = vcPacakge.Sources = resultSources;
+    var resultPackage = vcPacakge;
+    resultPackage.Sources = resultSources;
     var result = JSON.stringify(resultPackage, null, 2);
     return result;
 }
