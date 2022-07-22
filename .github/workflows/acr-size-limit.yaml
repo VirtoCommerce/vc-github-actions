@@ -10,6 +10,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        run: |
+          ls
       - name: check repo limit
         # continue-on-error: true
         id: check-repo-limit
@@ -19,6 +21,7 @@ jobs:
           service_principal_password: ${{ secrets.VCCLOUD_AZURE_CLIENT_SECRET }}
           tenant_id: ${{ secrets.VCCLOUD_AZURE_TENANT_ID }}
           web_hook_url: ${{ secrets.VCCLOUD_WEB_HOOK_URL }}
+
       - name: check previous step
         if: ${{ steps.check-repo-limit.conclusion }} == 'failure'
         run: |
