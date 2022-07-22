@@ -1,0 +1,28 @@
+on:
+  workflow_dispatch:
+  push:
+    branches: [ acr-action ]
+
+jobs:
+  check_repo_limit_job:
+    runs-on: ubuntu-latest
+    name: A job to check repo limit
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: check repo limit
+        continue-on-error: true
+        id: check-repo-limit
+        uses: VirtoCommerce/vc-github-actions/check-acr-size-limit@acr-action
+        with:
+          service_principal_id: ${{ secrets.AZURE_CLIENT_ID }}
+          service_principal_password: ${{ secrets.AZURE_CLIENT_SECRET }}
+          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          web_hook_url: ${{ secrets.WEB_HOOK_URL }}
+      - name: check previous step
+        if: ${{ steps.check-repo-limit.conclusion }} == 'failure'
+        run: |
+          curl --location \
+          --request POST ${{ secrets.WEB_HOOK_URL }} \
+          --header 'Content-Type: application/json' \
+          --data-raw '{   "text": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} failed" }' 
