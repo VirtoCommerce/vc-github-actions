@@ -1,0 +1,1 @@
+Azure action for acr image size check
