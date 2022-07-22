@@ -17,5 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY start.py .
 
+RUN ls && pwd
+
 
 ENTRYPOINT ["python3","start.py"]
