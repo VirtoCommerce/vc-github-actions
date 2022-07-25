@@ -1,0 +1,18 @@
+name: "Check repository limit"
+description: "Check repository limit"
+inputs:
+  service_principal_id:
+    description: "service principal id"
+    required: true
+  service_principal_password:
+    description: "service principal passsword"
+    required: true
+  tenant_id:
+    description: "tenant id"
+    required: true
+  web_hook_url:
+    description: "teams web hook url notification"
+    required: true    
+runs:
+  using: "docker"
+  image: "Dockerfile"
