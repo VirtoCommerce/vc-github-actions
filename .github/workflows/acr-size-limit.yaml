@@ -27,7 +27,7 @@ jobs:
 
 
       - name: check previous step
-        if: ${{ steps.check-repo-limit.conclusion }} == 'failure'
+        if: ${{ steps.check-repo-limit.conclusion  == 'failure' }}
         run: |
           curl --location \
           --request POST ${{ secrets.VCCLOUD_WEB_HOOK_URL }} \
