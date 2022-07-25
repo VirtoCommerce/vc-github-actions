@@ -17,6 +17,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY start.py .
 
-# ENTRYPOINT ["python3","start.py"]
-
-ENTRYPOINT ["ls", "/"]
+ENTRYPOINT ["python3","/start.py"]
