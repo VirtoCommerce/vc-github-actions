@@ -14,7 +14,7 @@ jobs:
       - name: check repo limit
         # continue-on-error: true
         id: check-repo-limit
-        uses: VirtoCommerce/vc-github-actions/check-acr-repos-size-limit@acr-action
+        uses: VirtoCommerce/vc-github-actions/check-acr-repos-size-limit@master
         with:
           service_principal_id: ${{ secrets.VCCLOUD_AZURE_CLIENT_ID }}
           service_principal_password: ${{ secrets.VCCLOUD_AZURE_CLIENT_SECRET }}
