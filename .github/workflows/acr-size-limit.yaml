@@ -13,7 +13,7 @@ jobs:
         with: 
           path: check-acr-repos-size-limit
           
-      - run: cd check-acr-repos-size-limit  && ls
+      - run: cd check-acr-repos-size-limit  && cd check-acr-repos-size-limit && ls
 
       - name: check repo limit
         # continue-on-error: true
