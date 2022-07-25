@@ -19,4 +19,4 @@ COPY start.py .
 
 # ENTRYPOINT ["python3","start.py"]
 
-ENTRYPOINT ["pwd","&&","ls"]
+ENTRYPOINT ["ls", "/"]
