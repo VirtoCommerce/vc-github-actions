@@ -26,10 +26,10 @@ jobs:
       - run: echo ${{ steps.check-repo-limit.conclusion }}
 
 
-#       - name: check previous step
-#         if: ${{ steps.check-repo-limit.conclusion }} == 'failure'
-#         run: |
-#           curl --location \
-#           --request POST ${{ secrets.VCCLOUD_WEB_HOOK_URL }} \
-#           --header 'Content-Type: application/json' \
-#           --data-raw '{   "text": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} failed" }'
+      - name: check previous step
+        if: ${{ steps.check-repo-limit.conclusion }} == 'failure'
+        run: |
+          curl --location \
+          --request POST ${{ secrets.VCCLOUD_WEB_HOOK_URL }} \
+          --header 'Content-Type: application/json' \
+          --data-raw '{   "text": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} failed" }'
