@@ -10,8 +10,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        run: |
-          ls
+
       - name: check repo limit
         # continue-on-error: true
         id: check-repo-limit
