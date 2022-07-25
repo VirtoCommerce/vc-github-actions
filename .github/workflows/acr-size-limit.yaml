@@ -11,9 +11,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with: 
-          path: check-acr-repos-size-limit/start.py
+          path: check-acr-repos-size-limit
           
-      - run: ls    
+      - run: cd check-acr-repos-size-limit  && ls
 
       - name: check repo limit
         # continue-on-error: true
