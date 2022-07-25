@@ -11,7 +11,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with: 
-          path: check-acr-repos-size-limit
+          path: check-acr-repos-size-limit/
           
       - run: ls    
 
