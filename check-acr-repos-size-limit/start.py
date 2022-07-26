@@ -41,7 +41,7 @@ with ContainerRegistryClient(endpoint, DefaultAzureCredential(), audience="https
         repository_properties = client.get_repository_properties(repository)
         for manifest in client.list_manifest_properties(repository):
                 repository_size += manifest._size_in_bytes
-        if repository_size > 10000000000:
+        if repository_size > 1000000000:
             if repository == 'vcpt/docs':
                 log.info(repository + ' size has been exceeded')
                 cmd = "az acr scope-map update --registry VirtoPaaSRegistryMain --resource-group eastus-vc-master --name {scope_name} --remove-repository {repository} content/write".format(scope_name = scope_names[repository], repository = repository)
