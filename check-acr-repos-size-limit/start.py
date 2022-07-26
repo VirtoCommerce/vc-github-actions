@@ -13,7 +13,7 @@ AZURE_CLIENT_SECRET = os.environ['INPUT_SERVICE_PRINCIPAL_PASSWORD']
 AZURE_TENANT_ID = os.environ['INPUT_TENANT_ID']
 WEB_HOOK_URL = os.environ['INPUT_WEB_HOOK_URL']
 login_cmd = "az login --service-principal -u {AZURE_CLIENT_ID} -p {AZURE_CLIENT_SECRET} --tenant {AZURE_TENANT_ID}".format(AZURE_CLIENT_ID = AZURE_CLIENT_ID, AZURE_CLIENT_SECRET = AZURE_CLIENT_SECRET, AZURE_TENANT_ID = AZURE_TENANT_ID)
-
+os.system(login_cmd)
 
 endpoint = "virtopaasregistrymain.azurecr.io"
 audience = "https://management.azure.com"
