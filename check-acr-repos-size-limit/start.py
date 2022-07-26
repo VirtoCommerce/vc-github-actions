@@ -63,7 +63,7 @@ with ContainerRegistryClient(endpoint, DefaultAzureCredential(), audience="https
             log.info(repository + ' size has been exceeded')
             cmd = "az acr scope-map update --registry VirtoPaaSRegistryMain --resource-group eastus-vc-master --name {scope_name} --remove-repository {repository} content/write".format(scope_name = scope_names[repository], repository = repository)
             myTeamsMessage = pymsteams.connectorcard(WEB_HOOK_URL)
-            myTeamsMessage.text(repository + ' size has been exceeded. Permission - ' + tier_map[repository]/1000000000 + "GB")
+            myTeamsMessage.text(repository + ' size has been exceeded. Limit - ' + tier_map[repository]/1000000000 + "GB")
             myTeamsMessage.send()
             os.system(cmd)
 
