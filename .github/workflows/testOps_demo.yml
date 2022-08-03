@@ -79,21 +79,21 @@ jobs:
 
     - name: Getting tests
       shell: sh
-      run: git clone https://github.com/VirtoCommerce/vc-quality-gate-katalon.git --branch dev
+      run: git clone https://github.com/VirtoCommerce/vc-quality-gate-katalon.git --branch demo
 
     - name: Katalon Studio Github Action
       uses: VirtoCommerce/vc-github-actions/katalon-studio-github-action@master
       with:
         version: '8.0.5'
         projectPath: '${{ github.workspace }}/vc-quality-gate-katalon/platform_storefront.prj'
-        args: '-noSplash -retry=0 -testSuiteCollectionPath="Test Suites/Modules/Platform_collection" -browserType="Chrome" -apiKey= ${{ secrets.KATALON_API_KEY }} -g_urlBack="http://localhost:8090" -g_urlFront="http://localhost:8080" -executionProfile="default" --config -webui.autoUpdateDrivers=true'
+        args: '-noSplash -retry=0 -testSuiteCollectionPath="Test Suites/Modules/demo_collection" -browserType="Chrome" -apiKey= ${{ secrets.KATALON_API_KEY }} -g_urlBack="http://localhost:8090" -g_urlFront="http://localhost:8080" -executionProfile="default" --config -webui.autoUpdateDrivers=true'
     
     - name: Katalon Report Uploader
       if: always()
       uses: katalon-studio/report-uploader@v0.0.7.11
       env:
         PASSWORD: ${{ secrets.KATALON_API_KEY }}
-        PROJECT_ID: 171535
+        PROJECT_ID: 755871
         TYPE: junit
         REPORT_PATH: ${{ github.workspace }}/vc-quality-gate-katalon/Reports
 
