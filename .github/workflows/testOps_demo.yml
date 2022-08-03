@@ -1,15 +1,6 @@
 name: testOps_demo
 on:
   workflow_dispatch:
-    inputs:
-      testSuite:
-        description: "Test Suite"
-        required: false
-        default: "Test Suites/Platform_E2E_Hybrid"
-      testBranch:
-        description: "Branch of tests"
-        required: false
-        default: "dev"
 
 jobs:
   katalon-tests:
