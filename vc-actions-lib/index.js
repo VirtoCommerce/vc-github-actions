@@ -151,8 +151,8 @@ function getInfoFromDirectoryBuildProps(path)
                     const propertyGroup = json.Project.PropertyGroup;
                     const versionPrefix = propertyGroup.find(isVersion, {attributeName: "VersionPrefix"});
                     const versionSuffix = propertyGroup.find(isVersion, {attributeName: "VersionSuffix"});
-                    var prefix = versionPrefix.VersionPrefix[0].trim();
-                    var suffix = versionSuffix.VersionSuffix[0].trim();
+                    var prefix = (versionPrefix.VersionPrefix) ? undefined : versionPrefix.VersionPrefix[0].trim();
+                    var suffix = (versionSuffix.VersionSuffix) ? undefined : versionSuffix.VersionSuffix[0].trim();
 
                     let version = [];
                     version.push(prefix);
