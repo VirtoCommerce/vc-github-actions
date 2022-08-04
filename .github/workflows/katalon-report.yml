@@ -46,7 +46,7 @@ jobs:
         with:
           version: '8.1.0'
           projectPath: '${{ github.workspace }}/vc-quality-gate-katalon/platform_storefront.prj'
-          args: '-noSplash -retry=0 -testSuitePath="${{ github.event.inputs.testSuite }}" -browserType="Chrome" -apiKey= ${{ secrets.KATALON_API_KEY }} -g_urlBack="http://localhost:8090" -g_urlFront="http://localhost:8080" -executionProfile="default" --config -webui.autoUpdateDrivers=true -teamId=158158 -testOpsProjectId=223504'
+          args: '-noSplash -retry=0 -testSuitePath="${{ github.event.inputs.testSuite }}" -browserType="Chrome" -apiKey= ${{ secrets.KATALON_API_KEY }} -g_urlBack="http://localhost:8090" -g_urlFront="http://localhost:8080" -executionProfile="default" --config -webui.autoUpdateDrivers=true'
 
       - name: Katalon TestOps Report Uploader
         if: always()
