@@ -9,3 +9,7 @@
 .history/
 
 *.http
+/.vs/VSWorkspaceState.json
+/.vs/slnx.sqlite
+/.vs/vc-github-actions/v17
+/.vs/vc-github-actions/FileContentIndex
