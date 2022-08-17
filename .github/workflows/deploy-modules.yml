@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
 # Module workflows
-        deploymentFolder: [platform_3_200]
+        deploymentFolder: [modules]
         repoName: [vc-module-assets
                   ,vc-module-Authorize.Net
                   ,vc-module-avatax
