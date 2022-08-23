@@ -119,8 +119,11 @@ function getVersionFromDirectoryBuildProps(path) {
             let propsFileContent = fs.readFileSync(buildPropsFile); 
             xml2js.parseString(propsFileContent, function (err, json) {
                 if (!err) {
-                    let prefix = (json.Project.PropertyGroup[1] || json.Project.PropertyGroup[0]).VersionPrefix[0].trim();
-                    let suffix = (json.Project.PropertyGroup[1] || json.Project.PropertyGroup[0]).VersionSuffix[0].trim();
+                    const propertyGroup = json.Project.PropertyGroup;
+                    const versionPrefix = propertyGroup.find(isVersion, {attributeName: "VersionPrefix"});
+                    const versionSuffix = propertyGroup.find(isVersion, {attributeName: "VersionSuffix"});
+                    var prefix = (versionPrefix.VersionPrefix) ? versionPrefix.VersionPrefix[0].trim() : undefined;
+                    var suffix = (versionSuffix.VersionSuffix) ? versionSuffix.VersionSuffix[0].trim() : undefined;
                     let result = [];
                     result.push(prefix);
                     if(suffix) result.push(suffix);
