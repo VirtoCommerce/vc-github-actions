@@ -28,7 +28,7 @@ async function getDownloadUrl() {
         console.log(artifactFileName);
     
         const downloadUrl = `https://github.com/${ownerName}/${repoName}/releases/download/${buildPropsVersionInfo.prefix}/${artifactFileName}`;
-        console.log(`\x1b[32Download url:\x1b[0m ${downloadUrl}`);
+        console.log(`\x1b[32mDownload url:\x1b[0m ${downloadUrl}`);
 
         result = downloadUrl;
 
