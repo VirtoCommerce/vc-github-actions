@@ -14,7 +14,7 @@
     "@actions/exec": "^1.0.4",
     "@actions/github": "^4.0.0",
     "@virtocommerce/vc-actions-lib": "^1.2.1",
-    "axios": "^0.20.0",
+    "axios": "^0.21.2",
     "rimraf": "^3.0.2",
     "xml2js": "^0.4.23"
   },
