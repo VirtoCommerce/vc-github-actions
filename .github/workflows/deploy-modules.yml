@@ -24,6 +24,7 @@ jobs:
                   ,vc-module-catalog-personalization
                   ,vc-module-catalog-publishing
                   ,vc-module-content
+                  ,vc-module-contract
                   ,vc-module-core
                   ,vc-module-customer
                   ,vc-module-customer-export-import
