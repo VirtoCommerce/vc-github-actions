@@ -14,7 +14,7 @@
     "@actions/exec": "^1.0.4",
     "@actions/github": "^4.0.0",
     "@actions/tool-cache": "^1.6.0",
-    "@virtocommerce/vc-actions-lib": "^1.2.10",
+    "@virtocommerce/vc-actions-lib": "^1.2.14",
     "axios": "^0.20.0",
     "glob": "^7.1.6",
     "path": "^0.12.7",

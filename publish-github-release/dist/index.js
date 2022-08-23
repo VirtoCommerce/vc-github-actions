@@ -5075,6 +5075,11 @@ function getVersionFromDirectoryBuildProps(path) {
     });
 }
 
+function isVersion (element, index, array)
+{
+    return element.hasOwnProperty(this.attributeName);
+}
+
 function getInfoFromDirectoryBuildProps(path)
 {
     return new Promise((resolve) => {
@@ -5084,8 +5089,12 @@ function getInfoFromDirectoryBuildProps(path)
             let propsFileContent = fs.readFileSync(buildPropsFile); 
             xml2js.parseString(propsFileContent, function (err, json) {
                 if (!err) {
-                    let prefix = (json.Project.PropertyGroup[1] || json.Project.PropertyGroup[0]).VersionPrefix[0].trim();
-                    let suffix = (json.Project.PropertyGroup[1] || json.Project.PropertyGroup[0]).VersionSuffix[0].trim();
+                    const propertyGroup = json.Project.PropertyGroup;
+                    const versionPrefix = propertyGroup.find(isVersion, {attributeName: "VersionPrefix"});
+                    const versionSuffix = propertyGroup.find(isVersion, {attributeName: "VersionSuffix"});
+                    var prefix = (versionPrefix.VersionPrefix) ? versionPrefix.VersionPrefix[0].trim() : undefined;
+                    var suffix = (versionSuffix.VersionSuffix) ? versionSuffix.VersionSuffix[0].trim() : undefined;
+
                     let version = [];
                     version.push(prefix);
                     if(suffix) version.push(suffix);
@@ -17402,6 +17411,7 @@ function installGithubRelease() {
 }
 function getDownloadUrl() {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log(`\x1b[33mTry to get download url`);
         const buildPropsVersionInfo = yield utils.getInfoFromDirectoryBuildProps(`./Directory.Build.props`);
         let result = "";
         if (buildPropsVersionInfo) {
@@ -17412,7 +17422,7 @@ function getDownloadUrl() {
             const artifactFileName = artifactPath.split(path_1.default.sep).pop();
             console.log(artifactFileName);
             const downloadUrl = `https://github.com/${ownerName}/${repoName}/releases/download/${buildPropsVersionInfo.prefix}/${artifactFileName}`;
-            console.log(`Download url: ${downloadUrl}`);
+            console.log(`\x1b[32Download url:\x1b[0m ${downloadUrl}`);
             result = downloadUrl;
         }
         else {
