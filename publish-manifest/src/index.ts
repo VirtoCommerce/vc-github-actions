@@ -1,54 +1,12 @@
 import * as core from '@actions/core'
-import * as github from '@actions/github'
 import * as exec from '@actions/exec'
 import fs from 'fs'
-import os from 'os'
 import * as utils from '@virtocommerce/vc-actions-lib'
-import Axios from 'axios'
-import { parseString as xmlParseString } from 'xml2js'
 import * as rimraf from 'rimraf'
 
-async function getConfigHome()
-{
-    const xdg_home =  process.env['XDG_CONFIG_HOME'];
-    if(xdg_home)
-        return xdg_home;
-    return `${os.homedir()}/.config`;
-}
-
-async function downloadFile(url: string, outFile: string) {
-    const path = outFile;
-    const writer = fs.createWriteStream(path);
-  
-    const response = await Axios({
-      url,
-      method: 'GET',
-      responseType: 'stream'
-    })
-  
-    response.data.pipe(writer)
-  
-    return new Promise((resolve, reject) => {
-      writer.on('finish', resolve)
-      writer.on('error', reject)
-    })
-}
 
 async function cloneRepo(repoUrl: string, dest: string) {
     await exec.exec(`git clone ${repoUrl} ${dest}`, [], { failOnStdErr: false });
-}
-
-async function findModuleId(repoName: string, modulesManifest: any) {
-    for(let module of modulesManifest)
-    {
-        for(let versionInfo of module.Versions)
-        {
-            if(versionInfo.PackageUrl.includes(`/${repoName}/`))
-            {
-                return module.Id;
-            }
-        }
-    }
 }
 
 async function getModuleId() {
@@ -59,11 +17,6 @@ async function getModuleId() {
     return versionInfo.moduleId;
 }
 
-function sleep(ms: number) {
-    return new Promise((resolve) => {
-      setTimeout(resolve, ms);
-    });
-}
 
 async function run(): Promise<void> {
     let packageUrl = core.getInput('packageUrl');
@@ -100,7 +53,6 @@ async function run(): Promise<void> {
         let propsPath = "Directory.Build.props";
         let moduleVersion = await utils.getVersionFromDirectoryBuildProps(propsPath);
         let isManifestUpdated = false;
-        let repoName = await utils.getRepoName();
         console.log(`Module version: ${moduleVersion}`);
         let moduleId = await getModuleId();
         console.log(`Module id: ${moduleId}`);
