@@ -12,11 +12,10 @@
   "dependencies": {
     "@actions/core": "^1.2.6",
     "@actions/exec": "^1.0.4",
-    "@virtocommerce/vc-actions-lib": "^1.2.14",
+    "@virtocommerce/vc-actions-lib": "^1.2.15",
     "rimraf": "^3.0.2"
   },
   "devDependencies": {
-    "@types/rimraf": "^3.0.0",
-    "@types/xml2js": "^0.4.5"
+    "@types/rimraf": "^3.0.0"
   }
 }
