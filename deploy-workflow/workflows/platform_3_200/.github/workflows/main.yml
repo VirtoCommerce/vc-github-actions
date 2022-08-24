@@ -310,7 +310,7 @@ jobs:
   module-katalon-tests:
     if: ${{ github.event_name == 'pull_request' }}
     needs: 'ci'
-    uses: VirtoCommerce/.github/.github/workflows/e2e.yml@main
+    uses: VirtoCommerce/.github/.github/workflows/e2e.yml@v3.200.15
     with:
       katalonRepo: 'VirtoCommerce/vc-quality-gate-katalon'
       katalonRepoBranch: 'dev'
