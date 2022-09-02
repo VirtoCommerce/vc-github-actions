@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         configPath: ['.deployment/module/cloudDeploy.json']
-                repoName: [vc-module-assets
+        repoName: [vc-module-assets
                   ,vc-module-Authorize.Net
                   ,vc-module-avatax
                   ,vc-module-azureblob-assets
