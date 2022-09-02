@@ -9,7 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        configPath: ['.deployment/module/cloudDeploy.json']
         include:
         - artifactKey: VirtoCommerce.Assets
           repoName: vc-module-assets
@@ -160,6 +159,7 @@ jobs:
 
         - artifactKey: VirtoCommerce.Contracts
           repoName: vc-module-contract
+        configPath: ['.deployment/module/cloudDeploy.json']
 
 
         # - artifactKey: VirtoCommerce.NotificationsSample
