@@ -2,6 +2,9 @@ import * as github from '@actions/github'
 import * as core from '@actions/core'
 
 import argoDeploy from './argoDeploy.json'
+import cloudDeploy from './cloudDeploy.json'
+
+const deployTypes = ['argoCD', 'cloud'];
 
 const githubToken = process.env['GITHUB_TOKEN'];
 const NOT_FOUND_ERROR_CODE = 404;
@@ -18,6 +21,19 @@ function initDeployConf() {
     return argoDeploy;
 }
 
+function initcloudDeployConf() {
+    cloudDeploy.artifactKey = core.getInput("artifactKey");
+    cloudDeploy.deployRepo = core.getInput("deployRepo");
+    cloudDeploy.dev.deployAppName = core.getInput("deployAppNameDev");
+    cloudDeploy.dev.deployBranch = core.getInput("deployBranchDev");
+    cloudDeploy.qa.deployAppName = core.getInput("deployAppNameQa");
+    cloudDeploy.qa.deployBranch = core.getInput("deployBranchQa");
+    cloudDeploy.prod.deployAppName = core.getInput("deployAppNameProd");
+    cloudDeploy.prod.deployBranch = core.getInput("deployBranchProd");
+
+    return cloudDeploy;
+}
+
 async function run(): Promise<void> {
     
     if (!githubToken){
@@ -30,10 +46,24 @@ async function run(): Promise<void> {
     const configPath = core.getInput("configPath");
     const gitUserName = core.getInput("gitUserName");
     const gitUserEmail = core.getInput("gitUserEmail");
+    const deployType = core.getInput("deployType");
+
+    if (deployTypes.indexOf(deployType) === -1) { 
+        core.setFailed(`Invalid releaseSource. Input parameter releaseSource should contain: \x1b[0;32m${deployTypes.join(', ')}\x1b[0m. Actual value: \x1bs[0;31m${deployType}\x1b[0m.`);
+        return;
+    }
 
     const octokit = github.getOctokit(githubToken);
 
-    const deployConf = initDeployConf();
+    var deployConf;
+    switch (deployType) {
+        case "argo":
+            deployConf = initDeployConf();
+            break;
+        case "cloud":
+            deployConf = initcloudDeployConf();
+            break;
+    }
 
     try {
         const deployConfStr = JSON.stringify(deployConf, null, '    ');
@@ -57,7 +87,7 @@ async function run(): Promise<void> {
             console.log(`File ${configPath} not found in ${repoName}/${branchName} repository branch.`);
             console.log(`Trying to create a new one.`);
         }
-        console.log(`Push argoDeploy config content to ${repoName}/${branchName}/${configPath}`);
+        console.log(`Push deploy config content to ${repoName}/${branchName}/${configPath}`);
         //Push deployment config map content to target directory
         const { data } = await octokit.rest.repos.createOrUpdateFileContents({
             repo: repoName,

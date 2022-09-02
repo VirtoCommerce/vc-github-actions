@@ -47,6 +47,19 @@ inputs:
     description: 'qa.deployBranch config file value. For example "qa": {"deployBranch": "qa"} (Branch name in the deployment repository for the qa environment)'
     required: true
     default: 'qa'
+  deployAppNameProd:
+    description: 'prod.deployAppName config file value. For example "qa": {"deployAppName": "vcplatform-qa"} (ArgoCD application name in the qa environment)'
+    required: true
+    default: 'vcplatform-demo'
+  deployBranchProd:
+    description: 'prod.deployBranch config file value. For example "qa": {"deployBranch": "qa"} (Branch name in the deployment repository for the qa environment)'
+    required: true
+    default: 'demo'
+  deployType:
+    description: 'Acceptable values: "argoCD", "cloud"'
+    required: true
+    default: 'argoCD'
+
 
 runs:
   using: 'node12'

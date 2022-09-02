@@ -17,6 +17,14 @@ module.exports = JSON.parse('{"artifactKey":"VirtoCommerce.Notifications","deplo
 
 /***/ }),
 
+/***/ 2504:
+/***/ ((module) => {
+
+"use strict";
+module.exports = JSON.parse('{"artifactKey":"PlatformImageTag","deployRepo":"vc-deploy-dev","cmPath":"backend/packages.json","dev":{"deployAppName":"vcptcore-dev","deployBranch":"vcptcore-dev","environmentId":"dev","environmentName":"Development","environmentType":"staging","environmentUrl":"https://vcptcore-qa.govirto.com/"},"qa":{"deployAppName":"vcptcore-qa","deployBranch":"vcptcore-qa","environmentId":"qa","environmentName":"QA","environmentType":"testing","environmentUrl":"https://vcptcore-qa.govirto.com/"},"prod":{"deployAppName":"vcptcore-demo","deployBranch":"vcptcore-demo","environmentId":"prod","environmentName":"Demo","environmentType":"production","environmentUrl":"https://vcptcore-demo.govirto.com/"}}');
+
+/***/ }),
+
 /***/ 2060:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -8445,6 +8453,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 var github = __importStar(__nccwpck_require__(9782));
 var core = __importStar(__nccwpck_require__(739));
 var argoDeploy_json_1 = __importDefault(__nccwpck_require__(587));
+var cloudDeploy_json_1 = __importDefault(__nccwpck_require__(2504));
+var deployTypes = ['argoCD', 'cloud'];
 var githubToken = process.env['GITHUB_TOKEN'];
 var NOT_FOUND_ERROR_CODE = 404;
 function initDeployConf() {
@@ -8457,9 +8467,20 @@ function initDeployConf() {
     argoDeploy_json_1.default.qa.deployBranch = core.getInput("deployBranchQa");
     return argoDeploy_json_1.default;
 }
+function initcloudDeployConf() {
+    cloudDeploy_json_1.default.artifactKey = core.getInput("artifactKey");
+    cloudDeploy_json_1.default.deployRepo = core.getInput("deployRepo");
+    cloudDeploy_json_1.default.dev.deployAppName = core.getInput("deployAppNameDev");
+    cloudDeploy_json_1.default.dev.deployBranch = core.getInput("deployBranchDev");
+    cloudDeploy_json_1.default.qa.deployAppName = core.getInput("deployAppNameQa");
+    cloudDeploy_json_1.default.qa.deployBranch = core.getInput("deployBranchQa");
+    cloudDeploy_json_1.default.prod.deployAppName = core.getInput("deployAppNameProd");
+    cloudDeploy_json_1.default.prod.deployBranch = core.getInput("deployBranchProd");
+    return cloudDeploy_json_1.default;
+}
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var repoName, branchName, configPath, gitUserName, gitUserEmail, octokit, deployConf, deployConfStr, deployConfSha, deployConfContent, error_1, data, error_2;
+        var repoName, branchName, configPath, gitUserName, gitUserEmail, deployType, octokit, deployConf, deployConfStr, deployConfSha, deployConfContent, error_1, data, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -8472,8 +8493,20 @@ function run() {
                     configPath = core.getInput("configPath");
                     gitUserName = core.getInput("gitUserName");
                     gitUserEmail = core.getInput("gitUserEmail");
+                    deployType = core.getInput("deployType");
+                    if (deployTypes.indexOf(deployType) === -1) {
+                        core.setFailed("Invalid releaseSource. Input parameter releaseSource should contain: \u001B[0;32m" + deployTypes.join(', ') + "\u001B[0m. Actual value: \u001Bs[0;31m" + deployType + "\u001B[0m.");
+                        return [2];
+                    }
                     octokit = github.getOctokit(githubToken);
-                    deployConf = initDeployConf();
+                    switch (deployType) {
+                        case "argo":
+                            deployConf = initDeployConf();
+                            break;
+                        case "cloud":
+                            deployConf = initcloudDeployConf();
+                            break;
+                    }
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 7, , 8]);
@@ -8503,7 +8536,7 @@ function run() {
                     console.log("Trying to create a new one.");
                     return [3, 5];
                 case 5:
-                    console.log("Push argoDeploy config content to " + repoName + "/" + branchName + "/" + configPath);
+                    console.log("Push deploy config content to " + repoName + "/" + branchName + "/" + configPath);
                     return [4, octokit.rest.repos.createOrUpdateFileContents({
                             repo: repoName,
                             owner: github.context.repo.owner,

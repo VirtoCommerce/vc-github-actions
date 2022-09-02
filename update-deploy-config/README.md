@@ -52,6 +52,18 @@ qa.deployAppName config file value. For example "qa": {"deployAppName": "vcplatf
 
 qa.deployBranch config file value. For example "qa": {"deployBranch": "qa"} (Branch name in the deployment repository for the qa environment). Default value: `qa`.
 
+### `deployAppNameProd`
+
+prod.deployAppName config file value. For example "qa": {"deployAppName": "vcplatform-qa"} (ArgoCD application name in the qa environment)
+
+### `deployBranchProd`
+
+prod.deployBranch config file value. For example "qa": {"deployBranch": "qa"} (Branch name in the deployment repository for the qa environment)
+
+### `deployType`
+
+Acceptable values: "argo", "cloud"
+
 ## Example of usage
 
 > Note! GITHUB_TOKEN environment variable should be defined.
