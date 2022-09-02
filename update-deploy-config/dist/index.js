@@ -8556,7 +8556,7 @@ function run() {
                         })];
                 case 6:
                     data = (_a.sent()).data;
-                    console.log("argoDeploy config successfully deployed to " + repoName + "/" + branchName + "/" + configPath);
+                    console.log(deployType + " config successfully deployed to " + repoName + "/" + branchName + "/" + configPath);
                     return [3, 8];
                 case 7:
                     error_2 = _a.sent();

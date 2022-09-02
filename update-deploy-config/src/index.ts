@@ -106,7 +106,7 @@ async function run(): Promise<void> {
                 email: gitUserEmail
             },
         });
-        console.log(`argoDeploy config successfully deployed to ${repoName}/${branchName}/${configPath}`);
+        console.log(`${deployType} config successfully deployed to ${repoName}/${branchName}/${configPath}`);
     } catch (error) {
         console.log(error);
         core.setFailed(error);
