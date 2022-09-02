@@ -1,4 +1,4 @@
-name: Deploy argoDeploy config
+name: Deploy cloudDeploy config
 
 on:
   workflow_dispatch:
