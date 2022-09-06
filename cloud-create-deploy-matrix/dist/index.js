@@ -8904,6 +8904,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 var github = __importStar(__nccwpck_require__(9782));
 var core = __importStar(__nccwpck_require__(739));
+var githubReleases = 'GithubReleases';
+var azureBlobReleases = 'AzureBlob';
 function run() {
     return __awaiter(this, void 0, void 0, function () {
         var environments, confPath, releaseBranch, environment, environment, matrix;
@@ -8912,13 +8914,13 @@ function run() {
             confPath = core.getInput("deployConfigPath");
             releaseBranch = core.getInput("releaseBranch");
             if (github.context.ref.indexOf(releaseBranch) > -1) {
-                environment = { envName: "prod", confPath: confPath, forceCommit: "true" };
+                environment = { envName: "prod", confPath: confPath, forceCommit: "true", releaseType: githubReleases };
                 environments.push(environment);
-                environment = { envName: "qa", confPath: confPath, forceCommit: "false" };
+                environment = { envName: "qa", confPath: confPath, forceCommit: "false", releaseType: githubReleases };
                 environments.push(environment);
             }
             else {
-                environment = { envName: "dev", confPath: confPath, forceCommit: "true" };
+                environment = { envName: "dev", confPath: confPath, forceCommit: "true", releaseType: azureBlobReleases };
                 environments.push(environment);
             }
             matrix = JSON.stringify(environments);
