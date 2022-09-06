@@ -1,0 +1,14 @@
+name: Cloud deploy matrix test
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-matrix:
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: VirtoCommerce/vc-github-actions/cloud-create-deploy-matrix@master
+        id: matrix
+        with:
+          deployConfigPath: '.deployment/module/cloudDeploy.json'
+          releaseBranch: 'master'
