@@ -4,32 +4,21 @@ import * as core from '@actions/core'
 
 async function run(): Promise<void> {
 
-    
-    const environments = [ 'dev', 'qa', 'prod' ];
-    let environment = {envName: "dev", confPath: "cloudDeploy.json"}
-        
-    const deployConfigPath = core.getInput("deployConfigPath");
+    let environments = [];
     const confPath = core.getInput("deployConfigPath");
+    const releaseBranch = core.getInput("releaseBranch");
+    
+    // Create a deployment matrix for dev only
+    let environment = {envName: "dev", confPath: confPath}
+    environments.push(environment);
 
-    if (!environments.includes(envName)) {
-        core.setFailed(`"envName" input variable should contain "dev", "qa" or "prod" value. Actual "envName" value is: ${envName}`)
+    if (github.context.ref.indexOf(releaseBranch) > -1) {
+        // Create a deployment matrix for dev and prod (demo)
+        let environment = {envName: "prod", confPath: confPath}
+        environments.push(environment);
     }
 
-    const branchName = github.context.ref;
-    console.log(`Current branch ref ${branchName}`)
-
-    const prRepo: RepoData = {
-        repoOrg: github.context.repo.owner,
-        repoName: github.context.repo.repo,
-        branchName: branchName
-    };
-
-    const content: string = await getDeployConfig(prRepo, deployConfigPath, GITHUB_TOKEN);
-    try {
-        deployConfig = JSON.parse(content);
-    } catch (error) {
-        core.setFailed(error.message)
-    }
+    const matrix = environments.toString();
 
     core.setOutput("matrix", matrix);
 

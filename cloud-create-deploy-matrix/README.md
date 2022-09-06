@@ -1,78 +1,30 @@
 # cloud-create-deploy-matrix
 
-description: 'Get deployment parameters for ArgoCD deployments'
+description: 'Create a matrix of deployment environments'
 
-## inputs:
+## inputs
+  
+### deployConfigPath
 
-### githubToken:
+    description: 'Path to the deployment configuration file'
+    default: '.deployment/module/cloudDeploy.json'
 
-    description: 'GitHub token'
-    required: false
+### releaseBranch
 
-### envName:
+    description: 'The release branch'
+    default: 'master'
 
-    description: 'Name for required environment parameters. Allowed values are: dev, qa, prod'
-    required: true
-    default: 'dev'
+## outputs
 
-### deployConfigPath:
-
-    description: 'Path to the argoDeploy.json'
-    required: true
-    default: 'argoDeploy.json'
-
-## outputs:
-
-### artifactKey:
-
-    description: 'artifactKey value'
-
-### deployRepo: 
-
-    description: 'deployRepo value'
-
-### deployAppName:
-
-    description: 'Required environment deployAppName value'
-
-### deployBranch:
-
-    description: 'Required environment deployBranch value'
-
-### cmPath:
-
-    description: 'Path to config map'
-
-### environmentId:
-
-    description: 'Environment Id'
-Used for Jira integration
-
-### environmentName:
-
-    description: 'Environment name'
-Used for Jira integration
-
-### environmentType:
-
-    description: 'Environment type (Development/Staging/Production)'
-Used for Jira integration
-
-### environmentUrl:
-
-    description: 'Link to deployed app'
-
-### deployConfig:
-
-    description: 'Full deploy config(for all environments)'
+### matrix:
+    description: 'Matrix of deployment environments'
 
 ## Example of usage
 
 ```
-
-- name: Read deployment config
-  uses: VirtoCommerce/vc-github-actions/get-deploy-param@master
-  id: deployConfig
+- name: Create deployment matrix
+  uses: VirtoCommerce/vc-github-actions/cloud-create-deploy-matrix@master
+  id: deployMatrix
 
 ```
 

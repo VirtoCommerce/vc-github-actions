@@ -3,7 +3,10 @@ description: 'Create a matrix of deployment environments'
 inputs:
   deployConfigPath:
     description: 'Path to the deployment configuration file'
-    default: 'cloudDeploy.json'
+    default: '.deployment/module/cloudDeploy.json'
+  releaseBranch:
+    description: 'The release branch'
+    default: 'master'
 
 outputs:
   matrix:
