@@ -235,4 +235,9 @@ jobs:
         repoName:  ${{ matrix.repoName }}
         artifactKey:  ${{ matrix.artifactKey }}
         configPath: ${{ matrix.configPath }}
-        deployType: 'cloud'
+        deployAppNameDev: vcptcore-dev
+        deployBranchDev: vcptcore-dev
+        deployAppNameQa: vcptcore-qa
+        deployBranchQa: vcptcore-qa
+        deployAppNameProd: vcptcore-demo
+        deployBranchProd: vcptcore-demo
