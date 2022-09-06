@@ -1,0 +1,17 @@
+name: 'cloud-create-deploy-matrix'
+description: 'Create a matrix of deployment environments'
+inputs:
+  deployConfigPath:
+    description: 'Path to the deployment configuration file'
+    default: '.deployment/module/cloudDeploy.json'
+  releaseBranch:
+    description: 'The release branch'
+    default: 'master'
+
+outputs:
+  matrix:
+    description: 'Matrix of deployment environments'
+
+runs:
+  using: 'node16'
+  main: 'dist/index.js' 
