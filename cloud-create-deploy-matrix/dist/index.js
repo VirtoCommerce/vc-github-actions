@@ -8917,7 +8917,7 @@ function run() {
                 environment_1 = { envName: "prod", confPath: confPath };
                 environments.push(environment_1);
             }
-            matrix = environments.toString();
+            matrix = JSON.stringify(environments);
             core.setOutput("matrix", matrix);
             console.log("Deployment matrix is: " + matrix);
             return [2];

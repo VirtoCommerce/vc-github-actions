@@ -18,7 +18,7 @@ async function run(): Promise<void> {
         environments.push(environment);
     }
 
-    const matrix = environments.toString();
+    const matrix = JSON.stringify(environments);
 
     core.setOutput("matrix", matrix);
 
