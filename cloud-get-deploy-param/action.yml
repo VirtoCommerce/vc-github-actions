@@ -1,4 +1,4 @@
-name: 'get-deploy-param'
+name: 'cloud-get-deploy-param'
 description: 'Get deployment parameters for ArgoCD deployments'
 inputs:
   githubToken:
