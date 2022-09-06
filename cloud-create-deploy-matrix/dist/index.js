@@ -8906,16 +8906,20 @@ var github = __importStar(__nccwpck_require__(9782));
 var core = __importStar(__nccwpck_require__(739));
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var environments, confPath, releaseBranch, environment, environment_1, matrix;
+        var environments, confPath, releaseBranch, environment, environment, matrix;
         return __generator(this, function (_a) {
             environments = [];
             confPath = core.getInput("deployConfigPath");
             releaseBranch = core.getInput("releaseBranch");
-            environment = { envName: "dev", confPath: confPath };
-            environments.push(environment);
             if (github.context.ref.indexOf(releaseBranch) > -1) {
-                environment_1 = { envName: "prod", confPath: confPath };
-                environments.push(environment_1);
+                environment = { envName: "prod", confPath: confPath, forceCommit: "true" };
+                environments.push(environment);
+                environment = { envName: "qa", confPath: confPath, forceCommit: "false" };
+                environments.push(environment);
+            }
+            else {
+                environment = { envName: "dev", confPath: confPath, forceCommit: "true" };
+                environments.push(environment);
             }
             matrix = JSON.stringify(environments);
             core.setOutput("matrix", matrix);
