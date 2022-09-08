@@ -292,7 +292,7 @@ async function run(): Promise<void> {
     const mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
     const yyyy = today.getFullYear();
 
-    let todayString = mm + '-' + dd + '-' + yyyy;
+    let todayString = dd + '-' + mm + '-' + yyyy;
 
     let GITHUB_TOKEN = core.getInput("githubToken");
     if(!GITHUB_TOKEN  && process.env.GITHUB_TOKEN !== undefined) GITHUB_TOKEN = process.env.GITHUB_TOKEN;

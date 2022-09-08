@@ -9177,7 +9177,7 @@ function run() {
             dd = String(today.getDate()).padStart(2, '0');
             mm = String(today.getMonth() + 1).padStart(2, '0');
             yyyy = today.getFullYear();
-            todayString = mm + '-' + dd + '-' + yyyy;
+            todayString = dd + '-' + mm + '-' + yyyy;
             GITHUB_TOKEN = core.getInput("githubToken");
             if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
                 GITHUB_TOKEN = process.env.GITHUB_TOKEN;
