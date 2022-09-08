@@ -46,7 +46,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     const { data: baseBranch } = await octokit.rest.git.getRef({
         owner: targetRepo.repoOrg,
         repo: targetRepo.repoName,
-        ref: `heads/${targetRepo.branchName}`
+        ref: decodeURI(`heads/${targetRepo.branchName}`)
     });
 
     //Check branch exists
@@ -55,7 +55,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
         branch = await octokit.rest.repos.getBranch({
             owner: targetRepo.repoOrg,
             repo: targetRepo.repoName,
-            branch: `refs/heads/${targetBranchName}`,
+            branch: decodeURI(`refs/heads/${targetBranchName}`),
         });
     } catch (err){}
     if(!branch) {

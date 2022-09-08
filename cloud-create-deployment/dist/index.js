@@ -8922,7 +8922,7 @@ function createDeployPr(deployData, targetRepo, baseRepo, gitUser, githubToken, 
                     return [4, octokit.rest.git.getRef({
                             owner: targetRepo.repoOrg,
                             repo: targetRepo.repoName,
-                            ref: "heads/" + targetRepo.branchName
+                            ref: decodeURI("heads/" + targetRepo.branchName)
                         })];
                 case 1:
                     baseBranch = (_a.sent()).data;
@@ -8932,7 +8932,7 @@ function createDeployPr(deployData, targetRepo, baseRepo, gitUser, githubToken, 
                     return [4, octokit.rest.repos.getBranch({
                             owner: targetRepo.repoOrg,
                             repo: targetRepo.repoName,
-                            branch: "refs/heads/" + targetBranchName,
+                            branch: decodeURI("refs/heads/" + targetBranchName),
                         })];
                 case 3:
                     branch = _a.sent();
