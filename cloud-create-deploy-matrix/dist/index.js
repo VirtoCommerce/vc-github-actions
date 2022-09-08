@@ -8916,6 +8916,8 @@ function run() {
             if (github.context.ref.indexOf(releaseBranch) > -1) {
                 environment = { envName: "prod", confPath: confPath, forceCommit: "true", releaseType: githubReleases };
                 environments.push(environment);
+                environment = { envName: "qa", confPath: confPath, forceCommit: "false", releaseType: azureBlobReleases };
+                environments.push(environment);
             }
             else {
                 environment = { envName: "dev", confPath: confPath, forceCommit: "true", releaseType: azureBlobReleases };
