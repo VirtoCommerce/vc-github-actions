@@ -19,7 +19,7 @@ async function run(): Promise<void> {
         let environment = {envName: "prod", confPath: confPath, forceCommit: "true", releaseType: githubReleases};
         environments.push(environment);
         // For QA create PR instead of deployment commit 
-        environment = {envName: "qa", confPath: confPath, forceCommit: "false", releaseType: githubReleases};
+        environment = {envName: "qa", confPath: confPath, forceCommit: "false", releaseType: azureBlobReleases};
         environments.push(environment);
 
     } else {
