@@ -41,7 +41,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     const octokit = github.getOctokit(githubToken);
     const targetBranchName = `${targetRepo.taskNumber}-${targetRepo.branchName}-deployment`;
 
-    console.log('Get base branch data');
+    console.log(`Get ${targetRepo.branchName} base branch data`);
     //Get base branch data
     const { data: baseBranch } = await octokit.rest.git.getRef({
         owner: targetRepo.repoOrg,
@@ -60,7 +60,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     } catch (err){}
     if(!branch) {
 
-        console.log('Create branch for deployment PR');
+        console.log(`Create ${targetBranchName} branch for deployment PR`);
         //Create branch for deployment PR
 
         const { data: targetBranch } = await octokit.rest.git.createRef({
@@ -287,6 +287,13 @@ async function updateConfigContent(githubToken: string, deployData: DeploymentDa
 
 async function run(): Promise<void> {
 
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+    const yyyy = today.getFullYear();
+
+    let todayString = mm + '-' + dd + '-' + yyyy;
+
     let GITHUB_TOKEN = core.getInput("githubToken");
     if(!GITHUB_TOKEN  && process.env.GITHUB_TOKEN !== undefined) GITHUB_TOKEN = process.env.GITHUB_TOKEN;
   
@@ -302,7 +309,7 @@ async function run(): Promise<void> {
     const moduleId = core.getInput("moduleId");
     const moduleVer = core.getInput("moduleVer");
     const moduleBlob = core.getInput("moduleBlob");
-    const taskNumber = core.getInput("taskNumber");
+    const taskNumber = (core.getInput("taskNumber") !== 'undefined') ? core.getInput("taskNumber") : todayString;
     const configPath = core.getInput("configPath");
     const forceCommit = core.getInput("forceCommit");
 

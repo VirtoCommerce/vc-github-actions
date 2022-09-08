@@ -8918,7 +8918,7 @@ function createDeployPr(deployData, targetRepo, baseRepo, gitUser, githubToken, 
                     console.log('Create deployment PR');
                     octokit = github.getOctokit(githubToken);
                     targetBranchName = targetRepo.taskNumber + "-" + targetRepo.branchName + "-deployment";
-                    console.log('Get base branch data');
+                    console.log("Get " + targetRepo.branchName + " base branch data");
                     return [4, octokit.rest.git.getRef({
                             owner: targetRepo.repoOrg,
                             repo: targetRepo.repoName,
@@ -8942,7 +8942,7 @@ function createDeployPr(deployData, targetRepo, baseRepo, gitUser, githubToken, 
                     return [3, 5];
                 case 5:
                     if (!!branch) return [3, 7];
-                    console.log('Create branch for deployment PR');
+                    console.log("Create " + targetBranchName + " branch for deployment PR");
                     return [4, octokit.rest.git.createRef({
                             owner: targetRepo.repoOrg,
                             repo: targetRepo.repoName,
@@ -9171,8 +9171,13 @@ function updateConfigContent(githubToken, deployData, targetRepo, baseRepo, gitU
 function run() {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function () {
-        var GITHUB_TOKEN, deployRepoName, deployBranchName, gitUserName, gitUserEmail, repoOrg, releaseSource, releaseType, platformVer, platformTag, moduleId, moduleVer, moduleBlob, taskNumber, configPath, forceCommit, gitUser, prRepo, deployRepo, deployData;
+        var today, dd, mm, yyyy, todayString, GITHUB_TOKEN, deployRepoName, deployBranchName, gitUserName, gitUserEmail, repoOrg, releaseSource, releaseType, platformVer, platformTag, moduleId, moduleVer, moduleBlob, taskNumber, configPath, forceCommit, gitUser, prRepo, deployRepo, deployData;
         return __generator(this, function (_d) {
+            today = new Date();
+            dd = String(today.getDate()).padStart(2, '0');
+            mm = String(today.getMonth() + 1).padStart(2, '0');
+            yyyy = today.getFullYear();
+            todayString = mm + '-' + dd + '-' + yyyy;
             GITHUB_TOKEN = core.getInput("githubToken");
             if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
                 GITHUB_TOKEN = process.env.GITHUB_TOKEN;
@@ -9188,7 +9193,7 @@ function run() {
             moduleId = core.getInput("moduleId");
             moduleVer = core.getInput("moduleVer");
             moduleBlob = core.getInput("moduleBlob");
-            taskNumber = core.getInput("taskNumber");
+            taskNumber = (core.getInput("taskNumber") !== 'undefined') ? core.getInput("taskNumber") : todayString;
             configPath = core.getInput("configPath");
             forceCommit = core.getInput("forceCommit");
             if (releaseSourceTypes.indexOf(releaseSource) === -1) {
