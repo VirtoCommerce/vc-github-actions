@@ -30,7 +30,6 @@ async function run() {
     console.log(artifactPath);
     
     let artifactFileName = artifactPath.split(path.sep).pop();
-    console.log(artifactFileName);
     let downloadUrl = `${blobUrl}/${artifactFileName}`;
     console.log(`Download url: ${downloadUrl}`);
     core.setOutput("blobUrl", downloadUrl);
@@ -45,6 +44,8 @@ async function run() {
         }
     });
     core.setOutput("packageUrl", downloadUrl);
+    console.log(`blobId is: ${artifactFileName}`);
+    core.setOutput("blobId", artifactFileName);
 }
 
 run().catch(error => core.setFailed(error.message));

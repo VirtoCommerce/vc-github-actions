@@ -21,6 +21,10 @@ Publishes release artifact to Azure Blob
 
     description: "Package url"
 
+### blobId:
+
+    description: "Blob id"
+
 ## Example of usage
 
 ```

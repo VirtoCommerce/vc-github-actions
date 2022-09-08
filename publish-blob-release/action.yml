@@ -11,6 +11,9 @@ inputs:
 outputs:
   packageUrl:
     description: "Package url"
+  blobId:
+    description: "Blob id"
+
 runs:
   using: 'node12'
   main: 'dist/index.js' 
