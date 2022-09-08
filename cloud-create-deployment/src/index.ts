@@ -34,7 +34,7 @@ interface DeploymentData
     configPath: string
 }
 
-async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, baseRepo: RepoData, gitUser: GitUser, githubToken: string, sha: string, deployContent: string): Promise <void>{
+async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, baseRepo: RepoData, gitUser: GitUser, sha: string, githubToken: string, deployContent: string): Promise <void>{
 
     console.log('Create deployment PR');
 

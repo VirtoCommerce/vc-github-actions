@@ -8909,7 +8909,7 @@ var azureBlobReleases = 'AzureBlob';
 var releaseSourceTypes = ['platform', 'module'];
 var releaseTypes = [githubReleases, azureBlobReleases];
 var commitPrefix = 'ci: Automated update';
-function createDeployPr(deployData, targetRepo, baseRepo, gitUser, githubToken, sha, deployContent) {
+function createDeployPr(deployData, targetRepo, baseRepo, gitUser, sha, githubToken, deployContent) {
     return __awaiter(this, void 0, void 0, function () {
         var octokit, targetBranchName, baseBranch, branch, err_1, targetBranch, cmResult, pr, err_2;
         return __generator(this, function (_a) {
