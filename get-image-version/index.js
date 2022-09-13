@@ -135,7 +135,8 @@ async function run()
     branchName = github.context.eventName.startsWith('pull_request') ? github.context.payload.pull_request.head.ref : github.context.ref;
     if (github.context.eventName.startsWith('pull_request')){
         branchName = github.context.payload.pull_request.head.ref;
-        suffix = 'pr-' + github.context.payload.pull_request.number;
+        const commitCount = await getCommitCount(branchName);
+        suffix = `pr-${github.context.payload.pull_request.number}-${commitCount}`;
     }
     else {
         branchName = github.context.ref;
