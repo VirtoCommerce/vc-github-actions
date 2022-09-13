@@ -139,7 +139,7 @@ async function run()
             branchName = branchName.slice('refs/heads/'.length);
         }
     
-        const commitCount = await getCommitCount(branchName);
+        const commitCount = await getCommitCount(`refs/heads/${branchName}`);
         suffix = `pr-${github.context.payload.pull_request.number}-${commitCount}`;
     }
     else {
