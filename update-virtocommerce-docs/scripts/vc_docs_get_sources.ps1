@@ -13,7 +13,7 @@ function Get-GithubPackageUrl {
 }
 
 #Get platform src
-git clone https://github.com/VirtoCommerce/vc-platform.git --branch "new_docs"
+git clone https://github.com/VirtoCommerce/vc-docs --branch "new_docs"
 git clone https://github.com/VirtoCommerce/vc-build.git --branch dev --single-branch
-Copy-Item -Path "vc-build\docs\CLI-tools\*" -Destination "vc-platform\docs\CLI-tools" -Recurse -Force
+Copy-Item -Path "vc-build\docs\CLI-tools\*" -Destination "vc-docs\docs\CLI-tools" -Recurse -Force
 
