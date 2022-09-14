@@ -40,7 +40,7 @@ runs:
         pwsh -file ${{ github.action_path }}/scripts/vc_docs_get_sources.ps1 -ErrorAction Continue
 
     - name: Build Docs
-      working-directory: ${{ github.workspace }}/vc-platform
+      working-directory: ${{ github.workspace }}/vc-docs
       shell: bash
       run: |
         mkdocs build && ls -la
