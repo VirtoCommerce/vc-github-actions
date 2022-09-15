@@ -1,0 +1,32 @@
+name: Docker Environment + E2E (new)
+on:
+  workflow_dispatch:
+    inputs:
+      testSuite:
+        description: "Test Suite"
+        required: false
+        default: "Test Suites/Platform_E2E_Hybrid"
+      testBranch:
+        description: "Branch of tests"
+        required: false
+        default: "dev"
+
+jobs:
+ module-katalon-tests:
+    if: ${{ ((github.ref == 'refs/heads/dev') && (github.event_name == 'push')) ||
+        (github.event_name == 'workflow_dispatch')}}
+    needs: 'ci'
+    uses: VirtoCommerce/.github/.github/workflows/e2e.yml@v3.200.19
+    with:
+      katalonRepo: 'VirtoCommerce/vc-quality-gate-katalon'
+      katalonRepoBranch: 'dev'
+      testSuite: 'Test Suites/Modules/Platform_collection'
+      installModules: 'true'
+      installCustomModule: 'true'
+      customModuleId:  "VirtoCommerce.CatalogPersonalization"
+      customModuleUrl:  "https://github.com/VirtoCommerce/vc-module-catalog-personalization/releases/download/3.200.1/VirtoCommerce.CatalogPersonalization_3.200.1.zip"
+      platformDockerTag: 'dev-linux-latest'
+      storefrontDockerTag: 'dev-linux-latest'
+    secrets:
+      envPAT: ${{ secrets.REPO_TOKEN }}
+      katalonApiKey: ${{ secrets.KATALON_API_KEY }}
