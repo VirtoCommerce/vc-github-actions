@@ -1,4 +1,4 @@
-name: Platform E2E
+name: test (Platform E2E copy)
 
 on:
   workflow_dispatch:
