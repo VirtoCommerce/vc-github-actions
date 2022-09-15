@@ -12,66 +12,21 @@ on:
         default: "dev"
 
 jobs:
-  katalon-tests:
-    runs-on: ubuntu-18.04
-    steps:
-      - name: Install VirtoCommerce.GlobalTool
-        uses: VirtoCommerce/vc-github-actions/setup-vcbuild@master
-
-
-      - name: Docker Login
-        uses: azure/docker-login@v1
-        with:
-          login-server: docker.pkg.github.com
-          username: $GITHUB_ACTOR
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Docker Env
-        uses: VirtoCommerce/vc-github-actions/docker-env@master
-        with:
-          githubUser: ${{ env.GITHUB_ACTOR }}
-          githubToken: ${{ env.GITHUB_TOKEN }}
-          platformDockerTag: 'dev-linux-latest'
-          storefrontDockerTag: 'dev-linux-latest'
-          platformImage: ghcr.io/virtocommerce/platform
-          storefrontImage: ghcr.io/virtocommerce/storefront
-          validateSwagger: 'false'
-
-      - name: Getting tests
-        shell: bash
-        run: git clone https://github.com/VirtoCommerce/vc-quality-gate-katalon.git --branch ${{ github.event.inputs.testBranch }}
-
-      - name: Katalon Studio Github Action
-        uses: VirtoCommerce/vc-github-actions/katalon-studio-github-action@master
-        with:
-          version: '8.0.5'
-          projectPath: '${{ github.workspace }}/vc-quality-gate-katalon/platform_storefront.prj'
-          args: '-noSplash -retry=0  -testSuitePath="${{ github.event.inputs.testSuite }}" -browserType="Chrome" -apiKey= ${{ secrets.KATALON_API_KEY }} -g_urlBack="http://localhost:8090" -g_urlFront="http://localhost:8080" -executionProfile="default" --config -webui.autoUpdateDrivers=true'
-
-      - name: Katalon Report Uploader
-        if: always()
-        uses: katalon-studio/report-uploader@v0.0.7.11
-        env:
-          PASSWORD: ${{ secrets.KATALON_API_KEY }}
-          PROJECT_ID: 263280
-          TYPE: junit
-          REPORT_PATH: ${{ github.workspace }}/vc-quality-gate-katalon/Reports
-
-
-      - name: 'Katalon Reports'
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: reports
-          path: |
-            vc-quality-gate-katalon/Reports
-            /home/runner/.katalon/*/Katalon_Studio_Engine_Linux_*/configuration/*.log.
-          retention-days: 5
-
-      - name: Katalon Report
-        if: ${{ success() || failure() }}
-        uses: VirtoCommerce/vc-github-actions/publish-katalon-report@master
-        with: 
-          testProjectPath: ${{ github.workspace }}
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
-          publishComment: 'false'
+ module-katalon-tests:
+    if: ${{ ((github.ref == 'refs/heads/dev') && (github.event_name == 'push')) ||
+        (github.event_name == 'workflow_dispatch')}}
+    needs: 'ci'
+    uses: VirtoCommerce/.github/.github/workflows/e2e.yml@v3.200.19
+    with:
+      katalonRepo: 'VirtoCommerce/vc-quality-gate-katalon'
+      katalonRepoBranch: 'dev'
+      testSuite: 'Test Suites/Modules/Platform_collection'
+      installModules: 'true'
+      installCustomModule: 'true'
+      customModuleId:  "VirtoCommerce.CatalogPersonalization"
+      customModuleUrl:  "https://github.com/VirtoCommerce/vc-module-catalog-personalization/releases/download/3.200.1/VirtoCommerce.CatalogPersonalization_3.200.1.zip"
+      platformDockerTag: 'dev-linux-latest'
+      storefrontDockerTag: 'dev-linux-latest'
+    secrets:
+      envPAT: ${{ secrets.REPO_TOKEN }}
+      katalonApiKey: ${{ secrets.KATALON_API_KEY }}
