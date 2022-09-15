@@ -13,9 +13,6 @@ on:
 
 jobs:
  module-katalon-tests:
-    if: ${{ ((github.ref == 'refs/heads/dev') && (github.event_name == 'push')) ||
-        (github.event_name == 'workflow_dispatch')}}
-    needs: 'ci'
     uses: VirtoCommerce/.github/.github/workflows/e2e.yml@v3.200.19
     with:
       katalonRepo: 'VirtoCommerce/vc-quality-gate-katalon'
