@@ -8917,7 +8917,7 @@ function createDeployPr(deployData, targetRepo, baseRepo, gitUser, sha, githubTo
                 case 0:
                     console.log('Create deployment PR');
                     octokit = github.getOctokit(githubToken);
-                    targetBranchName = targetRepo.taskNumber + "-" + targetRepo.branchName + "-deployment";
+                    targetBranchName = targetRepo.branchName + "-deployment-" + targetRepo.taskNumber;
                     console.log("Get " + targetRepo.branchName + " base branch data");
                     return [4, octokit.rest.git.getRef({
                             owner: targetRepo.repoOrg,

@@ -39,7 +39,7 @@ async function createDeployPr(deployData: DeploymentData, targetRepo: RepoData, 
     console.log('Create deployment PR');
 
     const octokit = github.getOctokit(githubToken);
-    const targetBranchName = `${targetRepo.taskNumber}-${targetRepo.branchName}-deployment`;
+    const targetBranchName = `${targetRepo.branchName}-deployment-${targetRepo.taskNumber}`;
 
     console.log(`Get ${targetRepo.branchName} base branch data`);
     //Get base branch data
