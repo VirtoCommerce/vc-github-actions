@@ -294,6 +294,8 @@ async function run(): Promise<void> {
 
     let todayString = dd + '-' + mm + '-' + yyyy;
 
+    const sha = github.context.payload.pull_request.head.sha.substring(0, 4);
+
     let GITHUB_TOKEN = core.getInput("githubToken");
     if(!GITHUB_TOKEN  && process.env.GITHUB_TOKEN !== undefined) GITHUB_TOKEN = process.env.GITHUB_TOKEN;
   
@@ -309,7 +311,7 @@ async function run(): Promise<void> {
     const moduleId = core.getInput("moduleId");
     const moduleVer = core.getInput("moduleVer");
     const moduleBlob = core.getInput("moduleBlob");
-    const taskNumber = (core.getInput("taskNumber") !== 'undefined') ? core.getInput("taskNumber") : todayString;
+    const taskNumber = (core.getInput("taskNumber") !== 'undefined') ? core.getInput("taskNumber") : `${todayString}-${sha}`;
     const configPath = core.getInput("configPath");
     const forceCommit = core.getInput("forceCommit");
 

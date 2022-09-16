@@ -9171,13 +9171,14 @@ function updateConfigContent(githubToken, deployData, targetRepo, baseRepo, gitU
 function run() {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function () {
-        var today, dd, mm, yyyy, todayString, GITHUB_TOKEN, deployRepoName, deployBranchName, gitUserName, gitUserEmail, repoOrg, releaseSource, releaseType, platformVer, platformTag, moduleId, moduleVer, moduleBlob, taskNumber, configPath, forceCommit, gitUser, prRepo, deployRepo, deployData;
+        var today, dd, mm, yyyy, todayString, sha, GITHUB_TOKEN, deployRepoName, deployBranchName, gitUserName, gitUserEmail, repoOrg, releaseSource, releaseType, platformVer, platformTag, moduleId, moduleVer, moduleBlob, taskNumber, configPath, forceCommit, gitUser, prRepo, deployRepo, deployData;
         return __generator(this, function (_d) {
             today = new Date();
             dd = String(today.getDate()).padStart(2, '0');
             mm = String(today.getMonth() + 1).padStart(2, '0');
             yyyy = today.getFullYear();
             todayString = dd + '-' + mm + '-' + yyyy;
+            sha = github.context.payload.pull_request.head.sha.substring(0, 4);
             GITHUB_TOKEN = core.getInput("githubToken");
             if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
                 GITHUB_TOKEN = process.env.GITHUB_TOKEN;
@@ -9193,7 +9194,7 @@ function run() {
             moduleId = core.getInput("moduleId");
             moduleVer = core.getInput("moduleVer");
             moduleBlob = core.getInput("moduleBlob");
-            taskNumber = (core.getInput("taskNumber") !== 'undefined') ? core.getInput("taskNumber") : todayString;
+            taskNumber = (core.getInput("taskNumber") !== 'undefined') ? core.getInput("taskNumber") : todayString + "-" + sha;
             configPath = core.getInput("configPath");
             forceCommit = core.getInput("forceCommit");
             if (releaseSourceTypes.indexOf(releaseSource) === -1) {
