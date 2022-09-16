@@ -22,7 +22,7 @@ on:
 
 jobs:
  platform-katalon-tests:
-    uses: VirtoCommerce/.github/.github/workflows/e2e.yml@v3.200.19
+    uses: VirtoCommerce/.github/.github/workflows/e2e.yml@main
     with:
       katalonRepo: 'VirtoCommerce/vc-quality-gate-katalon'
       katalonRepoBranch: '${{ github.event.inputs.testBranch }}'
