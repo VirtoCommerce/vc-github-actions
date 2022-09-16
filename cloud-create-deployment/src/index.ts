@@ -294,7 +294,7 @@ async function run(): Promise<void> {
 
     let todayString = dd + '-' + mm + '-' + yyyy;
 
-    const sha = github.context.payload.pull_request.head.sha.substring(0, 4);
+    const sha = github.context.eventName.startsWith('pull_request') ? github.context.payload.pull_request.head.sha.substring(0, 4) : github.context.sha.substring(0, 4);
 
     let GITHUB_TOKEN = core.getInput("githubToken");
     if(!GITHUB_TOKEN  && process.env.GITHUB_TOKEN !== undefined) GITHUB_TOKEN = process.env.GITHUB_TOKEN;

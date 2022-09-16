@@ -9178,7 +9178,7 @@ function run() {
             mm = String(today.getMonth() + 1).padStart(2, '0');
             yyyy = today.getFullYear();
             todayString = dd + '-' + mm + '-' + yyyy;
-            sha = github.context.payload.pull_request.head.sha.substring(0, 4);
+            sha = github.context.eventName.startsWith('pull_request') ? github.context.payload.pull_request.head.sha.substring(0, 4) : github.context.sha.substring(0, 4);
             GITHUB_TOKEN = core.getInput("githubToken");
             if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN !== undefined)
                 GITHUB_TOKEN = process.env.GITHUB_TOKEN;
