@@ -1,0 +1,36 @@
+name: katalon_platform_test
+on:
+  workflow_dispatch:
+    inputs:
+      testSuite:
+        description: "Test Suite"
+        required: false
+        default: "Test Suites/Modules/Platform_collection"
+      testBranch:
+        description: "Branch of tests"
+        required: false
+        default: "dev"
+      platformTag:
+        description: "Platform tag"
+        required: false
+        default: "dev-linux-latest"
+      storefrontTag:
+        description: "Storefront tag"
+        required: false
+        default: "dev-linux-latest"
+
+
+jobs:
+ platform-katalon-tests:
+    uses: VirtoCommerce/.github/.github/workflows/e2e.yml@v3.200.19
+    with:
+      katalonRepo: 'VirtoCommerce/vc-quality-gate-katalon'
+      katalonRepoBranch: '${{ github.event.inputs.testBranch }}'
+      testSuite: '${{ github.event.inputs.testSuite }}'
+      installModules: 'true'
+      installCustomModule: 'false'
+      platformDockerTag: '${{ github.event.inputs.platformTag }}'
+      storefrontDockerTag: '${{ github.event.inputs.storefrontTag }}'
+    secrets:
+      envPAT: ${{ secrets.REPO_TOKEN }}
+      katalonApiKey: ${{ secrets.KATALON_API_KEY }}
