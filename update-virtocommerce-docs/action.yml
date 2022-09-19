@@ -52,7 +52,7 @@ runs:
         wget https://vc3prerelease.blob.core.windows.net/packages/docs2.0.zip -O olddocs.zip
         unzip olddocs.zip -d ./site
         
-     - name: Build new Docs
+    - name: Build new Docs
        working-directory: ${{ github.workspace }}
        shell: pwsh
        run: |
