@@ -43,7 +43,9 @@ runs:
       working-directory: ${{ github.workspace }}/vc-docs
       shell: bash
       run: |
-        mkdocs build && ls -la
+        mkdocs build  -d ./site 
+        mkdocs build  -f dev_docs/mkdocs.yml -d ../site/dev_docs
+        mkdocs build  -f user_docs/mkdocs.yml -d ../site/user_docs
         cp ${{ github.action_path }}/site/* ./site/
 
     - name: Docker
