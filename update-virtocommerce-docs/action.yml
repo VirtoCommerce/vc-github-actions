@@ -51,6 +51,15 @@ runs:
       run: |
         wget https://vc3prerelease.blob.core.windows.net/packages/docs2.0.zip -O olddocs.zip
         unzip olddocs.zip -d ./site
+        
+     - name: Build new Docs
+       working-directory: ${{ github.workspace }}
+       shell: pwsh
+       run: |
+        git clone https://github.com/VirtoCommerce/vc-docs --branch "master"
+        cd vc-docs
+        ./build.ps1
+        Copy-Item -Path ./site -Destination ../vc-platform/site/new -Recurse -Force
 
     - name: Docker
       shell: pwsh
