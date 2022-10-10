@@ -4,7 +4,7 @@ import * as core from '@actions/core'
 
 const githubReleases = 'GithubReleases'
 const azureBlobReleases = 'AzureBlob'
-const releaseSourceTypes = ['platform', 'module'];
+const releaseSourceTypes = ['platform', 'module', 'customApp'];
 const releaseTypes = [githubReleases, azureBlobReleases];
 const commitPrefix: string = 'ci: Automated update';
 interface GitUser 
@@ -24,7 +24,8 @@ interface RepoData
 
 interface DeploymentData
 {
-    releaseSource: string, //platform or module
+    artifactKey: string,
+    releaseSource: string, //platform, module or customApp
     releaseType: string, // 'GithubReleases', 'AzureBlob'
     platformVer: string,
     platformTag: string,
@@ -144,15 +145,26 @@ async function createDeployCommit(deployData: DeploymentData, targetRepo: RepoDa
     });
 }
 
+
+function setCustomApp (key:string, tagValue:string, content:string){
+    console.log('Set custom app tag');
+
+    let imageJson = JSON.parse(content);
+    imageJson[key] = tagValue;
+    let result = JSON.stringify(imageJson, null, 2);
+    return result;
+}
+
+
 function setPlatform (verValue:string, tagValue:string, content:string){
     console.log('Set platform version');
 
     const version = "PlatformVersion"
     const imageTag = "PlatformImageTag";
-    let vcPacakge = JSON.parse(content);
-    vcPacakge[version] = verValue;
-    vcPacakge[imageTag] = tagValue;
-    let result = JSON.stringify(vcPacakge, null, 2);
+    let vcPackage = JSON.parse(content);
+    vcPackage[version] = verValue;
+    vcPackage[imageTag] = tagValue;
+    let result = JSON.stringify(vcPackage, null, 2);
     return result;
 }
 
@@ -234,8 +246,11 @@ function setContent (deployData: DeploymentData, content: string): string {
         case releaseSourceTypes[0]: //platform
             deployContent = setPlatform(deployData.platformVer, deployData.platformTag, content);
             break;
-        case releaseSourceTypes[1]://module
+        case releaseSourceTypes[1]: //module
             deployContent = setModule(deployData, content);
+            break;
+        case releaseSourceTypes[2]: //customApp
+            deployContent = setCustomApp(deployData.artifactKey, deployData.platformTag, content);
             break;
         default:
             console.log(`Deployment source type is not supported. Valid values: \x1b[0;32m${releaseSourceTypes.join(', ')}\x1b[0m. Actual value: \x1b[0;31m${deployData.releaseSource}\x1b[0m.`);
@@ -308,6 +323,7 @@ async function run(): Promise<void> {
     const releaseType = core.getInput("releaseType");
     const platformVer = core.getInput("platformVer");
     const platformTag = core.getInput("platformTag");
+    const artifactKey = core.getInput("artifactKey");
     const moduleId = core.getInput("moduleId");
     const moduleVer = core.getInput("moduleVer");
     const moduleBlob = core.getInput("moduleBlob");
@@ -349,6 +365,7 @@ async function run(): Promise<void> {
         taskNumber: taskNumber
     };
     const deployData: DeploymentData ={
+        artifactKey: artifactKey,
         releaseSource: releaseSource,
         releaseType: releaseType,
         platformVer: platformVer,

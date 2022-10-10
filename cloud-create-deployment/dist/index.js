@@ -8906,7 +8906,7 @@ var github = __importStar(__nccwpck_require__(9782));
 var core = __importStar(__nccwpck_require__(739));
 var githubReleases = 'GithubReleases';
 var azureBlobReleases = 'AzureBlob';
-var releaseSourceTypes = ['platform', 'module'];
+var releaseSourceTypes = ['platform', 'module', 'customApp'];
 var releaseTypes = [githubReleases, azureBlobReleases];
 var commitPrefix = 'ci: Automated update';
 function createDeployPr(deployData, targetRepo, baseRepo, gitUser, sha, githubToken, deployContent) {
@@ -9041,14 +9041,21 @@ function createDeployCommit(deployData, targetRepo, baseRepoName, gitUser, sha, 
         });
     });
 }
+function setCustomApp(key, tagValue, content) {
+    console.log('Set custom app tag');
+    var imageJson = JSON.parse(content);
+    imageJson[key] = tagValue;
+    var result = JSON.stringify(imageJson, null, 2);
+    return result;
+}
 function setPlatform(verValue, tagValue, content) {
     console.log('Set platform version');
     var version = "PlatformVersion";
     var imageTag = "PlatformImageTag";
-    var vcPacakge = JSON.parse(content);
-    vcPacakge[version] = verValue;
-    vcPacakge[imageTag] = tagValue;
-    var result = JSON.stringify(vcPacakge, null, 2);
+    var vcPackage = JSON.parse(content);
+    vcPackage[version] = verValue;
+    vcPackage[imageTag] = tagValue;
+    var result = JSON.stringify(vcPackage, null, 2);
     return result;
 }
 function setModule(deployData, content) {
@@ -9121,6 +9128,9 @@ function setContent(deployData, content) {
         case releaseSourceTypes[1]:
             deployContent = setModule(deployData, content);
             break;
+        case releaseSourceTypes[2]:
+            deployContent = setCustomApp(deployData.artifactKey, deployData.platformTag, content);
+            break;
         default:
             console.log("Deployment source type is not supported. Valid values: \u001B[0;32m" + releaseSourceTypes.join(', ') + "\u001B[0m. Actual value: \u001B[0;31m" + deployData.releaseSource + "\u001B[0m.");
     }
@@ -9171,7 +9181,7 @@ function updateConfigContent(githubToken, deployData, targetRepo, baseRepo, gitU
 function run() {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function () {
-        var today, dd, mm, yyyy, todayString, sha, GITHUB_TOKEN, deployRepoName, deployBranchName, gitUserName, gitUserEmail, repoOrg, releaseSource, releaseType, platformVer, platformTag, moduleId, moduleVer, moduleBlob, taskNumber, configPath, forceCommit, gitUser, prRepo, deployRepo, deployData;
+        var today, dd, mm, yyyy, todayString, sha, GITHUB_TOKEN, deployRepoName, deployBranchName, gitUserName, gitUserEmail, repoOrg, releaseSource, releaseType, platformVer, platformTag, artifactKey, moduleId, moduleVer, moduleBlob, taskNumber, configPath, forceCommit, gitUser, prRepo, deployRepo, deployData;
         return __generator(this, function (_d) {
             today = new Date();
             dd = String(today.getDate()).padStart(2, '0');
@@ -9191,6 +9201,7 @@ function run() {
             releaseType = core.getInput("releaseType");
             platformVer = core.getInput("platformVer");
             platformTag = core.getInput("platformTag");
+            artifactKey = core.getInput("artifactKey");
             moduleId = core.getInput("moduleId");
             moduleVer = core.getInput("moduleVer");
             moduleBlob = core.getInput("moduleBlob");
@@ -9226,6 +9237,7 @@ function run() {
                 taskNumber: taskNumber
             };
             deployData = {
+                artifactKey: artifactKey,
                 releaseSource: releaseSource,
                 releaseType: releaseType,
                 platformVer: platformVer,

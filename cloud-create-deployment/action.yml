@@ -1,5 +1,5 @@
 name: 'cloud-create-deployment'
-description: 'Create deployment PR'
+description: 'Create deployment commit or PR'
 inputs:
   githubToken:
     description: "GitHub token"
@@ -25,11 +25,15 @@ inputs:
     required: true
     default: "vcpt"
   releaseSource:
-    description: "Release source. Allowed values: platform, module"
+    description: "Release source. Allowed values: platform, module, customApp"
     required: true
   releaseType:
     description: "Release type. Allowed values: 'GithubReleases', 'AzureBlob'"
     required: true
+  artifactKey:
+    description: "CustomApp artifact key"
+    required: false
+    default: "Tag"
   platformVer:
     description: "Deploying Platform version"
     required: false
