@@ -1,5 +1,5 @@
 # v3.200.20
-name: Platform CI
+name: debug Platform CI
 
 on:
   workflow_dispatch:
