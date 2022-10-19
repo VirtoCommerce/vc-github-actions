@@ -1,77 +1,305 @@
-name: Docker Environment + E2E
+# v3.200.20
+name: Platform CI
+
 on:
   workflow_dispatch:
     inputs:
-      testSuite:
-        description: "Test Suite"
+      forceLatest:
+        description: "Flag to set dev-linux-latest flag on workflow_dispatch event. Allowed values true or false."
         required: false
-        default: "Test Suites/Platform_E2E_Hybrid"
-      testBranch:
-        description: "Branch of tests"
-        required: false
-        default: "dev"
+        type: boolean
+        default: false
+
+  push:
+    paths-ignore:
+      - '.github/**'
+      - 'docs/**'
+      - 'build/**'
+      - 'README.md'
+      - 'LICENSE'
+      - '**/argoDeploy.json'
+      - '**/cloudDeploy.json'
+    branches: [ master, dev ]
 
 jobs:
-  katalon-tests:
-    runs-on: ubuntu-18.04
+  ci:
+    if: ${{ github.actor != 'dependabot[bot]' &&
+         (github.event.pull_request.head.repo.full_name == github.repository ||
+         github.event.pull_request.head.repo.full_name == '') }}  # Check that PR not from forked repo and not from Dependabot
+    runs-on: ubuntu-20.04
+    env:
+      CLOUD_INSTANCE_BASE_URL: ${{secrets.CLOUD_INSTANCE_BASE_URL}}
+      CLIENT_ID: ${{secrets.CLIENT_ID}}
+      CLIENT_SECRET: ${{secrets.CLIENT_SECRET}}
+      SONAR_TOKEN: ${{secrets.SONAR_TOKEN}}
+      GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+      NUGET_KEY: ${{ secrets.NUGET_KEY }}
+      BLOB_SAS: ${{ secrets.BLOB_TOKEN }}
+      PUBLISH_TO_DOCKER: 'true'
+      UPDATE_LATEST_TAG: 'true'
+      VERSION_SUFFIX: ''
+      IMAGE_NAME: 'platform'
+      PACKAGE_SERVER: 'ghcr.io'
+      BUILD_STATE: 'failed'
+      RELEASE_STATUS: 'false'
+      BUILD_DOCKER: 'false'
+      DOCKER_TAG: 'dev-linux-latest'
+      MSBuildEnableWorkloadResolver: 'false'
+
+    outputs:
+      artifactUrl: ${{ steps.artifactUrl.outputs.DOCKER_URL }}
+      jira-keys: ${{ steps.jira_keys.outputs.jira-keys }}
+      version: ${{ steps.image.outputs.shortVersion }}
+      tag: ${{ env.DOCKER_TAG }}
+      matrix: ${{ steps.deployment-matrix.outputs.matrix }}
+      run-e2e: ${{ steps.run-e2e.outputs.result }}
+
     steps:
-      - name: Install VirtoCommerce.GlobalTool
-        uses: VirtoCommerce/vc-github-actions/setup-vcbuild@master
+
+    - name: Set up Node 14
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+
+    - name: Set variables
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      run: |
+        echo "PUBLISH_TO_DOCKER=false" >> $GITHUB_ENV
+        echo "UPDATE_LATEST_TAG=${{ github.event.inputs.forceLatest }}" >> $GITHUB_ENV
+
+    - name: Set RELEASE_STATUS
+      if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push' }}
+      run: |
+        echo "RELEASE_STATUS=true" >> $GITHUB_ENV
+
+    - name: Set BUILD_DOCKER
+      if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/dev-dockerenv' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master') }}
+      run: |
+        echo "BUILD_DOCKER=true" >> $GITHUB_ENV
+
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Install VirtoCommerce.GlobalTool
+      uses: VirtoCommerce/vc-github-actions/setup-vcbuild@master
+
+    - name: Install dotnet-sonarscanner
+      run: dotnet tool install --global dotnet-sonarscanner
+
+    - name: Get Image Version
+      uses: VirtoCommerce/vc-github-actions/get-image-version@master
+      id: image
+
+    - name: Get changelog
+      id: changelog
+      uses: VirtoCommerce/vc-github-actions/changelog-generator@master
+
+    - name: Set VERSION_SUFFIX variable
+      run: |
+        if [ '${{ github.event_name }}' = 'workflow_dispatch' ]; then
+          echo "VERSION_SUFFIX=${{ steps.image.outputs.fullSuffix }}" >> $GITHUB_ENV
+        else
+          echo "VERSION_SUFFIX=${{ steps.image.outputs.suffix }}" >> $GITHUB_ENV
+        fi;
+
+    - name: Set DOCKER_TAG variable
+      run: |
+        if [ '${{ github.ref }}' = 'refs/heads/master' ]; then
+          echo "DOCKER_TAG=${{ steps.image.outputs.shortVersion }}" >> $GITHUB_ENV
+        else
+          echo "DOCKER_TAG=${{ steps.image.outputs.taggedVersion }}" >> $GITHUB_ENV
+        fi;
+
+    - name: Add version suffix
+      if: ${{ github.ref != 'refs/heads/master' }}
+      uses: VirtoCommerce/vc-github-actions/add-version-suffix@master
+      with:
+        versionSuffix: ${{ env.VERSION_SUFFIX }}
+
+    - name: SonarCloud Begin
+      uses: VirtoCommerce/vc-github-actions/sonar-scanner-begin@master
+
+    - name: Build
+      run: vc-build Compile
+
+    - name: Unit Tests
+      run: vc-build Test -skip
+
+    - name: BUILD_STATE::successful
+      if: success()
+      run: echo "BUILD_STATE=successful" >> $GITHUB_ENV
+
+    - name: SonarCloud End
+      uses: VirtoCommerce/vc-github-actions/sonar-scanner-end@master
+
+    - name: Quality Gate
+      uses: VirtoCommerce/vc-github-actions/sonar-quality-gate@master
+      with:
+        login: ${{secrets.SONAR_TOKEN}}
+
+    - name: Packaging
+      run: vc-build Compress -skip Clean+Restore+Compile+Test
+
+    - name: Build Docker Image
+      if: ${{ env.BUILD_DOCKER == 'true' }}
+      id: dockerBuild
+      uses: VirtoCommerce/vc-github-actions/build-docker-image@master
+      with:
+        tag: ${{ env.DOCKER_TAG }}
+        imageName: 'platform'
+        dockerFiles: 'https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net6/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh'
+
+    - name: Docker Login
+      if: ${{ env.BUILD_DOCKER == 'true' }}
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ env.PACKAGE_SERVER }}
+        username: $GITHUB_ACTOR
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Swagger validation
+      uses: VirtoCommerce/vc-github-actions/docker-env@master
+      if: ${{ github.ref == 'refs/heads/dev' }}
+      with:
+        githubUser: ${{ env.GITHUB_ACTOR }}
+        githubToken: ${{ env.GITHUB_TOKEN }}
+        platformDockerTag: ${{ env.DOCKER_TAG }}
+        storefrontDockerTag: dev-linux-latest
+        platformImage: ${{ env.PACKAGE_SERVER }}/virtocommerce/platform
+        storefrontImage: ${{ env.PACKAGE_SERVER }}/virtocommerce/storefront
+        installSampleData: 'false'
+
+    - name: Publish Nuget
+      if: ${{ github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'}}
+      uses: VirtoCommerce/vc-github-actions/publish-nuget@master
+
+    - name: Publish to Blob
+      if: ${{ github.ref == 'refs/heads/dev' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master') }}
+      id: blobRelease
+      uses: VirtoCommerce/vc-github-actions/publish-blob-release@master
+      with:
+        blobSAS: ${{ secrets.BLOB_TOKEN }}
+
+    - name: Set artifactUrl value
+      id: artifactUrl
+      run: |
+        echo ::set-output name=DOCKER_URL::${{ env.PACKAGE_SERVER }}/${{github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.DOCKER_TAG }}
+        echo ::set-output name=BLOB_URL::${{ steps.blobRelease.outputs.packageUrl }}
+
+    - name: Add Jira link
+      if: ${{ github.event_name == 'pull_request' }}
+      uses: VirtoCommerce/vc-github-actions/publish-jira-link@master
+      with:
+        branchName: ${{ github.head_ref }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Add link to PR
+      if: ${{ github.event_name == 'pull_request' }}
+      uses: VirtoCommerce/vc-github-actions/publish-artifact-link@master
+      with:
+        artifactUrl: ${{ steps.artifactUrl.outputs.DOCKER_URL }}
+        downloadComment: 'Artifact URL:'
+
+    - name: Publish Github Release
+      if: ${{ github.ref == 'refs/heads/master' }}
+      with:
+        changelog: ${{ steps.changelog.outputs.changelog }}
+      uses: VirtoCommerce/vc-github-actions/publish-github-release@master
+
+    - name: Create deployment matrix
+      if: ${{ github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'}}
+      uses: VirtoCommerce/vc-github-actions/cloud-create-deploy-matrix@master
+      id: deployment-matrix
+      with:
+        deployConfigPath: 'cloudDeploy.json'
+        releaseBranch: 'master'
+
+    - name: Check commit message for version number
+      id: run-e2e
+      run: |
+        if [[ "${{ github.event.head_commit.message }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; 
+        then
+          echo "::set-output name=result::false"
+        else
+          echo "::set-output name=result::true"
+        fi
+
+    - name: Publish Docker Image
+      if: ${{ env.BUILD_DOCKER == 'true' }}
+      uses: VirtoCommerce/vc-github-actions/publish-docker-image@master
+      with:
+          image: ${{ steps.dockerBuild.outputs.imageName }}
+          tag: ${{ env.DOCKER_TAG }}
+          docker_user: ${{ secrets.DOCKER_USERNAME }}
+          docker_token: ${{ secrets.DOCKER_TOKEN }}
+          docker_hub: ${{ env.PUBLISH_TO_DOCKER }}
+          update_latest: ${{ env.UPDATE_LATEST_TAG }}
+
+    - name: Parse Jira Keys from All Commits
+      uses: VirtoCommerce/vc-github-actions/get-jira-keys@master
+      if: always()
+      id: jira_keys
+      with:
+        release: ${{ env.RELEASE_STATUS }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Push Build Info to Jira
+      if: ${{ env.CLOUD_INSTANCE_BASE_URL != 0 && env.CLIENT_ID != 0 && env.CLIENT_SECRET != 0 && steps.jira_keys.outputs.jira-keys != '' && always() }}
+      id: push_build_info_to_jira
+      uses: HighwayThree/jira-upload-build-info@master
+      with:
+        cloud-instance-base-url: '${{ secrets.CLOUD_INSTANCE_BASE_URL }}'
+        client-id: '${{ secrets.CLIENT_ID }}'
+        client-secret: '${{ secrets.CLIENT_SECRET }}'
+        pipeline-id: '${{ github.repository }} ${{ github.workflow }}'
+        build-number: ${{ github.run_number }}
+        build-display-name: 'Workflow: ${{ github.workflow }} (#${{ github.run_number }})'
+        build-state: '${{ env.BUILD_STATE }}'
+        build-url: '${{github.event.repository.url}}/actions/runs/${{github.run_id}}'
+        update-sequence-number: '${{ github.run_id }}'
+        last-updated: '${{github.event.head_commit.timestamp}}'
+        issue-keys: '${{ steps.jira_keys.outputs.jira-keys }}'
+        commit-id: '${{ github.sha }}'
+        repo-url: '${{ github.event.repository.url }}'
+        build-ref-url: '${{ github.event.repository.url }}/actions/runs/${{ github.run_id }}'
+
+    - name: Confirm Jira Build Output
+      if: success()
+      run: |
+        echo "Jira Upload Build Info response: ${{ steps.push_build_info_to_jira.outputs.response }}"
+
+  platform-katalon-tests:
+    needs: 'ci'
+    if: ${{ ((github.ref == 'refs/heads/dev') && (github.event_name == 'push') && (needs.ci.outputs.run-e2e == 'true')) ||
+        (github.event_name == 'workflow_dispatch')}}
+    uses: VirtoCommerce/.github/.github/workflows/e2e.yml@v3.200.20
+    with:
+      katalonRepo: 'VirtoCommerce/vc-quality-gate-katalon'
+      katalonRepoBranch: 'sampleData'
+      testSuite: 'Test Suites/Modules/Platform_collection'
+      installModules: 'true'
+      installCustomModule: 'false'
+      platformDockerTag: ${{ needs.ci.outputs.tag }}
+      storefrontDockerTag: 'dev-linux-latest'
+    secrets:
+      envPAT: ${{ secrets.REPO_TOKEN }}
+      katalonApiKey: ${{ secrets.KATALON_API_KEY }}
 
 
-      - name: Docker Login
-        uses: azure/docker-login@v1
-        with:
-          login-server: docker.pkg.github.com
-          username: $GITHUB_ACTOR
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Docker Env
-        uses: VirtoCommerce/vc-github-actions/docker-env@master
-        with:
-          githubUser: ${{ env.GITHUB_ACTOR }}
-          githubToken: ${{ env.GITHUB_TOKEN }}
-          platformDockerTag: 'dev-linux-latest'
-          storefrontDockerTag: 'dev-linux-latest'
-          platformImage: ghcr.io/virtocommerce/platform
-          storefrontImage: ghcr.io/virtocommerce/storefront
-          validateSwagger: 'false'
-
-      - name: Getting tests
-        shell: bash
-        run: git clone https://github.com/VirtoCommerce/vc-quality-gate-katalon.git --branch ${{ github.event.inputs.testBranch }}
-
-      - name: Katalon Studio Github Action
-        uses: VirtoCommerce/vc-github-actions/katalon-studio-github-action@master
-        with:
-          version: '8.0.5'
-          projectPath: '${{ github.workspace }}/vc-quality-gate-katalon/platform_storefront.prj'
-          args: '-noSplash -retry=0  -testSuitePath="Test Suites/Modules/Platform_collection" -browserType="Chrome" -apiKey= ${{ secrets.KATALON_API_KEY }} -g_urlBack="http://localhost:8090" -g_urlFront="http://localhost:8080" -executionProfile="default" --config -webui.autoUpdateDrivers=true'
-
-      - name: Katalon Report Uploader
-        if: always()
-        uses: katalon-studio/report-uploader@v0.0.7.11
-        env:
-          PASSWORD: ${{ secrets.KATALON_API_KEY }}
-          PROJECT_ID: 263280
-          TYPE: junit
-          REPORT_PATH: ${{ github.workspace }}/vc-quality-gate-katalon/Reports
-
-
-      - name: 'Katalon Reports'
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: reports
-          path: |
-            vc-quality-gate-katalon/Reports
-            /home/runner/.katalon/*/Katalon_Studio_Engine_Linux_*/configuration/*.log.
-          retention-days: 5
-
-      - name: Katalon Report
-        if: ${{ success() || failure() }}
-        uses: VirtoCommerce/vc-github-actions/publish-katalon-report@master
-        with: 
-          testProjectPath: ${{ github.workspace }}
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
-          publishComment: 'false'
+  deploy-cloud:
+    if: ${{ ((github.ref == 'refs/heads/master') || 
+        (github.ref == 'refs/heads/dev')) && 
+        github.event_name == 'push' }}
+    needs: ci
+    uses: VirtoCommerce/.github/.github/workflows/deploy-cloud.yml@v3.200.20
+    with:
+      releaseSource: platform
+      platformVer: ${{ needs.ci.outputs.version }}
+      platformTag: ${{ needs.ci.outputs.tag }}
+      jiraKeys: ${{ needs.ci.outputs.jira-keys }}
+      argoServer: 'argo.virtocommerce.cloud'
+      matrix: '{"include":${{ needs.ci.outputs.matrix }}}'
+    secrets: inherit
