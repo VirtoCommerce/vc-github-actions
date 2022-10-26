@@ -1,4 +1,4 @@
-name: testQwe
+name: suiteDebug
 on:
   workflow_dispatch:
     inputs:
