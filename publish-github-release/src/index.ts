@@ -7,7 +7,7 @@ import * as utils from '@virtocommerce/vc-actions-lib'
 
 async function installGithubRelease()
 {
-    const ghReleaseUrl = "github.com/github-release/github-release";
+    const ghReleaseUrl = "github.com/github-release/github-release@latest";
     await exec.exec(`go install ${ghReleaseUrl}`);
     process.env.PATH = `${process.env.PATH}:${process.env.HOME}/go/bin`;
     console.log(process.env.PATH);

@@ -17406,7 +17406,7 @@ const path_1 = __importDefault(__nccwpck_require__(1017));
 const utils = __importStar(__nccwpck_require__(3694));
 function installGithubRelease() {
     return __awaiter(this, void 0, void 0, function* () {
-        const ghReleaseUrl = "github.com/github-release/github-release";
+        const ghReleaseUrl = "github.com/github-release/github-release@latest";
         yield exec.exec(`go install ${ghReleaseUrl}`);
         process.env.PATH = `${process.env.PATH}:${process.env.HOME}/go/bin`;
         console.log(process.env.PATH);
