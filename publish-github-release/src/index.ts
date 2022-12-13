@@ -8,7 +8,7 @@ import * as utils from '@virtocommerce/vc-actions-lib'
 async function installGithubRelease()
 {
     const ghReleaseUrl = "github.com/github-release/github-release";
-    await exec.exec(`go get ${ghReleaseUrl}`);
+    await exec.exec(`go install ${ghReleaseUrl}`);
     process.env.PATH = `${process.env.PATH}:${process.env.HOME}/go/bin`;
     console.log(process.env.PATH);
     console.log(process.env.HOME);
@@ -60,7 +60,7 @@ async function run()
                 process.exit();
             }
         });
-    } catch (error) {
+    } catch (error: any) {
         core.info(error.message);
         core.setFailed('\x1b[41mError while vc-build Release executed detected:\x1b[0m');
     }
