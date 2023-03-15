@@ -22,5 +22,5 @@ inputs:
             default: '-a -n 99 -s "-screen 99 1920x1080x24"'
 
 runs:
-      using: 'node12'
+      using: 'node16'
       main: 'index.js'
