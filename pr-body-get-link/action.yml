@@ -26,5 +26,5 @@ outputs:
     description: "Jira task number to create deploy PR in Demo environment"
 
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js' 
