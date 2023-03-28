@@ -14,13 +14,13 @@ async function getCommitMessages(since)
                 output += data.toString();
             },
             stderr: (data) => {
-                console.log(data.toString());
+                core.info(data.toString());
             }
         }
     }
 
     await exec.exec(`git log --pretty=format:"${format}" --since="${since}"`, [], options)
-              .then(exitCode => console.log(`git log --pretty=format:"${format}" --since exitCode: ${exitCode}`));
+        .then(exitCode => core.info(`git log --pretty=format:"${format}" --since exitCode: ${exitCode}`));
 
     return output.trim();
 }
@@ -48,7 +48,7 @@ function cleanMessages(messages)
             
             // Skip empty lines
             if (oneLineMsg === ""){return;}
-            console.log(`Raw -> ${oneLineMsg}`);
+            core.info(`Raw -> ${oneLineMsg}`);
 
             const msgAndBody = oneLineMsg.split('BODY:');
             const msg = msgAndBody[0].split('MSG:')[1].trim();
@@ -61,9 +61,9 @@ function cleanMessages(messages)
                 if (jiraTasksRegex.test(body)) {
                     const message = msg.replace(jiraTasksRegex,'');
 
-                    console.log(`FEAT -> ${message}`);
+                    core.info(`FEAT -> ${message}`);
                     releaseNoteGroups[0].items.push(message);
-                    console.log("----------");
+                    core.info("----------");
                     
                     return;
                 }
@@ -85,9 +85,9 @@ function cleanMessages(messages)
                 if (groupIndexes.length === 0) {
                     const message = msg.replace(jiraTasksRegex,'');
 
-                    console.log(`FEAT -> ${message}`);
+                    core.info(`FEAT -> ${message}`);
                     releaseNoteGroups[0].items.push(message);
-                    console.log("----------");
+                    core.info("----------");
 
                     return;
                 }
@@ -97,9 +97,9 @@ function cleanMessages(messages)
                     let key = groupIndexes[0].key;
                     const message = body.replace(key + ': ', '');
 
-                    console.log(`${key.toUpperCase()} -> ${message}`);
+                    core.info(`${key.toUpperCase()} -> ${message}`);
                     releaseNoteGroups.find(group => group.key === key).items.push(message);
-                    console.log("----------");
+                    core.info("----------");
 
                     return;
                 }
@@ -112,9 +112,9 @@ function cleanMessages(messages)
                         .substring(groupIndexes[i].index, groupIndexes[i + 1].index)
                         .replace(groupIndexes[i].key + ': ','');
                     
-                    console.log(`${groupIndexes[i].key.toUpperCase()} -> ${message}`);
+                    core.info(`${groupIndexes[i].key.toUpperCase()} -> ${message}`);
                     releaseNoteGroups.find(group => group.key === groupIndexes[i].key).items.push(message);
-                    console.log("----------");
+                    core.info("----------");
                 }
             }
             else if(new RegExp("^(feat|fix|docs|style|refactor|perf|test|ci|chore):\\s").test(msg)) {
@@ -124,15 +124,15 @@ function cleanMessages(messages)
                     if (!msg.startsWith(template)){ return; }
                     const message = msg.replace(template,'');
 
-                    console.log(`${group.key.toUpperCase()} -> ${message}`);
+                    core.info(`${group.key.toUpperCase()} -> ${message}`);
                     group.items.push(message);
-                    console.log("----------");
+                    core.info("----------");
                 })
             }
             else {
                 // Skip commits without Jira-keys and commit pattern in the start
-                console.log("SKIP");
-                console.log("----------");
+                core.info("SKIP");
+                core.info("----------");
                 
                 return;
             }
@@ -187,7 +187,7 @@ function cleanMessages(messages)
         result += generateGroup("📝 Documentation", docsItems);
     }
 
-    console.log(`Result: ${result}`);
+    core.info(`Result: ${result}`);
 
     return result;
 }
@@ -201,7 +201,7 @@ async function run()
 {
     let isDependencies = await utils.isDependencies(github);
     if (isDependencies) {
-        console.log(`Pull request contain "dependencies" label. Step skipped.`);
+        core.info(`Pull request contain "dependencies" label. Step skipped.`);
         return;
     }
 
@@ -213,7 +213,7 @@ async function run()
         commitMessages = cleanMessages(commitMessages);
     }
 
-    console.log(commitMessages);
+    core.info(commitMessages);
     core.setOutput("changelog", commitMessages);
 }
 
