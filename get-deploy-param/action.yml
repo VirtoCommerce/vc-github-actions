@@ -35,5 +35,5 @@ outputs:
     description: 'Full deploy config(for all environments)'
 
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js' 
