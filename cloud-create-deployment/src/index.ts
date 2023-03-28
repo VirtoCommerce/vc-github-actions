@@ -342,7 +342,7 @@ async function run(): Promise<void> {
     }
 
     if (forceCommit !== "true" && forceCommit !== "false") { 
-        core.setFailed(`Invalid forceCommit. Input parameter releaseSource should contain:: \x1b[0;32mtrue\x1b[0m or \x1b[0;32mfalse\x1b[0m. Actual value: \x1bs[0;31m${forceCommit}\x1b[0m.`);
+        core.setFailed(`Invalid forceCommit. Input parameter forceCommit should contain:: \x1b[0;32mtrue\x1b[0m or \x1b[0;32mfalse\x1b[0m. Actual value: \x1bs[0;31m${forceCommit}\x1b[0m.`);
         return;
     }
 
