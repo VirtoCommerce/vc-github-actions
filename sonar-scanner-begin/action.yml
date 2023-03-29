@@ -1,5 +1,5 @@
 name: 'sonar-scanner-begin'
 description: 'Prepares parameters for vc-build SonarQubeStart'
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'index.js'

@@ -18,5 +18,5 @@ inputs:
     required: false
     default: 'store'
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js' 

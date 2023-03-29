@@ -11,5 +11,5 @@ inputs:
     description: "Target branch name for sonar branch analysis"
 
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'index.js'
