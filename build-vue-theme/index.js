@@ -6,8 +6,7 @@ const path = require('path');
 const fs = require('fs');
 
 async function restoreDependencies() {
-    await exec.exec('npm install yarn@1.x');
-    await exec.exec('yarn -v');
+    await exec.exec('npm install yarn@1.x -g');
     await exec.exec('yarn install');
 }
 
