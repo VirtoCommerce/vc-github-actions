@@ -92,6 +92,7 @@ VirtoCommerce specific GitHub actions and actions common components lib.
 * [Add version suffix](/add-version-suffix/README.md)
 * [Build Docker image](/build-docker-image/README.md)
 * [Build Theme](/build-theme/README.md)
+* [Build Vue Theme](/build-vue-theme/README.md)
 * [Changelog generator](/changelog-generator/README.md)
 * [Deploy Workflow](/deploy-workflow/README.md)
 * [Docker Check Modules](/docker-check-modules/README.md)
