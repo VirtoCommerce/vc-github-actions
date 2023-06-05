@@ -17,7 +17,6 @@ on:
       testSuite:
         description: 'Test Suite'
         required: false
-        type: string
         default: 'Test Suites/Modules/Platform_collection'
       installModules:
         description: 'Enable or disable "Install Modules" step'
