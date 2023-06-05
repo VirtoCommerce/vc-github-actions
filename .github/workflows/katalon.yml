@@ -113,7 +113,6 @@ jobs:
       env:
         PASSWORD: ${{ secrets.KATALON_API_KEY }}
         PROJECT_ID: 171535
-        TYPE: junit
         REPORT_PATH: ${{ github.workspace }}/vc-quality-gate-katalon/Reports
 
     - name: Save Katalon Report as workflow artifact
@@ -123,7 +122,6 @@ jobs:
         name: reports
         path: |
           vc-quality-gate-katalon/Reports
-          /home/runner/.katalon/*/Katalon_Studio_Engine_Linux_*/configuration/*.log.
         retention-days: 5
 
     - name: Katalon Report to PR
