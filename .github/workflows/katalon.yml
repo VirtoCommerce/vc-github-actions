@@ -19,12 +19,6 @@ on:
         required: false
         type: string
         default: 'Test Suites/Modules/Platform_collection'
-      installModules:
-        description: 'Enable or disable "Install Modules" step'
-        required: false
-        type: string
-        default: true
-
       platformDockerTag:
         description: 'Platform docker tag'
         required: false
