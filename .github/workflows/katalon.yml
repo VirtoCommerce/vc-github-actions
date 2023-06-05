@@ -112,7 +112,7 @@ jobs:
       if: always()
       uses: katalon-studio/report-uploader@v0.0.8
       env:
-        PASSWORD: ${{ secrets.katalonApiKey }}
+        PASSWORD: ${{ secrets.KATALON_API_KEY }}
         PROJECT_ID: 171535
         TYPE: junit
         REPORT_PATH: ${{ github.workspace }}/vc-quality-gate-katalon/Reports
