@@ -1,6 +1,6 @@
 # v3.200.29
 
-name: katalon_suite_debug_action
+name: katalon_debug_action
 on:
   workflow_dispatch:
     inputs:
@@ -19,6 +19,26 @@ on:
         required: false
         type: string
         default: 'Test Suites/Modules/Platform_collection'
+      installModules:
+        description: 'Enable or disable "Install Modules" step'
+        required: false
+        type: string
+        default: true
+      installCustomModule:
+        description: 'Enable or disable "Install Custom Modules" step'
+        required: false
+        type: string
+        default: false
+      customModuleId:
+        description: 'Custom Module id'
+        required: false
+        type: string
+        default: ''
+      customModuleUrl:
+        description: 'Custom module Module url'
+        required: false
+        type: string
+        default: ''
       platformDockerTag:
         description: 'Platform docker tag'
         required: false
