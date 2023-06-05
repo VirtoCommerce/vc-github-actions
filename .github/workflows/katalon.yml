@@ -17,7 +17,7 @@ on:
       testSuite:
         description: 'Test Suite'
         required: false
-        default: 'Test Suites/Modules/Platform_collection'
+        default: 'Test Suites/Modules/Module_Health_Check'
       installModules:
         description: 'Enable or disable "Install Modules" step'
         required: false
