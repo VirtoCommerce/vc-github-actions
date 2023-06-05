@@ -2,7 +2,7 @@
 
 name: katalon_suite_debug_action
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       katalonRepo:
         description: 'Katalon tests repository'
