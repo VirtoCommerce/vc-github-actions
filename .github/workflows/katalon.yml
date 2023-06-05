@@ -20,20 +20,6 @@ on:
         type: string
         default: 'Test Suites/Modules/Platform_collection'
       installModules:
-        description: 'Enable or disable "Install Modules" step'
-        required: false
-        type: string
-        default: true
-      platformDockerTag:
-        description: 'Platform docker tag'
-        required: false
-        type: string
-        default: 'dev-linux-latest'
-      storefrontDockerTag:
-        description: 'Storefront docker tag'
-        required: false
-        type: string
-        default: 'dev-linux-latest'
 
     secrets:
       envPAT:
