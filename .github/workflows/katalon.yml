@@ -1,6 +1,7 @@
 # v3.200.29
 
-name: katalon_debug_action
+name: katalon_debug_workflow
+
 on:
   workflow_dispatch:
     inputs:
@@ -17,6 +18,7 @@ on:
       testSuite:
         description: 'Test Suite'
         required: false
+        type: string
         default: 'Test Suites/Modules/Platform_collection'
       installModules:
         description: 'Enable or disable "Install Modules" step'
@@ -113,6 +115,7 @@ jobs:
       env:
         PASSWORD: ${{ secrets.KATALON_API_KEY }}
         PROJECT_ID: 171535
+        TYPE: junit
         REPORT_PATH: ${{ github.workspace }}/vc-quality-gate-katalon/Reports
 
     - name: Save Katalon Report as workflow artifact
@@ -122,6 +125,7 @@ jobs:
         name: reports
         path: |
           vc-quality-gate-katalon/Reports
+          /home/runner/.katalon/*/Katalon_Studio_Engine_Linux_*/configuration/*.log.
         retention-days: 5
 
     - name: Katalon Report to PR
@@ -129,5 +133,3 @@ jobs:
       uses: VirtoCommerce/vc-github-actions/publish-katalon-report@master
       with:
         testProjectPath: ${{ github.workspace }}
-        
-        
