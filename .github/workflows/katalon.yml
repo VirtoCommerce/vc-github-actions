@@ -44,12 +44,12 @@ on:
         description: 'Platform docker tag'
         required: false
         type: string
-        default: 'dev-linux-latest'
+        default: 'linux-latest'
       storefrontDockerTag:
         description: 'Storefront docker tag'
         required: false
         type: string
-        default: 'dev-linux-latest'
+        default: 'linux-latest'
 
     secrets:
       envPAT:
