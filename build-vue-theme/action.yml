@@ -13,6 +13,8 @@ outputs:
     description: 'Path to artifact'
   artifactName:
     description: 'Name of artifact'
+env:
+  YARN_ENABLE_IMMUTABLE_INSTALLS: false
 
 runs:
   using: 'node16'
