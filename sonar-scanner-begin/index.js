@@ -36,7 +36,7 @@ async function run()
     let sonarAuthArg = `-SonarAuthToken ${SonarAuthToken}`;
     let repoNameArg = `-RepoName ${repoName}`;
 
-    await exec.exec(`vc-build SonarQubeStart -SonarOrg ${sonarOrg} -SonarBranchName ${branchName} ${prArg} ${sonarAuthArg} ${repoNameArg} ${prBaseArg} ${prBranchArg} ${prKeyArg} ${ghRepoArg} ${prProviderArg}`);
+    await exec.exec(`vc-build SonarQubeStart -SonarOrg "${sonarOrg}" -SonarBranchName ${branchName} ${prArg} ${sonarAuthArg} ${repoNameArg} ${prBaseArg} ${prBranchArg} ${prKeyArg} ${ghRepoArg} ${prProviderArg}`);
 }
 
 run().catch(err => core.setFailed(err.message));
