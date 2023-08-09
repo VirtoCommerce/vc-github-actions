@@ -10,6 +10,7 @@ async function run()
 
     let prArg = isPullRequest ? '-PullRequest' : '';
     let branchName = await utils.getBranchName(github);
+    let repoOrg = core.getInput("repoOrg");
     let repoName = await utils.getRepoName();
     let sonarOrg = core.getInput("sonarOrg");
     let prBaseArg = "";
@@ -34,9 +35,10 @@ async function run()
     }
 
     let sonarAuthArg = `-SonarAuthToken ${SonarAuthToken}`;
+    let repoOrgArg = `-RepoOrg "${repoOrg}"`;
     let repoNameArg = `-RepoName ${repoName}`;
 
-    await exec.exec(`vc-build SonarQubeStart -SonarOrg "${sonarOrg}" -SonarBranchName ${branchName} ${prArg} ${sonarAuthArg} ${repoNameArg} ${prBaseArg} ${prBranchArg} ${prKeyArg} ${ghRepoArg} ${prProviderArg}`);
+    await exec.exec(`vc-build SonarQubeStart -SonarOrg "${sonarOrg}" -SonarBranchName ${branchName} ${prArg} ${sonarAuthArg} ${repoOrgArg} ${repoNameArg} ${prBaseArg} ${prBranchArg} ${prKeyArg} ${ghRepoArg} ${prProviderArg}`);
 }
 
 run().catch(err => core.setFailed(err.message));

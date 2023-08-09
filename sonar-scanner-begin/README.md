@@ -3,6 +3,10 @@ Prepares parameters for vc-build SonarQubeStart
 
 ## inputs
 ```
+  repoOrg:
+    description: "Repo Organization/User"
+    required: false
+    default: "VirtoCommerce"  
   sonarOrg:
     description: "Sonar Organization"
     required: false
