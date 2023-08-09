@@ -1,5 +1,11 @@
 name: 'sonar-scanner-begin'
 description: 'Prepares parameters for vc-build SonarQubeStart'
+inputs:
+  sonarOrg:
+    description: "Sonar Organization"
+    required: false
+    default: "virto-commerce"
+
 runs:
   using: 'node16'
   main: 'index.js'
