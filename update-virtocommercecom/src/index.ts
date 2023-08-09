@@ -20,22 +20,18 @@ async function run() {
 
     let manifestPathTemplate = "src/*/module.manifest";
     let manifests = await utils.findFiles(manifestPathTemplate);
+
+    if (!login) {
+        core.error(`Required "login" parameter is empty. Step skipped.`);
+        return;
+    }
+
     if(manifests.length > 0){
         let versionInfo = await utils.getInfoFromModuleManifest(manifests[0]);
         moduleTitle = versionInfo.title;
         moduleDesc = versionInfo.description;
         projectUrl = versionInfo.projectUrl;
         iconUrl = versionInfo.iconUrl;
-
-        // moduleId: moduleId,
-        // title: moduleTitle,
-        // description: moduleDescription,
-        // projectUrl: projectUrl,
-        // iconUrl: iconUrl,
-        // prefix: prefix,
-        // suffix: suffix,
-        // version: version.join("-")
-
     }
 
     let octo = github.getOctokit(token);
@@ -54,8 +50,8 @@ async function run() {
         projectUrlArg = `-projectUrl \"${projectUrl}\"`;
     if(iconUrl)
         iconUrlArg = `-iconUrl \"${iconUrl}\"`;
+
     await exec.exec(`pwsh ${scriptPath} -apiUrl ${platformUrl} -hmacAppId ${login} -hmacSecret ${password} -catalogId ${catalogId} -categoryId ${categoryId} -moduleId ${moduleId} -moduleUrl ${moduleUrl} ${moduleDescriptionArg} ${projectUrlArg} ${iconUrlArg} -moduleTitle "${moduleTitle}"`);
-    
 }
 
 run().catch(error => core.setFailed(error.message));

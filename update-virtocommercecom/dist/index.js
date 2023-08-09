@@ -52,6 +52,10 @@ function run() {
         let moduleTitle = moduleId.substr(moduleId.indexOf(".") + 1);
         let manifestPathTemplate = "src/*/module.manifest";
         let manifests = yield utils.findFiles(manifestPathTemplate);
+        if (!login) {
+            core.error(`Required "login" parameter is empty. Step skipped.`);
+            return;
+        }
         if (manifests.length > 0) {
             let versionInfo = yield utils.getInfoFromModuleManifest(manifests[0]);
             moduleTitle = versionInfo.title;
