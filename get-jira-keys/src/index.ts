@@ -17,7 +17,7 @@ function onlyUnique(value, index, self) {
 function matchKeys(msg: string) {
     console.log(`Parse commit message: ${msg}`)
     
-    const jiraKeyRgx = /((([A-Z]+)|([0-9]+))+-\d+)/g;
+    const jiraKeyRgx = /(([A-Z]+)-\d+)/g;
     
     const matches = msg?.match(jiraKeyRgx);
     const result = matches?.filter(onlyUnique);
