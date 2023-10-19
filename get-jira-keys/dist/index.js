@@ -10473,7 +10473,7 @@ function onlyUnique(value, index, self) {
 }
 function matchKeys(msg) {
     console.log("Parse commit message: ".concat(msg));
-    var jiraKeyRgx = /((([A-Z]+)|([0-9]+))+-\d+)/g;
+    var jiraKeyRgx = /(([A-Z]+)-\d+)/g;
     var matches = msg === null || msg === void 0 ? void 0 : msg.match(jiraKeyRgx);
     var result = matches === null || matches === void 0 ? void 0 : matches.filter(onlyUnique);
     return result;
