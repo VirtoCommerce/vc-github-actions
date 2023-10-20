@@ -17,7 +17,7 @@ function onlyUnique(value, index, self) {
 function matchKeys(msg: string) {
     console.log(`Parse commit message: ${msg}`)
     
-    const jiraKeyRgx = /((([A-Z]+)|([0-9]+))+-\d+)/g;
+    const jiraKeyRgx = /(([A-Z]+)-\d+)/g;
     
     const matches = msg?.match(jiraKeyRgx);
     const result = matches?.filter(onlyUnique);
@@ -46,14 +46,20 @@ async function getJiraKeysFromPr() {
 
         let jiraKeys: string[] = [];
 
-        const { data } = await octokit.rest.pulls.listCommits({
+        const { data: pr } = await octokit.rest.pulls.get({
             owner: payload.repository.owner.login,
             repo: payload.repository.name,
             pull_number: payload.number
         });
 
-        data.forEach((item: any) => {
-            let matchedKeys = matchKeys(item.commit.message);
+        const { data: commits } = await octokit.rest.pulls.listCommits({
+            owner: payload.repository.owner.login,
+            repo: payload.repository.name,
+            pull_number: payload.number
+        });
+
+        [pr.body, ...commits.map(item => item.commit.message)].forEach((str) => {
+            let matchedKeys = matchKeys(str);
             if (matchedKeys) {
                 jiraKeys = jiraKeys.concat(matchedKeys);
             }
