@@ -17,8 +17,8 @@ async function run(): Promise<void> {
     let octokit = github.getOctokit(GITHUB_TOKEN);
     
     const downloadComment = core.getInput("downloadComment");
-    let downloadUrlBody = `${downloadComment} ${artifactUrl}`;
-    const regexp = RegExp(downloadComment + '\s*.*');
+    let downloadUrlBody = `${downloadComment}\n${artifactUrl}`;
+    const regexp = RegExp(downloadComment + '(.|\n)*');
 
     let currentPr = await octokit.pulls.get({
         owner: repoOrg,
