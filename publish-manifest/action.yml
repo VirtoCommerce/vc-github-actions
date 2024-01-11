@@ -3,7 +3,7 @@ description: 'Publishes modules.json'
 inputs:
   modulesJsonUrl:
     description: "Url to modules.json"
-    default: "https://raw.githubusercontent.com/VirtoCommerce/vc-modules/master/modules_v3.json"
+    default: "https://raw.githubusercontent.com/VirtoCommerce/vc-modules/master/modules_v3_net8.json"
     required: false
   packageUrl:
     description: "Package Url for modules.json"
@@ -16,7 +16,7 @@ inputs:
   modulesJsonName:
     description: "Name of modules manifest file"
     required: false
-    default: "modules_v3.json"
+    default: "modules_v3_net8.json"
   modulesJsonRepo:
     description: "Repo url"
     required: false
