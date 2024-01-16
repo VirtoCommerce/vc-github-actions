@@ -68,7 +68,7 @@ runs:
         Write-Host "`e[33mInstall Modules step started."
         New-Item -Path "./" -Name "${{ env.INSTALL_FOLDER}}" -ItemType "directory"
         Push-Location ./${{ env.INSTALL_FOLDER}}
-        vc-build install -skip InstallPlatform -stable -bundlesUrl "https://raw.githubusercontent.com/VirtoCommerce/vc-deploy-dev/vcptcore-loadtest/backend/packages.json"
+        vc-build install -skip InstallPlatform
         Pop-Location
 
     - name: Install Custom Module
