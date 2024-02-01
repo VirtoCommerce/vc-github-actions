@@ -1,5 +1,5 @@
-name: 'Update virtocommerce.com/docs'
-description: 'Makes and updates documentation for virtocommerce.com/docs'
+name: 'Update docs.virtocommerce.org'
+description: 'Makes and updates documentation for docs.virtocommerce.org'
 inputs:
   azureSubscriptionId:
     description: "Azure Subscription ID"
@@ -33,36 +33,18 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Preparing
+    - name: Build docs
       shell: pwsh
       working-directory: ${{ github.workspace }}
       run: |
-        pwsh -file ${{ github.action_path }}/scripts/vc_docs_get_sources.ps1 -ErrorAction Continue
-
-    - name: Build Docs
-      working-directory: ${{ github.workspace }}/vc-platform
-      shell: bash
-      run: |
-        mkdocs build && ls -la && 7z a ${{ github.workspace }}/site.zip ./site/* -r
-  
-    - name: Build Old Docs
-      working-directory: ${{ github.workspace }}/2.0
-      shell: pwsh
-      run: |
-        wget https://vc3prerelease.blob.core.windows.net/packages/docs2.0.zip -O olddocs.zip
-        unzip olddocs.zip -d ./site
-
-    - name: Build New Docs
-      working-directory: ${{ github.workspace }}
-      shell: pwsh
-      run: |
-        git clone https://github.com/VirtoCommerce/vc-docs --branch "master"
+        #git clone https://github.com/VirtoCommerce/vc-platform.git --branch "master"
+        git clone https://github.com/VirtoCommerce/vc-docs --branch "feature/structure_redesign"
         cd vc-docs
         ./build.ps1
-        Copy-Item -Path ./site -Destination ../vc-platform/site/new -Recurse -Force
 
     - name: Docker
       shell: pwsh
+      working-directory: ${{ github.workspace }}
       run: |
         dotnet tool install --global VirtoCommerce.GlobalTool
         Copy-Item -Path ${{ github.action_path }}/docker/* -Destination ./ -Recurse -Force
