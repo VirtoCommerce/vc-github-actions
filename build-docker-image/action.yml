@@ -15,5 +15,5 @@ outputs:
   imageName: 
     description: "Name of Docker Image"
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'dist/index.js'
