@@ -54,7 +54,7 @@ jobs:
 
       - name: Katalon Report Uploader
         if: always()
-        uses: katalon-studio/report-uploader@v0.0.7.11
+        uses: katalon-studio/report-uploader@v0.0.8
         env:
           PASSWORD: ${{ secrets.KATALON_API_KEY }}
           PROJECT_ID: 263280
@@ -64,7 +64,7 @@ jobs:
 
       - name: 'Katalon Reports'
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: reports
           path: |
