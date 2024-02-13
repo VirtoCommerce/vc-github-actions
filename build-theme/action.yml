@@ -15,5 +15,5 @@ outputs:
     description: 'Name of artifact'
 
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'index.js'

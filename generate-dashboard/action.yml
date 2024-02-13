@@ -17,5 +17,5 @@ outputs:
     description: "Path to the result file"
 
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'dist/index.js'
