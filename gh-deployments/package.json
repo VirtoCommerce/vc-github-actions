@@ -1,0 +1,27 @@
+{
+  "name": "@virtocommerce/deployments",
+  "version": "0.0.0",
+  "description": "GitHub Action for working painlessly with deployment statuses",
+  "main": "dist/index.js",
+  "scripts": {
+    "prettier": "prettier src --write",
+    "prettier:check": "prettier src --check",
+    "build": "ncc build src/main.ts --out dist --minify --source-map --license LICENSES",
+    "build:check": "npm run build && git diff --quiet dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bobheadxi/deployments.git"
+  },
+  "author": "bobheadxi",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.10.0",
+    "@actions/exec": "^1.1.1",
+    "@actions/github": "5.0.0",
+    "@types/node": "^16",
+    "@vercel/ncc": "0.33.1",
+    "prettier": "2.5.1",
+    "typescript": "^4.5.4"
+  }
+}
