@@ -20,7 +20,7 @@ function InstallCustomModule {
         Write-Host "`e[31mError ocure while $($CustomModuleId) uninstall."
     }
     Pop-Location
-    Push-Location "./$($InstallFolder)/modules"
+    Push-Location "./$($InstallFolder)/" #modules"
     Write-Host "`e[33mDownload $($CustomModuleUrl) to $($CustomModuleZip)."
     Invoke-WebRequest -Uri $CustomModuleUrl -OutFile $CustomModuleZip
     Write-Host "`e[33mExpand $($CustomModuleZip) from zip."
@@ -28,7 +28,13 @@ function InstallCustomModule {
     Write-Host "`e[33mDelete $($CustomModuleZip)."
     Remove-Item -Path $CustomModuleZip
     Write-Host "`e[32m$($CustomModuleZip) deleted."
+    $content = Get-Content -Path $CustomModuleId/module.manifest -Raw
+    $xml = Select-Xml -Content $content -XPath "//dependencies"
     Pop-Location
+    foreach ($node in $xml) {
+        echo "Installing dependent module(s) $($node.Node.dependency.id) " #version $($node.Node.dependency.version)"
+        vc-build install -module $($node.Node.dependency.id)
+    }
     Write-Host "`e[32mCustom module installed."
     Exit 0
 }
