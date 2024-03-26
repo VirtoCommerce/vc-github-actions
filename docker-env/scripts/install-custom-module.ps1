@@ -2,9 +2,9 @@ Set-Variable -Name "TERM" -Value "xterm-color"
 
 function InstallCustomModule {
     param (
-        [string]$InstallFolder = "modules", # Folder where vc-package.json placed
-        [string]$CustomModuleId, # CustomModuleId to reinstall
-        [string]$CustomModuleUrl
+        [string]$InstallFolder,# = "modules", # Folder where vc-package.json placed
+        [string]$CustomModuleId ,#= "VirtoCommerce.Quote", # CustomModuleId to reinstall
+        [string]$CustomModuleUrl #= "https://vc3prerelease.blob.core.windows.net/packages/VirtoCommerce.Quote_3.804.0-alpha.393-dev.zip"
     )
 
     Write-Host "`e[33mInstall Custom Modules step started."
@@ -31,8 +31,8 @@ function InstallCustomModule {
     Write-Host "`e[32mDependency installation for $CustomModuleId started."
     $content = Get-Content -Path $CustomModuleId/module.manifest -Raw
     $xml = Select-Xml -Content $content -XPath "//dependencies"
-    Pop-Location
-    $moduleList = Get-ChildItem -Path $InstallFolder -Directory -Name
+    #Pop-Location
+    $moduleList = Get-ChildItem -Path ./ -Directory -Name
     foreach ($node in $xml) {
         $installList += $node.Node.dependency.id
     }
