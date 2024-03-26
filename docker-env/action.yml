@@ -68,7 +68,8 @@ runs:
         Write-Host "`e[33mInstall Modules step started."
         New-Item -Path "./" -Name "${{ env.INSTALL_FOLDER}}" -ItemType "directory"
         #New-Item -Path "./" -Name "modules" -ItemType "directory"
-        #Push-Location ./${{ env.INSTALL_FOLDER}}
+        Push-Location ./${{ env.INSTALL_FOLDER}}
+        #Push-Location ./modules
         vc-build install -Edge -skip InstallPlatform
         #Pop-Location
 
