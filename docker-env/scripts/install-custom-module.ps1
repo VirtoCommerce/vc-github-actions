@@ -28,13 +28,23 @@ function InstallCustomModule {
     Write-Host "`e[33mDelete $($CustomModuleZip)."
     Remove-Item -Path $CustomModuleZip
     Write-Host "`e[32m$($CustomModuleZip) deleted."
+    Write-Host "`e[32mDependency installation for $CustomModuleId started."
     $content = Get-Content -Path $CustomModuleId/module.manifest -Raw
     $xml = Select-Xml -Content $content -XPath "//dependencies"
     Pop-Location
+    $moduleList = Get-ChildItem -Path $InstallFolder -Directory -Name
     foreach ($node in $xml) {
-        echo "Installing dependent module(s) $($node.Node.dependency.id) " #version $($node.Node.dependency.version)"
-        vc-build install -module $($node.Node.dependency.id)
+        $installList += $node.Node.dependency.id
     }
+        foreach ($m in $installList) { # $($node.Node.dependency.id)) {
+            if ($moduleList -contains $m) {
+                echo "Module $m is found. Skipping installation"
+            } else {
+                echo "Installing dependent module $m " #version $($node.Node.dependency.version)"
+                vc-build install -module $m
+            }
+        }
     Write-Host "`e[32mCustom module installed."
     Exit 0
 }
+InstallCustomModule -InstallFolder modules -CustomModuleId VirtoCommerce.Quote -CustomModuleUrl https://vc3prerelease.blob.core.windows.net/packages/VirtoCommerce.Quote_3.804.0-alpha.393-dev.zip
