@@ -47,4 +47,4 @@ function InstallCustomModule {
     Write-Host "`e[32mCustom module installed."
     Exit 0
 }
-InstallCustomModule -InstallFolder modules -CustomModuleId VirtoCommerce.Quote -CustomModuleUrl https://vc3prerelease.blob.core.windows.net/packages/VirtoCommerce.Quote_3.804.0-alpha.393-dev.zip
+#InstallCustomModule -InstallFolder modules -CustomModuleId VirtoCommerce.Quote -CustomModuleUrl https://vc3prerelease.blob.core.windows.net/packages/VirtoCommerce.Quote_3.804.0-alpha.393-dev.zip
