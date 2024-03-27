@@ -3,7 +3,7 @@ Set-Variable -Name "TERM" -Value "xterm-color"
 function InstallCustomModule {
     param (
         [string]$InstallFolder, # Folder where vc-package.json placed
-        [string]$CustomModuleId , # CustomModuleId to reinstall
+        [string]$CustomModuleId, # CustomModuleId to reinstall
         [string]$CustomModuleUrl
     )
 
@@ -18,7 +18,7 @@ function InstallCustomModule {
     catch {
         Write-Host "`e[31mError ocure while $($CustomModuleId) uninstall."
     }
-    Push-Location "./$($InstallFolder)/" #modules"
+    Push-Location "./modules" #modules"
     Write-Host "`e[33mDownload $($CustomModuleUrl) to $($CustomModuleZip)."
     Invoke-WebRequest -Uri $CustomModuleUrl -OutFile $CustomModuleZip
     Write-Host "`e[33mExpand $($CustomModuleZip) from zip."

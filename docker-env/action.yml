@@ -80,7 +80,6 @@ runs:
         Write-Host "`e[33mInstall Custom Module started."
         . "./scripts/install-custom-module.ps1"
         InstallCustomModule -InstallFolder ${{ env.INSTALL_FOLDER }} -CustomModuleId ${{ inputs.customModuleId }} -CustomModuleUrl ${{ inputs.customModuleUrl }}
-        #InstallCustomModule -InstallFolder modules -CustomModuleId VirtoCommerce.Quote -CustomModuleUrl https://vc3prerelease.blob.core.windows.net/packages/VirtoCommerce.Quote_3.804.0-alpha.393-dev.zip
 
     - name:  .env files
       env:
