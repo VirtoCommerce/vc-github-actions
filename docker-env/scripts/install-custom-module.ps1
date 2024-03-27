@@ -2,7 +2,7 @@ Set-Variable -Name "TERM" -Value "xterm-color"
 
 function InstallCustomModule {
     param (
-        [string]$InstallFolder, # Folder where vc-package.json placed
+        [string]$InstallFolder = "modules", # Folder where vc-package.json placed
         [string]$CustomModuleId, # CustomModuleId to reinstall
         [string]$CustomModuleUrl
     )
