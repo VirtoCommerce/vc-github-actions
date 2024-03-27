@@ -9,7 +9,7 @@ function InstallCustomModule {
 
     Write-Host "`e[33mInstall Custom Modules step started."
     $CustomModuleZip = "./$($CustomModuleId).zip"
-    Push-Location "./$($InstallFolder)"
+    #Push-Location "./$($InstallFolder)"
     Write-Host "`e[33mTry to uninstall $($CustomModuleId)."
     try {
         & "vc-build uninstall -module $($CustomModuleId)"
@@ -20,7 +20,7 @@ function InstallCustomModule {
         Write-Host "`e[31mError ocure while $($CustomModuleId) uninstall."
     }
     # Pop-Location
-    # Push-Location "./$($InstallFolder)/" #modules"
+    Push-Location "./$($InstallFolder)/" #modules"
     Write-Host "`e[33mDownload $($CustomModuleUrl) to $($CustomModuleZip)."
     Invoke-WebRequest -Uri $CustomModuleUrl -OutFile $CustomModuleZip
     Write-Host "`e[33mExpand $($CustomModuleZip) from zip."
@@ -29,8 +29,6 @@ function InstallCustomModule {
     Remove-Item -Path $CustomModuleZip
     Write-Host "`e[32m$($CustomModuleZip) deleted."
     Write-Host "`e[32mDependency check for $CustomModuleId started."
-    $content = Get-Content -Path $CustomModuleId/module.manifest -Raw
-    $xml = Select-Xml -Content $content -XPath "//dependencies"
     echo "ls "
     ls
     echo "ls .."
@@ -40,8 +38,10 @@ function InstallCustomModule {
     $installList = @()
     $installHash = @{}
     $i = 0
-    while ($i -lt $($node.Node.dependency.id.Length)){
-        foreach ($node in $xml) {
+    $content = Get-Content -Path $CustomModuleId/module.manifest -Raw
+    $xml = Select-Xml -Content $content -XPath "//dependencies"
+    foreach ($node in $xml){
+        while ($i -lt $($node.Node.dependency.id.Length)){
             $installHash.Add("$($node.Node.dependency.id[$i])","$($node.Node.dependency.version[$i])")
             $installList += $($node.Node.dependency.id[$i])
             $i += 1
