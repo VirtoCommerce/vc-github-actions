@@ -9,7 +9,9 @@ function InstallCustomModule {
 
     Write-Host "`e[33mInstall Custom Modules step started."
     $CustomModuleZip = "./$($CustomModuleId).zip"
-    #Push-Location "./$($InstallFolder)"
+    Push-Location "./$($InstallFolder)"
+    pwd
+    ls
     Write-Host "`e[33mTry to uninstall $($CustomModuleId)."
     try {
         & "vc-build uninstall -module $($CustomModuleId)"
@@ -29,9 +31,10 @@ function InstallCustomModule {
     Remove-Item -Path $CustomModuleZip
     Write-Host "`e[32m$($CustomModuleZip) deleted."
     Write-Host "`e[32mDependency check for $CustomModuleId started."
-    echo "ls "
+    echo "ls:"
+    pwd
     ls
-    echo "ls .."
+    echo "ls ..:"
     ls ..
     $moduleList = Get-ChildItem -Path ./ -Directory -Name
     echo "Found modules: $moduleList"
