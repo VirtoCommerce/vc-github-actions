@@ -18,7 +18,7 @@ inputs:
   downloadComment:
     description: "Comment template"
     required: false
-    default: "Jira-link:"
+    default: "Jira-link:\r"
 runs:
   using: 'node20'
   main: 'dist/index.js' 
