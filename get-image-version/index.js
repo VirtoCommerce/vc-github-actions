@@ -86,7 +86,7 @@ async function run()
     // let releaseBranch = "";
     if ( core.getInput("releaseBranch") === "master"){
         let actualBranch = github.context.ref;
-        console.log(`actualBranch: ${actualBranch}`);
+        console.log(`actualBranch: ${actualBranch} 123`);
         if (actualBranch === "refs/heads/main"){
             const releaseBranch = "main";
         } else {
