@@ -83,14 +83,14 @@ async function getCommitCount(baseBranch) {
 async function run() 
 {
     // const releaseBranch = core.getInput("releaseBranch");
-    let releaseBranch = "";
+    // let releaseBranch = "";
     if ( core.getInput("releaseBranch") === "master"){
         let actualBranch = github.context.ref;
         console.log(`actualBranch: ${actualBranch}`);
         if (actualBranch === "refs/heads/main"){
-            releaseBranch = "main";
+            const releaseBranch = "main";
         } else {
-            releaseBranch = "master";
+            const releaseBranch = "master";
         }
     }
     let path = core.getInput("path");
