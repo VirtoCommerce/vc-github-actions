@@ -69,7 +69,6 @@ runs:
         New-Item -Path "./" -Name "${{ env.INSTALL_FOLDER}}" -ItemType "directory"
         Push-Location ./${{ env.INSTALL_FOLDER}}
         vc-build install -Edge -skip InstallPlatform
-        Pop-Location
 
     - name: Install Custom Module
       if: ${{ inputs.installCustomModule == 'true' }}
