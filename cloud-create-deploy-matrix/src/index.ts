@@ -10,7 +10,15 @@ async function run(): Promise<void> {
 
     let environments = [];
     const confPath = core.getInput("deployConfigPath");
-    const releaseBranch = core.getInput("releaseBranch");
+    let releaseBranch = "";
+    if ( core.getInput("releaseBranch") === "master"){
+        let actualBranch = github.context.ref;
+        if (actualBranch === "refs/heads/main"){
+            releaseBranch = "main";
+        } else {
+            releaseBranch = "master";
+        }
+    }
     
     // Create a deployment matrix for dev only
 

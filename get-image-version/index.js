@@ -82,17 +82,16 @@ async function getCommitCount(baseBranch) {
 
 async function run() 
 {
-    const releaseBranch = core.getInput("releaseBranch");
-    // let releaseBranch = "";
-    // if ( core.getInput("releaseBranch") === "master"){
-    //     let actualBranch = github.context.ref;
-    //     console.log(`actualBranch123: ${actualBranch}`);
-    //     if (actualBranch === "refs/heads/main"){
-    //         releaseBranch = "main";
-    //     } else {
-    //         releaseBranch = "master";
-    //     }
-    // }
+    // const releaseBranch = core.getInput("releaseBranch");
+    let releaseBranch = "";
+    if ( core.getInput("releaseBranch") === "master"){
+        let actualBranch = github.context.ref;
+        if (actualBranch === "refs/heads/main"){
+            releaseBranch = "main";
+        } else {
+            releaseBranch = "master";
+        }
+    }
     let path = core.getInput("path");
     const inputProjectType = core.getInput("projectType");
     path = path.replace(/\/+$/, ''); // remove trailing slashes

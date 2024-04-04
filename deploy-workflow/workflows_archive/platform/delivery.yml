@@ -28,13 +28,13 @@ jobs:
         kustomize-version: "3.1.0"
 
     - name: Start deployment
-      uses: bobheadxi/deployments@master
+      uses: bobheadxi/deployments@v1.5.0
       id: deployment
       with:
         step: start
         token: ${{ secrets.GITHUB_TOKEN }}
         env: Development
-        no_override: false
+        override: false
 
     - name: Commit environment change
       shell: pwsh
@@ -82,13 +82,14 @@ jobs:
       run: echo "::set-env name=BUILD_STATE::failed"
 
     - name: Update GitHub deployment status
-      uses: bobheadxi/deployments@master
+      uses: bobheadxi/deployments@v1.5.0
       if: always()
       with:
         step: finish
         token: ${{ secrets.GITHUB_TOKEN }}
         status: ${{ job.status }}
         deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+        env: Development
 
     - name: Parse Jira Keys from All Commits
       id: jira_keys
