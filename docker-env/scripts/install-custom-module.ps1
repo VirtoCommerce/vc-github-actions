@@ -33,15 +33,27 @@ function InstallCustomModule {
     $i = 0
     $content = Get-Content -Path $CustomModuleId/module.manifest -Raw
     $xml = Select-Xml -Content $content -XPath "//dependencies"
-    foreach ($node in $xml){
-        while ($i -lt $($node.Node.dependency.id.Length)){
-            $installHash.Add("$($node.Node.dependency.id[$i])","$($node.Node.dependency.version[$i])")
-            $installList += $($node.Node.dependency.id[$i])
-            $i += 1
-        }
+    # foreach ($node in $xml){
+    #     while ($i -lt $($node.Node.dependency.id.Length)){
+    #         $installHash.Add("$($node.Node.dependency.id[$i])","$($node.Node.dependency.version[$i])")
+    #         $installList += $($node.Node.dependency.id[$i])
+    #         $i += 1
+    #     }
+    # }
+    while($i -lt $($xml.Node.dependency.Length)){
+        $installHash.Add("$($xml.Node.dependency[$i].id)","$($xml.Node.dependency[$i].version)")
+        $i += 1
     }
     Pop-Location
-    foreach ($m in $installList) {
+    # foreach ($m in $installList) {
+    #     if ($moduleList -contains $m) {
+    #     } else {
+    #         $version = $installHash[$m]
+    #         Write-Host "Installing dependent module $m version $version"
+    #         vc-build install -module $m -version $version -SkipDependencySolving
+    #     }
+    # }
+    foreach ($m in $($xml.Node.dependency.id)) {
         if ($moduleList -contains $m) {
         } else {
             $version = $installHash[$m]
@@ -52,3 +64,5 @@ function InstallCustomModule {
     Write-Host "`e[32mCustom module installed."
     Exit 0
 }
+
+# InstallCustomModule -CustomModuleId "VirtoCommerce.ExperienceApi" -CustomModuleUrl "https://vc3prerelease.blob.core.windows.net/packages/VirtoCommerce.ExperienceApi_3.819.0-pr-541-d709.zip"
