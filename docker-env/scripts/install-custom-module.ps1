@@ -28,20 +28,16 @@ function InstallCustomModule {
     Write-Host "`e[32m$($CustomModuleZip) deleted."
     Write-Host "`e[32mDependency check for $CustomModuleId started."
     $moduleList = Get-ChildItem -Path ./ -Directory -Name
-    $installList = @()
     $installHash = @{}
     $i = 0
     $content = Get-Content -Path $CustomModuleId/module.manifest -Raw
     $xml = Select-Xml -Content $content -XPath "//dependencies"
-    foreach ($node in $xml){
-        while ($i -lt $($node.Node.dependency.id.Length)){
-            $installHash.Add("$($node.Node.dependency.id[$i])","$($node.Node.dependency.version[$i])")
-            $installList += $($node.Node.dependency.id[$i])
-            $i += 1
-        }
+    while($i -lt $($xml.Node.dependency.Length)){
+        $installHash.Add("$($xml.Node.dependency[$i].id)","$($xml.Node.dependency[$i].version)")
+        $i += 1
     }
     Pop-Location
-    foreach ($m in $installList) {
+    foreach ($m in $($xml.Node.dependency.id)) {
         if ($moduleList -contains $m) {
         } else {
             $version = $installHash[$m]
