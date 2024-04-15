@@ -21544,7 +21544,7 @@ function run() {
         fs.writeFileSync(changelogFilePath, changelog);
         let releaseNotesArg = `-ReleaseNotes "${changelogFilePath}"`;
         try {
-            yield exec.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} ${prereleaseParameter} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip ${skipString} -makeLatest ${makeLatest}`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
+            yield exec.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} ${prereleaseParameter} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip ${skipString} -MakeLatest ${makeLatest}`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
                 if (exitCode != 0 && exitCode != 422) {
                     core.setFailed(`vc-build Release exit code: ${exitCode}`);
                     process.exit();
