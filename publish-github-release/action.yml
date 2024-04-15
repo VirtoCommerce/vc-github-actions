@@ -17,6 +17,10 @@ inputs:
     description: "vc-build skip string"
     default: "Clean+Restore+Compile+WebPackBuild+Test"
     required: false
+  makeLatest:
+    description: "make vc-build do NOT mark the release with Latest label"
+    default: "true"
+    required: false
 
 outputs:
   downloadUrl:
