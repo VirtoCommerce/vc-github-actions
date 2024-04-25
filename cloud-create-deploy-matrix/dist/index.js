@@ -9677,6 +9677,9 @@ function run() {
                     releaseBranch = "master";
                 }
             }
+            else {
+                releaseBranch = core.getInput("releaseBranch");
+            }
             if (github.context.ref.indexOf(releaseBranch) > -1) {
                 environment = { envName: "prod", confPath: confPath, forceCommit: "true", releaseType: githubReleases };
                 environments.push(environment);

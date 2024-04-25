@@ -18,7 +18,7 @@ async function run(): Promise<void> {
         } else {
             releaseBranch = "master";
         }
-    }
+    } else {releaseBranch = core.getInput("releaseBranch")}
     
     // Create a deployment matrix for dev only
 
