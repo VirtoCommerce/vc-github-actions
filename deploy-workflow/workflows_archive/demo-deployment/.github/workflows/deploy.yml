@@ -39,13 +39,13 @@ jobs:
         deployConfigPath: ${{ github.event.inputs.deployConfigPath }}
 
     - name: Start deployment
-      uses: bobheadxi/deployments@master
+      uses: bobheadxi/deployments@v1.5.0
       id: deployment
       with:
         step: start
         token: ${{ secrets.GITHUB_TOKEN }}
         env: ${{ steps.deployConfig.outputs.environmentName }}
-        no_override: false
+        override: false
 
     - name: Update deployment-cm
       uses: VirtoCommerce/vc-github-actions/create-deploy-pr@master
@@ -82,13 +82,14 @@ jobs:
       run: echo "DEPLOY_STATE=failed"  >> $GITHUB_ENV
 
     - name: Update GitHub deployment status
-      uses: bobheadxi/deployments@master
+      uses: bobheadxi/deployments@v1.5.0
       if: always()
       with:
         step: finish
         token: ${{ secrets.GITHUB_TOKEN }}
         status: ${{ job.status }}
         deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+        env: ${{ steps.deployConfig.outputs.environmentName }}
 
     - name: Push Deployment Info to Jira
       if: ${{ env.CLOUD_INSTANCE_BASE_URL != 0 && env.CLIENT_ID != 0 && env.CLIENT_SECRET != 0 && github.event.inputs.jiraKeys != '' && always() }}

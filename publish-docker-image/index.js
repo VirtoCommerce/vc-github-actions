@@ -40,9 +40,19 @@ async function run()
     const dockerUser = core.getInput("docker_user");
     const dockerToken = core.getInput("docker_token");
     const dockerHub = core.getInput("docker_hub");
-    const releaseBranch = core.getInput("release_branch");
+    // const releaseBranch = core.getInput("release_branch");
     const updateLatest = core.getInput("update_latest").toLocaleLowerCase();
     const dockerOrg = core.getInput("dockerOrg");
+
+    let releaseBranch = "";
+    if ( core.getInput("releaseBranch") === "master"){
+        let actualBranch = github.context.ref;
+        if (actualBranch === "refs/heads/main"){
+            releaseBranch = "main";
+        } else {
+            releaseBranch = "master";
+        }
+    }
 
     core.info(`imageName: ${imageName}`)
     core.info(`Tag: ${tag}`)

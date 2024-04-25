@@ -265,13 +265,13 @@ jobs:
         envName: 'dev'
 
     - name: Start deployment
-      uses: bobheadxi/deployments@master
+      uses: bobheadxi/deployments@v1.5.0
       id: deployment
       with:
         step: start
         token: ${{ secrets.GITHUB_TOKEN }}
         env: Development
-        no_override: false
+        override: false
 
     - name: Update deployment-cm
       uses: VirtoCommerce/vc-github-actions/create-deploy-pr@master
@@ -308,13 +308,14 @@ jobs:
       run: echo "DEPLOY_STATE=failed"  >> $GITHUB_ENV
 
     - name: Update GitHub deployment status
-      uses: bobheadxi/deployments@master
+      uses: bobheadxi/deployments@v1.5.0
       if: always()
       with:
         step: finish
         token: ${{ secrets.GITHUB_TOKEN }}
         status: ${{ job.status }}
         deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+        env: Development
 
     - name: Print all environment variables
       run:  env
