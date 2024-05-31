@@ -45,7 +45,7 @@ async function run()
     const dockerOrg = core.getInput("dockerOrg");
 
     let releaseBranch = "";
-    if ( core.getInput("releaseBranch") === "master"){
+    if ( core.getInput("release_Branch") === "master"){
         let actualBranch = github.context.ref;
         if (actualBranch === "refs/heads/main"){
             releaseBranch = "main";
