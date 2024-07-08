@@ -47,11 +47,3 @@ jobs:
             vc-build CloudEnvSetParameter -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HelmParameters custom.app1.image.tag=${{ github.run_number }}
             vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license  -HealthStatus Progressing
             vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Healthy -SyncStatus Synced
-      # - name: Deploy docs
-      #   uses: VirtoCommerce/vc-github-actions/vc-argocd-cli@master # Uses an action in the root directory
-      #   id: argocd-cli
-      #   with:
-      #     server: argo.virtocommerce.cloud
-      #     username: ${{ secrets.MASTER_ARGOCD_LOGIN }}
-      #     password: ${{ secrets.MASTER_ARGOCD_PASSWORD }}
-      #     command: 'app set vcpt-docs --helm-set custom.app1.image.tag=${{ github.run_number }}'
