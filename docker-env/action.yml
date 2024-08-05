@@ -110,7 +110,7 @@ runs:
         $platformContainer = "virtocommerce_vc-platform-web_1"
         . "./scripts/inspect-docker-status.ps1"
 
-        docker-compose --project-name virtocommerce up -d
+        docker compose --project-name virtocommerce up -d
 
         InspectContainerStatus -ContainerId $platformContainer
         
