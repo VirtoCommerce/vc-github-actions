@@ -112,7 +112,7 @@ runs:
 
         docker compose --project-name virtocommerce up -d
 
-        InspectContainerStatus -ContainerId $platformContainer
+        InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 15 -WaitSeconds 0
         
         Write-Host "`e[32mContainers started."
 
