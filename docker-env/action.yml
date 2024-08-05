@@ -108,7 +108,7 @@ runs:
       run: |
         Write-Host "`e[33mStart Containers step started."
         $platformContainer = "virtocommerce_vc-platform-web_1"
-        pwsh -File "./scripts/inspect-docker-status.ps1" -ContainerId "$platformContainer"
+        . ./scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
 
         docker compose --project-name virtocommerce up -d
 

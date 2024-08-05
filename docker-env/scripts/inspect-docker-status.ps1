@@ -34,4 +34,3 @@ function InspectContainerStatus {
 
     } until ($status -eq "running" -or $maxRepeat -lt $attempt)
 }
-
