@@ -1,5 +1,5 @@
 param (
-        [string]$ContainerId = "virtocommerce_vc-platform-web_1",
+        [string]$ContainerId,# = "virtocommerce_vc-platform-web_1",
         [int]$TimeoutMinutes = 5,                  # Max period of time for retry attempts in minutes
         [int]$RetrySeconds = 15,                   # Period of time between retry attempts in seconds
         [int]$WaitSeconds = 0                      # Period of time before start retry attempts in seconds
