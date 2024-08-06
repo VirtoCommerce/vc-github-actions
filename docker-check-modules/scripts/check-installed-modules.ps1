@@ -28,7 +28,7 @@ function Get-AuthToken {
 
 Start-Sleep -Seconds 30
 docker ps -a
-docker logs virtocommerce_vc-platform-web_1
+docker logs virtocommerce-vc-platform-web-1
 Write-Output $appAuthUrl
 Write-Output $checkModulesUrl
 

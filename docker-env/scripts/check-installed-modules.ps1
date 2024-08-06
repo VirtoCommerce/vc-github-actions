@@ -3,7 +3,7 @@ Param(
     $ApiUrl,
     $Username = "admin",
     $Password = "store",
-    $ContainerId = "virtocommerce_vc-platform-web_1"
+    $ContainerId = "virtocommerce-vc-platform-web-1"
 )
 
 . "./scripts/watch-url-up.ps1"

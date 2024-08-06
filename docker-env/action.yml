@@ -107,7 +107,7 @@ runs:
       working-directory: ${{ github.action_path }}
       run: |
         Write-Host "`e[33mStart Containers step started."
-        $platformContainer = "virtocommerce_vc-platform-web_1"
+        $platformContainer = "virtocommerce-vc-platform-web-1"
         . ./scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
 
         docker compose --project-name virtocommerce up -d
@@ -122,7 +122,7 @@ runs:
       shell: pwsh
       run: |
         Write-Host "`e[33mCheck Installed Modules step started."
-        $platformContainer = "virtocommerce_vc-platform-web_1"
+        $platformContainer = "virtocommerce-vc-platform-web-1"
         scripts/check-installed-modules.ps1 -ApiUrl http://localhost:8090 -ContainerId $platformContainer
         Write-Host "`e[32mInstalled Modules checked."
 
@@ -140,7 +140,7 @@ runs:
       run: |
         $waitForSwaggerSec = 30
         Write-Host "`e[33mSwagger Schema Validation step started."
-        $platformContainer = "virtocommerce_vc-platform-web_1"
+        $platformContainer = "virtocommerce-vc-platform-web-1"
         . "${{ github.action_path }}/scripts/watch-url-up.ps1"
         $platformIsUp = (Watch-Url-Up -ApiUrl http://localhost:8090 -TimeoutMinutes 15 -RetrySeconds 15 -WaitSeconds 0 -ContainerId $platformContainer)
         if ($platformIsUp) {

@@ -43,6 +43,6 @@ Installs modules to a docker container
     githubToken: ${{ secrets.REPO_TOKEN }}
     manifestUrl: 'https://raw.githubusercontent.com/VirtoCommerce/vc-webstore-deploy/qa/webstore-app/resources/deployment-cm.yaml'
     manifestFormat: 'yml'
-    containerName: 'virtocommerce_vc-platform-web_1'
+    containerName: 'virtocommerce-vc-platform-web-1'
     containerDestination: '/opt/virtocommerce/platform/modules'
 ```

@@ -24,7 +24,7 @@ Installs a theme to docker container
   uses: VirtoCommerce/vc-github-actions/docker-install-theme@master
   with:
     artifactPath: ${{ steps.build.outputs.artifactPath }}
-    containerName: 'virtocommerce_vc-storefront-web_1'
+    containerName: 'virtocommerce-vc-storefront-web-1'
     containerDestination: '/opt/virtocommerce/storefront/wwwroot/cms-content/Themes/B2B-store/default'
     restartContainer: 'true'
 ```
