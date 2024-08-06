@@ -1,11 +1,18 @@
+param (
+        [string]$ContainerId,# = "virtocommerce-vc-platform-web-1",
+        [int]$TimeoutMinutes = 5,                  # Max period of time for retry attempts in minutes
+        [int]$RetrySeconds = 15,                   # Period of time between retry attempts in seconds
+        [int]$WaitSeconds = 0                      # Period of time before start retry attempts in seconds
+    )
+
 Set-Variable -Name "TERM" -Value "xterm-color"
 
 function InspectContainerStatus {
     param (
-        $ContainerId = "virtocommerce_vc-platform-web_1",
-        [int]$TimeoutMinutes = 5,                  # Max period of time for retry attempts in minutes
-        [int]$RetrySeconds = 15,                   # Period of time between retry attempts in seconds
-        [int]$WaitSeconds = 0                      # Period of time before start retry attempts in seconds
+        [string]$ContainerId,
+        [int]$TimeoutMinutes,
+        [int]$RetrySeconds,
+        [int]$WaitSeconds
     )
 
     [int]$maxRepeat = $TimeoutMinutes * 60 / $RetrySeconds
@@ -27,4 +34,3 @@ function InspectContainerStatus {
 
     } until ($status -eq "running" -or $maxRepeat -lt $attempt)
 }
-

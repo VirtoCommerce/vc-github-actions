@@ -6,7 +6,7 @@ function Watch-Url-Up {
         [int]$TimeoutMinutes = 15, # Max period of time for retry attempts in minutes
         [int]$RetrySeconds = 15, # Period of time between retry attempts in seconds
         [int]$WaitSeconds = 60, # Period of time before start retry attempts in seconds
-        [string]$ContainerId = "virtocommerce_vc-platform-web_1" # $ContainerId to write host container log on each 3 unsuccess attempt
+        [string]$ContainerId = "virtocommerce-vc-platform-web-1" # $ContainerId to write host container log on each 3 unsuccess attempt
     )
 
 
