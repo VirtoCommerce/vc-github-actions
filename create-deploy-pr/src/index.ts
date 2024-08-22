@@ -182,6 +182,7 @@ function setConfigMap (key: string, keyValue:string, cmBody:string){
                 console.log('setConfigMap: Theme deployment')
                 const regexp = RegExp('"${key}"\s*:\s*".*"');
                 const matches = regexp.test(cmBody);
+                console.log("cmBody:",cmBody)
                 console.log("Does the string match the regex?", matches);
                 result = cmBody.replace(regexp, `${key}: ${keyValue}`);
             }

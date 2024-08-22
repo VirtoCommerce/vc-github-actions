@@ -10123,6 +10123,7 @@ function setConfigMap(key, keyValue, cmBody) {
                 console.log('setConfigMap: Theme deployment');
                 var regexp = RegExp('"${key}"\s*:\s*".*"');
                 var matches = regexp.test(cmBody);
+                console.log("cmBody:", cmBody);
                 console.log("Does the string match the regex?", matches);
                 result = cmBody.replace(regexp, "".concat(key, ": ").concat(keyValue));
             }
