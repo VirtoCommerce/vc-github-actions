@@ -186,7 +186,7 @@ function setConfigMap (key: string, keyValue:string, cmBody:string){
                 console.log("cmBody:",cmBody)
                 console.log("regex:",regexp)
                 console.log("Does the string match the regex?", matches);
-                result = cmBody.replace(regexp, `${key}: ${keyValue}`);
+                result = cmBody.replace(regexp, `"${key}": "${keyValue}"`);
             }
         }
     } catch (error) { 

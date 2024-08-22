@@ -10126,7 +10126,7 @@ function setConfigMap(key, keyValue, cmBody) {
                 console.log("cmBody:", cmBody);
                 console.log("regex:", regexp);
                 console.log("Does the string match the regex?", matches);
-                result = cmBody.replace(regexp, "".concat(key, ": ").concat(keyValue));
+                result = cmBody.replace(regexp, "\"".concat(key, "\": \"").concat(keyValue, "\""));
             }
         }
     }
