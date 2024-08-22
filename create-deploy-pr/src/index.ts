@@ -180,9 +180,10 @@ function setConfigMap (key: string, keyValue:string, cmBody:string){
                 result = cmBody.replace(regexp, `"PackageUrl": "${keyValue}"`);
             } else { //  Theme deployment
                 console.log('setConfigMap: Theme deployment')
-                const regexp = RegExp('"${key}"\s*:\s*".*"');
+                const regexp = RegExp('{\n\s*"' + key + '\s*:\s*".*"\s*\n}');
                 const matches = regexp.test(cmBody);
                 console.log("cmBody:",cmBody)
+                console.log("regex:",regexp)
                 console.log("Does the string match the regex?", matches);
                 result = cmBody.replace(regexp, `${key}: ${keyValue}`);
             }
