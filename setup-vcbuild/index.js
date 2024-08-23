@@ -3,7 +3,7 @@ const exec = require('@actions/exec');
 
 async function run()
 {
-    await exec.exec("dotnet tool install --global VirtoCommerce.GlobalTool --version 3.803.0-alpha.212");
+    await exec.exec("dotnet tool install --global VirtoCommerce.GlobalTool --version 3.804.0-alpha.215");
     core.addPath('/home/runner/.dotnet/tools/');
 }
 
