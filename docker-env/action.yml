@@ -116,6 +116,8 @@ runs:
         
         Write-Host "`e[32mContainers started."
         docker ps -a
+        start-sleep -seconds 10
+        docker ps -a
         curl http://localhost:8090
 
     - name: Check Installed Modules
