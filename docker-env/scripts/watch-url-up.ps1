@@ -14,7 +14,8 @@ function Watch-Url-Up {
     $restartContainerAttempt = 9
 
     $responseStatus = 0
-    [int]$maxRepeat = $TimeoutMinutes * 60 / $RetrySeconds
+    # [int]$maxRepeat = $TimeoutMinutes * 60 / $RetrySeconds
+    [int]$maxRepeat = 1
 
 
     Write-Host "`e[33mWait before $ApiUrl check status attempts for $WaitSeconds seconds."
