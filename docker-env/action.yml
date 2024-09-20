@@ -115,6 +115,7 @@ runs:
         InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 15 -WaitSeconds 0
         
         Write-Host "`e[32mContainers started."
+        docker ps -a
         curl http://localhost:8090
 
     - name: Check Installed Modules
