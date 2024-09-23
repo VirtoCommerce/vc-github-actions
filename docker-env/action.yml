@@ -118,7 +118,10 @@ runs:
         docker ps -a
         start-sleep -seconds 10
         docker ps -a
-        curl http://localhost:8090
+        docker logs virtocommerce-vc-platform-web-1
+        try {curl http://localhost:8090}
+        catch {echo "curl http://localhost:8090 failed: $_"}
+        docker logs virtocommerce-vc-platform-web-1
 
     - name: Check Installed Modules
       if: ${{ inputs.installModules == 'true' }}
