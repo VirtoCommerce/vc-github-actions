@@ -52,24 +52,6 @@ services:
       - virto
     restart: unless-stopped
 
-  vc-storefront-web:
-    image: ${STOREFRONT_IMAGE:-virtocommerce/storefront}:${STOREFRONT_DOCKER_TAG:-latest}
-    ports:
-      - "${DOCKER_STOREFRONT_PORT:-8080}:80"
-    env_file:
-      - ${ENV_DIR:-.}/.docker/storefront.env
-    environment:
-      - VirtoCommerce:Endpoint:Url=http://vc-platform-web
-      - VirtoCommerce:Endpoint:UserName=admin
-      - VirtoCommerce:Endpoint:Password=store
-      - ASPNETCORE_ENVIRONMENT=Development 
-    depends_on:
-      - vc-platform-web
-    volumes:
-      - cms-content-volume:/opt/virtocommerce/storefront/wwwroot/cms-content
-    networks:
-      - virto
-
 volumes:
   cms-content-volume:
     name: cms-content-data
