@@ -43,7 +43,7 @@ jobs:
 
       - name: Deploy
         run: |
-            dotnet tool install --global VirtoCommerce.GlobalTool
+            dotnet tool update --global VirtoCommerce.GlobalTool
             vc-build CloudEnvSetParameter -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HelmParameters custom.app1.image.tag=${{ github.run_number }}
             vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license  -HealthStatus Progressing
             vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Healthy -SyncStatus Synced
