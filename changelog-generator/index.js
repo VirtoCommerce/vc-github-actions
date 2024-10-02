@@ -223,7 +223,7 @@ function cleanMessages(messages) {
         let finalMsg = msg.replace(jiraTasksRegex, '');
 
         if (body && body !== "()") {
-            finalMsg += ` (${body})`;
+            finalMsg += `${body}`;
         }
 
         core.info(`Processed Message -> ${finalMsg}`);
