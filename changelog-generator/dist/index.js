@@ -17200,7 +17200,7 @@ function cleanMessages(messages)
     // Collect messages in groups
     messages.split('HASH:')
         .forEach(commitMsg => {
-            const oneLineMsg = commitMsg.replaceAll("\n","").replace(/\s+/g, ' ').trim().replace(/^\(+|\)+$/g, '');
+            const oneLineMsg = commitMsg.replaceAll("\n","").replace(/\s+/g, ' ').replace(/^\(+/, '').replace(/\)+$/, '');
             
             // Skip empty lines
             if (oneLineMsg === ""){return;}
