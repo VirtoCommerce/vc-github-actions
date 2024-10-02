@@ -17375,18 +17375,16 @@ function cleanMessages(messages) {
         const msg = msgAndBody[0].split('MSG:')[1]?.trim() || '';
         const body = msgAndBody[1]?.trim() || '';
 
-        // Check if body starts with a keyword like feat:, fix:, etc.
-        const isBodyCommitStyle = new RegExp("^(feat|fix|docs|style|refactor|perf|test|ci|chore):\\s").test(body);
-        const cleanMsg = msg.replace(jiraTasksRegex, '');
+        // Only append body if it's not empty
+        let finalMsg = msg.replace(jiraTasksRegex, '');
 
-        // Append body if it's not a commit-style message and is not empty
-        let finalMsg = cleanMsg;
-        if (body && !isBodyCommitStyle) {
+        if (body && body !== "()") {
             finalMsg += ` (${body})`;
         }
 
         core.info(`Processed Message -> ${finalMsg}`);
 
+        // Grouping messages into respective release note categories
         releaseNoteGroups.forEach(group => {
             const template = group.key + ': ';
             if (finalMsg.startsWith(template)) {
