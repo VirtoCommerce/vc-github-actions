@@ -17372,24 +17372,25 @@ function cleanMessages(messages) {
         core.info(`Raw -> ${oneLineMsg}`);
 
         const msgAndBody = oneLineMsg.split('BODY:');
-        const msg = msgAndBody[0].split('MSG:')[1].trim();
+        const msg = msgAndBody[0].split('MSG:')[1]?.trim() || '';
         const body = msgAndBody[1]?.trim() || '';
 
         // Check if body starts with a keyword like feat:, fix:, etc.
-        const isBodyACommit = new RegExp("^(feat|fix|docs|style|refactor|perf|test|ci|chore):\\s").test(body);
+        const isBodyCommitStyle = new RegExp("^(feat|fix|docs|style|refactor|perf|test|ci|chore):\\s").test(body);
+        const cleanMsg = msg.replace(jiraTasksRegex, '');
 
-        // If the body is non-empty and doesn't look like a commit, add parentheses
-        let cleanMsg = msg.replace(jiraTasksRegex, '');
-        if (body && !isBodyACommit && body !== "()") {
-            cleanMsg += ` (${body})`;
+        // Append body if it's not a commit-style message and is not empty
+        let finalMsg = cleanMsg;
+        if (body && !isBodyCommitStyle) {
+            finalMsg += ` (${body})`;
         }
 
-        core.info(`Processed Message -> ${cleanMsg}`);
+        core.info(`Processed Message -> ${finalMsg}`);
 
         releaseNoteGroups.forEach(group => {
             const template = group.key + ': ';
-            if (cleanMsg.startsWith(template)) {
-                const message = cleanMsg.replace(template, '');
+            if (finalMsg.startsWith(template)) {
+                const message = finalMsg.replace(template, '');
                 core.info(`${group.key.toUpperCase()} -> ${message}`);
                 group.items.push(message);
                 core.info("----------");
