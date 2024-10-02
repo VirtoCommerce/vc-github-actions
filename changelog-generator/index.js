@@ -49,7 +49,7 @@ function cleanMessages(messages)
                                         .replace(/BODY:\s*\(/g, '') // Removes 'BODY: (' including any spaces before '('
                                         .trim()                     // Trim any leading/trailing spaces
                                         // .replace(/^\s*\(+/, '')     // Remove any leading spaces and opening parentheses
-                                        .replace(/\)+\s*$/, '')     // Remove any trailing spaces and closing parentheses
+                                        //.replace(/\)+\s*$/, '')     // Remove any trailing spaces and closing parentheses
                                         // .replace(/^\s*\(+\s*/, '')  // Remove any left over parentheses at the start
                                         // .replace(/\s*\)+\s*$/, ''); // Remove any left over parentheses at the end
 
