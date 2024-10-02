@@ -47,7 +47,7 @@ function cleanMessages(messages)
             const oneLineMsg = commitMsg.replaceAll("\n","") // Remove newlines
                                         .replace(/\s+/g, ' ')       // Replace multiple spaces with a single space
                                         .trim() // Trim any leading/trailing spaces
-                                        .replace(/BODY:\s\(/g, '') // Removes 'BODY: (' including any spaces before '('
+                                        // .replace(/BODY:\s\(/g, '') // Removes 'BODY: (' including any spaces before '('
                                         // .replace(/^\s*\(+/, '')     // Remove any leading spaces and opening parentheses
                                         //.replace(/\)+\s*$/, '')     // Remove any trailing spaces and closing parentheses
                                         // .replace(/^\s*\(+\s*/, '')  // Remove any left over parentheses at the start
