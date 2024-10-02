@@ -17202,18 +17202,19 @@ function cleanMessages(messages)
         .forEach(commitMsg => {
             const oneLineMsg = commitMsg.replaceAll("\n","") // Remove newlines
                                         .replace(/\s+/g, ' ')       // Replace multiple spaces with a single space
-                                        .replace(/^\s*\(+/, '')
                                         .trim()                     // Trim any leading/trailing spaces
                                         // .replace(/^\s*\(+/, '')     // Remove any leading spaces and opening parentheses
                                         // .replace(/\)+\s*$/, '')     // Remove any trailing spaces and closing parentheses
                                         // .replace(/^\s*\(+\s*/, '')  // Remove any left over parentheses at the start
                                         // .replace(/\s*\)+\s*$/, ''); // Remove any left over parentheses at the end
             
+            const oneLineMsg1 = oneLineMsg.replace(/^\s*\(+/, '')     // Remove any leading spaces and opening parentheses
+                                          .replace(/\)+\s*$/, '')     // Remove any trailing spaces and closing parentheses
             // Skip empty lines
-            if (oneLineMsg === ""){return;}
-            core.info(`Raw -> ${oneLineMsg}`);
+            if (oneLineMsg1 === ""){return;}
+            core.info(`Raw -> ${oneLineMsg1}`);
 
-            const msgAndBody = oneLineMsg.split('BODY:');
+            const msgAndBody = oneLineMsg1.split('BODY:');
             const msg = msgAndBody[0].split('MSG:')[1].trim();
             const body = msgAndBody[1].trim();
 
