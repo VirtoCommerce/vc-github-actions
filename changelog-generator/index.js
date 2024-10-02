@@ -222,11 +222,9 @@ function cleanMessages(messages) {
         // Check if body starts with a keyword like feat:, fix:, etc.
         const isBodyACommit = new RegExp("^(feat|fix|docs|style|refactor|perf|test|ci|chore):\\s").test(body);
 
-        // If the body starts with a commit-like message, skip adding parentheses.
+        // If the body is non-empty and doesn't look like a commit, add parentheses
         let cleanMsg = msg.replace(jiraTasksRegex, '');
-
-        // Append the body only if it's not empty and it's not a commit-like structure
-        if (body && !isBodyACommit) {
+        if (body && !isBodyACommit && body !== "()") {
             cleanMsg += ` (${body})`;
         }
 
