@@ -17204,7 +17204,9 @@ function cleanMessages(messages)
                                         .replace(/\s+/g, ' ')       // Replace multiple spaces with a single space
                                         .trim()                     // Trim any leading/trailing spaces
                                         .replace(/^\s*\(+/, '')     // Remove any leading spaces and opening parentheses
-                                        .replace(/\)+\s*$/, '');    // Remove any closing parentheses and trailing spaces
+                                        .replace(/\)+\s*$/, '')     // Remove any trailing spaces and closing parentheses
+                                        .replace(/^\s*\(+\s*/, '')  // Remove any left over parentheses at the start
+                                        .replace(/\s*\)+\s*$/, ''); // Remove any left over parentheses at the end
             
             // Skip empty lines
             if (oneLineMsg === ""){return;}
