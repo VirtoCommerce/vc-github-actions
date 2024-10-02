@@ -13,10 +13,12 @@ function InstallCustomModule {
     Write-Host "`e[33mTry to uninstall $($CustomModuleId)."
     try {
         & "vc-build uninstall -module $($CustomModuleId)"
-        Write-Host "`e[32m$($CustomModuleId) successfull uninstalled."
+        Write-Host "`e[32m$($CustomModuleId) successfully uninstalled."
     }
     catch {
-        Write-Host "`e[31mError ocure while $($CustomModuleId) uninstall."
+        Write-Host "`e[31mError occurred while uninstalling $($CustomModuleId)."
+        Write-Host "`e[31mError Message: $($_.Exception.Message)"
+        Write-Host "`e[31mStack Trace: $($_.Exception.StackTrace)"
     }
     Push-Location "./modules" #modules"
     Write-Host "`e[33mDownload $($CustomModuleUrl) to $($CustomModuleZip)."
