@@ -46,7 +46,7 @@ function cleanMessages(messages)
         .forEach(commitMsg => {
             const oneLineMsg = commitMsg.replaceAll("\n","")
                                         .replace(/\s+/g, ' ')
-                                        .replace(/^\(+/, '')
+                                        .replace(/^\s*\(+/, '')
                                         .replace(/(\s*\)+)+$/, '');
             
             // Skip empty lines
