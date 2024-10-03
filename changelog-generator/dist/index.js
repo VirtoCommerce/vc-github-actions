@@ -17203,11 +17203,6 @@ function cleanMessages(messages)
             const oneLineMsg = commitMsg.replaceAll("\n","") // Remove newlines
                                         .replace(/\s+/g, ' ')       // Replace multiple spaces with a single space
                                         .trim() // Trim any leading/trailing spaces
-                                        // .replace(/BODY:\s\(/g, '') // Removes 'BODY: (' including any spaces before '('
-                                        // .replace(/^\s*\(+/, '')     // Remove any leading spaces and opening parentheses
-                                        //.replace(/\)+\s*$/, '')     // Remove any trailing spaces and closing parentheses
-                                        // .replace(/^\s*\(+\s*/, '')  // Remove any left over parentheses at the start
-                                        // .replace(/\s*\)+\s*$/, ''); // Remove any left over parentheses at the end
 
             // Skip empty lines
             if (oneLineMsg === ""){return;}
@@ -17215,8 +17210,9 @@ function cleanMessages(messages)
 
             const msgAndBody = oneLineMsg.split('BODY:');
             const msg = msgAndBody[0].split('MSG:')[1].trim();
-            const body = msgAndBody[1].trim().replace(/^\s*\(+/, '').replace(/\)+\s*$/, '');
-            core.info(`body -> ${body}`);
+            const body = msgAndBody[1].trim()
+                                    .replace(/^\s*\(+/, '') // Remove any leading spaces and opening parentheses
+                                    .replace(/\)+\s*$/, ''); // Remove any trailing spaces and closing parentheses
 
             // Example message (PT-3771: Provide option to show user-friendly errors) 
             if (jiraTasksRegex.test(msg)) {
