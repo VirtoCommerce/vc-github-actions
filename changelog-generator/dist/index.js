@@ -17213,10 +17213,10 @@ function cleanMessages(messages)
             if (oneLineMsg === ""){return;}
             core.info(`Raw -> ${oneLineMsg}`);
 
-            const msgAndBody = oneLineMsg.split('BODY:\s*\(');
-            core.info(`msgAndBody -> ${msgAndBody}`);
+            const msgAndBody = oneLineMsg.split('BODY:');
             const msg = msgAndBody[0].split('MSG:')[1].trim();
-            const body = msgAndBody[1].trim();
+            const body = msgAndBody[1].trim().replace(/^\s*\(+/, '').replace(/\)+\s*$/, '');
+            core.info(`body -> ${body}`);
 
             // Example message (PT-3771: Provide option to show user-friendly errors) 
             if (jiraTasksRegex.test(msg)) {
