@@ -56,7 +56,6 @@ function cleanMessages(messages)
             // Skip empty lines
             if (oneLineMsg === ""){return;}
             core.info(`Raw -> ${oneLineMsg}`);
-            core.info(`RawCommit -> ${commitMsg}`);
 
             const msgAndBody = oneLineMsg.split('BODY:');
             const msg = msgAndBody[0].split('MSG:')[1].trim();
@@ -91,7 +90,9 @@ function cleanMessages(messages)
 
                 // Only text in body message => use message as source of truth
                 if (groupIndexes.length === 0) {
-                    const message = msg.replace(jiraTasksRegex,'');
+                    const message = msg.replace(jiraTasksRegex,'')
+                                       .replace(/^\s*\(+/, '')     // Remove any leading spaces and opening parentheses
+                                       .replace(/\)+\s*$/, '')     // Remove any trailing spaces and closing parentheses;
 
                     core.info(`FEAT -> ${message}`);
                     releaseNoteGroups[0].items.push(message);
