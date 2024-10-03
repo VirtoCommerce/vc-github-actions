@@ -57,7 +57,8 @@ function cleanMessages(messages)
             if (oneLineMsg === ""){return;}
             core.info(`Raw -> ${oneLineMsg}`);
 
-            const msgAndBody = oneLineMsg.split('BODY:');
+            const msgAndBody = oneLineMsg.split('BODY:\s*\(');
+            core.info(`msgAndBody -> ${msgAndBody}`);
             const msg = msgAndBody[0].split('MSG:')[1].trim();
             const body = msgAndBody[1].trim();
 
@@ -66,7 +67,7 @@ function cleanMessages(messages)
 
                 // Feature-style commit
                 if (jiraTasksRegex.test(body)) {
-                    const message = msg.replace(jiraTasksRegex,'').replace(/^\s*\(+/, '').replace(/\)+\s*$/, '');
+                    const message = msg.replace(jiraTasksRegex,'');
 
                     core.info(`FEAT -> ${message}`);
                     releaseNoteGroups[0].items.push(message);
@@ -90,8 +91,7 @@ function cleanMessages(messages)
 
                 // Only text in body message => use message as source of truth
                 if (groupIndexes.length === 0) {
-                    const message = msg.replace(jiraTasksRegex,'').replace(/^\s*\(+/, '').replace(/\)+\s*$/, '');
-                    // const message1 = message.replace(/^\s*\(+/, '').replace(/\)+\s*$/, '')
+                    const message = msg.replace(jiraTasksRegex,'');
 
                     core.info(`FEAT -> ${message}`);
                     releaseNoteGroups[0].items.push(message);
