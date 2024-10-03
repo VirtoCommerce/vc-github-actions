@@ -66,7 +66,7 @@ function cleanMessages(messages)
 
                 // Feature-style commit
                 if (jiraTasksRegex.test(body)) {
-                    const message = msg.replace(jiraTasksRegex,'');
+                    const message = msg.replace(jiraTasksRegex,'').replace(/^\s*\(+/, '').replace(/\)+\s*$/, '');
 
                     core.info(`FEAT -> ${message}`);
                     releaseNoteGroups[0].items.push(message);
@@ -90,9 +90,8 @@ function cleanMessages(messages)
 
                 // Only text in body message => use message as source of truth
                 if (groupIndexes.length === 0) {
-                    const message = msg.replace(jiraTasksRegex,'')
-                                       .replace(/^\s*\(+/, '')     // Remove any leading spaces and opening parentheses
-                                       .replace(/\)+\s*$/, '')     // Remove any trailing spaces and closing parentheses;
+                    const message = msg.replace(jiraTasksRegex,'').replace(/^\s*\(+/, '').replace(/\)+\s*$/, '');
+                    // const message1 = message.replace(/^\s*\(+/, '').replace(/\)+\s*$/, '')
 
                     core.info(`FEAT -> ${message}`);
                     releaseNoteGroups[0].items.push(message);
