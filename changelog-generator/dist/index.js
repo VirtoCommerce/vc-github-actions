@@ -17359,6 +17359,9 @@ String.prototype.replaceAll = function (find, replace)
 
 async function run()
 {
+    core.info(`Repository: ${process.env.GITHUB_REPOSITORY}`);
+    core.info(`Latest Release: ${latestRelease}`);
+
     let isDependencies = await utils.isDependencies(github);
     if (isDependencies) {
         core.info(`Pull request contain "dependencies" label. Step skipped.`);
