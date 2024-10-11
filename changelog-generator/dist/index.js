@@ -17158,6 +17158,7 @@ const core = __nccwpck_require__(5742);
 const github = __nccwpck_require__(7318);
 const exec = __nccwpck_require__(4990);
 const utils = __nccwpck_require__(2545);
+const https = __nccwpck_require__(5692); // Import https module
 
 async function getCommitMessages(since)
 {
