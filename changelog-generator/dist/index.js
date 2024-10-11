@@ -17414,7 +17414,7 @@ async function run()
 
         // let latestRelease = await utils.getLatestRelease(process.env.GITHUB_REPOSITORY);
         // core.info(`Latest Release: ${latestRelease}`);
-    } catch {
+    } catch (error) {
         core.setFailed(`Error fetching latest release: ${error.message}`);
     }
 
