@@ -17367,10 +17367,14 @@ async function run()
         return;
     }
 
-    let latestRelease = await utils.getLatestRelease(process.env.GITHUB_REPOSITORY);
+    core.info(`Run getLatestRelease`);
+    try {
+        let latestRelease = await utils.getLatestRelease(process.env.GITHUB_REPOSITORY);
+        core.info(`Latest Release: ${latestRelease}`);
+    } catch {
+        core.setFailed(`Error fetching latest release: ${error.message}`);
+    }
 
-    core.info(`Latest Release: ${latestRelease}`);
-    
     let commitMessages = "";
     if (latestRelease != null)
     {
