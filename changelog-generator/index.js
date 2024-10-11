@@ -1,7 +1,7 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const exec = require('@actions/exec');
-const utils = require('@virtocommerce/vc-actions-lib');
+// const utils = require('@virtocommerce/vc-actions-lib');
 
 async function getCommitMessages(since)
 {
@@ -201,6 +201,41 @@ String.prototype.replaceAll = function (find, replace)
     return this.split(find).join(replace);
 }
 
+async function getLatestRelease(owner, repo, token) {
+    const options = {
+        hostname: 'api.github.com',
+        path: `/repos/${owner}/${repo}/releases/latest`,
+        method: 'GET',
+        headers: {
+            'User-Agent': 'Node.js',  // GitHub API requires a User-Agent header
+            'Authorization': `token ${token}`,
+            'Accept': 'application/vnd.github.v3+json'
+        }
+    };
+
+    return new Promise((resolve, reject) => {
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', (chunk) => {
+                data += chunk;
+            });
+            res.on('end', () => {
+                if (res.statusCode === 200) {
+                    resolve(JSON.parse(data));
+                } else {
+                    reject(new Error(`Failed to fetch latest release: ${res.statusCode} - ${data}`));
+                }
+            });
+        });
+
+        req.on('error', (e) => {
+            reject(e);
+        });
+
+        req.end();
+    });
+}
+
 async function run()
 {
     core.info(`Repository: ${process.env.GITHUB_REPOSITORY}`);
@@ -213,8 +248,16 @@ async function run()
 
     core.info(`Run getLatestRelease`);
     try {
-        let latestRelease = await utils.getLatestRelease(process.env.GITHUB_REPOSITORY);
-        core.info(`Latest Release: ${latestRelease}`);
+        const repo = process.env.GITHUB_REPOSITORY.split('/');
+        const token = process.env.GITHUB_TOKEN;  // Use the GitHub token from env
+        const owner = repo[0];
+        const repoName = repo[1];
+
+        let latestRelease = await getLatestRelease(owner, repoName, token);
+        core.info(`Latest Release: ${JSON.stringify(latestRelease)}`);
+
+        // let latestRelease = await utils.getLatestRelease(process.env.GITHUB_REPOSITORY);
+        // core.info(`Latest Release: ${latestRelease}`);
     } catch {
         core.setFailed(`Error fetching latest release: ${error.message}`);
     }
