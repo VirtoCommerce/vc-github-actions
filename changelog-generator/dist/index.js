@@ -17404,6 +17404,7 @@ async function run()
     }
 
     core.info(`Run getLatestRelease`);
+    let latestRelease = null;  // Define latestRelease outside of the try block
     try {
         const repo = process.env.GITHUB_REPOSITORY.split('/');
         const token = process.env.GITHUB_TOKEN;  // Use the GitHub token from env
