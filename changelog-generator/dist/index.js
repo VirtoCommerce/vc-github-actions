@@ -17411,7 +17411,7 @@ async function run()
         const owner = repo[0];
         const repoName = repo[1];
 
-        const latestRelease = await getLatestRelease(owner, repoName, token);
+        latestRelease = await getLatestRelease(owner, repoName, token);
         core.info(`Latest Release: ${JSON.stringify(latestRelease)}`);
 
         // let latestRelease = await utils.getLatestRelease(process.env.GITHUB_REPOSITORY);
@@ -17423,6 +17423,7 @@ async function run()
     let commitMessages = "";
     if (latestRelease != null)
     {
+        core.info(`latestRelease.published_at: ${latestRelease.published_at}`);
         commitMessages = await getCommitMessages(latestRelease.published_at);
         core.info(`CommitMessages: ${JSON.stringify(commitMessages)}`);
         commitMessages = cleanMessages(commitMessages);
