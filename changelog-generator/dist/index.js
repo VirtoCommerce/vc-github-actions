@@ -17424,7 +17424,9 @@ async function run()
     if (latestRelease != null)
     {
         commitMessages = await getCommitMessages(latestRelease.published_at);
+        core.info(`CommitMessages: ${JSON.stringify(commitMessages)}`);
         commitMessages = cleanMessages(commitMessages);
+        core.info(`Cleaned commitMessages: ${JSON.stringify(commitMessages)}`);
     }
 
     core.info(commitMessages);
