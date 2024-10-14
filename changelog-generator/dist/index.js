@@ -17431,7 +17431,14 @@ async function run()
     }
 
     core.info(commitMessages);
-    core.setOutput("changelog", commitMessages);
+    // core.setOutput("changelog", commitMessages);
+    // Instead of core.setOutput, write to the environment file
+    const outputFilePath = process.env.GITHUB_OUTPUT;
+    if (outputFilePath) {
+        fs.appendFileSync(outputFilePath, `changelog=${commitMessages}\n`);
+    } else {
+        core.setFailed('GITHUB_OUTPUT environment variable is not defined.');
+    }
 }
 
 run().catch(err => {
