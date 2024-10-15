@@ -270,6 +270,7 @@ async function run()
     }
 
     core.info(`Run getLatestRelease`);
+    let latestRelease = await getLatestRelease(process.env.GITHUB_REPOSITORY);
     // let latestRelease = null;  // Define latestRelease outside of the try block
     try {
         const repo = process.env.GITHUB_REPOSITORY.split('/');
@@ -285,8 +286,6 @@ async function run()
     } catch (error) {
         core.setFailed(`Error fetching latest release: ${error.message}`);
     }
-
-    let latestRelease = await getLatestRelease(process.env.GITHUB_REPOSITORY);
 
     let commitMessages = "";
     if (latestRelease != null)
