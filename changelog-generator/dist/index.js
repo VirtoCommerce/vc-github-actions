@@ -17398,6 +17398,7 @@ String.prototype.replaceAll = function (find, replace)
 async function getLatestRelease(repo)
 {
     const repoUrl = `/repos/${repo}/releases`;
+    core.info(`repoUrl: ${repoUrl}`);
     const result = await request(`GET ${repoUrl}`, {
         headers: {
             authorization: process.env.GITHUB_TOKEN
