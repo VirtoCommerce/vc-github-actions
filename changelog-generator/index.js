@@ -2,7 +2,7 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const exec = require('@actions/exec');
 const utils = require('@virtocommerce/vc-actions-lib');
-const https = require('https'); // Import https module
+// const https = require('https'); // Import https module
 const fs = require('fs');
 const path = require('path');
 
@@ -204,39 +204,59 @@ String.prototype.replaceAll = function (find, replace)
     return this.split(find).join(replace);
 }
 
-async function getLatestRelease(owner, repo, token) {
-    const options = {
-        hostname: 'api.github.com',
-        path: `/repos/${owner}/${repo}/releases/latest`,
-        method: 'GET',
+// async function getLatestRelease(owner, repo, token) {
+//     const options = {
+//         hostname: 'api.github.com',
+//         path: `/repos/${owner}/${repo}/releases/latest`,
+//         method: 'GET',
+//         headers: {
+//             'User-Agent': 'Node.js',  // GitHub API requires a User-Agent header
+//             'Authorization': `token ${token}`,
+//             'Accept': 'application/vnd.github.v3+json'
+//         }
+//     };
+
+//     return new Promise((resolve, reject) => {
+//         const req = https.request(options, (res) => {
+//             let data = '';
+//             res.on('data', (chunk) => {
+//                 data += chunk;
+//             });
+//             res.on('end', () => {
+//                 if (res.statusCode === 200) {
+//                     resolve(JSON.parse(data));
+//                 } else {
+//                     reject(new Error(`Failed to fetch latest release: ${res.statusCode} - ${data}`));
+//                 }
+//             });
+//         });
+
+//         req.on('error', (e) => {
+//             reject(e);
+//         });
+
+//         req.end();
+//     });
+// }
+async function getLatestRelease(repo)
+{
+    const repoUrl = `/repos/${repo}/releases`;
+    const result = await request(`GET ${repoUrl}`, {
         headers: {
-            'User-Agent': 'Node.js',  // GitHub API requires a User-Agent header
-            'Authorization': `token ${token}`,
-            'Accept': 'application/vnd.github.v3+json'
+            authorization: process.env.GITHUB_TOKEN
         }
-    };
-
-    return new Promise((resolve, reject) => {
-        const req = https.request(options, (res) => {
-            let data = '';
-            res.on('data', (chunk) => {
-                data += chunk;
-            });
-            res.on('end', () => {
-                if (res.statusCode === 200) {
-                    resolve(JSON.parse(data));
-                } else {
-                    reject(new Error(`Failed to fetch latest release: ${res.statusCode} - ${data}`));
-                }
-            });
-        });
-
-        req.on('error', (e) => {
-            reject(e);
-        });
-
-        req.end();
     });
+    releases = result.data;
+    console.log(releases);
+    for(let release of releases)
+    {
+        if(!release.name.startsWith("v2") && release.prerelease === false)
+        {
+            return release;
+        }
+    }
+    console.log("No github releases found");
+    return null;
 }
 
 async function run()
@@ -257,7 +277,7 @@ async function run()
         const owner = repo[0];
         const repoName = repo[1];
 
-        latestRelease = await getLatestRelease(owner, repoName, token);
+        latestRelease = await getLatestRelease(repoName);
         core.info(`Latest Release: ${JSON.stringify(latestRelease)}`);
 
         // let latestRelease = await utils.getLatestRelease(process.env.GITHUB_REPOSITORY);
