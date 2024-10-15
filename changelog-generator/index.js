@@ -270,7 +270,7 @@ async function run()
     }
 
     core.info(`Run getLatestRelease`);
-    let latestRelease = await utils.getLatestRelease(process.env.GITHUB_REPOSITORY);
+    let latestRelease = await getLatestRelease(process.env.GITHUB_REPOSITORY);
     // let latestRelease = null;  // Define latestRelease outside of the try block
     try {
         const repo = process.env.GITHUB_REPOSITORY.split('/');
