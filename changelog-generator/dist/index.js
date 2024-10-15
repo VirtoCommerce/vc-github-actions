@@ -17426,14 +17426,14 @@ async function run()
     }
 
     core.info(`Run getLatestRelease`);
-    let latestRelease = null;  // Define latestRelease outside of the try block
+    // let latestRelease = null;  // Define latestRelease outside of the try block
     try {
         const repo = process.env.GITHUB_REPOSITORY.split('/');
         const token = process.env.GITHUB_TOKEN;  // Use the GitHub token from env
         const owner = repo[0];
         const repoName = repo[1];
 
-        latestRelease = await getLatestRelease(process.env.GITHUB_REPOSITORY);
+        // latestRelease = await getLatestRelease(owner, repoName, token);
         core.info(`Latest Release: ${JSON.stringify(latestRelease)}`);
 
         // let latestRelease = await utils.getLatestRelease(process.env.GITHUB_REPOSITORY);
@@ -17441,6 +17441,8 @@ async function run()
     } catch (error) {
         core.setFailed(`Error fetching latest release: ${error.message}`);
     }
+
+    let latestRelease = await getLatestRelease(process.env.GITHUB_REPOSITORY);
 
     let commitMessages = "";
     if (latestRelease != null)
