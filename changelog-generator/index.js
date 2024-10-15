@@ -2,7 +2,8 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const exec = require('@actions/exec');
 const utils = require('@virtocommerce/vc-actions-lib');
-const https = require('https'); // Import https module
+// const https = require('https'); // Import https module
+const { request } = require("@octokit/request");
 const fs = require('fs');
 const path = require('path');
 
