@@ -277,7 +277,7 @@ async function run()
         const owner = repo[0];
         const repoName = repo[1];
 
-        latestRelease = await getLatestRelease(repoName);
+        latestRelease = await getLatestRelease(process.env.GITHUB_REPOSITORY);
         core.info(`Latest Release: ${JSON.stringify(latestRelease)}`);
 
         // let latestRelease = await utils.getLatestRelease(process.env.GITHUB_REPOSITORY);
