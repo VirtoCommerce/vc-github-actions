@@ -48,9 +48,10 @@ function cleanMessages(messages)
     // Collect messages in groups
     messages.split('HASH:')
         .forEach(commitMsg => {
-            const oneLineMsg = commitMsg.replaceAll("\n","") // Remove newlines
-                                        .replace(/\s+/g, ' ')       // Replace multiple spaces with a single space
-                                        .trim() // Trim any leading/trailing spaces
+            // const oneLineMsg = commitMsg.replaceAll("\n","") // Remove newlines
+            //                             .replace(/\s+/g, ' ')       // Replace multiple spaces with a single space
+            //                             .trim() // Trim any leading/trailing spaces
+            const oneLineMsg = commitMsg.replaceAll("\n","").replace(/\s+/g, ' ').trim() // Trim any leading/trailing spaces
 
             // Skip empty lines
             if (oneLineMsg === ""){return;}
