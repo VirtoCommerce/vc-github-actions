@@ -237,7 +237,7 @@ async function run()
         return;
     }
 
-    core.info(`Run getLatestRelease`);
+    // core.info(`Run getLatestRelease`);
     let latestRelease = await utils.getLatestRelease(process.env.GITHUB_REPOSITORY);
     // let latestRelease = await getLatestRelease(process.env.GITHUB_REPOSITORY);
     // let latestRelease = null;  // Define latestRelease outside of the try block
@@ -266,7 +266,7 @@ async function run()
         core.info(`Cleaned commitMessages: ${JSON.stringify(commitMessages)}`);
     }
 
-    // core.info(commitMessages);
+    core.info(commitMessages);
     // core.setOutput("changelog", commitMessages);
     // Instead of core.setOutput, write to the environment file
     const outputFilePath = process.env.GITHUB_OUTPUT;
