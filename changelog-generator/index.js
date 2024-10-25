@@ -58,9 +58,9 @@ function cleanMessages(messages)
 
             const msgAndBody = oneLineMsg.split('BODY:');
             const msg = msgAndBody[0].split('MSG:')[1].trim();
-            const body = msgAndBody[1].trim()
-                                    .replace(/^\s*\(+/, '') // Remove any leading spaces and opening parentheses
-                                    .replace(/\)+\s*$/, ''); // Remove any trailing spaces and closing parentheses
+            const body = msgAndBody[1].trim();
+                                    // .replace(/^\s*\(+/, '') // Remove any leading spaces and opening parentheses
+                                    // .replace(/\)+\s*$/, ''); // Remove any trailing spaces and closing parentheses
 
             // Example message (PT-3771: Provide option to show user-friendly errors) 
             if (jiraTasksRegex.test(msg)) {
