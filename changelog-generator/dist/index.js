@@ -17422,7 +17422,7 @@ async function run()
         core.info(`Cleaned commitMessages: ${JSON.stringify(commitMessages)}`);
     }
 
-    core.info(commitMessages);
+    // core.info(commitMessages);
     // core.setOutput("changelog", commitMessages);
     // Instead of core.setOutput, write to the environment file
     const outputFilePath = process.env.GITHUB_OUTPUT;
