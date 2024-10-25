@@ -17215,8 +17215,8 @@ function cleanMessages(messages)
             const msgAndBody = oneLineMsg.split('BODY:');
             const msg = msgAndBody[0].split('MSG:')[1].trim();
             const body = msgAndBody[1].trim()
-                                    .replace(/^\s*\(+/, '') // Remove any leading spaces and opening parentheses
-                                    .replace(/\)+\s*$/, ''); // Remove any trailing spaces and closing parentheses
+                                    // .replace(/^\s*\(+/, '') // Remove any leading spaces and opening parentheses
+                                    // .replace(/\)+\s*$/, ''); // Remove any trailing spaces and closing parentheses
 
             // Example message (PT-3771: Provide option to show user-friendly errors) 
             if (jiraTasksRegex.test(msg)) {
@@ -17361,40 +17361,6 @@ String.prototype.replaceAll = function (find, replace)
     return this.split(find).join(replace);
 }
 
-// async function getLatestRelease(owner, repo, token) {
-//     const options = {
-//         hostname: 'api.github.com',
-//         path: `/repos/${owner}/${repo}/releases/latest`,
-//         method: 'GET',
-//         headers: {
-//             'User-Agent': 'Node.js',  // GitHub API requires a User-Agent header
-//             'Authorization': `token ${token}`,
-//             'Accept': 'application/vnd.github.v3+json'
-//         }
-//     };
-
-//     return new Promise((resolve, reject) => {
-//         const req = https.request(options, (res) => {
-//             let data = '';
-//             res.on('data', (chunk) => {
-//                 data += chunk;
-//             });
-//             res.on('end', () => {
-//                 if (res.statusCode === 200) {
-//                     resolve(JSON.parse(data));
-//                 } else {
-//                     reject(new Error(`Failed to fetch latest release: ${res.statusCode} - ${data}`));
-//                 }
-//             });
-//         });
-
-//         req.on('error', (e) => {
-//             reject(e);
-//         });
-
-//         req.end();
-//     });
-// }
 async function getLatestRelease(repo)
 {
     const repoUrl = `/repos/${repo}/releases`;
@@ -17428,7 +17394,8 @@ async function run()
     }
 
     core.info(`Run getLatestRelease`);
-    let latestRelease = await getLatestRelease(process.env.GITHUB_REPOSITORY);
+    let latestRelease = await utils.getLatestRelease(process.env.GITHUB_REPOSITORY);
+    // let latestRelease = await getLatestRelease(process.env.GITHUB_REPOSITORY);
     // let latestRelease = null;  // Define latestRelease outside of the try block
     // try {
     //     const repo = process.env.GITHUB_REPOSITORY.split('/');
@@ -17439,7 +17406,7 @@ async function run()
     //     // latestRelease = await getLatestRelease(owner, repoName, token);
     //     core.info(`Latest Release: ${JSON.stringify(latestRelease)}`);
 
-    //     // let latestRelease = await utils.getLatestRelease(process.env.GITHUB_REPOSITORY);
+    //     
     //     // core.info(`Latest Release: ${latestRelease}`);
     // } catch (error) {
     //     core.setFailed(`Error fetching latest release: ${error.message}`);

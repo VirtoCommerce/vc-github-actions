@@ -48,10 +48,9 @@ function cleanMessages(messages)
     // Collect messages in groups
     messages.split('HASH:')
         .forEach(commitMsg => {
-            // const oneLineMsg = commitMsg.replaceAll("\n","") // Remove newlines
-            //                             .replace(/\s+/g, ' ')       // Replace multiple spaces with a single space
-            //                             .trim() // Trim any leading/trailing spaces
-            const oneLineMsg = commitMsg.replaceAll("\n","").replace(/\s+/g, ' ').trim() // Trim any leading/trailing spaces
+            const oneLineMsg = commitMsg.replaceAll("\n","") // Remove newlines
+                                        .replace(/\s+/g, ' ')       // Replace multiple spaces with a single space
+                                        .trim() // Trim any leading/trailing spaces
 
             // Skip empty lines
             if (oneLineMsg === ""){return;}
@@ -59,7 +58,7 @@ function cleanMessages(messages)
 
             const msgAndBody = oneLineMsg.split('BODY:');
             const msg = msgAndBody[0].split('MSG:')[1].trim();
-            const body = msgAndBody[1].trim();
+            const body = msgAndBody[1].trim()
                                     // .replace(/^\s*\(+/, '') // Remove any leading spaces and opening parentheses
                                     // .replace(/\)+\s*$/, ''); // Remove any trailing spaces and closing parentheses
 
@@ -238,7 +237,7 @@ async function run()
         return;
     }
 
-    // core.info(`Run getLatestRelease`);
+    core.info(`Run getLatestRelease`);
     let latestRelease = await utils.getLatestRelease(process.env.GITHUB_REPOSITORY);
     // let latestRelease = await getLatestRelease(process.env.GITHUB_REPOSITORY);
     // let latestRelease = null;  // Define latestRelease outside of the try block
