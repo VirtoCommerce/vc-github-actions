@@ -17154,14 +17154,11 @@ module.exports = require("zlib");
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
+// working commit
 const core = __nccwpck_require__(5742);
 const github = __nccwpck_require__(7318);
 const exec = __nccwpck_require__(4990);
 const utils = __nccwpck_require__(2545);
-// const https = require('https'); // Import https module
-const { request } = __nccwpck_require__(4269);
-const fs = __nccwpck_require__(9896);
-const path = __nccwpck_require__(6928);
 
 async function getCommitMessages(since)
 {
@@ -17204,20 +17201,15 @@ function cleanMessages(messages)
     // Collect messages in groups
     messages.split('HASH:')
         .forEach(commitMsg => {
-            // const oneLineMsg = commitMsg.replaceAll("\n","") // Remove newlines
-            //                             .replace(/\s+/g, ' ')       // Replace multiple spaces with a single space
-            //                             .trim() // Trim any leading/trailing spaces
-            const oneLineMsg = commitMsg.replaceAll("\n","").replace(/\s+/g, ' ').trim()
-
+            const oneLineMsg = commitMsg.replaceAll("\n","").replace(/\s+/g, ' ').trim();
+            
             // Skip empty lines
             if (oneLineMsg === ""){return;}
             core.info(`Raw -> ${oneLineMsg}`);
 
             const msgAndBody = oneLineMsg.split('BODY:');
             const msg = msgAndBody[0].split('MSG:')[1].trim();
-            const body = msgAndBody[1].trim()
-                                    // .replace(/^\s*\(+/, '') // Remove any leading spaces and opening parentheses
-                                    // .replace(/\)+\s*$/, ''); // Remove any trailing spaces and closing parentheses
+            const body = msgAndBody[1].trim();
 
             // Example message (PT-3771: Provide option to show user-friendly errors) 
             if (jiraTasksRegex.test(msg)) {
@@ -17362,76 +17354,24 @@ String.prototype.replaceAll = function (find, replace)
     return this.split(find).join(replace);
 }
 
-// async function getLatestRelease(repo)
-// {
-//     const repoUrl = `/repos/${repo}/releases`;
-//     core.info(`repoUrl: ${repoUrl}`);
-//     const result = await request(`GET ${repoUrl}`, {
-//         headers: {
-//             authorization: process.env.GITHUB_TOKEN
-//         }
-//     });
-//     releases = result.data;
-//     console.log(releases);
-//     for(let release of releases)
-//     {
-//         if(!release.name.startsWith("v2") && release.prerelease === false)
-//         {
-//             return release;
-//         }
-//     }
-//     console.log("No github releases found");
-//     return null;
-// }
-
 async function run()
 {
-    core.info(`Repository: ${process.env.GITHUB_REPOSITORY}`);
-    
     let isDependencies = await utils.isDependencies(github);
     if (isDependencies) {
         core.info(`Pull request contain "dependencies" label. Step skipped.`);
         return;
     }
 
-    core.info(`Run getLatestRelease`);
     let latestRelease = await utils.getLatestRelease(process.env.GITHUB_REPOSITORY);
-    // let latestRelease = await getLatestRelease(process.env.GITHUB_REPOSITORY);
-    // let latestRelease = null;  // Define latestRelease outside of the try block
-    // try {
-    //     const repo = process.env.GITHUB_REPOSITORY.split('/');
-    //     const token = process.env.GITHUB_TOKEN;  // Use the GitHub token from env
-    //     const owner = repo[0];
-    //     const repoName = repo[1];
-
-    //     // latestRelease = await getLatestRelease(owner, repoName, token);
-    //     core.info(`Latest Release: ${JSON.stringify(latestRelease)}`);
-
-    //     
-    //     // core.info(`Latest Release: ${latestRelease}`);
-    // } catch (error) {
-    //     core.setFailed(`Error fetching latest release: ${error.message}`);
-    // }
-
     let commitMessages = "";
     if (latestRelease != null)
     {
-        core.info(`latestRelease.published_at: ${latestRelease.published_at}`);
         commitMessages = await getCommitMessages(latestRelease.published_at);
-        core.info(`CommitMessages: ${JSON.stringify(commitMessages)}`);
         commitMessages = cleanMessages(commitMessages);
-        core.info(`Cleaned commitMessages: ${JSON.stringify(commitMessages)}`);
     }
 
     core.info(commitMessages);
-    // core.setOutput("changelog", commitMessages);
-    // Instead of core.setOutput, write to the environment file
-    const outputFilePath = process.env.GITHUB_OUTPUT;
-    if (outputFilePath) {
-        fs.appendFileSync(outputFilePath, `changelog=${commitMessages}\n`);
-    } else {
-        core.setFailed('GITHUB_OUTPUT environment variable is not defined.');
-    }
+    core.setOutput("changelog", commitMessages);
 }
 
 run().catch(err => {
