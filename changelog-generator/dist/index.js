@@ -17362,27 +17362,27 @@ String.prototype.replaceAll = function (find, replace)
     return this.split(find).join(replace);
 }
 
-async function getLatestRelease(repo)
-{
-    const repoUrl = `/repos/${repo}/releases`;
-    core.info(`repoUrl: ${repoUrl}`);
-    const result = await request(`GET ${repoUrl}`, {
-        headers: {
-            authorization: process.env.GITHUB_TOKEN
-        }
-    });
-    releases = result.data;
-    console.log(releases);
-    for(let release of releases)
-    {
-        if(!release.name.startsWith("v2") && release.prerelease === false)
-        {
-            return release;
-        }
-    }
-    console.log("No github releases found");
-    return null;
-}
+// async function getLatestRelease(repo)
+// {
+//     const repoUrl = `/repos/${repo}/releases`;
+//     core.info(`repoUrl: ${repoUrl}`);
+//     const result = await request(`GET ${repoUrl}`, {
+//         headers: {
+//             authorization: process.env.GITHUB_TOKEN
+//         }
+//     });
+//     releases = result.data;
+//     console.log(releases);
+//     for(let release of releases)
+//     {
+//         if(!release.name.startsWith("v2") && release.prerelease === false)
+//         {
+//             return release;
+//         }
+//     }
+//     console.log("No github releases found");
+//     return null;
+// }
 
 async function run()
 {
