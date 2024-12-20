@@ -44,7 +44,7 @@ function InstallCustomModule {
         } else {
             $version = $installHash[$m]
             Write-Host "Installing dependent module $m version $version"
-            vc-build install -module $m -version $version -SkipDependencySolving
+            vc-build install -module $m -version $version #-SkipDependencySolving
         }
     }
     Write-Host "`e[32mCustom module installed."
