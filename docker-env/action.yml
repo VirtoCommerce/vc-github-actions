@@ -58,28 +58,44 @@ runs:
   using: "composite"
   steps:
 
-    - name: Install Commerce Bundle Modules
-      if: ${{ inputs.installModules  == 'true' }}
-      working-directory: ${{ github.action_path }}
-      env: 
-        INSTALL_FOLDER: 'modules'
-      shell: pwsh
-      run: |
-        Write-Host "`e[33mInstall Modules step started."
-        New-Item -Path "./" -Name "${{ env.INSTALL_FOLDER}}" -ItemType "directory"
-        Push-Location ./${{ env.INSTALL_FOLDER}}
-        vc-build install -Edge -skip InstallPlatform
+    # - name: Install Commerce Bundle Modules
+    #   if: ${{ inputs.installModules  == 'true' }}
+    #   working-directory: ${{ github.action_path }}
+    #   env: 
+    #     INSTALL_FOLDER: 'modules'
+    #   shell: pwsh
+    #   run: |
+    #     Write-Host "`e[33mInstall Modules step started."
+    #     New-Item -Path "./" -Name "${{ env.INSTALL_FOLDER}}" -ItemType "directory"
+    #     Push-Location ./${{ env.INSTALL_FOLDER}}
+    #     vc-build install -Edge -skip InstallPlatform
 
+    # - name: Install Custom Module
+    #   if: ${{ inputs.installCustomModule == 'true' }}
+    #   env: 
+    #     INSTALL_FOLDER: 'modules'
+    #   working-directory: ${{ github.action_path }}
+    #   shell: pwsh
+    #   run: |
+    #     Write-Host "`e[33mInstall Custom Module started."
+    #     . "./scripts/install-custom-module.ps1"
+    #     InstallCustomModule -InstallFolder ${{ env.INSTALL_FOLDER }} -CustomModuleId ${{ inputs.customModuleId }} -CustomModuleUrl ${{ inputs.customModuleUrl }}
+
+    # - name: Install Custom Module
+    #   if: ${{ inputs.installCustomModule == 'true' }}
+    #   working-directory: ${{ github.action_path }}
+    #   shell: pwsh
+    #   run: |
+    #     Write-Host "`e[33mInstall Custom Module started."
+    #     . "./scripts/install-mofule-alfa.ps1"
+    #     InstallCustomModule -InstallFolder ${{ env.INSTALL_FOLDER }} -CustomModuleId ${{ inputs.customModuleId }} -CustomModuleUrl ${{ inputs.customModuleUrl }}
+    
     - name: Install Custom Module
       if: ${{ inputs.installCustomModule == 'true' }}
-      env: 
-        INSTALL_FOLDER: 'modules'
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
-        Write-Host "`e[33mInstall Custom Module started."
-        . "./scripts/install-custom-module.ps1"
-        InstallCustomModule -InstallFolder ${{ env.INSTALL_FOLDER }} -CustomModuleId ${{ inputs.customModuleId }} -CustomModuleUrl ${{ inputs.customModuleUrl }}
+        ./scripts/compose-package_json-for-custom-module.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }}
 
     - name:  .env files
       env:

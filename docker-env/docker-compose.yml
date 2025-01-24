@@ -46,8 +46,10 @@ services:
       - vc-db
     volumes:
       - cms-content-volume:/opt/virtocommerce/platform/wwwroot/cms-content
-      - ./modules/modules:/opt/virtocommerce/platform/modules
-      - ./modules/app_data:/opt/virtocommerce/platform/app_data
+      # - ./modules/modules:/opt/virtocommerce/platform/modules
+      # - ./modules/app_data:/opt/virtocommerce/platform/app_data
+      - ./platform/modules:/opt/virtocommerce/platform/modules
+      - ./platform/app_data:/opt/virtocommerce/platform/app_data
     networks:
       - virto
     restart: unless-stopped
