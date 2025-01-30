@@ -145,7 +145,11 @@ echo "Blob modules count: $($updatedBlobModules.Count)"
 # Save the changes back to the JSON file
 $packagesJson.Sources[0].Modules = $updatedReleaseModules
 $packagesJson.Sources[1].Modules = $updatedBlobModules
-$packagesJson.PlatformVersion = $platformVersion
+if ($platformVersion.split('.')[2] -match '[A-za-z-]'){
+    $packagesJson.PlatformAssetUrl = "https://vc3prerelease.blob.core.windows.net/packages/VirtoCommerce.Platform.$platformVersion.zip"
+} else {
+    $packagesJson.PlatformVersion = $platformVersion
+}
 $packagesJson | ConvertTo-Json -Depth 10 | Set-Content -Path ./new-packages.json
 
 echo "Generated packages.json:"
@@ -153,8 +157,8 @@ cat ./new-packages.json
 
 # buil VC solution
 # vc-build InstallModules -PackageManifestPath ./new-packages.json -ProbingPath ./platform/app_data/modules -DiscoveryPath ./platform/modules --root ./platform -SkipDependencySolving
-vc-build install --package-manifest-path ./new-packages.json `
-                 --probing-path ./publish/platform/app_data/modules `
-                 --discovery-path ./publish/modules `
-                 --root ./publish/platform `
-                 --skip-dependency-solving
+# vc-build install --package-manifest-path ./new-packages.json `
+#                  --probing-path ./publish/platform/app_data/modules `
+#                  --discovery-path ./publish/modules `
+#                  --root ./publish/platform `
+#                  --skip-dependency-solving
