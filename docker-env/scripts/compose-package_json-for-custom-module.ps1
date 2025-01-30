@@ -89,7 +89,7 @@ $releasePackages = @{}
 $blobPackagesProcessed = @()
 
 # fetch packages.json from bundle
-$(Invoke-WebRequest -Uri https://raw.githubusercontent.com/VirtoCommerce/vc-modules/refs/heads/master/bundles/v10/package.json).Content | Set-Content ./packages.json
+$(Invoke-WebRequest -Uri https://raw.githubusercontent.com/VirtoCommerce/vc-modules/refs/heads/master/bundles/latest/package.json).Content | Set-Content ./packages.json
 $packagesJson = Get-Content ./packages.json -Raw | ConvertFrom-Json
 $moduleList = $packagesJson.Sources | Where-Object { $_.Name -eq "GithubReleases" } | Select-Object -ExpandProperty Modules
 
@@ -144,6 +144,9 @@ echo "Blob modules count: $($updatedBlobModules.Count)"
 $packagesJson.Sources[0].Modules = $updatedReleaseModules
 $packagesJson.Sources[1].Modules = $updatedBlobModules
 $packagesJson | ConvertTo-Json -Depth 10 | Set-Content -Path ./new-packages.json
+
+echo "Generated packages.json:"
+cat ./new-packages.json
 
 # buil VC solution
 vc-build InstallModules -PackageManifestPath ./new-packages.json -ProbingPath ./platform/app_data/modules -DiscoveryPath ./platform/modules --root ./platform -SkipDependencySolving
