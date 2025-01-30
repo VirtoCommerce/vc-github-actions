@@ -150,5 +150,8 @@ cat ./new-packages.json
 
 # buil VC solution
 # vc-build InstallModules -PackageManifestPath ./new-packages.json -ProbingPath ./platform/app_data/modules -DiscoveryPath ./platform/modules --root ./platform -SkipDependencySolving
-vc-build Compile
-vc-build Compress -skip Clean+Restore+Compile+Test
+vc-build install --package-manifest-path ./new-packages.json `
+                 --probing-path ./platform/app_data/modules `
+                 --discovery-path ./install/modules `
+                 --root ./install/platform `
+                 --skip-dependency-solving
