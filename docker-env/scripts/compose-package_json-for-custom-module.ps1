@@ -81,12 +81,14 @@ function ProcessCustomModule {
         $script:blobPackagesProcessedCopy += "$CustomModuleId"
     } else {
         $script:blobPackagesProcessed += "$CustomModuleId"
+        $script:platformVersion = $(Select-Xml -Content $content -XPath "/module/platformVersion").Node.InnerText
     }
     
 }
 $blobPackages = @{}
 $releasePackages = @{}
 $blobPackagesProcessed = @()
+$platformVersion = ''
 
 # fetch packages.json from bundle
 $(Invoke-WebRequest -Uri https://raw.githubusercontent.com/VirtoCommerce/vc-modules/refs/heads/master/bundles/latest/package.json).Content | Set-Content ./packages.json
@@ -143,6 +145,7 @@ echo "Blob modules count: $($updatedBlobModules.Count)"
 # Save the changes back to the JSON file
 $packagesJson.Sources[0].Modules = $updatedReleaseModules
 $packagesJson.Sources[1].Modules = $updatedBlobModules
+$packagesJson.PlatformVersion = $platformVersion
 $packagesJson | ConvertTo-Json -Depth 10 | Set-Content -Path ./new-packages.json
 
 echo "Generated packages.json:"
@@ -151,7 +154,7 @@ cat ./new-packages.json
 # buil VC solution
 # vc-build InstallModules -PackageManifestPath ./new-packages.json -ProbingPath ./platform/app_data/modules -DiscoveryPath ./platform/modules --root ./platform -SkipDependencySolving
 vc-build install --package-manifest-path ./new-packages.json `
-                 --probing-path ./platform/app_data/modules `
-                 --discovery-path ./install/modules `
-                 --root ./install/platform `
+                 --probing-path ./publish/platform/app_data/modules `
+                 --discovery-path ./publish/modules `
+                 --root ./publish/platform `
                  --skip-dependency-solving
