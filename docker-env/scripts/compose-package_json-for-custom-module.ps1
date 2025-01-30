@@ -149,4 +149,6 @@ echo "Generated packages.json:"
 cat ./new-packages.json
 
 # buil VC solution
-vc-build InstallModules -PackageManifestPath ./new-packages.json -ProbingPath ./platform/app_data/modules -DiscoveryPath ./platform/modules --root ./platform -SkipDependencySolving
+# vc-build InstallModules -PackageManifestPath ./new-packages.json -ProbingPath ./platform/app_data/modules -DiscoveryPath ./platform/modules --root ./platform -SkipDependencySolving
+vc-build Compile
+vc-build Compress -skip Clean+Restore+Compile+Test

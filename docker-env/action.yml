@@ -13,7 +13,7 @@ inputs:
   platformDockerTag:
     description: 'Platform Docker Tag'
     required: false
-    default: 'linux-latest' # 'dev-linux-latest'
+    default: 'local-latest' # 'dev-linux-latest'
   platformImage:
     description: 'Platform Docker Image'
     required: false
@@ -80,6 +80,14 @@ runs:
       shell: pwsh
       run: |
         ./scripts/compose-package_json-for-custom-module.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }}
+
+    - name: Build Docker Image
+      id: dockerBuild
+      uses: VirtoCommerce/vc-github-actions/build-docker-image@master
+      with:
+        tag: ${{ inputs.platformDockerTag }}
+        imageName: 'platform'
+        dockerFiles: 'https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net8/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh'
 
     - name:  .env files
       env:
