@@ -80,6 +80,7 @@ runs:
       shell: pwsh
       run: |
         ./scripts/compose-package_json-for-custom-module.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }}
+        mkdir artifacts
 
     - name: Build Docker Image
       id: dockerBuild
