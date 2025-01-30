@@ -43,18 +43,16 @@ function ProcessCustomModule {
     )
     Write-Output "Processing '$CustomModuleId' module ..."
     $CustomModuleZip = "./$($CustomModuleId).zip"
-    Write-Host "`e[33mDownload $($CustomModuleUrl) to $($CustomModuleZip)."
-    # if ($CustomModuleId -ne "VirtoCommerce.Orders"){
-        try {
-            Invoke-WebRequest -Uri $CustomModuleUrl -OutFile $CustomModuleZip
-        } catch {
-            Write-Error "$_"
-            exit 1
-        }
-    # }
-    Write-Host "`e[33mExpand $($CustomModuleZip) from zip."
+    Write-Host "`e[32mDownload $($CustomModuleUrl) to $($CustomModuleZip)."
+    try {
+        Invoke-WebRequest -Uri $CustomModuleUrl -OutFile $CustomModuleZip
+    } catch {
+        Write-Error "$_"
+        exit 1
+    }
+    Write-Host "`e[32mExpand $($CustomModuleZip) from zip."
     Expand-Archive $CustomModuleZip -Force
-    Write-Host "`e[33mDelete $($CustomModuleZip)."
+    Write-Host "`e[32mDelete $($CustomModuleZip)."
     Remove-Item -Path $CustomModuleZip
     Write-Host "`e[32m$($CustomModuleZip) deleted."
     $content = Get-Content -Path $CustomModuleId/module.manifest -Raw
@@ -64,7 +62,6 @@ function ProcessCustomModule {
     $versionTag = $(Select-Xml -Content $content -XPath "//module").Node.'version-tag'
     $fullVersion = "$version-$versionTag"
     
-    # $script:blobPackages.Add($CustomModuleId,"$($CustomModuleId)_$($fullVersion).zip")
     $script:blobPackages["$CustomModuleId"] = "$($CustomModuleId)_$($fullVersion).zip"
     $script:releasePackages.Remove("$CustomModuleId")
 
@@ -72,7 +69,7 @@ function ProcessCustomModule {
     $xml = Select-Xml -Content $content -XPath "//dependencies"
     foreach ($dependency in $($xml.Node.dependency)){
         if ($null -eq $($releasePackages[$($dependency.id)])){ # case when the module is alredy added to blob realease list
-            Write-Warning "There is no release version for the $($dependency.id) module. Blob version is $($blobPackages[$($dependency.id)])"
+            Write-Host "`e[32mThere is no release version for the $($dependency.id) module. Blob version is $($blobPackages[$($dependency.id)])"
         } else {
             CompareVersions -currentVersion $releasePackages[$($dependency.id)] -requiredVersion $($dependency.version) -moduleId $($dependency.id)
         }
@@ -121,7 +118,6 @@ foreach ($key in $blobPackagesCopy.Keys){
 if ($blobPackagesCopy -ne $blobPackages){
     $blobPackages = $blobPackagesCopy
 }
-# cp "C:\Users\AndrewKubyshkin\Downloads\VirtoCommerce.Orders_3.838.0-pr-442-c4fe (1).zip" "C:\Users\AndrewKubyshkin\Documents\temp\VCST-2469-alfa-dependency-e2e\VirtoCommerce.Orders.zip"
 $updatedReleaseModules = @()
 $updatedBlobModules = @()
 
@@ -139,8 +135,9 @@ foreach ($blobPkg in $blobPackages.Keys){
     $updatedBlobModules += $m
 }
 
-echo "Release modules count: $($updatedReleaseModules.Count)"
-echo "Blob modules count: $($updatedBlobModules.Count)"
+Write-Host "`e[32mModules processing complete!"
+Write-Host "`e[32mRelease modules count: $($updatedReleaseModules.Count)"
+Write-Host "`e[32mBlob modules count: $($updatedBlobModules.Count)"
 
 # Save the changes back to the JSON file
 $packagesJson.Sources[0].Modules = $updatedReleaseModules
@@ -152,11 +149,12 @@ if ($platformVersion.split('.')[2] -match '[A-za-z-]'){
 }
 $packagesJson | ConvertTo-Json -Depth 10 | Set-Content -Path ./new-packages.json
 
-echo "Generated packages.json:"
-cat ./new-packages.json
+Write-Host "Generated packages.json:"
+Write-Host (Get-Content ./new-packages.json)
 
 # buil VC solution
 # vc-build InstallModules -PackageManifestPath ./new-packages.json -ProbingPath ./platform/app_data/modules -DiscoveryPath ./platform/modules --root ./platform -SkipDependencySolving
+Write-Host "`e[32mInstalling platform and modules started"
 vc-build install --package-manifest-path ./new-packages.json `
                  --probing-path ./publish/app_data/modules `
                  --discovery-path ./publish/modules `

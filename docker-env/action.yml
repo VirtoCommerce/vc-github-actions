@@ -82,7 +82,7 @@ runs:
         ./scripts/compose-package_json-for-custom-module.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }}
 
         $dockerFiles = "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net8/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh"
-
+        Write-Host "`e[32mDownload Dockerfile and build image"
         $dockerFilesArray = $dockerFiles.Split(';')
         foreach($file in $dockerFilesArray){
             try {
