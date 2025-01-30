@@ -41,7 +41,7 @@ if ($platformIsUp) {
     }
     Foreach ($module in $modules) {
         if ($module.isInstalled) {
-            Write-Host "`e[32m$module.id is installed"
+            Write-Host "`e[32m$($module.id) version $($module.version) is installed"
             $installedModules++
         }
         if ($module.validationErrors.Length -gt 0) {
