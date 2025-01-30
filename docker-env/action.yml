@@ -80,15 +80,22 @@ runs:
       shell: pwsh
       run: |
         ./scripts/compose-package_json-for-custom-module.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }}
-        mkdir artifacts
 
-    - name: Build Docker Image
-      id: dockerBuild
-      uses: VirtoCommerce/vc-github-actions/build-docker-image@master
-      with:
-        tag: ${{ inputs.platformDockerTag }}
-        imageName: 'platform'
-        dockerFiles: 'https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net8/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh'
+        $dockerFiles = "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net8/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh"
+
+        $dockerFilesArray = $dockerFiles.Split(';')
+        foreach($file in $dockerFilesArray){
+            try {
+                $fileName = Split-Path $file -Leaf
+                Invoke-WebRequest -Uri $file -OutFile $fileName -UseBasicParsing
+                Write-Host "Downloaded $fileName successfully"
+            }
+            catch {
+                Write-Error "Failed to download $file. Error: $_"
+                exit 1
+            }
+        }
+        docker build ./ --build-arg SOURCE=. --tag "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}"
 
     - name:  .env files
       env:
