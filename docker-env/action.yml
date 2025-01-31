@@ -87,7 +87,7 @@ runs:
         foreach($file in $dockerFilesArray){
             try {
                 $fileName = Split-Path $file -Leaf
-                Invoke-WebRequest -Uri $file -OutFile $fileName -UseBasicParsing
+                Invoke-WebRequest -Uri $file -OutFile $fileName -UseBasicParsing -OperationTimeoutSeconds 15 -RetryIntervalSec 1 -MaximumRetryCount 3
                 Write-Host "Downloaded $fileName successfully"
             }
             catch {

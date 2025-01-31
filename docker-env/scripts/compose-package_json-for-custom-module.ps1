@@ -1,51 +1,80 @@
+<#
+.SYNOPSIS
+    Composes package.json for custom module installation.
+.DESCRIPTION
+    Downloads and processes custom modules, resolves dependencies, and generates an updated package.json file.
+.PARAMETER customModuleId
+    The ID of the custom module to process.
+.PARAMETER customModuleUrl
+    The URL where the custom module can be downloaded from.
+#>
+[CmdletBinding()]
 param (
+    [Parameter(Mandatory=$true)]
     [string]$customModuleId,
+    [Parameter(Mandatory=$true)]
     [string]$customModuleUrl
 )
 
 function CompareVersions {
+    [CmdletBinding()]
     param(
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
         [string]$currentVersion,
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
         [string]$requiredVersion,
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
         [string]$moduleId
     )
-    Write-Output "Comparing versions for $moduleId module: $currentVersion vs $requiredVersion"
-    if ($($currentVersion.split('.')).Length -eq $($requiredVersion.split('.')).Length){
-        if ($requiredVersion.split('.')[2] -match '[A-za-z-]'){
+    $currentVerSplitted = $currentVersion.split('.')
+    $requiredVerSplitted = $requiredVersion.split('.')
+    Write-Host "Comparing versions for $moduleId module: $currentVersion vs $requiredVersion"
+    if ($currentVerSplitted.Length -eq $requiredVerSplitted.Length){
+        if ($requiredVerSplitted[2] -match '[A-za-z-]'){
             Write-Warning "Prerelease version required. Add $moduleId $requiredVersion to blob versions ..."
             $script:releasePackages.Remove("$moduleId")
             $script:blobPackages["$moduleId"] = "$($moduleId)_$($requiredVersion).zip"
-            Continue
+            return
         }
         if ([System.Version]$currentVersion -ge [System.Version]$requiredVersion) {
-            Write-Output "Dependency satisfied"
+            Write-Host "Dependency satisfied"
         } else {
             Write-Warning "Update required. Add $moduleId $requiredVersion to release versions ..."
             $releasePackages["$moduleId"] = "$requiredVersion"
         }
-    } elseif ($($currentVersion.split('.')).Length -lt $($requiredVersion.split('.')).Length) {
+    } elseif ($currentVerSplitted.Length -lt $requiredVerSplitted.Length) {
         Write-Warning "Prerelease version required. Add $moduleId $requiredVersion to blob versions ..."
         $script:releasePackages.Remove("$moduleId")
-        $script:blobPackages["$moduleId"] = "$($moduleId)_$($requiredVersion).zip"
-    } elseif ($($currentVersion.split('.')).Length -gt $($requiredVersion.split('.')).Length) {
+        $script:blobPackages["$moduleId"] = "$($moduleId)_$requiredVersion.zip"
+        return
+    } elseif ($currentVerSplitted.Length -gt $requiredVerSplitted.Length) {
         Write-Warning "Prerelease version installed."
+        return
     } else {
-        Write-Error "Unexpected result `n $_.Error"
-        exit 1
+        Write-Error "Unexpected version comparison result"
+        throw "Version comparison failed for module $moduleId"
     }
 }
 
 function ProcessCustomModule {
+    [CmdletBinding()]
     param (
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
         [string]$CustomModuleId,
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
         [string]$CustomModuleUrl,
         [bool]$Cascade = $false
     )
-    Write-Output "Processing '$CustomModuleId' module ..."
+    Write-Host "Processing '$CustomModuleId' module ..."
     $CustomModuleZip = "./$($CustomModuleId).zip"
     Write-Host "`e[32mDownload $($CustomModuleUrl) to $($CustomModuleZip)."
     try {
-        Invoke-WebRequest -Uri $CustomModuleUrl -OutFile $CustomModuleZip
+        Invoke-WebRequestWithRetry -Uri $CustomModuleUrl -OutFile $CustomModuleZip 
     } catch {
         Write-Error "$_"
         exit 1
@@ -82,13 +111,47 @@ function ProcessCustomModule {
     }
     
 }
+
+function Invoke-WebRequestWithRetry {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Uri,
+        [string]$OutFile,
+        [int]$MaxRetries = 3,
+        [int]$RetryDelaySeconds = 1
+    )
+    
+    $retryCount = 0
+    while ($retryCount -lt $MaxRetries) {
+        try {
+            if ($OutFile) {
+                Invoke-WebRequest -Uri $Uri -OutFile $OutFile -TimeoutSec 15
+            } else {
+                return Invoke-WebRequest -Uri $Uri -TimeoutSec 15
+            }
+            return
+        }
+        catch {
+            $retryCount++
+            if ($retryCount -eq $MaxRetries) {
+                Write-Error "Failed to download after $MaxRetries attempts: $_"
+                throw
+            }
+            Write-Warning "Attempt $retryCount failed, retrying in $RetryDelaySeconds seconds..."
+            Start-Sleep -Seconds $RetryDelaySeconds
+        }
+    }
+}
+
 $blobPackages = @{}
 $releasePackages = @{}
 $blobPackagesProcessed = @()
 $platformVersion = ''
+$blobPackagesUrl = "https://vc3prerelease.blob.core.windows.net/packages"
 
 # fetch packages.json from bundle
-$(Invoke-WebRequest -Uri https://raw.githubusercontent.com/VirtoCommerce/vc-modules/refs/heads/master/bundles/latest/package.json).Content | Set-Content ./packages.json
+$(Invoke-WebRequestWithRetry -Uri https://raw.githubusercontent.com/VirtoCommerce/vc-modules/refs/heads/master/bundles/latest/package.json).Content | Set-Content ./packages.json
 $packagesJson = Get-Content ./packages.json -Raw | ConvertFrom-Json
 $moduleList = $packagesJson.Sources | Where-Object { $_.Name -eq "GithubReleases" } | Select-Object -ExpandProperty Modules
 
@@ -107,9 +170,9 @@ $blobPackagesCopy = @{} + $blobPackages
 foreach ($key in $blobPackagesCopy.Keys){
     $blobPackagesProcessedCopy = @()
     if ($blobPackagesProcessed -notcontains $key){
-        ProcessCustomModule -CustomModuleId $key -CustomModuleUrl "https://vc3prerelease.blob.core.windows.net/packages/$($blobPackages[$key])" -Cascade $true
+        ProcessCustomModule -CustomModuleId $key -CustomModuleUrl "$blobPackagesUrl/$($blobPackages[$key])" -Cascade $true
     } else {
-        Write-Output "Module $key is already in processed list"
+        Write-Host "Module $key is already in processed list"
     }
     if ($blobPackagesProcessedCopy.Length -ne 0){
         $blobPackagesProcessed += $blobPackagesProcessedCopy
@@ -143,7 +206,7 @@ Write-Host "`e[32mBlob modules count: $($updatedBlobModules.Count)"
 $packagesJson.Sources[0].Modules = $updatedReleaseModules
 $packagesJson.Sources[1].Modules = $updatedBlobModules
 if ($platformVersion.split('.')[2] -match '[A-za-z-]'){
-    $packagesJson.PlatformAssetUrl = "https://vc3prerelease.blob.core.windows.net/packages/VirtoCommerce.Platform.$platformVersion.zip"
+    $packagesJson.PlatformAssetUrl = "$blobPackagesUrl/VirtoCommerce.Platform.$platformVersion.zip"
 } else {
     $packagesJson.PlatformVersion = $platformVersion
 }
@@ -153,7 +216,6 @@ Write-Host "Generated packages.json:"
 Write-Host (Get-Content ./new-packages.json)
 
 # buil VC solution
-# vc-build InstallModules -PackageManifestPath ./new-packages.json -ProbingPath ./platform/app_data/modules -DiscoveryPath ./platform/modules --root ./platform -SkipDependencySolving
 Write-Host "`e[32mInstalling platform and modules started"
 vc-build install --package-manifest-path ./new-packages.json `
                  --probing-path ./publish/app_data/modules `
