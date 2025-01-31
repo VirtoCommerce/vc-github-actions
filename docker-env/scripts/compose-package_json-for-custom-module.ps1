@@ -83,7 +83,7 @@ function ProcessCustomModule {
     Expand-Archive $CustomModuleZip -Force
     Write-Host "`e[32mDelete $($CustomModuleZip)."
     Remove-Item -Path $CustomModuleZip
-    Write-Host "`e[32m$($CustomModuleZip) deleted."
+    Write-Host "`e[32m$CustomModuleZip deleted."
     $content = Get-Content -Path $CustomModuleId/module.manifest -Raw
 
     # add prerelease entry to `blobPackages` hashtable
@@ -109,7 +109,8 @@ function ProcessCustomModule {
         $script:blobPackagesProcessed += "$CustomModuleId"
         $script:platformVersion = $(Select-Xml -Content $content -XPath "/module/platformVersion").Node.InnerText
     }
-    
+    Remove-Item -Path ./$CustomModuleId -Force -Recurse
+    Write-Host "`e[32m$CustomModuleId deleted."
 }
 
 function Invoke-WebRequestWithRetry {
@@ -171,9 +172,7 @@ foreach ($key in $blobPackagesCopy.Keys){
     $blobPackagesProcessedCopy = @()
     if ($blobPackagesProcessed -notcontains $key){
         ProcessCustomModule -CustomModuleId $key -CustomModuleUrl "$blobPackagesUrl/$($blobPackages[$key])" -Cascade $true
-    } else {
-        Write-Host "Module $key is already in processed list"
-    }
+    } 
     if ($blobPackagesProcessedCopy.Length -ne 0){
         $blobPackagesProcessed += $blobPackagesProcessedCopy
     }
@@ -216,9 +215,11 @@ Write-Host "Generated packages.json:"
 Write-Host (Get-Content ./new-packages.json)
 
 # buil VC solution
-Write-Host "`e[32mInstalling platform and modules started"
+Write-Host "`e[32mPlatform and modules installation started"
 vc-build install --package-manifest-path ./new-packages.json `
                  --probing-path ./publish/app_data/modules `
                  --discovery-path ./publish/modules `
                  --root ./publish `
                  --skip-dependency-solving
+
+Get-ChildItem * -Include *packages.json -Recurse | Remove-Item -Verbose
