@@ -51,17 +51,17 @@ runs:
   using: "composite"
   steps:
 
-    # - name: Install Commerce Bundle Modules
-    #   if: ${{ inputs.installModules  == 'true' }}
-    #   working-directory: ${{ github.action_path }}
-    #   env: 
-    #     INSTALL_FOLDER: 'modules'
-    #   shell: pwsh
-    #   run: |
-    #     Write-Host "`e[33mInstall Modules step started."
-    #     New-Item -Path "./" -Name "${{ env.INSTALL_FOLDER}}" -ItemType "directory"
-    #     Push-Location ./${{ env.INSTALL_FOLDER}}
-    #     vc-build install -Edge -skip InstallPlatform
+    - name: Install Commerce Bundle Modules
+      if: ${{ inputs.installModules  == 'true' }}
+      working-directory: ${{ github.action_path }}
+      env: 
+        INSTALL_FOLDER: 'modules'
+      shell: pwsh
+      run: |
+        Write-Host "`e[33mInstall Modules step started."
+        New-Item -Path "./" -Name "${{ env.INSTALL_FOLDER}}" -ItemType "directory"
+        Push-Location ./${{ env.INSTALL_FOLDER}}
+        vc-build install -Edge -skip InstallPlatform
 
     # - name: Install Custom Module
     #   if: ${{ inputs.installCustomModule == 'true' }}
