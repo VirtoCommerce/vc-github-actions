@@ -124,7 +124,8 @@ runs:
         $platformContainer = "virtocommerce-vc-platform-web-1"
         . ./scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
         # for the case of install modules
-        if ( ${{ inputs.installModules  == 'true' }} ){
+        if ( ${{ inputs.installModules }} -eq 'true' ){
+          Write-host "Start modify docker-compose.yml"
           Install-Module -Name powershell-yaml -Force -allowClobber
           $parsedYaml = Get-Content -Path ./docker-compose.yml -Raw | ConvertFrom-Yaml 
           $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/modules:/opt/virtocommerce/platform/modules')
