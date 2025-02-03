@@ -125,7 +125,7 @@ runs:
         . ./scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
         # for the case of install modules
         echo "inputs.installModules is ${{ inputs.installModules }}"
-        if ( ${{ inputs.installModules }} -eq $true ){
+        if ( '${{ inputs.installModules }}' -eq 'true' ){
           Write-host "Start modify docker-compose.yml"
           Install-Module -Name powershell-yaml -Force -allowClobber
           $parsedYaml = Get-Content -Path ./docker-compose.yml -Raw | ConvertFrom-Yaml 
