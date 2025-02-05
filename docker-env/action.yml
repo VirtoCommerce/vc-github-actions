@@ -13,7 +13,7 @@ inputs:
   platformDockerTag:
     description: 'Platform Docker Tag'
     required: false
-    default: 'local-latest' # 'dev-linux-latest'
+    default: 'local-latest'
   platformImage:
     description: 'Platform Docker Image'
     required: false
@@ -63,17 +63,6 @@ runs:
         Push-Location ./${{ env.INSTALL_FOLDER}}
         vc-build install -Edge -skip InstallPlatform
 
-    # - name: Install Custom Module
-    #   if: ${{ inputs.installCustomModule == 'true' }}
-    #   env: 
-    #     INSTALL_FOLDER: 'modules'
-    #   working-directory: ${{ github.action_path }}
-    #   shell: pwsh
-    #   run: |
-    #     Write-Host "`e[33mInstall Custom Module started."
-    #     . "./scripts/install-custom-module.ps1"
-    #     InstallCustomModule -InstallFolder ${{ env.INSTALL_FOLDER }} -CustomModuleId ${{ inputs.customModuleId }} -CustomModuleUrl ${{ inputs.customModuleUrl }}
-
     - name: Install Custom Module
       if: ${{ inputs.installCustomModule == 'true' }}
       working-directory: ${{ github.action_path }}
@@ -106,11 +95,8 @@ runs:
         echo -e '\033[33m.env files started.'
         mkdir -p ${{ inputs.envDir }}/.docker
         touch ${{ inputs.envDir }}/.docker/platform.env
-        # touch ${{ inputs.envDir }}/.docker/storefront.env 
         echo -e 'Platform environment variables:'
         cat ${{ inputs.envDir }}/.docker/platform.env
-        # echo -e 'Storefront environment variables:'
-        # cat ${{ inputs.envDir }}/.docker/storefront.env
 
     - name: Start containers
       env:
@@ -133,8 +119,6 @@ runs:
           $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/app_data:/opt/virtocommerce/platform/app_data')
           $parsedYaml | ConvertTo-Yaml | Set-Content ./docker-compose.yml
         }
-        Write-Host "docker-compose:`n"
-        cat ./docker-compose.yml
         docker compose --project-name virtocommerce up -d
         InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 15 -WaitSeconds 0
         Write-Host "`e[32mContainers started."
