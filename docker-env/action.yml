@@ -13,16 +13,9 @@ inputs:
   platformDockerTag:
     description: 'Platform Docker Tag'
     required: false
-    default: 'dev-linux-latest'
-  storefrontDockerTag:
-    description: 'Storefront Docker Tag'
-    required: false
-    default: 'dev-linux-latest'
+    default: 'local-latest'
   platformImage:
     description: 'Platform Docker Image'
-    required: false
-  storefrontImage:
-    description: 'Storefront Docker Image'
     required: false
   validateSwagger:
     description: 'Enable or disable swagger validation'
@@ -72,14 +65,26 @@ runs:
 
     - name: Install Custom Module
       if: ${{ inputs.installCustomModule == 'true' }}
-      env: 
-        INSTALL_FOLDER: 'modules'
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
-        Write-Host "`e[33mInstall Custom Module started."
-        . "./scripts/install-custom-module.ps1"
-        InstallCustomModule -InstallFolder ${{ env.INSTALL_FOLDER }} -CustomModuleId ${{ inputs.customModuleId }} -CustomModuleUrl ${{ inputs.customModuleUrl }}
+        ./scripts/compose-package_json-for-custom-module.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }}
+
+        $dockerFiles = "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net8/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh"
+        Write-Host "`e[32mDownload Dockerfile and build image"
+        $dockerFilesArray = $dockerFiles.Split(';')
+        foreach($file in $dockerFilesArray){
+            try {
+                $fileName = Split-Path $file -Leaf
+                Invoke-WebRequest -Uri $file -OutFile $fileName -UseBasicParsing -OperationTimeoutSeconds 15 -RetryIntervalSec 1 -MaximumRetryCount 3
+                Write-Host "Downloaded '$fileName' successfully"
+            }
+            catch {
+                Write-Error "Failed to download $file. Error: $_"
+                exit 1
+            }
+        }
+        docker build ./ --build-arg SOURCE=. --tag "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}"
 
     - name:  .env files
       env:
@@ -90,18 +95,13 @@ runs:
         echo -e '\033[33m.env files started.'
         mkdir -p ${{ inputs.envDir }}/.docker
         touch ${{ inputs.envDir }}/.docker/platform.env
-        touch ${{ inputs.envDir }}/.docker/storefront.env 
         echo -e 'Platform environment variables:'
         cat ${{ inputs.envDir }}/.docker/platform.env
-        echo -e 'Storefront environment variables:'
-        cat ${{ inputs.envDir }}/.docker/storefront.env
 
     - name: Start containers
       env:
         PLATFORM_IMAGE: ${{ inputs.platformImage }}
-        STOREFRONT_IMAGE: ${{ inputs.storefrontImage }}
         PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
-        STOREFRONT_DOCKER_TAG: ${{ inputs.storefrontDockerTag }}
         ENV_DIR: ${{ inputs.envDir }}
       shell: pwsh
       working-directory: ${{ github.action_path }}
@@ -109,13 +109,20 @@ runs:
         Write-Host "`e[33mStart Containers step started."
         $platformContainer = "virtocommerce-vc-platform-web-1"
         . ./scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
-
+        # for the case of install modules
+        echo "inputs.installModules is ${{ inputs.installModules }}"
+        if ( '${{ inputs.installModules }}' -eq 'true' ){
+          Write-host "Start modify docker-compose.yml"
+          Install-Module -Name powershell-yaml -Force -allowClobber
+          $parsedYaml = Get-Content -Path ./docker-compose.yml -Raw | ConvertFrom-Yaml 
+          $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/modules:/opt/virtocommerce/platform/modules')
+          $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/app_data:/opt/virtocommerce/platform/app_data')
+          $parsedYaml | ConvertTo-Yaml | Set-Content ./docker-compose.yml
+        }
         docker compose --project-name virtocommerce up -d
-
         InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 15 -WaitSeconds 0
-        
         Write-Host "`e[32mContainers started."
-
+        
     - name: Check Installed Modules
       if: ${{ inputs.installModules == 'true' }}
       working-directory: ${{ github.action_path }}
