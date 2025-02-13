@@ -158,15 +158,21 @@ $platformVersion = ''
 $blobPackagesUrl = "https://vc3prerelease.blob.core.windows.net/packages"
 
 # fetch packages.json from bundle
-$(Invoke-WebRequestWithRetry -Uri https://raw.githubusercontent.com/VirtoCommerce/vc-modules/refs/heads/master/bundles/latest/package.json).Content | Set-Content ./packages.json
+$(Invoke-WebRequestWithRetry -Uri https://raw.githubusercontent.com/VirtoCommerce/vc-deploy-dev/refs/heads/virtostart/backend/packages.json).Content | Set-Content ./packages.json
 $packagesJson = Get-Content ./packages.json -Raw | ConvertFrom-Json
-$moduleList = $packagesJson.Sources | Where-Object { $_.Name -eq "GithubReleases" } | Select-Object -ExpandProperty Modules
+$releaseList = $packagesJson.Sources | Where-Object { $_.Name -eq "GithubReleases" } | Select-Object -ExpandProperty Modules
+$blobList = $packagesJson.Sources | Where-Object { $_.Name -eq "AzureBlob" } | Select-Object -ExpandProperty Modules
 
 # compose a `releasePackages` hashtable for the list of module release versions
 $i = 0
-while($i -lt $($moduleList.Length)){
-    $releasePackages.Add("$($moduleList[$i].id)","$($moduleList[$i].version)")
+while($i -lt $($releaseList.Length)){
+    $releasePackages.Add("$($releaseList[$i].id)","$($releaseList[$i].version)")
     $i += 1
+}
+$b = 0
+while($b -lt $($blobList.Length)){
+    $blobPackages.Add("$(($blobList[$b].BlobName).Split('_')[0])","$($blobList[$b].BlobName)")
+    $b += 1
 }
 
 # find and remove custom module's version in `releasePackages` hashtable
@@ -208,8 +214,8 @@ Write-Host "`e[32mRelease modules count: $($updatedReleaseModules.Count)"
 Write-Host "`e[32mBlob modules count: $($updatedBlobModules.Count)"
 
 # Save the changes back to the JSON file
-$packagesJson.Sources[0].Modules = $updatedReleaseModules
-$packagesJson.Sources[1].Modules = $updatedBlobModules
+$packagesJson.Sources[1].Modules = $updatedReleaseModules
+$packagesJson.Sources[0].Modules = $updatedBlobModules
 if ($platformVersion.split('.')[2] -match '[A-za-z-]'){
     $packagesJson.PlatformAssetUrl = "$blobPackagesUrl/VirtoCommerce.Platform.$platformVersion.zip"
 } else {
