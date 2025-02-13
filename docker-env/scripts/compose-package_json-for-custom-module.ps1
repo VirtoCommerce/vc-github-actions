@@ -89,6 +89,12 @@ function ProcessCustomModule {
     # add prerelease entry to `blobPackages` hashtable
     $version = $(Select-Xml -Content $content -XPath "//module").Node.version
     $versionTag = $(Select-Xml -Content $content -XPath "//module").Node.'version-tag'
+    if ($version -is [array]) {
+        $version = $version[0]
+    }
+    if ($versionTag -is [array]) {
+        $versionTag = $versionTag[0]
+    }
     $fullVersion = "$version-$versionTag"
     
     $script:blobPackages["$CustomModuleId"] = "$($CustomModuleId)_$($fullVersion).zip"
