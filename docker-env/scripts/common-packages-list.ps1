@@ -198,7 +198,7 @@ $blobPackagesUrl = "https://vc3prerelease.blob.core.windows.net/packages"
 $edgePackages = $(Invoke-WebRequestWithRetry -Uri https://raw.githubusercontent.com/VirtoCommerce/vc-modules/refs/heads/master/modules_v3.json).Content | ConvertFrom-Json -Depth 10
 
 # add mandatory packages not listed as dependencies
-$mandatoryModules = @("VirtoCommerce.FileSystemAssets", "VirtoCommerce.LuceneSearch")
+$mandatoryModules = @("VirtoCommerce.FileSystemAssets", "VirtoCommerce.LuceneSearch", "VirtoCommerce.AuthorizeNetPayment")
 foreach ($mm in $mandatoryModules){
     $packages["$mm"] = "$($mm)_$($($edgePackages | Where-Object { $_.Id -eq $mm } | Select-Object -ExpandProperty Versions)[0].Version).zip"
 }
