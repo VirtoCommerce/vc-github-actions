@@ -198,24 +198,30 @@ $blobPackagesUrl = "https://vc3prerelease.blob.core.windows.net/packages"
 $edgePackages = $(Invoke-WebRequestWithRetry -Uri https://raw.githubusercontent.com/VirtoCommerce/vc-modules/refs/heads/master/modules_v3.json).Content | ConvertFrom-Json -Depth 10
 
 # add mandatory packages not listed as dependencies
-$mandatoryModules = @("VirtoCommerce.FileSystemAssets", "VirtoCommerce.LuceneSearch", "VirtoCommerce.AuthorizeNetPayment")
+$mandatoryModules = @("VirtoCommerce.FileSystemAssets", "VirtoCommerce.LuceneSearch", "VirtoCommerce.AuthorizeNetPayment", "VirtoCommerce.Subscription")
 foreach ($mm in $mandatoryModules){
     $packages["$mm"] = "$($mm)_$($($edgePackages | Where-Object { $_.Id -eq $mm } | Select-Object -ExpandProperty Versions)[0].Version).zip"
 }
 
 # process the inicial first custom module
-ProcessCustomModule -CustomModuleId $customModuleId -CustomModuleUrl $customModuleUrl 
+ProcessCustomModule -CustomModuleId $customModuleId -CustomModuleUrl $customModuleUrl # -blobPackagesProcessed $blobPackagesProcessed
+
 # resolve recursive dependencies
 foreach ($key in $dependencyList.Keys){
+    # add dep to packages
     $packages["$key"] = "$($key)_$($dependencyList["$key"]).zip"
+    # get dep2lev
     if ($($dependencyList["$key"].split('.')[2]) -notmatch '[A-za-z-]' -and $packagesProcessed -notcontains $key){ # release version
+        Write-Host "Processing dependent module '$key' ..."
         $packagesProcessed += "$key"
         $i = 0
         $deps = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].Dependencies
+        $deps.GetEnumerator()
         if ($deps){
             while ($i -lt $deps.Count){
                 $id = $deps[$i].Id
                 $version = $deps[$i].Version
+                # add version comparison here
                 if ($packages.Keys -contains $id){
                     if ($packages["$id"] -match '(?<=_)(\d+\.\d+\.\d+)(?=\.zip)'){
                         CompareVersions -currentVersion $matches[0] -requiredVersion $version -moduleId $id
@@ -229,10 +235,13 @@ foreach ($key in $dependencyList.Keys){
             }
         }
     } elseif ($($dependencyList["$key"].split('.')[2]) -match '[A-za-z-]' -and $packagesProcessed -notcontains $key) { # blob version
+        Write-Host "Processing dependent module '$key' ..."
         $packagesProcessed += "$key"
         $customModuleUrl = "$blobPackagesUrl/$($key)_$($dependencyList["$key"]).zip"
         ProcessCustomModule -CustomModuleId $key -CustomModuleUrl $customModuleUrl -recursive $true
+        # $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[1].Dependencies
     }
+    # add dep2lev to packages 
 }
 
 $attempts = 0
@@ -240,9 +249,11 @@ while ($attempts -le 10){ # make 10 check cycles of $packages
     $packagesCopy = @{} + $packages
     foreach ($key in $packagesCopy.Keys){
         if ($($packages["$key"].split('.')[2]) -notmatch '[A-za-z-]' -and $packagesProcessed -notcontains $key){ # release version
+            Write-Host "Processing dependent module '$key' ..."
             $packagesProcessed += "$key"
             $i = 0
             $deps = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].Dependencies
+            $deps.GetEnumerator()
             if ($deps){
                 while ($i -lt $deps.Count){
                     $id = $deps[$i].Id
@@ -258,12 +269,16 @@ while ($attempts -le 10){ # make 10 check cycles of $packages
                 }
             }
         } elseif ($($packages["$key"].split('.')[2]) -match '[A-za-z-]' -and $packagesProcessed -notcontains $key) { # blob version
+            Write-Host "Processing dependent module '$key' ..."
             $packagesProcessed += "$key"
             $customModuleUrl = "$blobPackagesUrl/$($key)_$($packages["$key"]).zip"
             ProcessCustomModule -CustomModuleId $key -CustomModuleUrl $customModuleUrl -recursive $true
         }
     }
     $attempts += 1
+    # if ($packagesCopy -ne $packages){
+    #     $packages = $packagesCopy
+    # }
 }
 
 # compose a packages.json file
@@ -315,4 +330,4 @@ vc-build install --package-manifest-path ./new-packages.json `
                  --root ./publish `
                  --skip-dependency-solving #>> ./vc-build.log
 
-# Get-ChildItem * -Include *packages.json -Recurse | Remove-Item -Verbose
+Get-ChildItem * -Include *packages.json -Recurse | Remove-Item -Verbose
