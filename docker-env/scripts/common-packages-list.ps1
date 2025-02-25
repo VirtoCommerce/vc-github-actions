@@ -203,17 +203,16 @@ foreach ($mm in $mandatoryModules){
     $packages["$mm"] = "$($mm)_$($($edgePackages | Where-Object { $_.Id -eq $mm } | Select-Object -ExpandProperty Versions)[0].Version).zip"
 }
 
-# process the inicial first custom module
+# process the initial first custom module
 ProcessCustomModule -CustomModuleId $customModuleId -CustomModuleUrl $customModuleUrl # -blobPackagesProcessed $blobPackagesProcessed
 
-# resolve recursive dependencies
+# resolve first level dependencies
 foreach ($key in $dependencyList.Keys){
     # add dep to packages
     $packages["$key"] = "$($key)_$($dependencyList["$key"]).zip"
     # get dep2lev
     if ($($dependencyList["$key"].split('.')[2]) -notmatch '[A-za-z-]' -and $packagesProcessed -notcontains $key){ # release version
         Write-Host "Processing dependent module '$key' ..."
-        $packagesProcessed += "$key"
         $i = 0
         $deps = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].Dependencies
         if ($deps){
@@ -221,7 +220,6 @@ foreach ($key in $dependencyList.Keys){
             while ($i -lt $deps.Count){
                 $id = $deps[$i].Id
                 $version = $deps[$i].Version
-                # add version comparison here
                 if ($packages.Keys -contains $id){
                     if ($packages["$id"] -match '(?<=_)(\d+\.\d+\.\d+)(?=\.zip)'){
                         CompareVersions -currentVersion $matches[0] -requiredVersion $version -moduleId $id
@@ -234,23 +232,22 @@ foreach ($key in $dependencyList.Keys){
                 $i += 1
             }
         }
+        $packagesProcessed += "$key"
     } elseif ($($dependencyList["$key"].split('.')[2]) -match '[A-za-z-]' -and $packagesProcessed -notcontains $key) { # blob version
         Write-Host "Processing dependent module '$key' ..."
         $packagesProcessed += "$key"
         $customModuleUrl = "$blobPackagesUrl/$($key)_$($dependencyList["$key"]).zip"
         ProcessCustomModule -CustomModuleId $key -CustomModuleUrl $customModuleUrl -recursive $true
-        # $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[1].Dependencies
-    }
-    # add dep2lev to packages 
+    } 
 }
 
+# resolve recursive dependencies
 $attempts = 0
 while ($attempts -le 10){ # make 10 check cycles of $packages
     $packagesCopy = @{} + $packages
     foreach ($key in $packagesCopy.Keys){
         if ($($packages["$key"].split('.')[2]) -notmatch '[A-za-z-]' -and $packagesProcessed -notcontains $key){ # release version
             Write-Host "Processing dependent module '$key' ..."
-            $packagesProcessed += "$key"
             $i = 0
             $deps = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].Dependencies
             if ($deps){
@@ -265,20 +262,21 @@ while ($attempts -le 10){ # make 10 check cycles of $packages
                     } else {
                         $packages["$id"] = "$($id)_$($version).zip"
                     }
+                    # compare platform for every dep
+                    $depsPlatform = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].PlatformVersion
+                    CompareVersions -currentVersion $platformVersion -requiredVersion $depsPlatform -moduleId 'platform'
                     $i += 1
                 }
             }
+            $packagesProcessed += "$key"
         } elseif ($($packages["$key"].split('.')[2]) -match '[A-za-z-]' -and $packagesProcessed -notcontains $key) { # blob version
             Write-Host "Processing dependent module '$key' ..."
-            $packagesProcessed += "$key"
             $customModuleUrl = "$blobPackagesUrl/$($key)_$($packages["$key"]).zip"
             ProcessCustomModule -CustomModuleId $key -CustomModuleUrl $customModuleUrl -recursive $true
+            $packagesProcessed += "$key"
         }
     }
     $attempts += 1
-    # if ($packagesCopy -ne $packages){
-    #     $packages = $packagesCopy
-    # }
 }
 
 # compose a packages.json file
@@ -328,6 +326,6 @@ vc-build install --package-manifest-path ./new-packages.json `
                  --probing-path ./publish/app_data/modules `
                  --discovery-path ./publish/modules `
                  --root ./publish `
-                 --skip-dependency-solving #>> ./vc-build.log
+                 --skip-dependency-solving
 
 Get-ChildItem * -Include *packages.json -Recurse | Remove-Item -Verbose
