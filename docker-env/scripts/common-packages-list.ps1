@@ -216,8 +216,8 @@ foreach ($key in $dependencyList.Keys){
         $packagesProcessed += "$key"
         $i = 0
         $deps = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].Dependencies
-        $deps.GetEnumerator()
         if ($deps){
+            $deps.GetEnumerator()
             while ($i -lt $deps.Count){
                 $id = $deps[$i].Id
                 $version = $deps[$i].Version
@@ -253,8 +253,8 @@ while ($attempts -le 10){ # make 10 check cycles of $packages
             $packagesProcessed += "$key"
             $i = 0
             $deps = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].Dependencies
-            $deps.GetEnumerator()
             if ($deps){
+                $deps.GetEnumerator()
                 while ($i -lt $deps.Count){
                     $id = $deps[$i].Id
                     $version = $deps[$i].Version
