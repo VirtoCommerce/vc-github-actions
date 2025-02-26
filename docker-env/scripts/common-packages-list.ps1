@@ -197,11 +197,16 @@ $blobPackagesUrl = "https://vc3prerelease.blob.core.windows.net/packages"
 
 $edgePackages = $(Invoke-WebRequestWithRetry -Uri https://raw.githubusercontent.com/VirtoCommerce/vc-modules/refs/heads/master/modules_v3.json).Content | ConvertFrom-Json -Depth 10
 
-# add mandatory packages not listed as dependencies
-$mandatoryModules = @("VirtoCommerce.FileSystemAssets", "VirtoCommerce.LuceneSearch", "VirtoCommerce.AuthorizeNetPayment", "VirtoCommerce.Subscription")
-foreach ($mm in $mandatoryModules){
+# add "commerce" group modlues
+$commerceModules = $($edgePackages | Where-Object { $_.Groups -eq 'commerce' } | Select-Object -ExcludeProperty Versions).Id
+foreach ($mm in $commerceModules){
     $packages["$mm"] = "$($mm)_$($($edgePackages | Where-Object { $_.Id -eq $mm } | Select-Object -ExpandProperty Versions)[0].Version).zip"
 }
+# add mandatory packages not listed as dependencies
+# $mandatoryModules = @("VirtoCommerce.FileSystemAssets", "VirtoCommerce.LuceneSearch", "VirtoCommerce.AuthorizeNetPayment", "VirtoCommerce.Subscription")
+# foreach ($mm in $mandatoryModules){
+#     $packages["$mm"] = "$($mm)_$($($edgePackages | Where-Object { $_.Id -eq $mm } | Select-Object -ExpandProperty Versions)[0].Version).zip"
+# }
 
 # process the initial first custom module
 ProcessCustomModule -CustomModuleId $customModuleId -CustomModuleUrl $customModuleUrl # -blobPackagesProcessed $blobPackagesProcessed
