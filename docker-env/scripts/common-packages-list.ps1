@@ -34,7 +34,7 @@ function CompareVersions {
     $requiredVerSplitted = $requiredVersion.split('.')
     Write-Host "Comparing versions for $moduleId : $currentVersion vs $requiredVersion"
     if ($currentVerSplitted.Length -eq $requiredVerSplitted.Length){
-        if ($requiredVerSplitted[2] -match '[A-za-z-]'){
+        if ($requiredVerSplitted[2] -match '[A-za-z-]' -or $currentVerSplitted[2] -match '[A-za-z-]'){
             $currentPatchVersion = $requiredPatchVersion = $currentBaseVersion = $requiredBaseVersion = ''
             $currentVersion -match $patchVersionRegex >> $null
             $currentPatchVersion = $matches['patchVersion']
