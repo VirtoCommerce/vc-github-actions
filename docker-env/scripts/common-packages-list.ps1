@@ -203,10 +203,10 @@ foreach ($mm in $commerceModules){
     $packages["$mm"] = "$($mm)_$($($edgePackages | Where-Object { $_.Id -eq $mm } | Select-Object -ExpandProperty Versions)[0].Version).zip"
 }
 # add mandatory packages not listed as dependencies
-# $mandatoryModules = @("VirtoCommerce.FileSystemAssets", "VirtoCommerce.LuceneSearch", "VirtoCommerce.AuthorizeNetPayment", "VirtoCommerce.Subscription")
-# foreach ($mm in $mandatoryModules){
-#     $packages["$mm"] = "$($mm)_$($($edgePackages | Where-Object { $_.Id -eq $mm } | Select-Object -ExpandProperty Versions)[0].Version).zip"
-# }
+$mandatoryModules = @("VirtoCommerce.FileSystemAssets", "VirtoCommerce.LuceneSearch", "VirtoCommerce.AuthorizeNetPayment", "VirtoCommerce.Subscription")
+foreach ($mm in $mandatoryModules){
+    $packages["$mm"] = "$($mm)_$($($edgePackages | Where-Object { $_.Id -eq $mm } | Select-Object -ExpandProperty Versions)[0].Version).zip"
+}
 
 # process the initial first custom module
 ProcessCustomModule -CustomModuleId $customModuleId -CustomModuleUrl $customModuleUrl # -blobPackagesProcessed $blobPackagesProcessed
@@ -263,6 +263,8 @@ while ($attempts -le 10){ # make 10 check cycles of $packages
                     if ($packages.Keys -contains $id){
                         if ($packages["$id"] -match '(?<=_)(\d+\.\d+\.\d+)(?=\.zip)'){
                             CompareVersions -currentVersion $matches[0] -requiredVersion $version -moduleId $id
+                        } else {
+                            CompareVersions -currentVersion $packages["$id"] -requiredVersion $version -moduleId $id
                         }
                     } else {
                         $packages["$id"] = "$($id)_$($version).zip"
