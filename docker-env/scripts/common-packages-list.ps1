@@ -141,7 +141,7 @@ function ProcessCustomModule {
     
     if($recursive -eq $true){
         foreach ($dependency in $($xml.Node.dependency)){
-            $script:packages["$($dependency.id)"] = "$($dependency.version)"
+            $script:packages["$($dependency.id)"] = "$($dependency.id)_$($dependency.version).zip"
             Write-Host "`e[32mAdd the $($dependency.id) module $($dependency.version) version to the dependencies list"
         }
         CompareVersions -currentVersion $script:platformVersion -requiredVersion $(Select-Xml -Content $content -XPath "/module/platformVersion").Node.InnerText -moduleId 'platform'
