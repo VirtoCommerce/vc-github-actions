@@ -36,12 +36,18 @@ function CompareVersions {
     if ($currentVerSplitted.Length -eq $requiredVerSplitted.Length){
         if ($requiredVerSplitted[2] -match '[A-za-z-]' -or $currentVerSplitted[2] -match '[A-za-z-]'){
             $currentPatchVersion = $requiredPatchVersion = $currentBaseVersion = $requiredBaseVersion = ''
-            $currentVersion -match $patchVersionRegex >> $null
-            $currentPatchVersion = $matches['patchVersion']
-            $requiredVersion -match $patchVersionRegex >> $null
-            $requiredPatchVersion = $matches['patchVersion']
-            $currentBaseVersion = "$($currentVerSplitted[0]).$($currentVerSplitted[1]).$currentPatchVersion"
-            $requiredBaseVersion = "$($requiredVerSplitted[0]).$($requiredVerSplitted[1]).$requiredPatchVersion"
+            if ($currentVersion -match $patchVersionRegex){ # current version is alfa
+                $currentPatchVersion = $matches['patchVersion']
+                $currentBaseVersion = "$($currentVerSplitted[0]).$($currentVerSplitted[1]).$currentPatchVersion"
+            } else {
+                $currentBaseVersion = $currentVersion
+            }
+            if ($requiredVersion -match $patchVersionRegex){ # required version is alfa
+                $requiredPatchVersion = $matches['patchVersion']
+                $requiredBaseVersion = "$($requiredVerSplitted[0]).$($requiredVerSplitted[1]).$requiredPatchVersion"
+            } else {
+                $requiredBaseVersion = $requiredVersion
+            }
             if ([System.Version]$currentBaseVersion -ge [System.Version]$requiredBaseVersion){
                 if ($moduleId -ne 'platform'){
                     Write-Warning "Adding the the current version $currentVersion to blob versions ..."
@@ -141,7 +147,11 @@ function ProcessCustomModule {
     
     if($recursive -eq $true){
         foreach ($dependency in $($xml.Node.dependency)){
-            $script:packages["$($dependency.id)"] = "$($dependency.id)_$($dependency.version).zip"
+            if ($script:packages["$($dependency.id)"] -match "\w._(.*).zip"){
+                CompareVersions -currentVersion $Matches[1] -requiredVersion $($dependency.version) -moduleId $($dependency.id)
+            } else {
+                Write-Warning "Unable to parse version from packages list. Tried $packages[$key] -match '\w._(.*).zip'"
+            }
             Write-Host "`e[32mAdd the $($dependency.id) module $($dependency.version) version to the dependencies list"
         }
         CompareVersions -currentVersion $script:platformVersion -requiredVersion $(Select-Xml -Content $content -XPath "/module/platformVersion").Node.InnerText -moduleId 'platform'
@@ -214,7 +224,12 @@ ProcessCustomModule -CustomModuleId $customModuleId -CustomModuleUrl $customModu
 # resolve first level dependencies
 foreach ($key in $dependencyList.Keys){
     # add dep to packages
-    $packages["$key"] = "$($key)_$($dependencyList["$key"]).zip"
+    # $packages["$key"] = "$($key)_$($dependencyList["$key"]).zip"
+    if ($packages["$key"] -match "\w._(.*).zip"){
+        CompareVersions -currentVersion $Matches[1] -requiredVersion $dependencyList["$key"] -moduleId $key
+    } else {
+        Write-Warning "Unable to parse version from packages list. Tried $packages[$key] -match '\w._(.*).zip'"
+    }
     # get dep2lev
     if ($($dependencyList["$key"].split('.')[2]) -notmatch '[A-za-z-]' -and $packagesProcessed -notcontains $key){ # release version
         Write-Host "Processing dependent module '$key' ..."
