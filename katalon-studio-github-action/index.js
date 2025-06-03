@@ -11,7 +11,7 @@ const retryTimeout = 60000; // 60 seconds
 async function run() {
     for (let i = 0; i < retryCount; i++) {
         try {
-            console.log(`Attempt ${i + 1}/${retryCount} to execute Katalon Studio...`);
+            console.log(`Attempt ${i + 1} from ${retryCount} to execute Katalon Studio...`);
             const status = await execute(user_version, "", user_projectPath, user_args, "", "--auto-servernum --server-args=\"-screen 0 1920x1080x24\"", {
                 info: function (message) {
                     console.log(message);
@@ -25,20 +25,20 @@ async function run() {
             });
 
             if (status === 0) {
-                console.log("Katalon Studio execution succeeded.");
+                console.log(`Katalon Studio execution succeeded.`);
                 return;
             } else if (status === 3) {
                 if (i < retryCount - 1) {
-                    console.log("Katalon Studio execution failed with status 3. Retrying... (attempt ${i + 1} from ${retryCount}, waiting ${retryTimeout / 1000}s before next try)");
+                    console.log(`Katalon Studio execution failed with status 3. Retrying... (attempt ${i + 1} from ${retryCount}, waiting ${retryTimeout / 1000}s before next try)`);
                     await new Promise(resolve => setTimeout(resolve, retryTimeout));
                 }
                 else {
-                    console.log("Katalon Studio execution failed with status 3. No more retries left.");
-                    core.setFailed("Katalon Studio execution failed with status 3 after ${retryCount} retries.");
+                    console.log(`Katalon Studio execution failed with status 3 after ${retryCount} retriess`);
+                    core.setFailed(`Katalon Studio execution failed with status 3 after ${retryCount} retries.`);
                     return;
                 }
             } else {
-                core.setFailed("Katalon Studio execution failed with status ${status}.");
+                core.setFailed(`Katalon Studio execution failed with status ${status}.`);
                 return;
             }
         } catch (err) {
