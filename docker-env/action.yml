@@ -68,7 +68,6 @@ runs:
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
-        # ./scripts/compose-package_json-for-custom-module.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }}
         ./scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }}
 
         $dockerFiles = "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net8/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh"

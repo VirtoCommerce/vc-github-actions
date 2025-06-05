@@ -10,22 +10,34 @@
 #>
 [CmdletBinding()]
 param (
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string]$customModuleId,
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string]$customModuleUrl
 )
+
+function IsAlfa {
+    param (
+        $version
+    )
+    if ($version -match '[A-za-z-]') {
+        return $true
+    } 
+    else {
+        return $false
+    }
+}
 
 function CompareVersions {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [string]$currentVersion,
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [string]$requiredVersion,
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [string]$moduleId,
         [string]$patchVersionRegex = '(?<patchVersion>\b\d+)[-a-zA-Z]+'
@@ -33,34 +45,41 @@ function CompareVersions {
     $currentVerSplitted = $currentVersion.split('.')
     $requiredVerSplitted = $requiredVersion.split('.')
     Write-Host "Comparing versions for $moduleId : $currentVersion vs $requiredVersion"
-    if ($currentVerSplitted.Length -eq $requiredVerSplitted.Length){
-        if ($requiredVerSplitted[2] -match '[A-za-z-]' -or $currentVerSplitted[2] -match '[A-za-z-]'){
+    if ($currentVerSplitted.Length -eq $requiredVerSplitted.Length) {
+        if (IsAlfa $requiredVerSplitted[2] -or IsAlfa $currentVerSplitted[2]) {
             $currentPatchVersion = $requiredPatchVersion = $currentBaseVersion = $requiredBaseVersion = ''
-            if ($currentVersion -match $patchVersionRegex){ # current version is alfa
+            if ($currentVersion -match $patchVersionRegex) {
+                # current version is alfa
                 $currentPatchVersion = $matches['patchVersion']
                 $currentBaseVersion = "$($currentVerSplitted[0]).$($currentVerSplitted[1]).$currentPatchVersion"
-            } else {
+            }
+            else {
                 $currentBaseVersion = $currentVersion
             }
-            if ($requiredVersion -match $patchVersionRegex){ # required version is alfa
+            if ($requiredVersion -match $patchVersionRegex) {
+                # required version is alfa
                 $requiredPatchVersion = $matches['patchVersion']
                 $requiredBaseVersion = "$($requiredVerSplitted[0]).$($requiredVerSplitted[1]).$requiredPatchVersion"
-            } else {
+            }
+            else {
                 $requiredBaseVersion = $requiredVersion
             }
-            if ([System.Version]$currentBaseVersion -ge [System.Version]$requiredBaseVersion){
-                if ($moduleId -ne 'platform'){
+            if ([System.Version]$currentBaseVersion -ge [System.Version]$requiredBaseVersion) {
+                if ($moduleId -ne 'platform') {
                     Write-Warning "Adding the the current version $currentVersion to blob versions ..."
                     $script:packages["$moduleId"] = "$($moduleId)_$($currentVersion).zip"
-                } else {
+                }
+                else {
                     Write-Warning "Setting the current version $currentVersion for platform ..."
                     $script:platformVersion = "$currentVersion"
                 }
-            } else {
-                if ($moduleId -ne 'platform'){
+            }
+            else {
+                if ($moduleId -ne 'platform') {
                     Write-Warning "Adding the required version $requiredVersion to blob versions ..."
                     $script:packages["$moduleId"] = "$($moduleId)_$($requiredVersion).zip"
-                } else {
+                }
+                else {
                     Write-Warning "Setting the required version $requiredVersion for platform ..."
                     $script:platformVersion = "$requiredVersion"
                 }
@@ -69,34 +88,41 @@ function CompareVersions {
         }
         if ([System.Version]$currentVersion -ge [System.Version]$requiredVersion) {
             Write-Host "Dependency satisfied"
-        } else {
-            if ($moduleId -ne 'platform'){
+        }
+        else {
+            if ($moduleId -ne 'platform') {
                 Write-Warning "Update required. Add $moduleId $requiredVersion to release versions ..."
                 $packages["$moduleId"] = "$($moduleId)_$requiredVersion.zip"
-            } else {
+            }
+            else {
                 Write-Warning "Update required. Setting required version $requiredVersion for platform ..."
                 $script:platformVersion = "$requiredVersion"
             }
         }
-    } elseif ($currentVerSplitted.Length -lt $requiredVerSplitted.Length) {
-        if ($moduleId -ne 'platform'){
+    }
+    elseif ($currentVerSplitted.Length -lt $requiredVerSplitted.Length) {
+        if ($moduleId -ne 'platform') {
             Write-Warning "Prerelease version required. Add $moduleId $requiredVersion to blob versions ..."
             # $script:releasePackages.Remove("$moduleId")
             $script:packages["$moduleId"] = "$($moduleId)_$requiredVersion.zip"
-        } else {
+        }
+        else {
             Write-Warning "Prerelease version required. Setting required version $requiredVersion for platform ..."
             $script:platformVersion = "$requiredVersion"
         }
         return
-    } elseif ($currentVerSplitted.Length -gt $requiredVerSplitted.Length) {
-        if ($moduleId -ne 'platform'){
+    }
+    elseif ($currentVerSplitted.Length -gt $requiredVerSplitted.Length) {
+        if ($moduleId -ne 'platform') {
             Write-Warning "The the current version is prerelease. Leaving as $currentVersion blob version ..."
-        } else {
+        }
+        else {
             Write-Warning "The the current version is prerelease. Leaving $currentVersion version for platform ..."
             $script:platformVersion = "$currentVersion"
         }
         return
-    } else {
+    }
+    else {
         Write-Error "Unexpected version comparison result"
         throw "Version comparison failed for module $moduleId"
     }
@@ -105,10 +131,10 @@ function CompareVersions {
 function ProcessCustomModule {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [string]$CustomModuleId,
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [string]$CustomModuleUrl,
         [bool]$recursive = $false
@@ -126,37 +152,41 @@ function ProcessCustomModule {
     $content = Get-Content -Path $CustomModuleId/module.manifest -Raw
 
     # add prerelease entry to `blobPackages` hashtable
-    $version = $(Select-Xml -Content $content -XPath "//module").Node.version
-    $versionTag = $(Select-Xml -Content $content -XPath "//module").Node.'version-tag'
+    $node = $(Select-Xml -Content $content -XPath "//module").Node
+    $version = $node.version
+    $versionTag = $node.'version-tag'
     if ($version -is [array]) {
         $version = $version[0]
     }
     if ($versionTag -is [array]) {
         $versionTag = $versionTag[0]
     }
-    if ($versionTag -eq ''){
+    if ($versionTag -eq '') {
         $fullVersion = "$version"
-    } else {
+    }
+    else {
         $fullVersion = "$version-$versionTag"
     }
     
     $script:packages["$CustomModuleId"] = "$($CustomModuleId)_$($fullVersion).zip"
     
     # resolve dependencies for custom module
-    $xml = Select-Xml -Content $content -XPath "//dependencies"
+    $xmlDependency = $(Select-Xml -Content $content -XPath "//dependencies").Node.dependency
     
-    if($recursive -eq $true){
-        foreach ($dependency in $($xml.Node.dependency)){
-            if ($script:packages["$($dependency.id)"] -match "\w._(.*).zip"){
+    if ($recursive -eq $true) {
+        foreach ($dependency in $xmlDependency) {
+            if ($script:packages["$($dependency.id)"] -match "\w._(.*).zip") {
                 CompareVersions -currentVersion $Matches[1] -requiredVersion $($dependency.version) -moduleId $($dependency.id)
-            } else {
+            }
+            else {
                 Write-Warning "Unable to parse version from packages list. Tried $packages[$key] -match '\w._(.*).zip'"
             }
             Write-Host "`e[32mAdd the $($dependency.id) module $($dependency.version) version to the dependencies list"
         }
         CompareVersions -currentVersion $script:platformVersion -requiredVersion $(Select-Xml -Content $content -XPath "/module/platformVersion").Node.InnerText -moduleId 'platform'
-    } else {
-        foreach ($dependency in $($xml.Node.dependency)){
+    }
+    else {
+        foreach ($dependency in $xmlDependency) {
             $script:dependencyList["$($dependency.id)"] = "$($dependency.version)"
             Write-Host "`e[32mAdd the $($dependency.id) module $($dependency.version) version to the dependencies list"
         }
@@ -170,7 +200,7 @@ function ProcessCustomModule {
 function Invoke-WebRequestWithRetry {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$Uri,
         [string]$OutFile,
         [int]$MaxRetries = 3,
@@ -182,7 +212,8 @@ function Invoke-WebRequestWithRetry {
         try {
             if ($OutFile) {
                 Invoke-WebRequest -Uri $Uri -OutFile $OutFile -TimeoutSec 15
-            } else {
+            }
+            else {
                 return Invoke-WebRequest -Uri $Uri -TimeoutSec 15
             }
             return
@@ -209,12 +240,7 @@ $edgePackages = $(Invoke-WebRequestWithRetry -Uri https://raw.githubusercontent.
 
 # add "commerce" group modlues
 $commerceModules = $($edgePackages | Where-Object { $_.Groups -eq 'commerce' } | Select-Object -ExcludeProperty Versions).Id
-foreach ($mm in $commerceModules){
-    $packages["$mm"] = "$($mm)_$($($edgePackages | Where-Object { $_.Id -eq $mm } | Select-Object -ExpandProperty Versions)[0].Version).zip"
-}
-# add mandatory packages not listed as dependencies
-$mandatoryModules = @("VirtoCommerce.FileSystemAssets", "VirtoCommerce.LuceneSearch", "VirtoCommerce.AuthorizeNetPayment", "VirtoCommerce.Subscription")
-foreach ($mm in $mandatoryModules){
+foreach ($mm in $commerceModules) {
     $packages["$mm"] = "$($mm)_$($($edgePackages | Where-Object { $_.Id -eq $mm } | Select-Object -ExpandProperty Versions)[0].Version).zip"
 }
 
@@ -222,29 +248,31 @@ foreach ($mm in $mandatoryModules){
 ProcessCustomModule -CustomModuleId $customModuleId -CustomModuleUrl $customModuleUrl # -blobPackagesProcessed $blobPackagesProcessed
 
 # resolve first level dependencies
-foreach ($key in $dependencyList.Keys){
+foreach ($key in $dependencyList.Keys) {
     # add dep to packages
-    # $packages["$key"] = "$($key)_$($dependencyList["$key"]).zip"
-    if ($packages["$key"] -match "\w._(.*).zip"){
+    if ($packages["$key"] -match "\w._(.*).zip") {
         CompareVersions -currentVersion $Matches[1] -requiredVersion $dependencyList["$key"] -moduleId $key
-    } else {
+    }
+    else {
         Write-Warning "Unable to parse version from packages list. Tried $packages[$key] -match '\w._(.*).zip'"
     }
     # get dep2lev
-    if ($($dependencyList["$key"].split('.')[2]) -notmatch '[A-za-z-]' -and $packagesProcessed -notcontains $key){ # release version
+    if ($($dependencyList["$key"].split('.')[2]) -notmatch '[A-za-z-]' -and $packagesProcessed -notcontains $key) {
+        # release version
         Write-Host "Processing dependent module '$key' ..."
         $i = 0
         $deps = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].Dependencies
-        if ($deps){
+        if ($deps) {
             $deps.GetEnumerator()
-            while ($i -lt $deps.Count){
+            while ($i -lt $deps.Count) {
                 $id = $deps[$i].Id
                 $version = $deps[$i].Version
-                if ($packages.Keys -contains $id){
-                    if ($packages["$id"] -match '(?<=_)(\d+\.\d+\.\d+)(?=\.zip)'){
+                if ($packages.Keys -contains $id) {
+                    if ($packages["$id"] -match '(?<=_)(\d+\.\d+\.\d+)(?=\.zip)') {
                         CompareVersions -currentVersion $matches[0] -requiredVersion $version -moduleId $id
                     }
-                } else {
+                }
+                else {
                     $packages["$id"] = "$($id)_$($version).zip"
                 }
                 $platformVersionDep = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].PlatformVersion
@@ -253,7 +281,9 @@ foreach ($key in $dependencyList.Keys){
             }
         }
         $packagesProcessed += "$key"
-    } elseif ($($dependencyList["$key"].split('.')[2]) -match '[A-za-z-]' -and $packagesProcessed -notcontains $key) { # blob version
+    }
+    elseif ($($dependencyList["$key"].split('.')[2]) -match '[A-za-z-]' -and $packagesProcessed -notcontains $key) {
+        # blob version
         Write-Host "Processing dependent module '$key' ..."
         $packagesProcessed += "$key"
         $customModuleUrl = "$blobPackagesUrl/$($key)_$($dependencyList["$key"]).zip"
@@ -263,25 +293,29 @@ foreach ($key in $dependencyList.Keys){
 
 # resolve recursive dependencies
 $attempts = 0
-while ($attempts -le 10){ # make 10 check cycles of $packages
+while ($attempts -le 10) {
+    # make 10 check cycles of $packages
     $packagesCopy = @{} + $packages
-    foreach ($key in $packagesCopy.Keys){
-        if ($($packages["$key"].split('.')[2]) -notmatch '[A-za-z-]' -and $packagesProcessed -notcontains $key){ # release version
+    foreach ($key in $packagesCopy.Keys) {
+        if ($($packages["$key"].split('.')[2]) -notmatch '[A-za-z-]' -and $packagesProcessed -notcontains $key) {
+            # release version
             Write-Host "Processing dependent module '$key' ..."
             $i = 0
             $deps = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].Dependencies
-            if ($deps){
+            if ($deps) {
                 $deps.GetEnumerator()
-                while ($i -lt $deps.Count){
+                while ($i -lt $deps.Count) {
                     $id = $deps[$i].Id
                     $version = $deps[$i].Version
-                    if ($packages.Keys -contains $id){
-                        if ($packages["$id"] -match '(?<=_)(\d+\.\d+\.\d+)(?=\.zip)'){
+                    if ($packages.Keys -contains $id) {
+                        if ($packages["$id"] -match '(?<=_)(\d+\.\d+\.\d+)(?=\.zip)') {
                             CompareVersions -currentVersion $matches[0] -requiredVersion $version -moduleId $id
-                        } else {
+                        }
+                        else {
                             CompareVersions -currentVersion $packages["$id"] -requiredVersion $version -moduleId $id
                         }
-                    } else {
+                    }
+                    else {
                         $packages["$id"] = "$($id)_$($version).zip"
                     }
                     # compare platform for every dep
@@ -291,7 +325,9 @@ while ($attempts -le 10){ # make 10 check cycles of $packages
                 }
             }
             $packagesProcessed += "$key"
-        } elseif ($($packages["$key"].split('.')[2]) -match '[A-za-z-]' -and $packagesProcessed -notcontains $key) { # blob version
+        }
+        elseif ($($packages["$key"].split('.')[2]) -match '[A-za-z-]' -and $packagesProcessed -notcontains $key) {
+            # blob version
             Write-Host "Processing dependent module '$key' ..."
             $customModuleUrl = "$blobPackagesUrl/$($key)_$($packages["$key"]).zip"
             ProcessCustomModule -CustomModuleId $key -CustomModuleUrl $customModuleUrl -recursive $true
@@ -305,15 +341,18 @@ while ($attempts -le 10){ # make 10 check cycles of $packages
 $updatedReleaseModules = @()
 $updatedBlobModules = @()
 
-foreach ($p in $packages.Keys){
-    if ($($packages["$p"].split('.')[3]) -match '[A-za-z-]'){ # blob version
+foreach ($p in $packages.Keys) {
+    if ($($packages["$p"].split('.')[3]) -match '[A-za-z-]') {
+        # blob version
         $m = [ordered]@{}
-        $m.Add("Id","$p")
+        $m.Add("Id", "$p")
         $m.Add("BlobName", "$($packages["$p"])")
         $updatedBlobModules += $m
-    } elseif ($($packages["$p"].split('.')[3]) -match '\d+'){ # release version
+    }
+    elseif ($($packages["$p"].split('.')[3]) -match '\d+') {
+        # release version
         $m = [ordered]@{}
-        $m.Add("Id","$p")
+        $m.Add("Id", "$p")
         $packages["$p"] -match '(?<=_)(\d+\.\d+\.\d+)(?=\.zip)' > $null
         $version = $Matches[0]
         $m.Add("Version", "$version")
@@ -332,9 +371,10 @@ $packagesJson = $(Invoke-WebRequestWithRetry -Uri https://raw.githubusercontent.
 
 $($packagesJson.Sources | Where-Object { $_.Name -eq 'AzureBlob' }).Modules = $updatedBlobModules
 $($packagesJson.Sources | Where-Object { $_.Name -eq 'GithubReleases' }).Modules = $updatedReleaseModules
-if ($platformVersion.split('.')[2] -match '[A-za-z-]'){
+if ($platformVersion.split('.')[2] -match '[A-za-z-]') {
     $packagesJson.PlatformAssetUrl = "$blobPackagesUrl/VirtoCommerce.Platform.$platformVersion.zip"
-} else {
+}
+else {
     $packagesJson.PlatformVersion = $platformVersion
 }
 $packagesJson | ConvertTo-Json -Depth 10 | Set-Content -Path ./new-packages.json
@@ -345,9 +385,9 @@ $packagesJson | ConvertTo-Json -Depth 10 | Set-Content -Path ./new-packages.json
 # buil VC solution
 Write-Host "`e[32mPlatform and modules installation started"
 vc-build install --package-manifest-path ./new-packages.json `
-                 --probing-path ./publish/app_data/modules `
-                 --discovery-path ./publish/modules `
-                 --root ./publish `
-                 --skip-dependency-solving
+    --probing-path ./publish/app_data/modules `
+    --discovery-path ./publish/modules `
+    --root ./publish `
+    --skip-dependency-solving
 
 Get-ChildItem * -Include *packages.json -Recurse | Remove-Item -Verbose
