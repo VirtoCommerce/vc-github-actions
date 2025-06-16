@@ -27,7 +27,7 @@ async function run() {
             if (status === 0) {
                 console.log(`Katalon Studio execution succeeded.`);
                 return;
-            } else if (status === 3) {
+            } else if (status === 3 || status === 2) {
                 if (i < retryCount - 1) {
                     console.log(`Katalon Studio execution failed with status 3. Retrying... (attempt ${i + 1} from ${retryCount}, waiting ${retryTimeout / 1000}s before next try)`);
                     await new Promise(resolve => setTimeout(resolve, retryTimeout));
