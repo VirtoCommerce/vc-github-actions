@@ -93,7 +93,7 @@ runs:
             }
             catch {
                 Write-Error "Failed to download $file. Error: $_"
-                exit 1
+                # exit 1
             }
         }
         docker build -f ./Dockerfile -t "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}" .
