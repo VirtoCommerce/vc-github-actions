@@ -93,14 +93,14 @@ runs:
             }
             catch {
                 Write-Error "Failed to download $file. Error: $_"
-                # exit 1
+                exit 1
             }
         }
         docker build -f ./Dockerfile -t "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}" .
 
         try {
-                $fileName = Split-Path $frontendZipUrl -Leaf
-                Invoke-WebRequest -Uri $frontendZipUrl -OutFile $fileName -UseBasicParsing -OperationTimeoutSeconds 15 -RetryIntervalSec 1 -MaximumRetryCount 3
+                $fileName = Split-Path ${{ inputs.frontendZipUrl }} -Leaf
+                Invoke-WebRequest -Uri ${{ inputs.frontendZipUrl }} -OutFile $fileName -UseBasicParsing -OperationTimeoutSeconds 15 -RetryIntervalSec 1 -MaximumRetryCount 3
                 Write-Host "Downloaded '$fileName' successfully"
             }
             catch {
