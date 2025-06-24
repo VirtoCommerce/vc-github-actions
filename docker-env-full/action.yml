@@ -1,0 +1,154 @@
+name: 'Docker Environment'
+description: 'Runs Docker Environment'
+inputs:
+  # githubUser:
+  #   description: 'User for github packages'
+  #   required: true
+  # githubToken:
+  #   description: 'Token for github packages'
+  #   required: true
+  # dockerTag:
+  #   description: 'Docker tag'
+  #   required: false
+  platformDockerTag:
+    description: 'Platform Docker Tag'
+    required: false
+    default: 'local-latest'
+  platformImage:
+    description: 'Platform Docker Image'
+    required: false
+    default: 'platform'
+  # validateSwagger:
+  #   description: 'Enable or disable swagger validation'
+  #   required: false
+  #   default: 'true'
+  installCustomModule:
+    description: 'Enable or disable custom module ver. installation'
+    required: false
+    default: 'false'
+  customModuleId:
+    description: 'Custom Module id'
+    required: false
+    default: ''
+  customModuleUrl:
+    description: 'Custom module Module url'
+    required: false
+    default: ''
+  installModules:
+    description: 'Enable or disable "Install Modules" step'
+    required: false
+    default: 'true'
+  installSampleData:
+    description: 'Enable or disable "Install Sample Data" step'
+    required: true
+    default: 'true'
+  envDir:
+    description: 'Directory with environment files'
+    required: true
+    default: '.'
+  frontendImage:
+    description: 'Frontend Docker Image'
+    required: false
+    default: 'nginx_frontend'
+  frontendDockerTag:
+    description: 'Frontend Docker Tag'
+    required: false
+    default: 'local-latest'
+  frontendZipUrl:
+    description: 'Frontend Zip Url'
+    required: false
+    default: 'https://github.com/VirtoCommerce/vc-frontend/releases/download/2.23.0/vc-theme-b2b-vue-2.23.0.zip'
+runs:
+  using: "composite"
+  steps:
+
+    - name: Install Commerce Bundle Modules
+      if: ${{ inputs.installModules  == 'true' }}
+      working-directory: ${{ github.action_path }}
+      env: 
+        INSTALL_FOLDER: 'modules'
+      shell: pwsh
+      run: |
+        Write-Host "`e[33mInstall Modules step started."
+        New-Item -Path "./" -Name "${{ env.INSTALL_FOLDER}}" -ItemType "directory"
+        Push-Location ./${{ env.INSTALL_FOLDER}}
+        vc-build install -Edge -skip InstallPlatform
+
+    - name: Build docker images
+      if: ${{ inputs.installCustomModule == 'true' }}
+      working-directory: ${{ github.action_path }}
+      shell: pwsh
+      run: |
+        ../docker-env/scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }}
+
+        $dockerFiles = "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net8/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh"
+        Write-Host "`e[32mDownload Dockerfile and build image"
+        $dockerFilesArray = $dockerFiles.Split(';')
+        foreach($file in $dockerFilesArray){
+            try {
+                $fileName = Split-Path $file -Leaf
+                Invoke-WebRequest -Uri $file -OutFile $fileName -UseBasicParsing -OperationTimeoutSeconds 15 -RetryIntervalSec 1 -MaximumRetryCount 3
+                Write-Host "Downloaded '$fileName' successfully"
+            }
+            catch {
+                Write-Error "Failed to download $file. Error: $_"
+                exit 1
+            }
+        }
+        docker build -f ./Dockerfile -t "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}" .
+
+        try {
+                $fileName = Split-Path $frontendZipUrl -Leaf
+                Invoke-WebRequest -Uri $frontendZipUrl -OutFile $fileName -UseBasicParsing -OperationTimeoutSeconds 15 -RetryIntervalSec 1 -MaximumRetryCount 3
+                Write-Host "Downloaded '$fileName' successfully"
+            }
+            catch {
+                Write-Error "Failed to download $file. Error: $_"
+                exit 1
+            }
+        mkdir -p ./frontend
+        unzip -o $fileName -d ./frontend
+        docker build -f ./nginx/Dockerfile -t "${{ inputs.frontendImage }}:${{ inputs.frontendDockerTag }}" .
+
+    - name: Start containers
+      env:
+        PLATFORM_IMAGE: ${{ inputs.platformImage }}
+        PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
+        ENV_DIR: ${{ inputs.envDir }}
+      shell: pwsh
+      working-directory: ${{ github.action_path }}
+      run: |
+        Write-Host "`e[33mStart Containers step started."
+        $platformContainer = "virtocommerce-vc-platform-web-1"
+        . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
+        # for the case of install modules
+        echo "inputs.installModules is ${{ inputs.installModules }}"
+        if ( '${{ inputs.installModules }}' -eq 'true' ){
+          Write-host "Start modify docker-compose.yml"
+          Install-Module -Name powershell-yaml -Force -allowClobber
+          $parsedYaml = Get-Content -Path ./docker-compose.yml -Raw | ConvertFrom-Yaml 
+          $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/modules:/opt/virtocommerce/platform/modules')
+          $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/app_data:/opt/virtocommerce/platform/app_data')
+          $parsedYaml | ConvertTo-Yaml | Set-Content ./docker-compose.yml
+        }
+        docker compose --project-name virtocommerce up -d
+        InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 15 -WaitSeconds 0
+        Write-Host "`e[32mContainers started."
+        
+    - name: Check Installed Modules
+      if: ${{ inputs.installModules == 'true' || inputs.installCustomModule == 'true' }}
+      working-directory: ${{ github.action_path }}
+      shell: pwsh
+      run: |
+        Write-Host "`e[33mCheck Installed Modules step started."
+        $platformContainer = "virtocommerce-vc-platform-web-1"
+        ../docker-env/scripts/check-installed-modules.ps1 -ApiUrl http://localhost:8090 -ContainerId $platformContainer
+        Write-Host "`e[32mInstalled Modules checked."
+
+    - name: Install Sample Data
+      if: ${{ inputs.installSampleData == 'true' }}
+      working-directory: ${{ github.action_path }}
+      shell: pwsh
+      run: |
+        Write-Host "`e[33mInstall Sample Data step started."
+        ../docker-env/scripts/setup-sampledata.ps1 -ApiUrl http://localhost:8090 -Verbose -Debug
