@@ -39,7 +39,7 @@ inputs:
     required: true
   apiKey:
     description: 'API Key'
-    required: true
+    required: false
   storeId:
     description: 'Store ID'
     required: true
