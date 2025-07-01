@@ -99,12 +99,14 @@ runs:
         docker build -f ./Dockerfile -t "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}" .
 
     - name: Pull platform docker image to local storage
-      if: ${{ inputs.installCustomModule != 'true' }}
+      if: ${{ inputs.installModules  == 'true' }}
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
+        Write-Host "`e[32mPull platform docker image to local storage"
         docker pull ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }}
         docker tag ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}"
+        Write-Host "`e[32mPlatform docker image pulled to local storage"
 
     - name: Build  frontend docker image
       working-directory: ${{ github.action_path }}
