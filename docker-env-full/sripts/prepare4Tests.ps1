@@ -157,6 +157,10 @@ $headers = @{
 $adminToken = (Invoke-WebRequestWithRetry -Uri "$platformUrl/connect/token" -Body $body -Headers $headers -Method POST).Content | ConvertFrom-Json
 $adminToken = $adminToken.access_token
 
+# Set environment variable for use in subsequent scripts
+[Environment]::SetEnvironmentVariable("VC_ADMIN_TOKEN", $adminToken, "Machine")
+Write-Host "Admin token set as environment variable VC_ADMIN_TOKEN for machine-wide access"
+
 #set api key for admin user
 SetApiKey -username "$adminUsername" -apiKey "$apiKey" -token "$adminToken"
 

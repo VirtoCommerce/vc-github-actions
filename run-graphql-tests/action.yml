@@ -1,0 +1,106 @@
+name: 'GraphQL Tests'
+description: 'Runs GraphQL Tests'
+inputs:
+  vctestingRepo:
+    description: 'UI tests repository'
+    required: true
+    type: string
+  vctestingRepoBranch:
+    description: 'UI tests repository branch'
+    required: true
+    type: string
+  vctestingPath:
+    description: 'UI tests path'
+    required: true
+    type: string
+  baseUrl:
+    description: 'Base URL'
+    required: true
+  backUrl:
+    description: 'Back URL'
+    required: true
+  adminUsername:
+    description: 'Admin Username'
+    required: true
+  adminPassword:
+    description: 'Admin Password'
+    required: true
+  adminToken:
+    description: 'Admin Token'
+    required: true
+  userEmail:
+    description: 'User Email'
+    required: true
+  frontAdmin:
+    description: 'Front Admin'
+    required: true
+  password:
+    description: 'Password'
+    required: true
+  apiKey:
+    description: 'API Key'
+    required: true
+  storeId:
+    description: 'Store ID'
+    required: true
+  playwrightHeadless:
+    description: 'Playwright Headless'
+    required: true
+runs:
+  using: "composite"
+  env:
+      BASE_URL: ${{ inputs.baseUrl }}
+      BACK_URL: ${{ inputs.backUrl }}
+      ADMIN_USERNAME: ${{ inputs.adminUsername }}
+      ADMIN_PASSWORD: ${{ inputs.adminPassword }}
+      ADMIN_TOKEN: ${{ inputs.adminToken }}
+      USER_EMAIL: ${{ inputs.userEmail }}
+      FRONT_ADMIN: ${{ inputs.frontAdmin }}
+      PASSWORD: ${{ inputs.password }}
+      API_KEY: ${{ inputs.apiKey }}
+      STORE_ID: ${{ inputs.storeId }}
+      PLAYWRIGHT_HEADLESS: ${{ inputs.playwrightHeadless }}
+  strategy:
+      matrix:
+        browser: [chromium]
+  steps:
+    - name: Getting tests
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ inputs.vctestingRepo }}
+        ref: ${{ inputs.vctestingRepoBranch }}
+        path: ${{ inputs.vctestingPath }}
+
+    - name: Install dependencies
+      run: |
+        cd ${{ inputs.vctestingPath }}
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest-html
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+            
+    - name: Install Playwright Browsers
+      run: |
+        cd ${{ inputs.vctestingPath }}
+        playwright install --with-deps ${{ matrix.browser }}
+            
+    - name: Run GraphQL Tests
+      run: |
+        echo "Running GraphQL tests against ${{ inputs.baseUrl }}"
+        cd ${{ inputs.vctestingPath }}
+        pytest tests_graphql/tests/ --browser ${{ matrix.browser }} --html=graphql-report.html --self-contained-html --tracing=retain-on-failure -v -s
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: graphql-test-results-${{ matrix.browser }}
+        path: |
+          ${{ inputs.vctestingPath }}/graphql-report.html
+          ${{ inputs.vctestingPath }}/playwright-report/
+          ${{ inputs.vctestingPath }}/test-results/
+          retention-days: 30
