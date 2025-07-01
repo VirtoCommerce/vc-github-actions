@@ -99,13 +99,13 @@ runs:
         docker build -f ./Dockerfile -t "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}" .
 
     - name: Pull platform docker image to local storage
-      if: ${{ inputs.installModules  == 'true' }}
+      if: ${{ inputs.installModules  == 'true' || (inputs.installModules == 'false' && inputs.installCustomModule == 'false') }}
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
         Write-Host "`e[32mPull platform docker image to local storage"
         docker pull ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }}
-        docker tag ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}"
+        docker tag ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} "${{ inputs.platformImage }}:local-latest"
         docker image list
         Write-Host "`e[32mPlatform docker image pulled to local storage"
 
@@ -147,6 +147,8 @@ runs:
           $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/modules:/opt/virtocommerce/platform/modules')
           $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/app_data:/opt/virtocommerce/platform/app_data')
           $parsedYaml | ConvertTo-Yaml | Set-Content ./docker-compose.yml
+          cat ./docker-compose.yml
+          Write-Host "`e[32mDocker-compose.yml modified"
         }
         docker compose --project-name virtocommerce up -d
         InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 15 -WaitSeconds 0
