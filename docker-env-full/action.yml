@@ -74,7 +74,7 @@ runs:
         Push-Location ./${{ env.INSTALL_FOLDER}}
         vc-build install -Edge -skip InstallPlatform
 
-    - name: Build docker images
+    - name: Build platform docker image
       if: ${{ inputs.installCustomModule == 'true' }}
       working-directory: ${{ github.action_path }}
       shell: pwsh
@@ -82,7 +82,7 @@ runs:
         ../docker-env/scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }}
 
         $dockerFiles = "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net8/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh"
-        Write-Host "`e[32mDownload Dockerfile and build image"
+        Write-Host "`e[32mDownload platform Dockerfile and build image"
         $dockerFilesArray = $dockerFiles.Split(';')
         foreach($file in $dockerFilesArray){
             try {
@@ -98,6 +98,11 @@ runs:
         }
         docker build -f ./Dockerfile -t "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}" .
 
+    - name: Build  frontend docker image
+      working-directory: ${{ github.action_path }}
+      shell: pwsh
+      run: |
+        Write-Host "`e[32mDownload frontend zip and build image"
         try {
                 $fileName = Split-Path ${{ inputs.frontendZipUrl }} -Leaf
                 Invoke-WebRequest -Uri ${{ inputs.frontendZipUrl }} -OutFile $fileName -UseBasicParsing -OperationTimeoutSeconds 15 -RetryIntervalSec 1 -MaximumRetryCount 3
