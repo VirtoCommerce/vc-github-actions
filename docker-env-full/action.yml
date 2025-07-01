@@ -106,6 +106,7 @@ runs:
         Write-Host "`e[32mPull platform docker image to local storage"
         docker pull ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }}
         docker tag ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}"
+        docker image list
         Write-Host "`e[32mPlatform docker image pulled to local storage"
 
     - name: Build  frontend docker image
