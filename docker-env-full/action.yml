@@ -1,31 +1,6 @@
 name: 'Docker Environment'
 description: 'Runs Docker Environment'
 inputs:
-  # githubUser:
-  #   description: 'User for github packages'
-  #   required: true
-  # githubToken:
-  #   description: 'Token for github packages'
-  #   required: true
-  # dockerTag:
-  #   description: 'Docker tag'
-  #   required: false
-  platformDockerTag:
-    description: 'Platform Docker Tag'
-    required: false
-    default: 'local-latest'
-  platformImage:
-    description: 'Platform Docker Image'
-    required: false
-    default: 'platform'
-  # validateSwagger:
-  #   description: 'Enable or disable swagger validation'
-  #   required: false
-  #   default: 'true'
-  installCustomModule:
-    description: 'Enable or disable custom module ver. installation'
-    required: false
-    default: 'false'
   customModuleId:
     description: 'Custom Module id'
     required: false
@@ -34,6 +9,21 @@ inputs:
     description: 'Custom module Module url'
     required: false
     default: ''
+  frontendDockerTag:
+    description: 'Frontend Docker Tag'
+    required: false
+    default: 'local-latest'
+  frontendImage:
+    description: 'Frontend Docker Image'
+    required: false
+    default: 'nginx_frontend'
+  frontendZipUrl:
+    description: 'Frontend Zip Url'
+    required: false
+  installCustomModule:
+    description: 'Enable or disable custom module ver. installation'
+    required: false
+    default: 'false'
   installModules:
     description: 'Enable or disable "Install Modules" step'
     required: false
@@ -42,21 +32,14 @@ inputs:
     description: 'Enable or disable "Install Sample Data" step'
     required: true
     default: 'true'
-  # envDir:
-  #   description: 'Directory with environment files'
-  #   required: true
-  #   default: '.'
-  frontendImage:
-    description: 'Frontend Docker Image'
-    required: false
-    default: 'nginx_frontend'
-  frontendDockerTag:
-    description: 'Frontend Docker Tag'
+  platformDockerTag:
+    description: 'Platform Docker Tag'
     required: false
     default: 'local-latest'
-  frontendZipUrl:
-    description: 'Frontend Zip Url'
+  platformImage:
+    description: 'Platform Docker Image'
     required: false
+    default: 'platform'
 runs:
   using: "composite"
   steps:
