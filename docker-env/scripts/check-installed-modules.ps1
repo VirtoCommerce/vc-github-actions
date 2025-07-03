@@ -7,7 +7,6 @@ Param(
     $watchUrlScriptPath = "./scripts/watch-url-up.ps1"
 )
 
-# . "./scripts/watch-url-up.ps1"
 . $watchUrlScriptPath
 
 $appAuthUrl = "$ApiUrl/connect/token"

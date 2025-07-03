@@ -28,18 +28,6 @@ services:
     networks:
       - virto
 
-  # redis:
-  #   image: redis:alpine
-  #   command: redis-server --requirepass ${REDIS_PASSWORD:-v!rto_Labs!}
-  #   ports:
-  #     - "${REDIS_PORT:-6379}:6379"
-  #   environment:
-  #     - REDIS_REPLICATION_MODE=master
-  #   volumes:
-  #     - redisdata:/data
-  #   networks:
-  #     - virto
-
   es:
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION:-8.18.0}
     volumes:
@@ -74,40 +62,6 @@ services:
       timeout: 10s
       retries: 120
   
-  # enterprisesearch:
-  #   depends_on:
-  #     es:
-  #       condition: service_healthy
-  #     # kibana:
-  #     #   condition: service_healthy
-  #   image: docker.elastic.co/enterprise-search/enterprise-search:${STACK_VERSION:-8.18.0}
-  #   volumes:
-  #     - enterprisesearchdata:/usr/share/enterprise-search/config
-  #   ports:
-  #     - "${ENTERPRISE_SEARCH_PORT:-3002}:3002"
-  #   environment:
-  #     - SERVERNAME=enterprisesearch
-  #     - secret_management.encryption_keys=[${ENCRYPTION_KEYS:-v!rto_Labs!}]
-  #     - allow_es_settings_modification=true
-  #     - elasticsearch.host=https://es:9200
-  #     - elasticsearch.username=elastic
-  #     - elasticsearch.password=${ELASTIC_PASSWORD:-v!rto_Labs!}
-  #     - elasticsearch.ssl.enabled=true
-  #     - elasticsearch.ssl.certificate_authority=/usr/share/enterprise-search/config/certs/ca/ca.crt
-  #     # - kibana.external_url=http://kibana:5601
-  #   mem_limit: ${MEM_LIMIT:-1g}
-  #   healthcheck:
-  #     test:
-  #       [
-  #           "CMD-SHELL",
-  #           "curl -s -I http://localhost:3002 | grep -q 'HTTP/1.1 302 Found'",
-  #       ]
-  #     interval: 10s
-  #     timeout: 10s
-  #     retries: 120
-  #   networks:
-  #     - virto
-  
   nginx_frontend:
     depends_on:
       - vc-platform-web
@@ -136,8 +90,6 @@ services:
     depends_on:
       - vc-db
       - es
-      # - enterprisesearch
-      # - redis
     entrypoint: ["/wait-for-it.sh", "vc-db:1433", "-t", "120", "--", "dotnet", "VirtoCommerce.Platform.Web.dll"]
     volumes:
       - cms-content-volume:/opt/virtocommerce/platform/wwwroot/cms-content
@@ -153,10 +105,6 @@ volumes:
     name: modules-data
   esdata01:
     driver: local
-  # redisdata:
-  #   driver: local
-  # enterprisesearchdata:
-  #   driver: local
 
 networks:
   virto:

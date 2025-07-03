@@ -1,13 +1,3 @@
-<#
-.SYNOPSIS
-    Composes package.json for custom module installation.
-.DESCRIPTION
-    Downloads and processes custom modules, resolves dependencies, and generates an updated package.json file.
-.PARAMETER customModuleId
-    The ID of the custom module to process.
-.PARAMETER customModuleUrl
-    The URL where the custom module can be downloaded from.
-#>
 [CmdletBinding()]
 param (
     [string]$platformUrl = 'http://localhost:8090',
