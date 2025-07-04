@@ -31,10 +31,8 @@ function CreateUser {
     $result = Invoke-WebRequestWithRetry -Uri "$platformUrl/api/platform/security/users/create" -Body ($body | ConvertTo-Json) -Headers $headers -Method POST | ConvertFrom-Json
     if ($result.succeeded -eq $false) {
         Write-Error "Create user succeeded: $($result.succeeded). $($result.errors)"
-        # return $false
     }
     Write-Host "User $username created"
-    # return $true
 }
 
 function ResetUserPassword {
@@ -57,7 +55,6 @@ function ResetUserPassword {
     $resultResetPassword = Invoke-WebRequestWithRetry -Uri "$platformUrl/api/platform/security/users/$username/resetpassword" -Body ($body | ConvertTo-Json) -Headers $headers -Method POST | ConvertFrom-Json
     if ($resultResetPassword.succeeded -eq $false) {
         Write-Error "Reset user password succeeded: $($resultResetPassword.succeeded). $($resultResetPassword.error)"
-        # return $false
     }
 
     # unlock user
@@ -68,10 +65,8 @@ function ResetUserPassword {
     $resultUnlock = Invoke-WebRequestWithRetry -Uri "$platformUrl/api/platform/security/users/$userId/unlock" -Body ($body | ConvertTo-Json) -Headers $headers -Method POST | ConvertFrom-Json
     if ($resultUnlock.succeeded -eq $false) {
         Write-Error "Unlock user succeeded: $($resultUnlock.succeeded). $($resultUnlock.error)"
-        # return $false
     }
     Write-Host "Password for user $username reset and user unlocked"
-    # return $true
 }
 
 function Invoke-WebRequestWithRetry {
