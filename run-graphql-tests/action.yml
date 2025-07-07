@@ -81,8 +81,8 @@ runs:
     - name: Run GraphQL Tests
       shell: bash
       env:
-        FRONTEND_BASE_URL: ${{ inputs.baseUrl }}
-        BACKEND_BASE_URL: ${{ inputs.backUrl }}
+        FRONTEND_BASE_URL: 'http://localhost'
+        BACKEND_BASE_URL: 'http://localhost:8090'
         ADMIN_USERNAME: ${{ inputs.adminUsername }}
         ADMIN_PASSWORD: ${{ inputs.adminPassword }}
         ADMIN_TOKEN: ${{ inputs.adminToken }}
