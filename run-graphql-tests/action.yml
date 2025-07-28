@@ -128,6 +128,7 @@ runs:
         pytest tests_graphql/tests/ --browser ${{ inputs.browser }} --html=graphql-report.html --self-contained-html --tracing=retain-on-failure -v -s
 
     - name: Upload test results
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: graphql-test-results-${{ inputs.browser }}
