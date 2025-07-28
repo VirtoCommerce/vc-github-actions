@@ -16,49 +16,76 @@ inputs:
   baseUrl:
     description: 'Base URL'
     required: true
+    type: string
   backUrl:
     description: 'Back URL'
     required: true
+    type: string
   adminUsername:
     description: 'Admin Username'
     required: true
+    type: string
   adminPassword:
     description: 'Admin Password'
     required: true
+    type: string
   adminToken:
     description: 'Admin Token'
     required: true
+    type: string
   userEmail:
     description: 'User Email'
     required: true
+    type: string
   frontAdmin:
     description: 'Front Admin'
     required: true
+    type: string
   password:
     description: 'Password'
     required: true
+    type: string
   apiKey:
     description: 'API Key'
     required: false
+    type: string
   storeId:
     description: 'Store ID'
     required: true
+    type: string
   playwrightHeadless:
     description: 'Playwright Headless'
     required: true
+    type: string
   browser:
     description: 'Browser'
     required: true
+    type: string
 runs:
   using: "composite"
   steps:
-    - name: Run Powershell script
-      shell: powershell
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Check backend and frontend are running
+      shell: pwsh
       run: |
-        echo "Check backend is running"
-        Invoke-WebRequest -Uri "http://localhost:8090" -Method GET -TimeoutSec 10
-        echo "Check frontend is running"
-        Invoke-WebRequest -Uri "http://localhost" -Method GET -TimeoutSec 10
+        echo "Checking if backend and frontend are running..."
+        try {
+          $backendResponse = Invoke-WebRequest -Uri "${{ inputs.backUrl }}" -Method GET -TimeoutSec 10
+          Write-Host "Backend is running (Status: $($backendResponse.StatusCode))"
+        } catch {
+          Write-Warning "Backend health check failed: $($_.Exception.Message)"
+        }
+        
+        try {
+          $frontendResponse = Invoke-WebRequest -Uri "${{ inputs.baseUrl }}" -Method GET -TimeoutSec 10
+          Write-Host "Frontend is running (Status: $($frontendResponse.StatusCode))"
+        } catch {
+          Write-Warning "Frontend health check failed: $($_.Exception.Message)"
+        }
 
     - name: Getting tests
       uses: actions/checkout@v4
@@ -74,11 +101,6 @@ runs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest-html
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.11"
             
     - name: Install Playwright Browsers
       shell: bash
@@ -87,13 +109,10 @@ runs:
         playwright install --with-deps ${{ inputs.browser }}
             
     - name: Run GraphQL Tests
-      # if: false
       shell: bash
       env:
-        # FRONTEND_BASE_URL: ${{ inputs.baseUrl }}
-        # BACKEND_BASE_URL: ${{ inputs.backUrl }}
-        FRONTEND_BASE_URL: 'http://localhost'
-        BACKEND_BASE_URL: 'http://localhost:8090'
+        FRONTEND_BASE_URL: ${{ inputs.baseUrl }}
+        BACKEND_BASE_URL: ${{ inputs.backUrl }}
         ADMIN_USERNAME: ${{ inputs.adminUsername }}
         ADMIN_PASSWORD: ${{ inputs.adminPassword }}
         ADMIN_TOKEN: ${{ inputs.adminToken }}
@@ -109,7 +128,6 @@ runs:
         pytest tests_graphql/tests/ --browser ${{ inputs.browser }} --html=graphql-report.html --self-contained-html --tracing=retain-on-failure -v -s
 
     - name: Upload test results
-      if: false
       uses: actions/upload-artifact@v4
       with:
         name: graphql-test-results-${{ inputs.browser }}
