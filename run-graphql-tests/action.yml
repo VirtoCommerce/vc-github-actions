@@ -82,9 +82,9 @@ runs:
       shell: powershell
       run: |
         echo "Check backend is running"
-        invoke-webrequest -Uri "http://localhost:8090" -Method GET -TimeoutSec 10
+        Invoke-WebRequest -Uri "http://localhost:8090" -Method GET -TimeoutSec 10
         echo "Check frontend is running"
-        invoke-webrequest -Uri "http://localhost" -Method GET -TimeoutSec 10
+        Invoke-WebRequest -Uri "http://localhost" -Method GET -TimeoutSec 10
             
     - name: Run GraphQL Tests
       # if: false
