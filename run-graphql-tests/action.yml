@@ -77,6 +77,14 @@ runs:
       run: |
         cd ${{ inputs.vctestingPath }}
         playwright install --with-deps ${{ inputs.browser }}
+
+    - name: Run Powershell script
+      shell: powershell
+      run: |
+        echo "Check backend is running"
+        invoke-webrequest -Uri "http://localhost:8090" -Method GET -TimeoutSec 10
+        echo "Check frontend is running"
+        invoke-webrequest -Uri "http://localhost" -Method GET -TimeoutSec 10
             
     - name: Run GraphQL Tests
       # if: false
