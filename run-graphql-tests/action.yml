@@ -52,6 +52,14 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Run Powershell script
+      shell: powershell
+      run: |
+        echo "Check backend is running"
+        Invoke-WebRequest -Uri "http://localhost:8090" -Method GET -TimeoutSec 10
+        echo "Check frontend is running"
+        Invoke-WebRequest -Uri "http://localhost" -Method GET -TimeoutSec 10
+
     - name: Getting tests
       uses: actions/checkout@v4
       with:
@@ -77,14 +85,6 @@ runs:
       run: |
         cd ${{ inputs.vctestingPath }}
         playwright install --with-deps ${{ inputs.browser }}
-
-    - name: Run Powershell script
-      shell: powershell
-      run: |
-        echo "Check backend is running"
-        Invoke-WebRequest -Uri "http://localhost:8090" -Method GET -TimeoutSec 10
-        echo "Check frontend is running"
-        Invoke-WebRequest -Uri "http://localhost" -Method GET -TimeoutSec 10
             
     - name: Run GraphQL Tests
       # if: false
