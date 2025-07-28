@@ -72,9 +72,9 @@ runs:
     - name: Check backend and frontend are running
       shell: pwsh
       run: |
-        echo "Checking if backend and frontend are running..."
+        echo "Checking if backend (${{ inputs.backUrl }}:8090) and frontend (${{ inputs.baseUrl }}) are running..."
         try {
-          $backendResponse = Invoke-WebRequest -Uri "${{ inputs.backUrl }}" -Method GET -TimeoutSec 10
+          $backendResponse = Invoke-WebRequest -Uri "${{ inputs.backUrl }}:8090" -Method GET -TimeoutSec 10
           Write-Host "Backend is running (Status: $($backendResponse.StatusCode))"
         } catch {
           Write-Warning "Backend health check failed: $($_.Exception.Message)"
