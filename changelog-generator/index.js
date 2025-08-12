@@ -3,13 +3,12 @@ const github = require('@actions/github');
 const exec = require('@actions/exec');
 const utils = require('@virtocommerce/vc-actions-lib');
 
-async function getCommitMessages(since)
-{
+async function getCommitMessages(since) {
     const format = "HASH: %h MSG:%Cgreen%s %Creset BODY: %Cred(%b)%Creset";
-    
+
     let output = '';
     const options = {
-        listeners : {
+        listeners: {
             stdout: (data) => {
                 output += data.toString();
             },
@@ -25,10 +24,9 @@ async function getCommitMessages(since)
     return output.trim();
 }
 
-function cleanMessages(messages)
-{
+function cleanMessages(messages) {
     let jiraTasksRegex = /^#*[A-Z]{2,5}-\d{1,5}:{0,1}\s*/mi;
-    
+
     const releaseNoteGroups = [
         { key: "feat", items: [] },
         { key: "fix", items: [] },
@@ -44,31 +42,31 @@ function cleanMessages(messages)
     // Collect messages in groups
     messages.split('HASH:')
         .forEach(commitMsg => {
-            const oneLineMsg = commitMsg.replaceAll("\n","") // Remove newlines
-                                        .replace(/\s+/g, ' ')       // Replace multiple spaces with a single space
-                                        .trim() // Trim any leading/trailing spaces
+            const oneLineMsg = commitMsg.replaceAll("\n", "") // Remove newlines
+                .replace(/\s+/g, ' ')       // Replace multiple spaces with a single space
+                .trim() // Trim any leading/trailing spaces
 
             // Skip empty lines
-            if (oneLineMsg === ""){return;}
+            if (oneLineMsg === "") { return; }
             core.info(`Raw -> ${oneLineMsg}`);
 
             const msgAndBody = oneLineMsg.split('BODY:');
             const msg = msgAndBody[0].split('MSG:')[1].trim();
             const body = msgAndBody[1].trim()
-                                    .replace(/^\s*\(+/, '') // Remove any leading spaces and opening parentheses
-                                    .replace(/\)+\s*$/, ''); // Remove any trailing spaces and closing parentheses
+                .replace(/^\s*\(+/, '') // Remove any leading spaces and opening parentheses
+                .replace(/\)+\s*$/, ''); // Remove any trailing spaces and closing parentheses
 
             // Example message (PT-3771: Provide option to show user-friendly errors) 
             if (jiraTasksRegex.test(msg)) {
 
                 // Feature-style commit
                 if (jiraTasksRegex.test(body)) {
-                    const message = msg.replace(jiraTasksRegex,'');
+                    const message = msg.replace(jiraTasksRegex, '');
 
                     core.info(`FEAT -> ${message}`);
                     releaseNoteGroups[0].items.push(message);
                     core.info("----------");
-                    
+
                     return;
                 }
 
@@ -79,7 +77,7 @@ function cleanMessages(messages)
                     while (startIndex < body.length) {
                         let templateIndex = body.indexOf(template, startIndex);
                         if (templateIndex !== -1) {
-                            groupIndexes.push({key: group.key, index: templateIndex});
+                            groupIndexes.push({ key: group.key, index: templateIndex });
                         }
                         startIndex += template.length;
                     }
@@ -87,7 +85,7 @@ function cleanMessages(messages)
 
                 // Only text in body message => use message as source of truth
                 if (groupIndexes.length === 0) {
-                    const message = msg.replace(jiraTasksRegex,'');
+                    const message = msg.replace(jiraTasksRegex, '');
 
                     core.info(`FEAT -> ${message}`);
                     releaseNoteGroups[0].items.push(message);
@@ -114,19 +112,19 @@ function cleanMessages(messages)
                 for (let i = 0; i < groupIndexes.length - 1; i++) {
                     const message = body
                         .substring(groupIndexes[i].index, groupIndexes[i + 1].index)
-                        .replace(groupIndexes[i].key + ': ','');
-                    
+                        .replace(groupIndexes[i].key + ': ', '');
+
                     core.info(`${groupIndexes[i].key.toUpperCase()} -> ${message}`);
                     releaseNoteGroups.find(group => group.key === groupIndexes[i].key).items.push(message);
                     core.info("----------");
                 }
             }
-            else if(new RegExp("^(feat|fix|docs|style|refactor|perf|test|ci|chore):\\s").test(msg)) {
-                
+            else if (new RegExp("^(feat|fix|docs|style|refactor|perf|test|ci|chore):\\s").test(msg)) {
+
                 releaseNoteGroups.forEach(group => {
                     const template = group.key + ': ';
-                    if (!msg.startsWith(template)){ return; }
-                    const message = msg.replace(template,'');
+                    if (!msg.startsWith(template)) { return; }
+                    const message = msg.replace(template, '');
 
                     core.info(`${group.key.toUpperCase()} -> ${message}`);
                     group.items.push(message);
@@ -137,7 +135,7 @@ function cleanMessages(messages)
                 // Skip commits without Jira-keys and commit pattern in the start
                 core.info("SKIP");
                 core.info("----------");
-                
+
                 return;
             }
         });
@@ -146,7 +144,7 @@ function cleanMessages(messages)
     function generateGroup(title, items) {
         let result = `<h3>${title}</h3>`;
         result += "<ul>"
-        items.filter(function(e){ return !!e }).forEach(item => result += `<li>${item}</li>`);
+        items.filter(function (e) { return !!e }).forEach(item => result += `<li>${item}</li>`);
         result += "</ul>"
 
         return result;
@@ -196,13 +194,11 @@ function cleanMessages(messages)
     return result;
 }
 
-String.prototype.replaceAll = function (find, replace) 
-{
+String.prototype.replaceAll = function (find, replace) {
     return this.split(find).join(replace);
 }
 
-async function run()
-{
+async function run() {
     let isDependencies = await utils.isDependencies(github);
     if (isDependencies) {
         core.info(`Pull request contain "dependencies" label. Step skipped.`);
@@ -211,14 +207,16 @@ async function run()
 
     let latestRelease = await utils.getLatestRelease(process.env.GITHUB_REPOSITORY);
     let commitMessages = "";
-    if (latestRelease != null)
-    {
+    if (latestRelease != null) {
         commitMessages = await getCommitMessages(latestRelease.published_at);
         commitMessages = cleanMessages(commitMessages);
     }
 
     core.info(commitMessages);
-    core.setOutput("changelog", commitMessages);
+    process.env.GITHUB_OUTPUT = `${process.env.GITHUB_OUTPUT || ''}changelog<<EOF
+${commitMessages}
+EOF
+`;
 }
 
 run().catch(err => {
