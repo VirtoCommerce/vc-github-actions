@@ -159,7 +159,7 @@ runs:
                 break
             }
             catch {
-                Write-Host "Attempt $attempt/$maxAttempts: SQL Server not ready yet, waiting 10 seconds..."
+                Write-Host "Attempt $attempt/${maxAttempts}: SQL Server not ready yet, waiting 10 seconds..."
                 Start-Sleep -Seconds 10
             }
         } while ($attempt -lt $maxAttempts)
