@@ -186,7 +186,7 @@ runs:
         $databaseName = "VirtoCommerce3docker"
         
         # Import the bacpac file using dotnet tool version of sqlpackage
-        sqlpackage /Action:Import /SourceFile:$bacpacFileName /TargetServerName:localhost,1433 /TargetDatabaseName:$databaseName /TargetUser:sa /TargetPassword:v!rto_Labs! /p:TrustServerCertificate=True
+        sqlpackage /Action:Import /SourceFile:$bacpacFileName /TargetServerName:localhost,1433 /TargetDatabaseName:$databaseName /TargetUser:sa /TargetPassword:v!rto_Labs! /TargetTrustServerCertificate:True
         
         if ($LASTEXITCODE -eq 0) {
             Write-Host "`e[32mBacpac file imported successfully to database '$databaseName'"
