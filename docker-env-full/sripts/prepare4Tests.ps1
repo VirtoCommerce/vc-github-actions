@@ -3,10 +3,16 @@ param (
     [string]$platformUrl = 'http://localhost:8090',
     [string]$adminUsername = 'admin', 
     [string]$adminPassword = 'store',
+    [string]$newAdminPassword = 'Password3',
     [string]$userEmail = 'b2badmin',
     [string]$frontAdmin = 'e2e-admin@test.com',
     [string]$frontAdminPassword = 'Password1',
-    [string]$apiKey = '1add83ea-2235-41fe-b623-825070824059'
+    [string]$apiKey = '1add83ea-2235-41fe-b623-825070824059',
+    [string]$testUser1 = 'e2e-gql-test@test.com',
+    [string]$testUser2 = 'e2e-test-customer@test.com',
+    [string]$testUser3 = 'e2e-test-maintainer@e2e-contoso.com',
+    [string]$testUserPassword = 'Password1!',
+    [string]$storeId = 'B2B-store'
 )
 
 function CreateUser {
@@ -14,13 +20,18 @@ function CreateUser {
         [string]$username,
         [string]$password,
         [bool]$isAdministrator = $false,
-        [string]$token
+        [string]$token,
+        [string]$userType = 'Customer',
+        [string]$storeId
     )
     $body = @{
         "email"           = "$username"
         "userName"        = "$username"
         "isAdministrator" = $isAdministrator
         "password"        = "$password"
+        "status"          = "Approved"
+        "userType"        = "$userType"
+        "storeId"         = "$storeId"
     }
     $headers = @{
         "accept"        = "application/json"
@@ -32,7 +43,9 @@ function CreateUser {
     if ($result.succeeded -eq $false) {
         Write-Error "Create user succeeded: $($result.succeeded). $($result.errors)"
     }
-    Write-Host "User $username created"
+    else {
+        Write-Host "... user $username created successfully"
+    }
 }
 
 function ResetUserPassword {
@@ -56,6 +69,9 @@ function ResetUserPassword {
     if ($resultResetPassword.succeeded -eq $false) {
         Write-Error "Reset user password succeeded: $($resultResetPassword.succeeded). $($resultResetPassword.error)"
     }
+    else {
+        Write-Host "... user $username password reset successfully"
+    }
 
     # unlock user
     $body = @{
@@ -66,7 +82,9 @@ function ResetUserPassword {
     if ($resultUnlock.succeeded -eq $false) {
         Write-Error "Unlock user succeeded: $($resultUnlock.succeeded). $($resultUnlock.error)"
     }
-    Write-Host "Password for user $username reset and user unlocked"
+    else {
+        Write-Host "... user $username unlocked successfully"
+    }
 }
 
 function Invoke-WebRequestWithRetry {
@@ -128,7 +146,12 @@ function SetApiKey {
     }
 
     $apiKeyResult = Invoke-WebRequestWithRetry -Uri "$platformUrl/api/platform/security/users/apikeys" -Body ($body | ConvertTo-Json) -Headers $headers -Method PUT
-    Write-Host "Api key for user $username set"
+    if ($apiKeyResult.succeeded -eq $false) {
+        Write-Error "Set api key for user $username succeeded: $($apiKeyResult.succeeded). $($apiKeyResult.error)"
+    }
+    else {
+        Write-Host "... api key for user $username set successfully"
+    }
 }
 
 $adminToken = ''
@@ -149,8 +172,14 @@ Write-Host "Admin token set as environment variable VC_ADMIN_TOKEN for machine-w
 #set api key for admin user
 SetApiKey -username "$adminUsername" -apiKey "$apiKey" -token "$adminToken"
 
-#create front admin user
-CreateUser -username "$frontAdmin" -password "$frontAdminPassword" -isAdministrator $true -token "$adminToken"
+# create front admin user
+CreateUser -username "$frontAdmin" -password "$frontAdminPassword" -isAdministrator $true -token "$adminToken" -userType 'Administrator' -storeId "$storeId"
 
-#change user password
+# change user passwords
 ResetUserPassword -username "$userEmail" -newPassword "$frontAdminPassword" -token "$adminToken"
+ResetUserPassword -username "$adminUsername" -newPassword "$newAdminPassword" -token "$adminToken"
+
+# create test users
+CreateUser -username "$testUser1" -password "$testUserPassword" -isAdministrator $false -token "$adminToken" -storeId "$storeId"
+CreateUser -username "$testUser2" -password "$testUserPassword" -isAdministrator $false -token "$adminToken" -storeId "$storeId"
+CreateUser -username "$testUser3" -password "$testUserPassword" -isAdministrator $false -token "$adminToken" -storeId "$storeId"
