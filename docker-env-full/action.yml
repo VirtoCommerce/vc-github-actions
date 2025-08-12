@@ -143,6 +143,7 @@ runs:
         
         # Install sqlpackage using dotnet tool
         Write-Host "Installing sqlpackage..."
+        dotnet nuget add source https://api.nuget.org/v3/index.json
         dotnet tool update -g microsoft.sqlpackage
         
         # Install sqlcmd using dotnet tool (if available) or use alternative method
