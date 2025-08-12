@@ -134,36 +134,16 @@ runs:
         docker compose --project-name virtocommerce up -d vc-db es
         Write-Host "`e[32mDatabase and Elasticsearch containers started."
 
-    - name: Install SQL Server tools
-      if: ${{ inputs.bacpacFileUrl != '' }}
-      working-directory: ${{ github.action_path }}
-      shell: pwsh
-      run: |
-        Write-Host "`e[33mInstalling SQL Server tools..."
-        
-        # Install sqlpackage using dotnet tool
-        Write-Host "Installing sqlpackage..."
-        dotnet nuget add source https://api.nuget.org/v3/index.json
-        dotnet tool update -g microsoft.sqlpackage
-        
-        # Install sqlcmd using dotnet tool (if available) or use alternative method
-        Write-Host "Installing sqlcmd..."
-        try {
-            dotnet tool update -g microsoft.sqlcmd
-        }
-        catch {
-            Write-Host "sqlcmd not available as dotnet tool, will use alternative method if needed"
-        }
-        
-        Write-Host "`e[32mSQL Server tools installed successfully."
-
     - name: Import bacpac file to database
       if: ${{ inputs.bacpacFileUrl != '' }}
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
+        # Install sqlpackage using dotnet tool
+        Write-Host "Installing sqlpackage..."
+        dotnet tool update -g microsoft.sqlpackage
+
         Write-Host "`e[33mImport bacpac file step started."
-        
         # Wait for SQL Server to be ready
         Write-Host "Waiting for SQL Server to be ready..."
         $maxAttempts = 30
@@ -204,22 +184,6 @@ runs:
         # Import bacpac file using sqlpackage
         Write-Host "Importing bacpac file to database..."
         $databaseName = "VirtoCommerce3docker"
-        
-        # Check if database exists and drop it if it does
-        $dropDbQuery = "IF DB_ID('$databaseName') IS NOT NULL DROP DATABASE [$databaseName]"
-        try {
-            sqlcmd -S localhost,1433 -U sa -P "v!rto_Labs!" -Q $dropDbQuery -C
-        }
-        catch {
-            # If sqlcmd is not available, use PowerShell to drop database
-            Write-Host "Using PowerShell to drop database..."
-            $connection = New-Object System.Data.SqlClient.SqlConnection
-            $connection.ConnectionString = "Server=localhost,1433;Database=master;User Id=sa;Password=v!rto_Labs!;TrustServerCertificate=True;"
-            $connection.Open()
-            $command = New-Object System.Data.SqlClient.SqlCommand($dropDbQuery, $connection)
-            $command.ExecuteNonQuery()
-            $connection.Close()
-        }
         
         # Import the bacpac file using dotnet tool version of sqlpackage
         sqlpackage /Action:Import /SourceFile:$bacpacFileName /TargetServerName:localhost,1433 /TargetDatabaseName:$databaseName /TargetUser:sa /TargetPassword:v!rto_Labs! /p:TrustServerCertificate=True
