@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "ncc build index.js --out dist --minify --source-map --license LICENSES"
   },
   "keywords": [],
   "author": "",
@@ -14,5 +15,11 @@
     "@actions/exec": "^1.0.4",
     "@actions/github": "^4.0.0",
     "@virtocommerce/vc-actions-lib": "^1.2.6"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.1",
+    "@vercel/ncc": "^0.38.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
   }
 }
