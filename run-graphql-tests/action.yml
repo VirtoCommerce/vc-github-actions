@@ -103,11 +103,10 @@ runs:
       env:
         TEST_SECRET_ENV_FILE: ${{ inputs.testSecretEnvFile }}
       run: |
+        echo "Creating .env file..."
         cd ${{ inputs.vctestingPath }}
-        echo "Creating .env file"
         echo "$TEST_SECRET_ENV_FILE" > .env
         chmod 600 .env
-        cat .env
         echo "..Done."
 
     - name: Install dependencies
