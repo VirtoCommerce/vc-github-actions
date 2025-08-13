@@ -151,7 +151,7 @@ runs:
       run: |
         echo "Running GraphQL tests against ${{ inputs.baseUrl }}"
         cd ${{ inputs.vctestingPath }}
-        pytest tests_graphql/tests/ --browser ${{ inputs.browser }} --html=graphql-report.html --self-contained-html --tracing=retain-on-failure -v -s
+        pytest tests_graphql/tests/ --browser ${{ inputs.browser }} --html=graphql-report.html --self-contained-html --tracing=retain-on-failure #-v -s
 
     - name: Upload test results
       if: always()
