@@ -94,6 +94,16 @@ runs:
         ref: ${{ inputs.vctestingRepoBranch }}
         path: ${{ inputs.vctestingPath }}
 
+    - name: Create .env file
+      shell: bash
+      run: |
+        cd ${{ inputs.vctestingPath }}
+        Write-Host "Creating .env file"
+        echo "${{ secrets.TEST_SECRET_ENV_FILE_4GRAPHQLTESTS }}" > .env
+        chmod 600 .env
+        cat .env
+        Write-Host "..Done."
+
     - name: Install dependencies
       shell: bash
       run: |
