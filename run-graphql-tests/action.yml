@@ -61,6 +61,10 @@ inputs:
     description: 'Browser'
     required: true
     type: string
+  testSecretEnvFile:
+    description: 'Test secret environment file content'
+    required: true
+    type: string
 runs:
   using: "composite"
   steps:
@@ -96,10 +100,12 @@ runs:
 
     - name: Create .env file
       shell: bash
+      env:
+        TEST_SECRET_ENV_FILE: ${{ inputs.testSecretEnvFile }}
       run: |
         cd ${{ inputs.vctestingPath }}
         Write-Host "Creating .env file"
-        echo "${{ secrets.TEST_SECRET_ENV_FILE_4GRAPHQLTESTS }}" > .env
+        echo "$TEST_SECRET_ENV_FILE" > .env
         chmod 600 .env
         cat .env
         Write-Host "..Done."
