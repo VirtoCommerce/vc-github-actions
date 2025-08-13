@@ -109,6 +109,20 @@ runs:
         chmod 600 .env
         echo "..Done."
 
+    - name: Update .env file with local backend URL
+      shell: bash
+      run: |
+        echo "Updating .env file to use local backend URL..."
+        cd ${{ inputs.vctestingPath }}
+        
+        # Replace any BACKEND_BASE_URL value with localhost URL
+        sed -i 's|^BACKEND_BASE_URL=.*|BACKEND_BASE_URL=http://localhost:8090|g' .env
+        sed -i 's|^FRONTEND_BASE=.*|FRONTEND_BASE=http://localhost|g' .env
+        
+        echo "Updated .env content:"
+        cat .env
+        echo "..Done."
+
     - name: Upload .env file for debugging
       if: always()
       uses: actions/upload-artifact@v4
@@ -116,7 +130,7 @@ runs:
         name: .env-file-for-debugging
         path: |
           ${{ inputs.vctestingPath }}/.env
-        retention-days: 30
+        retention-days: 3
         include-hidden-files: true
 
     - name: Install dependencies
