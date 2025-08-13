@@ -117,7 +117,8 @@ runs:
         
         # Replace any BACKEND_BASE_URL value with localhost URL
         sed -i 's|^BACKEND_BASE_URL=.*|BACKEND_BASE_URL=http://localhost:8090|g' .env
-        sed -i 's|^FRONTEND_BASE=.*|FRONTEND_BASE=http://localhost|g' .env
+        # Replace any FRONTEND_BASE_URL value with localhost URL
+        sed -i 's|^FRONTEND_BASE_URL=.*|FRONTEND_BASE_URL=http://localhost|g' .env
         
         echo "Updated .env content:"
         cat .env
