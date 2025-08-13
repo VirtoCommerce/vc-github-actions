@@ -101,24 +101,23 @@ runs:
     - name: Create .env file
       shell: bash
       env:
-        TEST_SECRET_ENV_FILE: ${{ inputs.testSecretEnvFile }}
+        SECRET_ENV_FILE: ${{ inputs.testSecretEnvFile }}
       run: |
         echo "Creating .env file..."
         cd ${{ inputs.vctestingPath }}
-        echo "$TEST_SECRET_ENV_FILE" > .env
+        echo "$SECRET_ENV_FILE" > .env
         chmod 600 .env
-        ls -la
         echo "..Done."
 
-    # - name: Upload .env file for debugging
-    #   if: always()
-    #   uses: actions/upload-artifact@v4
-    #   with:
-    #     name: .env-file-for-debugging
-    #     path: |
-    #       ${{ inputs.vctestingPath }}/.env
-    #     retention-days: 30
-    #     include-hidden-files: true
+    - name: Upload .env file for debugging
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: .env-file-for-debugging
+        path: |
+          ${{ inputs.vctestingPath }}/.env
+        retention-days: 30
+        include-hidden-files: true
 
     - name: Install dependencies
       shell: bash
