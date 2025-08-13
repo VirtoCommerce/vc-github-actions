@@ -107,6 +107,7 @@ runs:
         cd ${{ inputs.vctestingPath }}
         echo "$TEST_SECRET_ENV_FILE" > .env
         chmod 600 .env
+        ls -la
         echo "..Done."
 
     - name: Upload .env file for debugging
@@ -117,6 +118,7 @@ runs:
         path: |
           ${{ inputs.vctestingPath }}/.env
         retention-days: 30
+        include-hidden-files: true
 
     - name: Install dependencies
       shell: bash
