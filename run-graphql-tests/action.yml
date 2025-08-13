@@ -110,15 +110,15 @@ runs:
         ls -la
         echo "..Done."
 
-    - name: Upload .env file for debugging
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: .env-file-for-debugging
-        path: |
-          ${{ inputs.vctestingPath }}/.env
-        retention-days: 30
-        include-hidden-files: true
+    # - name: Upload .env file for debugging
+    #   if: always()
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: .env-file-for-debugging
+    #     path: |
+    #       ${{ inputs.vctestingPath }}/.env
+    #     retention-days: 30
+    #     include-hidden-files: true
 
     - name: Install dependencies
       shell: bash
