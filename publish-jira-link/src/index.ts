@@ -31,6 +31,13 @@ async function run(): Promise<void> {
     let body = currentPr.data.body ?? "";
 
     const jiraLinks = jiraKeys.map((key) => baseUrl.concat(key)).filter((jiraLink) => !body.includes(jiraLink));
+
+    // Check if there are any new links to add
+    if (jiraLinks.length === 0) {
+        console.log("All Jira links already exist in PR body. No updates needed.");
+        return;
+    }
+
     const publishString = downloadComment.concat("\n").concat(jiraLinks.join("\n"));
 
     if (body.includes(downloadComment)) {

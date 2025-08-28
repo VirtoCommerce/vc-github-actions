@@ -10456,6 +10456,10 @@ function run() {
                     currentPr = _g.sent();
                     body = (_d = currentPr.data.body) !== null && _d !== void 0 ? _d : "";
                     jiraLinks = jiraKeys.map(function (key) { return baseUrl.concat(key); }).filter(function (jiraLink) { return !body.includes(jiraLink); });
+                    if (jiraLinks.length === 0) {
+                        console.log("All Jira links already exist in PR body. No updates needed.");
+                        return [2];
+                    }
                     publishString = downloadComment.concat("\n").concat(jiraLinks.join("\n"));
                     if (body.includes(downloadComment)) {
                         console.log("Download comment already exists in PR body");
