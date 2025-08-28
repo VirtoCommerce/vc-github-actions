@@ -1,4 +1,4 @@
-name: 'Get Associated PR'
+name: 'Get PR number'
 description: 'Get the PR number associated with a branch'
 inputs:
   repo:
