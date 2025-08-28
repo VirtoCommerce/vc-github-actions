@@ -31,7 +31,7 @@ async function run(): Promise<void> {
     let body = currentPr.data.body ?? "";
 
     const jiraLinks = jiraKeys.map((key) => baseUrl.concat(key)).filter((jiraLink) => !body.includes(jiraLink));
-    const publishString = downloadComment.concat(jiraLinks);
+    const publishString = downloadComment.concat("\n").concat(jiraLinks.join("\n"));
 
     if (body.includes(downloadComment)) {
         body = body.replace(downloadComment, publishString);
