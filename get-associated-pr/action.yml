@@ -23,14 +23,16 @@ runs:
         # Find PR for the current branch
         $openPrsJson = gh pr list --repo ${{ inputs.repo }} --head ${{ inputs.branch }} --state open --json "number,headRefName,baseRefName"
         $openPrs = $openPrsJson | ConvertFrom-Json
-        $prNumber = $openPrs[0].number
-        if (!$openPrs) {
+        
+        if (!$openPrs -or $openPrs.Count -eq 0) {
             Write-Host "No open PR for branch ${{ inputs.branch }}"
-            echo "prNumber=" >> $GITHUB_OUTPUT
+            echo "prNumber=" >> $env:GITHUB_OUTPUT
             exit 0
         }
+        
+        $prNumber = $openPrs[0].number
         Write-Host "Found PR number: $prNumber"
-        echo "prNumber=$prNumber" >> $GITHUB_OUTPUT
+        echo "prNumber=$prNumber" >> $env:$GITHUB_OUTPUT
 
         # $prBody = $(gh pr view $prNumber --repo ${{ inputs.repo }} --json body | ConvertFrom-Json).body
         # if ($prBody -match 'https:\/\/vc3prerelease.blob.core.windows.net\/packages\/(\S+)') {
