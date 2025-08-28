@@ -10426,7 +10426,7 @@ var github = __importStar(__nccwpck_require__(5760));
 var core = __importStar(__nccwpck_require__(1120));
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var GITHUB_TOKEN, repoOrg, branchName, baseUrl, downloadComment, octokit, jiraKeyRgx, jiraKeys, currentPr, body, jiraLinks, publishString;
+        var GITHUB_TOKEN, repoOrg, branchName, baseUrl, jiraComment, octokit, jiraKeyRgx, jiraKeys, currentPr, body, jiraLinks, publishString;
         var _a, _b, _c, _d, _e, _f;
         return __generator(this, function (_g) {
             switch (_g.label) {
@@ -10439,7 +10439,7 @@ function run() {
                     repoOrg = core.getInput("repoOrg");
                     branchName = core.getInput("branchName");
                     baseUrl = core.getInput("baseURL");
-                    downloadComment = core.getInput("downloadComment");
+                    jiraComment = core.getInput("downloadComment");
                     octokit = github.getOctokit(GITHUB_TOKEN);
                     jiraKeyRgx = /((([A-Z]+)|([0-9]+))+-\d+)/g;
                     jiraKeys = (_a = branchName.match(jiraKeyRgx)) !== null && _a !== void 0 ? _a : [];
@@ -10460,13 +10460,13 @@ function run() {
                         console.log("All Jira links already exist in PR body. No updates needed.");
                         return [2];
                     }
-                    publishString = downloadComment.concat("\n").concat(jiraLinks.join("\n"));
-                    if (body.includes(downloadComment)) {
-                        console.log("Download comment already exists in PR body");
-                        body = body.replace(downloadComment, publishString);
+                    publishString = jiraComment.concat("\n").concat(jiraLinks.join("\n"));
+                    if (body.includes(jiraComment)) {
+                        console.log("Jira comment already exists in PR body. Adding new link(s).");
+                        body = body.replace(jiraComment, publishString);
                     }
                     else {
-                        console.log("Download comment does not exist in PR body");
+                        console.log("Jira comment does not exist in PR body. Adding new comment.");
                         body += "\n" + publishString;
                     }
                     octokit.pulls.update({
