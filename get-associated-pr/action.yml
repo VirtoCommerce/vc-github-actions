@@ -48,5 +48,6 @@ runs:
         #     exit 1
         # }
     - name: Check ouput
+      shell: pwsh
       run: |
         echo "prNumber from ouput: ${{ steps.get-pr.outputs.prNumber }}""
