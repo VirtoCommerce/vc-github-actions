@@ -50,4 +50,4 @@ runs:
     - name: Check ouput
       shell: pwsh
       run: |
-        echo "prNumber from ouput: ${{ steps.get-pr.outputs.prNumber }}""
+        echo "prNumber from ouput: ${{ steps.get-pr.outputs.prNumber }}"
