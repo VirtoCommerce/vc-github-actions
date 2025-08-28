@@ -47,4 +47,6 @@ runs:
         #     Write-Host "Error: Failed to update PR body"
         #     exit 1
         # }
-        
+    - name: Check ouput
+      run: |
+        echo "prNumber from ouput: ${{ steps.get-pr.outputs.prNumber }}""
