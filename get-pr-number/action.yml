@@ -20,6 +20,14 @@ runs:
       id: get-pr
       shell: pwsh
       run: |
+        # Get PR number from GH context
+        $prNumber = ${{ github.event.pull_request.number }}
+        if ($prNumber) {
+            Write-Host "Found PR number from GH context: $prNumber"
+            echo "prNumber=$prNumber" >> $env:GITHUB_OUTPUT
+            exit 0
+        }
+
         # Find PR for the current branch
         $openPrsJson = gh pr list --repo ${{ inputs.repo }} --head ${{ inputs.branch }} --state open --json "number,headRefName,baseRefName"
         $openPrs = $openPrsJson | ConvertFrom-Json
@@ -29,5 +37,5 @@ runs:
             exit 0
         }
         $prNumber = $openPrs[0].number
-        Write-Host "Found PR number: $prNumber"
+        Write-Host "Found PR number by branch name: $prNumber"
         echo "prNumber=$prNumber" >> $env:GITHUB_OUTPUT
