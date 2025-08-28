@@ -23,6 +23,7 @@ runs:
         # Find PR for the current branch
         $openPrsJson = gh pr list --repo ${{ inputs.repo }} --head ${{ inputs.branch }} --state open --json "number,headRefName,baseRefName"
         $openPrs = $openPrsJson | ConvertFrom-Json
+        $prNumber = $openPrs[0].number
         if (!$openPrs) {
             Write-Host "No open PR for branch ${{ inputs.branch }}"
             echo "prNumber=" >> $env:GITHUB_OUTPUT
