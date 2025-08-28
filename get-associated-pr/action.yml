@@ -32,7 +32,7 @@ runs:
         
         $prNumber = $openPrs[0].number
         Write-Host "Found PR number: $prNumber"
-        echo "prNumber=$prNumber" >> $env:$GITHUB_OUTPUT
+        echo "prNumber=$prNumber" >> $env:GITHUB_OUTPUT
 
         # $prBody = $(gh pr view $prNumber --repo ${{ inputs.repo }} --json body | ConvertFrom-Json).body
         # if ($prBody -match 'https:\/\/vc3prerelease.blob.core.windows.net\/packages\/(\S+)') {
