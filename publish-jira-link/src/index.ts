@@ -34,8 +34,10 @@ async function run(): Promise<void> {
     const publishString = downloadComment.concat("\n").concat(jiraLinks.join("\n"));
 
     if (body.includes(downloadComment)) {
+        console.log("Download comment already exists in PR body");
         body = body.replace(downloadComment, publishString);
     } else {
+        console.log("Download comment does not exist in PR body");
         body += "\n" + publishString;
     }
 
