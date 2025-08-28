@@ -1,0 +1,49 @@
+name: 'Get Associated PR'
+description: 'Get the PR number associated with a branch'
+inputs:
+  repo:
+    description: 'Repository for PR lookup'
+    required: true
+    type: string
+  branch:
+    description: 'Branch for PR lookup'
+    required: true
+    type: string
+outputs:
+  prNumber:
+    description: 'The PR number associated with the branch'
+    value: ${{ steps.get-pr.outputs.prNumber }}
+runs:
+  using: "composite"
+  steps:
+    - name: Get PR number for branch
+      id: get-pr
+      shell: pwsh
+      run: |
+        # Find PR for the current branch
+        $openPrsJson = gh pr list --repo ${{ inputs.repo }} --head ${{ inputs.branch }} --state open --json "number,headRefName,baseRefName"
+        $openPrs = $openPrsJson | ConvertFrom-Json
+        if (!$openPrs) {
+            Write-Host "No open PR for branch ${{ inputs.branch }}"
+            echo "prNumber=" >> $env:GITHUB_OUTPUT
+            exit 0
+        }
+        Write-Host "Found PR number: $prNumber"
+        echo "prNumber=$prNumber" >> $env:GITHUB_OUTPUT
+
+        # $prBody = $(gh pr view $prNumber --repo ${{ inputs.repo }} --json body | ConvertFrom-Json).body
+        # if ($prBody -match 'https:\/\/vc3prerelease.blob.core.windows.net\/packages\/(\S+)') {
+        #     $prUpdatedBody = $prBody.Replace($matches[0], "${{ inputs.blobUrl }}")
+        #     Write-Host "Updated PR body with new blob url: ${{ inputs.blobUrl }}"
+        # } else {
+        #     Write-Warning "No blob url found in PR body. Skipping update."
+        #     exit 0
+        # }
+
+        # # Update PR body
+        # gh pr edit $prNumber --repo ${{ inputs.repo }} --body $prUpdatedBody
+        # if ($lastExitCode -ne 0) {
+        #     Write-Host "Error: Failed to update PR body"
+        #     exit 1
+        # }
+        
