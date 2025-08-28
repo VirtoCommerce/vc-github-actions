@@ -21,7 +21,7 @@ The PR number associated with the branch. Empty string if no PR is found.
 ```yaml
 - name: Get Associated PR
   id: get-pr
-  uses: ./.github/actions/get-associated-pr
+  uses: ./.github/actions/get-pr-number
   with:
     repo: ${{ github.repository }}
     branch: ${{ github.head_ref }}
@@ -52,7 +52,7 @@ jobs:
 
       - name: Get Associated PR
         id: get-pr
-        uses: ./.github/actions/get-associated-pr
+        uses: ./.github/actions/get-pr-number
         with:
           repo: ${{ github.repository }}
           branch: ${{ github.head_ref }}
