@@ -11,7 +11,7 @@ async function run(): Promise<void> {
     const repoOrg = core.getInput("repoOrg");
     const branchName = core.getInput("branchName");
     const baseUrl = core.getInput("baseURL");
-    const downloadComment = core.getInput("downloadComment");
+    const jiraComment = core.getInput("downloadComment");
     const octokit = github.getOctokit(GITHUB_TOKEN);
 
     const jiraKeyRgx = /((([A-Z]+)|([0-9]+))+-\d+)/g;
@@ -31,11 +31,20 @@ async function run(): Promise<void> {
     let body = currentPr.data.body ?? "";
 
     const jiraLinks = jiraKeys.map((key) => baseUrl.concat(key)).filter((jiraLink) => !body.includes(jiraLink));
-    const publishString = downloadComment.concat(jiraLinks);
 
-    if (body.includes(downloadComment)) {
-        body = body.replace(downloadComment, publishString);
+    // Check if there are any new links to add
+    if (jiraLinks.length === 0) {
+        console.log("All Jira links already exist in PR body. No updates needed.");
+        return;
+    }
+
+    const publishString = jiraComment.concat("\n").concat(jiraLinks.join("\n"));
+
+    if (body.includes(jiraComment)) {
+        console.log("Jira comment already exists in PR body. Adding new link(s).");
+        body = body.replace(jiraComment, publishString);
     } else {
+        console.log("Jira comment does not exist in PR body. Adding new comment.");
         body += "\n" + publishString;
     }
 
