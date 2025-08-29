@@ -1,0 +1,40 @@
+name: 'Get PR number'
+description: 'Get the PR number associated with a branch'
+inputs:
+  repo:
+    description: 'Repository for PR lookup'
+    required: true
+    type: string
+  branch:
+    description: 'Branch for PR lookup'
+    required: true
+    type: string
+outputs:
+  prNumber:
+    description: 'The PR number associated with the branch'
+    value: ${{ steps.get-pr.outputs.prNumber }}
+runs:
+  using: "composite"
+  steps:
+    - name: Get PR number for branch
+      id: get-pr
+      shell: pwsh
+      run: |
+        # Get PR number from GH context
+        $prNumber = ${{ github.event.pull_request.number }}
+        if ($prNumber) {
+            Write-Host "Found PR number from GH context: $prNumber"
+            echo "prNumber=$prNumber" >> $env:GITHUB_OUTPUT
+            exit 0
+        }
+        # Find PR for the current branch
+        $openPrsJson = gh pr list --repo ${{ inputs.repo }} --head ${{ inputs.branch }} --state open --json "number,headRefName,baseRefName"
+        $openPrs = $openPrsJson | ConvertFrom-Json
+        if (!$openPrs -or $openPrs.Count -eq 0) {
+            Write-Host "No open PR for branch ${{ inputs.branch }}"
+            echo "prNumber=" >> $env:GITHUB_OUTPUT
+            exit 0
+        }
+        $prNumber = $openPrs[0].number
+        Write-Host "Found PR number by branch name: $prNumber"
+        echo "prNumber=$prNumber" >> $env:GITHUB_OUTPUT
