@@ -59,7 +59,7 @@ runs:
 
     - name: Build documentation using build.ps1
       shell: pwsh
-      working-directory: ${{ github.workspace }}/vc-docs
+      working-directory: ${{ github.workspace }}
       run: |
         # Run the existing build script
         ./build.ps1
@@ -73,7 +73,7 @@ runs:
     - name: Check deployment configuration
       id: check-version
       shell: bash
-      working-directory: ${{ github.workspace }}/vc-docs
+      working-directory: ${{ github.workspace }}
       run: |
         if ./check-version-update.sh; then
           echo "should_deploy=true" >> $GITHUB_OUTPUT
@@ -89,7 +89,7 @@ runs:
     - name: Deploy versioned documentation
       if: steps.check-version.outputs.should_deploy == 'true'
       shell: bash
-      working-directory: ${{ github.workspace }}/vc-docs
+      working-directory: ${{ github.workspace }}
       run: |
         echo "🚀 Deploying from configuration file..."
         # Check if it's a new version or update to existing
@@ -108,7 +108,7 @@ runs:
     - name: List deployed versions
       if: steps.check-version.outputs.should_deploy == 'true'
       shell: bash
-      working-directory: ${{ github.workspace }}/vc-docs
+      working-directory: ${{ github.workspace }}
       run: |
         echo "📚 Currently deployed versions:"
         mike list
