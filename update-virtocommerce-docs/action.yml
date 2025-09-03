@@ -117,8 +117,9 @@ runs:
     - name: Check deployment configuration
       id: check-version
       shell: bash
-      working-directory: ${{ github.workspace }}
+      working-directory: ${{ github.workspace }}/vc-docs
       run: |
+        # Run the check script from the repository
         if ./check-version-update.sh; then
           echo "should_deploy=true" >> $GITHUB_OUTPUT
           # Export version info for next steps
@@ -133,26 +134,30 @@ runs:
     - name: Deploy versioned documentation
       if: steps.check-version.outputs.should_deploy == 'true'
       shell: bash
-      working-directory: ${{ github.workspace }}
+      working-directory: ${{ github.workspace }}/vc-docs
       run: |
         echo "🚀 Deploying from configuration file..."
+        
         # Check if it's a new version or update to existing
         if [ -f ".last-deployed-version" ]; then
           LAST_VERSION=$(cat ".last-deployed-version")
           CURRENT_VERSION=$(jq -r '.version' version-config.json)
           if [ "$CURRENT_VERSION" = "$LAST_VERSION" ]; then
+            echo "🔄 Updating existing version $CURRENT_VERSION"
             ./deploy-from-config.sh --push --update-existing
           else
+            echo "📦 Deploying new version $CURRENT_VERSION"
             ./deploy-from-config.sh --push
           fi
         else
+          echo "📦 First deployment"
           ./deploy-from-config.sh --push
         fi
 
     - name: List deployed versions
       if: steps.check-version.outputs.should_deploy == 'true'
       shell: bash
-      working-directory: ${{ github.workspace }}
+      working-directory: ${{ github.workspace }}/vc-docs
       run: |
         echo "📚 Currently deployed versions:"
         mike list
