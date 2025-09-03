@@ -136,23 +136,66 @@ runs:
       shell: bash
       working-directory: ${{ github.workspace }}/vc-docs
       run: |
-        echo "🚀 Deploying from configuration file..."
+        echo "🚀 Deploying versioned documentation..."
         
-        # Check if it's a new version or update to existing
-        if [ -f ".last-deployed-version" ]; then
-          LAST_VERSION=$(cat ".last-deployed-version")
-          CURRENT_VERSION=$(jq -r '.version' version-config.json)
-          if [ "$CURRENT_VERSION" = "$LAST_VERSION" ]; then
-            echo "🔄 Updating existing version $CURRENT_VERSION"
-            ./deploy-from-config.sh --push --update-existing
-          else
-            echo "📦 Deploying new version $CURRENT_VERSION"
-            ./deploy-from-config.sh --push
-          fi
-        else
-          echo "📦 First deployment"
-          ./deploy-from-config.sh --push
+        # Get version from config
+        VERSION=$(jq -r '.version' version-config.json)
+        ALIAS=$(jq -r '.alias' version-config.json)
+        SET_DEFAULT=$(jq -r '.setDefault' version-config.json)
+        
+        # Since build.ps1 already built the site, we'll manually create versioned structure
+        # instead of using mike deploy which tries to rebuild
+        
+        # Initialize or fetch gh-pages branch
+        if ! git show-ref --verify --quiet refs/heads/gh-pages; then
+          echo "📦 Creating gh-pages branch..."
+          git checkout --orphan gh-pages
+          git rm -rf . || true
+          echo "# Versioned Documentation" > README.md
+          git add README.md
+          git commit -m "Initial gh-pages commit"
+          git checkout feature/structure_redesign
         fi
+        
+        # Switch to gh-pages and update
+        git checkout gh-pages
+        
+        # Copy built site to version directory
+        mkdir -p "$VERSION"
+        cp -r site/* "$VERSION/"
+        
+        # Create/update alias if specified
+        if [ "$ALIAS" != "null" ] && [ "$ALIAS" != "" ]; then
+          rm -rf "$ALIAS" || true
+          ln -s "$VERSION" "$ALIAS"
+        fi
+        
+        # Create version selector (simple index.html)
+        if [ "$SET_DEFAULT" = "true" ]; then
+          cat > index.html << EOF
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta http-equiv="refresh" content="0; url=$VERSION/">
+            <title>Redirecting to latest documentation</title>
+        </head>
+        <body>
+            <p>Redirecting to <a href="$VERSION/">latest documentation</a>...</p>
+        </body>
+        </html>
+        EOF
+        fi
+        
+        # Commit and push changes
+        git add -A
+        git commit -m "Deploy version $VERSION" || echo "No changes to commit"
+        git push origin gh-pages
+        
+        # Switch back to feature branch
+        git checkout feature/structure_redesign
+        
+        echo "✅ Successfully deployed version $VERSION"
 
     - name: List deployed versions
       if: steps.check-version.outputs.should_deploy == 'true'
@@ -160,7 +203,9 @@ runs:
       working-directory: ${{ github.workspace }}/vc-docs
       run: |
         echo "📚 Currently deployed versions:"
-        mike list
+        git checkout gh-pages --quiet
+        ls -d */ 2>/dev/null | sed 's/\///' || echo "No versions deployed yet"
+        git checkout feature/structure_redesign --quiet
 
     - name: Prepare versioned content for Docker build
       if: steps.check-version.outputs.should_deploy == 'true'
