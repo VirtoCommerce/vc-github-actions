@@ -32,11 +32,12 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0  # Need full history for mike
-
+    - name: Clone vc-docs repository
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      run: |
+        git clone https://github.com/VirtoCommerce/vc-docs --branch "feature/structure_redesign"
+        
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
@@ -59,13 +60,14 @@ runs:
 
     - name: Build documentation using build.ps1
       shell: pwsh
-      working-directory: ${{ github.workspace }}
+      working-directory: ${{ github.workspace }}/vc-docs
       run: |
         # Run the existing build script
         ./build.ps1
 
     - name: Download existing gh-pages (if exists)
       shell: bash
+      working-directory: ${{ github.workspace }}/vc-docs
       run: |
         # Try to fetch existing gh-pages branch to preserve old versions
         git fetch origin gh-pages:gh-pages || echo "No existing gh-pages branch"
@@ -119,12 +121,12 @@ runs:
       run: |
         # Clone the gh-pages branch content (versioned docs from mike)
         git clone --single-branch --branch gh-pages https://github.com/${{ github.repository }}.git gh-pages-content
-        
+
         # Replace vc-docs/site with versioned content from mike
         rm -rf vc-docs/site
         mkdir -p vc-docs/site
         cp -r gh-pages-content/* vc-docs/site/
-        
+
         echo "✅ Replaced site content with versioned documentation from mike"
         echo "📁 Content structure:"
         ls -la vc-docs/site/
@@ -135,18 +137,18 @@ runs:
       working-directory: ${{ github.workspace }}
       run: |
         dotnet tool install --global VirtoCommerce.GlobalTool
-        
+
         # Get version from config for Docker tag
         cd vc-docs
         $VERSION = (Get-Content version-config.json | ConvertFrom-Json).version
         cd ..
-        
+
         # Copy your existing Docker files (assuming they're in your action path)
         Copy-Item -Path ${{ github.action_path }}/docker/* -Destination ./ -Recurse -Force
-        
+
         # Build and push with versioned tag
         vc-build BuildAndPush -DockerUsername ${{ inputs.dockerUsr }} -DockerPassword ${{ inputs.dockerPwd }} -DockerfilePath ./Dockerfile -DockerImageName ${{ inputs.dockerRegistry }}/vcpt/docs -DockerImageTag "$VERSION-$env:GITHUB_RUN_NUMBER" -DockerRegistryUrl ${{ inputs.dockerRegistry }}
-        
+
         echo "✅ Built and pushed Docker image: ${{ inputs.dockerRegistry }}/vcpt/docs:$VERSION-$env:GITHUB_RUN_NUMBER"
 
     # - name: Deploy to Azure Web App
