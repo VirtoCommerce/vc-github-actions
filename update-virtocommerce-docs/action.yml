@@ -1,4 +1,4 @@
-name: 'Deploy Versioned Documentation'
+name: 'Update docs.virtocommerce.org'
 description: 'Deploy versioned documentation using mike based on version-config.json'
 inputs:
   azureSubscriptionId:
