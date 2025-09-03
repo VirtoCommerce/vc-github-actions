@@ -1,35 +1,49 @@
-name: "virtocommerce.com docs"
+name: "Deploy Versioned Documentation"
 on:
   workflow_dispatch:
   schedule:
     - cron: '30 19 * * *'
+  push:
+    branches:
+      - main
+      - master
+      - feature/structure_redesign
 
 jobs:
   publish:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-           # Number of commits to fetch. 0 indicates all history.
-           # Default: 1
-           fetch-depth: 0    
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.8.x'
+          python-version: '3.10'
 
       - name: Install Dependencies
         run: |
-           pip install mkdocs
-           pip install mkdocs-awesome-pages-plugin mkdocs-git-revision-date-localized-plugin mkdocs-material==9.5.4 mkdocs-minify-plugin mkdocs-redirects pymdown-extensions jinja2 mkdocs-git-revision-date-localized-plugin==0.5 mkdocs-include-markdown-plugin mkdocs-glightbox mkdocs-monorepo-plugin
+           # Core MkDocs
+           pip install mkdocs mkdocs-material==9.5.4
+
+           # Versioning support
+           pip install mike
+
+           # All required plugins
+           pip install mkdocs-awesome-pages-plugin \
+                      mkdocs-git-revision-date-localized-plugin==0.5 \
+                      mkdocs-minify-plugin \
+                      mkdocs-redirects \
+                      pymdown-extensions \
+                      jinja2 \
+                      mkdocs-include-markdown-plugin \
+                      mkdocs-glightbox \
+                      mkdocs-monorepo-plugin
 
       - name: Setup Git Credentials
         uses: VirtoCommerce/vc-github-actions/setup-git-credentials-github@master
-        with: 
+        with:
           githubToken: ${{ secrets.REPO_TOKEN }}
 
-      - name: Update docs
-        uses: VirtoCommerce/vc-github-actions/update-virtocommerce-docs@master
+      - name: Update versioned docs
+        uses: VirtoCommerce/vc-github-actions/update-virtocommerce-docs-versioned@master  # New versioned action
         with:
           azureSubscriptionId: ${{ secrets.AZURESUBSCRIPTIONID }}
           azureResourceGroupName: ${{ secrets.AZURERESOURCEGROUPNAME }}
@@ -41,9 +55,17 @@ jobs:
           dockerUsr: ${{ secrets.VCPT_DOCKER_USER }}
           dockerPwd: ${{ secrets.VCPT_DOCKER_PASSWORD }}
 
-      - name: Deploy
+      - name: Deploy to Virto Cloud
         run: |
+            # Get version from config for tagging
+            if [ -f "vc-docs/version-config.json" ]; then
+              VERSION=$(jq -r '.version' vc-docs/version-config.json)
+              IMAGE_TAG="${VERSION}-${{ github.run_number }}"
+            else
+              IMAGE_TAG="${{ github.run_number }}"
+            fi
+
             dotnet tool update --global VirtoCommerce.GlobalTool
-            vc-build CloudEnvSetParameter -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HelmParameters custom.app1.image.tag=${{ github.run_number }}
+            vc-build CloudEnvSetParameter -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HelmParameters custom.app1.image.tag=$IMAGE_TAG
             vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license  -HealthStatus Progressing
             vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Healthy -SyncStatus Synced

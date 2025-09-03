@@ -36,6 +36,12 @@ runs:
       shell: bash
       working-directory: ${{ github.workspace }}
       run: |
+        # Always clone fresh to ensure clean state
+        if [ -d "vc-docs" ]; then
+          echo "⚠️ Removing existing vc-docs directory"
+          rm -rf vc-docs
+        fi
+        echo "📦 Cloning vc-docs repository (feature/structure_redesign branch)..."
         git clone https://github.com/VirtoCommerce/vc-docs --branch "feature/structure_redesign"
         
     - name: Setup Python
@@ -46,25 +52,37 @@ runs:
     - name: Install dependencies
       shell: bash
       run: |
-        # Install MkDocs and core dependencies
-        pip install mkdocs-material
-        pip install mike
+        # Dependencies might already be installed from workflow, but ensure they are present
+        echo "📦 Checking/Installing dependencies..."
         
-        # Install all required MkDocs plugins
-        pip install mkdocs-monorepo-plugin
-        pip install mkdocs-awesome-pages-plugin
-        pip install mkdocs-git-revision-date-localized-plugin
-        pip install mkdocs-minify-plugin
-        pip install mkdocs-redirects
-        pip install mkdocs-include-markdown-plugin
+        # Check if dependencies already installed
+        if ! command -v mkdocs &> /dev/null; then
+          # Install MkDocs and core dependencies
+          pip install mkdocs-material==9.5.4
+          pip install mike
+          
+          # Install all required MkDocs plugins
+          pip install mkdocs-monorepo-plugin
+          pip install mkdocs-awesome-pages-plugin
+          pip install mkdocs-git-revision-date-localized-plugin
+          pip install mkdocs-minify-plugin
+          pip install mkdocs-redirects
+          pip install mkdocs-include-markdown-plugin
+        else
+          echo "✅ Dependencies already installed"
+        fi
         
         # Try to install from requirements.txt if exists
         if [ -f "vc-docs/requirements.txt" ]; then
           pip install -r vc-docs/requirements.txt
+        elif [ -f "requirements.txt" ]; then
+          pip install -r requirements.txt
         fi
         
-        # Install jq for JSON parsing
-        sudo apt-get update && sudo apt-get install -y jq
+        # Install jq for JSON parsing if not present
+        if ! command -v jq &> /dev/null; then
+          sudo apt-get update && sudo apt-get install -y jq
+        fi
 
     - name: Configure Git for mike
       shell: bash
