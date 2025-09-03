@@ -1,5 +1,5 @@
-name: 'Update docs.virtocommerce.org'
-description: 'Makes and updates documentation for docs.virtocommerce.org'
+name: 'Deploy Versioned Documentation'
+description: 'Deploy versioned documentation using mike based on version-config.json'
 inputs:
   azureSubscriptionId:
     description: "Azure Subscription ID"
@@ -26,39 +26,151 @@ inputs:
     description: "Docker User"
     required: true
   dockerPwd:
-    description: "Docker Passsword"
+    description: "Docker Password"
     required: true
-  
 
 runs:
   using: "composite"
   steps:
-    - name: Build docs
-      shell: pwsh
-      working-directory: ${{ github.workspace }}
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Need full history for mike
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      shell: bash
       run: |
-        #git clone https://github.com/VirtoCommerce/vc-platform.git --branch "master"
-        git clone https://github.com/VirtoCommerce/vc-docs --branch "feature/structure_redesign"
-        cd vc-docs
+        pip install mkdocs-material
+        pip install mike
+        pip install -r requirements.txt || echo "No requirements.txt found"
+        # Install jq for JSON parsing
+        sudo apt-get update && sudo apt-get install -y jq
+
+    - name: Configure Git for mike
+      shell: bash
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+
+    - name: Build documentation using build.ps1
+      shell: pwsh
+      working-directory: ${{ github.workspace }}/vc-docs
+      run: |
+        # Run the existing build script
         ./build.ps1
 
-    - name: Docker
+    - name: Download existing gh-pages (if exists)
+      shell: bash
+      run: |
+        # Try to fetch existing gh-pages branch to preserve old versions
+        git fetch origin gh-pages:gh-pages || echo "No existing gh-pages branch"
+
+    - name: Check deployment configuration
+      id: check-version
+      shell: bash
+      working-directory: ${{ github.workspace }}/vc-docs
+      run: |
+        if ./check-version-update.sh; then
+          echo "should_deploy=true" >> $GITHUB_OUTPUT
+          # Export version info for next steps
+          VERSION=$(jq -r '.version' version-config.json)
+          ALIAS=$(jq -r '.alias' version-config.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "alias=$ALIAS" >> $GITHUB_OUTPUT
+        else
+          echo "should_deploy=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Deploy versioned documentation
+      if: steps.check-version.outputs.should_deploy == 'true'
+      shell: bash
+      working-directory: ${{ github.workspace }}/vc-docs
+      run: |
+        echo "🚀 Deploying from configuration file..."
+        # Check if it's a new version or update to existing
+        if [ -f ".last-deployed-version" ]; then
+          LAST_VERSION=$(cat ".last-deployed-version")
+          CURRENT_VERSION=$(jq -r '.version' version-config.json)
+          if [ "$CURRENT_VERSION" = "$LAST_VERSION" ]; then
+            ./deploy-from-config.sh --push --update-existing
+          else
+            ./deploy-from-config.sh --push
+          fi
+        else
+          ./deploy-from-config.sh --push
+        fi
+
+    - name: List deployed versions
+      if: steps.check-version.outputs.should_deploy == 'true'
+      shell: bash
+      working-directory: ${{ github.workspace }}/vc-docs
+      run: |
+        echo "📚 Currently deployed versions:"
+        mike list
+
+    - name: Prepare versioned content for Docker build
+      if: steps.check-version.outputs.should_deploy == 'true'
+      shell: bash
+      run: |
+        # Clone the gh-pages branch content (versioned docs from mike)
+        git clone --single-branch --branch gh-pages https://github.com/${{ github.repository }}.git gh-pages-content
+        
+        # Replace vc-docs/site with versioned content from mike
+        rm -rf vc-docs/site
+        mkdir -p vc-docs/site
+        cp -r gh-pages-content/* vc-docs/site/
+        
+        echo "✅ Replaced site content with versioned documentation from mike"
+        echo "📁 Content structure:"
+        ls -la vc-docs/site/
+
+    - name: Build and Push Docker Image
+      if: steps.check-version.outputs.should_deploy == 'true'
       shell: pwsh
       working-directory: ${{ github.workspace }}
       run: |
         dotnet tool install --global VirtoCommerce.GlobalTool
-        Copy-Item -Path ${{ github.action_path }}/docker/* -Destination ./ -Recurse -Force
-        vc-build BuildAndPush -DockerUsername ${{ inputs.dockerUsr }} -DockerPassword ${{ inputs.dockerPwd }} -DockerfilePath ./Dockerfile -DockerImageName ${{ inputs.dockerRegistry }}/vcpt/docs -DockerImageTag $env:GITHUB_RUN_NUMBER -DockerRegistryUrl ${{ inputs.dockerRegistry }}
         
-#     - name: Upload docs
-#       shell: pwsh
-#       env: 
-#         AzureSubscriptionIDProd: ${{ inputs.azureSubscriptionId }}
-#         AzureResourceGroupNameProd: ${{ inputs.azureResourceGroupName }}
-#         AzureWebAppNameProd: ${{ inputs.azureWebAppName }}
-#         ArtifactPath: ${{ github.workspace }}/site.zip
-#         AzureAPIKey: ${{ inputs.azureApiKey }}
-#         AzureTenantID: ${{ inputs.azureTenantId }}
-#         AzureAppID: ${{ inputs.azureAppId }}
-#       run: |
-#         pwsh -file ${{ github.action_path }}/scripts/DocsUpdate.ps1
+        # Get version from config for Docker tag
+        cd vc-docs
+        $VERSION = (Get-Content version-config.json | ConvertFrom-Json).version
+        cd ..
+        
+        # Copy your existing Docker files (assuming they're in your action path)
+        Copy-Item -Path ${{ github.action_path }}/docker/* -Destination ./ -Recurse -Force
+        
+        # Build and push with versioned tag
+        vc-build BuildAndPush -DockerUsername ${{ inputs.dockerUsr }} -DockerPassword ${{ inputs.dockerPwd }} -DockerfilePath ./Dockerfile -DockerImageName ${{ inputs.dockerRegistry }}/vcpt/docs -DockerImageTag "$VERSION-$env:GITHUB_RUN_NUMBER" -DockerRegistryUrl ${{ inputs.dockerRegistry }}
+        
+        echo "✅ Built and pushed Docker image: ${{ inputs.dockerRegistry }}/vcpt/docs:$VERSION-$env:GITHUB_RUN_NUMBER"
+
+    # - name: Deploy to Azure Web App
+    #   if: steps.check-version.outputs.should_deploy == 'true'
+    #   shell: bash
+    #   env:
+    #     AzureSubscriptionIDProd: ${{ inputs.azureSubscriptionId }}
+    #     AzureResourceGroupNameProd: ${{ inputs.azureResourceGroupName }}
+    #     AzureWebAppNameProd: ${{ inputs.azureWebAppName }}
+    #     AzureAPIKey: ${{ inputs.azureApiKey }}
+    #     AzureTenantID: ${{ inputs.azureTenantId }}
+    #     AzureAppID: ${{ inputs.azureAppId }}
+    #   run: |
+    #     # Get version from config
+    #     cd vc-docs
+    #     VERSION=$(jq -r '.version' version-config.json)
+    #     DockerImageName="${{ inputs.dockerRegistry }}/vcpt/docs:${VERSION}-${{ github.run_number }}"
+
+    #     # Install Azure CLI
+    #     curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+    #     # Deploy the versioned Docker image
+    #     echo "🚀 Deploying Docker image: $DockerImageName"
+    #     az login --service-principal -u $AzureAppID -p $AzureAPIKey --tenant $AzureTenantID
+    #     az webapp config container set --name $AzureWebAppNameProd --resource-group $AzureResourceGroupNameProd --docker-custom-image-name $DockerImageName
+
+    #     echo "✅ Deployed to Azure Web App: $AzureWebAppNameProd"
