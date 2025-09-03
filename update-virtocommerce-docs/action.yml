@@ -207,10 +207,8 @@ runs:
           exit 1
         fi
         
-        # Clean up temp directory
-        rm -rf /tmp/built-site
-        
         echo "✅ Successfully deployed version $VERSION"
+        echo "📦 Keeping /tmp/built-site for Docker build step"
 
     - name: List deployed versions
       if: steps.check-version.outputs.should_deploy == 'true'
@@ -227,15 +225,39 @@ runs:
       shell: bash
       working-directory: ${{ github.workspace }}/vc-docs
       run: |
-        # The site directory already contains the built documentation from build.ps1
-        # We'll use it as-is for Docker image (single version approach like before)
+        # Debug: Check current directory and site existence
+        echo "📍 Current directory: $(pwd)"
+        echo "📁 Directory contents:"
+        ls -la
         
-        echo "📁 Using built documentation from build.ps1"
+        # Check if site directory exists, if not try to find built documentation
+        if [ ! -d "site" ]; then
+          echo "❌ site directory not found, checking for alternatives..."
+          
+          # Try to find the built documentation in order of preference
+          if [ -d "/tmp/built-site" ]; then
+            echo "📦 Found backup in /tmp/built-site, restoring..."
+            cp -r /tmp/built-site site
+          elif [ -d "../site" ]; then
+            echo "📦 Found site in parent directory, copying..."
+            cp -r ../site .
+          else
+            echo "❌ No built documentation found!"
+            echo "📁 Available directories:"
+            find . -type d -name "*site*" 2>/dev/null || true
+            echo "📁 Checking /tmp for backups:"
+            find /tmp -type d -name "*built*" 2>/dev/null || true
+            echo "📁 Full directory listing:"
+            ls -la
+            exit 1
+          fi
+        else
+          echo "✅ Site directory found in working directory"
+        fi
+        
+        echo "📁 Using built documentation for Docker"
         echo "📁 Site content structure:"
-        ls -la site/ | head -20
-        
-        # The versioning is handled by gh-pages branch
-        # Docker image contains current version only (same as old behavior)
+        ls -la site/ | head -10
 
     - name: Build and Push Docker Image
       if: steps.check-version.outputs.should_deploy == 'true'
@@ -256,6 +278,16 @@ runs:
         vc-build BuildAndPush -DockerUsername ${{ inputs.dockerUsr }} -DockerPassword ${{ inputs.dockerPwd }} -DockerfilePath ./Dockerfile -DockerImageName ${{ inputs.dockerRegistry }}/vcpt/docs -DockerImageTag "$VERSION-$env:GITHUB_RUN_NUMBER" -DockerRegistryUrl ${{ inputs.dockerRegistry }}
 
         echo "✅ Built and pushed Docker image: ${{ inputs.dockerRegistry }}/vcpt/docs:$VERSION-$env:GITHUB_RUN_NUMBER"
+
+    - name: Cleanup temporary files
+      if: steps.check-version.outputs.should_deploy == 'true'
+      shell: bash
+      run: |
+        # Clean up the temp directory now that Docker build is complete
+        if [ -d "/tmp/built-site" ]; then
+          echo "🧹 Cleaning up /tmp/built-site"
+          rm -rf /tmp/built-site
+        fi
 
     # - name: Deploy to Azure Web App
     #   if: steps.check-version.outputs.should_deploy == 'true'
