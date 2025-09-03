@@ -143,8 +143,9 @@ runs:
         ALIAS=$(jq -r '.alias' version-config.json)
         SET_DEFAULT=$(jq -r '.setDefault' version-config.json)
         
-        # Since build.ps1 already built the site, we'll manually create versioned structure
-        # instead of using mike deploy which tries to rebuild
+        # Save the built site before switching branches
+        echo "📦 Saving built documentation..."
+        cp -r site /tmp/built-site || { echo "❌ Error: site directory not found"; exit 1; }
         
         # Initialize or fetch gh-pages branch
         if ! git show-ref --verify --quiet refs/heads/gh-pages; then
@@ -162,7 +163,7 @@ runs:
         
         # Copy built site to version directory
         mkdir -p "$VERSION"
-        cp -r site/* "$VERSION/"
+        cp -r /tmp/built-site/* "$VERSION/"
         
         # Create/update alias if specified
         if [ "$ALIAS" != "null" ] && [ "$ALIAS" != "" ]; then
@@ -192,8 +193,9 @@ runs:
         git commit -m "Deploy version $VERSION" || echo "No changes to commit"
         git push origin gh-pages
         
-        # Switch back to feature branch
+        # Switch back to feature branch and restore site
         git checkout feature/structure_redesign
+        cp -r /tmp/built-site site
         
         echo "✅ Successfully deployed version $VERSION"
 
