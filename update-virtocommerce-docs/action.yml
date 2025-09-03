@@ -1,5 +1,5 @@
 name: 'Update docs.virtocommerce.org'
-description: 'Deploy versioned documentation using mike based on version-config.json'
+description: 'Makes and updates documentation for docs.virtocommerce.org'
 inputs:
   azureSubscriptionId:
     description: "Azure Subscription ID"
@@ -26,291 +26,39 @@ inputs:
     description: "Docker User"
     required: true
   dockerPwd:
-    description: "Docker Password"
+    description: "Docker Passsword"
     required: true
+  
 
 runs:
   using: "composite"
   steps:
-    - name: Clone vc-docs repository
-      shell: bash
+    - name: Build docs
+      shell: pwsh
       working-directory: ${{ github.workspace }}
       run: |
-        # Always clone fresh to ensure clean state
-        if [ -d "vc-docs" ]; then
-          echo "⚠️ Removing existing vc-docs directory"
-          rm -rf vc-docs
-        fi
-        echo "📦 Cloning vc-docs repository (feature/structure_redesign branch)..."
+        #git clone https://github.com/VirtoCommerce/vc-platform.git --branch "master"
         git clone https://github.com/VirtoCommerce/vc-docs --branch "feature/structure_redesign"
-        
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'  # Use specific version for better compatibility
-
-    - name: Install dependencies
-      shell: bash
-      run: |
-        # Dependencies might already be installed from workflow, but ensure they are present
-        echo "📦 Checking/Installing dependencies..."
-        
-        # Check if dependencies already installed
-        if ! command -v mkdocs &> /dev/null; then
-          # Install MkDocs and core dependencies
-          pip install mkdocs-material==9.5.4
-          pip install mike
-          
-          # Install all required MkDocs plugins
-          pip install mkdocs-monorepo-plugin
-          pip install mkdocs-awesome-pages-plugin
-          pip install mkdocs-git-revision-date-localized-plugin
-          pip install mkdocs-minify-plugin
-          pip install mkdocs-redirects
-          pip install mkdocs-include-markdown-plugin
-        else
-          echo "✅ Dependencies already installed"
-        fi
-        
-        # Try to install from requirements.txt if exists
-        if [ -f "vc-docs/requirements.txt" ]; then
-          pip install -r vc-docs/requirements.txt
-        elif [ -f "requirements.txt" ]; then
-          pip install -r requirements.txt
-        fi
-        
-        # Install jq for JSON parsing if not present
-        if ! command -v jq &> /dev/null; then
-          sudo apt-get update && sudo apt-get install -y jq
-        fi
-
-    - name: Configure Git for mike
-      shell: bash
-      run: |
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
-
-    - name: Build documentation using build.ps1
-      shell: pwsh
-      working-directory: ${{ github.workspace }}/vc-docs
-      run: |
-        # Ensure all dependencies are available for build.ps1
-        Write-Host "📦 Building documentation..."
-        
-        # Run the existing build script
+        cd vc-docs
         ./build.ps1
-        
-        if ($LASTEXITCODE -ne 0) {
-          Write-Host "❌ Build failed with exit code: $LASTEXITCODE"
-          Write-Host "Checking Python dependencies..."
-          pip list | Select-String "mkdocs"
-          exit $LASTEXITCODE
-        }
 
-    - name: Download existing gh-pages (if exists)
-      shell: bash
-      working-directory: ${{ github.workspace }}/vc-docs
-      run: |
-        # Try to fetch existing gh-pages branch to preserve old versions
-        git fetch origin gh-pages:gh-pages || echo "No existing gh-pages branch"
-
-    - name: Check deployment configuration
-      id: check-version
-      shell: bash
-      working-directory: ${{ github.workspace }}/vc-docs
-      run: |
-        # Run the check script from the repository
-        if ./check-version-update.sh; then
-          echo "should_deploy=true" >> $GITHUB_OUTPUT
-          # Export version info for next steps
-          VERSION=$(jq -r '.version' version-config.json)
-          ALIAS=$(jq -r '.alias' version-config.json)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "alias=$ALIAS" >> $GITHUB_OUTPUT
-        else
-          echo "should_deploy=false" >> $GITHUB_OUTPUT
-        fi
-
-    - name: Deploy versioned documentation
-      if: steps.check-version.outputs.should_deploy == 'true'
-      shell: bash
-      working-directory: ${{ github.workspace }}/vc-docs
-      run: |
-        echo "🚀 Deploying versioned documentation..."
-        
-        # Get version from config
-        VERSION=$(jq -r '.version' version-config.json)
-        ALIAS=$(jq -r '.alias' version-config.json)
-        SET_DEFAULT=$(jq -r '.setDefault' version-config.json)
-        
-        # Save the built site before switching branches
-        echo "📦 Saving built documentation..."
-        cp -r site /tmp/built-site || { echo "❌ Error: site directory not found"; exit 1; }
-        
-        # Initialize or fetch gh-pages branch
-        if ! git show-ref --verify --quiet refs/heads/gh-pages; then
-          echo "📦 Creating gh-pages branch..."
-          git checkout --orphan gh-pages
-          git rm -rf . || true
-          echo "# Versioned Documentation" > README.md
-          git add README.md
-          git commit -m "Initial gh-pages commit"
-          git checkout feature/structure_redesign
-        fi
-        
-        # Switch to gh-pages and update
-        git checkout gh-pages
-        
-        # Copy built site to version directory
-        mkdir -p "$VERSION"
-        cp -r /tmp/built-site/* "$VERSION/"
-        
-        # Create/update alias if specified
-        if [ "$ALIAS" != "null" ] && [ "$ALIAS" != "" ]; then
-          rm -rf "$ALIAS" || true
-          ln -s "$VERSION" "$ALIAS"
-        fi
-        
-        # Create version selector (simple index.html)
-        if [ "$SET_DEFAULT" = "true" ]; then
-          cat > index.html << EOF
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <meta http-equiv="refresh" content="0; url=$VERSION/">
-            <title>Redirecting to latest documentation</title>
-        </head>
-        <body>
-            <p>Redirecting to <a href="$VERSION/">latest documentation</a>...</p>
-        </body>
-        </html>
-        EOF
-        fi
-        
-        # Commit and push changes
-        git add -A
-        git commit -m "Deploy version $VERSION" || echo "No changes to commit"
-        git push origin gh-pages
-        
-        # Switch back to feature branch and restore site
-        git checkout feature/structure_redesign
-        rm -rf site
-        cp -r /tmp/built-site site
-        
-        # Verify site directory was restored
-        if [ -d "site" ]; then
-          echo "✅ Site directory restored successfully"
-          ls -la site/ | head -5
-        else
-          echo "❌ Failed to restore site directory"
-          exit 1
-        fi
-        
-        echo "✅ Successfully deployed version $VERSION"
-        echo "📦 Keeping /tmp/built-site for Docker build step"
-
-    - name: List deployed versions
-      if: steps.check-version.outputs.should_deploy == 'true'
-      shell: bash
-      working-directory: ${{ github.workspace }}/vc-docs
-      run: |
-        echo "📚 Currently deployed versions:"
-        git checkout gh-pages --quiet
-        ls -d */ 2>/dev/null | sed 's/\///' || echo "No versions deployed yet"
-        git checkout feature/structure_redesign --quiet
-
-    - name: Prepare content for Docker build
-      if: steps.check-version.outputs.should_deploy == 'true'
-      shell: bash
-      working-directory: ${{ github.workspace }}/vc-docs
-      run: |
-        # Debug: Check current directory and site existence
-        echo "📍 Current directory: $(pwd)"
-        echo "📁 Directory contents:"
-        ls -la
-        
-        # Check if site directory exists, if not try to find built documentation
-        if [ ! -d "site" ]; then
-          echo "❌ site directory not found, checking for alternatives..."
-          
-          # Try to find the built documentation in order of preference
-          if [ -d "/tmp/built-site" ]; then
-            echo "📦 Found backup in /tmp/built-site, restoring..."
-            cp -r /tmp/built-site site
-          elif [ -d "../site" ]; then
-            echo "📦 Found site in parent directory, copying..."
-            cp -r ../site .
-          else
-            echo "❌ No built documentation found!"
-            echo "📁 Available directories:"
-            find . -type d -name "*site*" 2>/dev/null || true
-            echo "📁 Checking /tmp for backups:"
-            find /tmp -type d -name "*built*" 2>/dev/null || true
-            echo "📁 Full directory listing:"
-            ls -la
-            exit 1
-          fi
-        else
-          echo "✅ Site directory found in working directory"
-        fi
-        
-        echo "📁 Using built documentation for Docker"
-        echo "📁 Site content structure:"
-        ls -la site/ | head -10
-
-    - name: Build and Push Docker Image
-      if: steps.check-version.outputs.should_deploy == 'true'
+    - name: Docker
       shell: pwsh
       working-directory: ${{ github.workspace }}
       run: |
         dotnet tool install --global VirtoCommerce.GlobalTool
-
-        # Get version from config for Docker tag
-        cd vc-docs
-        $VERSION = (Get-Content version-config.json | ConvertFrom-Json).version
-        cd ..
-
-        # Copy your existing Docker files (assuming they're in your action path)
         Copy-Item -Path ${{ github.action_path }}/docker/* -Destination ./ -Recurse -Force
-
-        # Build and push with versioned tag
-        vc-build BuildAndPush -DockerUsername ${{ inputs.dockerUsr }} -DockerPassword ${{ inputs.dockerPwd }} -DockerfilePath ./Dockerfile -DockerImageName ${{ inputs.dockerRegistry }}/vcpt/docs -DockerImageTag "$VERSION-$env:GITHUB_RUN_NUMBER" -DockerRegistryUrl ${{ inputs.dockerRegistry }}
-
-        echo "✅ Built and pushed Docker image: ${{ inputs.dockerRegistry }}/vcpt/docs:$VERSION-$env:GITHUB_RUN_NUMBER"
-
-    - name: Cleanup temporary files
-      if: steps.check-version.outputs.should_deploy == 'true'
-      shell: bash
-      run: |
-        # Clean up the temp directory now that Docker build is complete
-        if [ -d "/tmp/built-site" ]; then
-          echo "🧹 Cleaning up /tmp/built-site"
-          rm -rf /tmp/built-site
-        fi
-
-    # - name: Deploy to Azure Web App
-    #   if: steps.check-version.outputs.should_deploy == 'true'
-    #   shell: bash
-    #   env:
-    #     AzureSubscriptionIDProd: ${{ inputs.azureSubscriptionId }}
-    #     AzureResourceGroupNameProd: ${{ inputs.azureResourceGroupName }}
-    #     AzureWebAppNameProd: ${{ inputs.azureWebAppName }}
-    #     AzureAPIKey: ${{ inputs.azureApiKey }}
-    #     AzureTenantID: ${{ inputs.azureTenantId }}
-    #     AzureAppID: ${{ inputs.azureAppId }}
-    #   run: |
-    #     # Get version from config
-    #     cd vc-docs
-    #     VERSION=$(jq -r '.version' version-config.json)
-    #     DockerImageName="${{ inputs.dockerRegistry }}/vcpt/docs:${VERSION}-${{ github.run_number }}"
-
-    #     # Install Azure CLI
-    #     curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-
-    #     # Deploy the versioned Docker image
-    #     echo "🚀 Deploying Docker image: $DockerImageName"
-    #     az login --service-principal -u $AzureAppID -p $AzureAPIKey --tenant $AzureTenantID
-    #     az webapp config container set --name $AzureWebAppNameProd --resource-group $AzureResourceGroupNameProd --docker-custom-image-name $DockerImageName
-
-    #     echo "✅ Deployed to Azure Web App: $AzureWebAppNameProd"
+        vc-build BuildAndPush -DockerUsername ${{ inputs.dockerUsr }} -DockerPassword ${{ inputs.dockerPwd }} -DockerfilePath ./Dockerfile -DockerImageName ${{ inputs.dockerRegistry }}/vcpt/docs -DockerImageTag $env:GITHUB_RUN_NUMBER -DockerRegistryUrl ${{ inputs.dockerRegistry }}
+        
+#     - name: Upload docs
+#       shell: pwsh
+#       env: 
+#         AzureSubscriptionIDProd: ${{ inputs.azureSubscriptionId }}
+#         AzureResourceGroupNameProd: ${{ inputs.azureResourceGroupName }}
+#         AzureWebAppNameProd: ${{ inputs.azureWebAppName }}
+#         ArtifactPath: ${{ github.workspace }}/site.zip
+#         AzureAPIKey: ${{ inputs.azureApiKey }}
+#         AzureTenantID: ${{ inputs.azureTenantId }}
+#         AzureAppID: ${{ inputs.azureAppId }}
+#       run: |
+#         pwsh -file ${{ github.action_path }}/scripts/DocsUpdate.ps1
