@@ -207,21 +207,20 @@ runs:
         ls -d */ 2>/dev/null | sed 's/\///' || echo "No versions deployed yet"
         git checkout feature/structure_redesign --quiet
 
-    - name: Prepare versioned content for Docker build
+    - name: Prepare content for Docker build
       if: steps.check-version.outputs.should_deploy == 'true'
       shell: bash
+      working-directory: ${{ github.workspace }}/vc-docs
       run: |
-        # Clone the gh-pages branch content (versioned docs from mike)
-        git clone --single-branch --branch gh-pages https://github.com/${{ github.repository }}.git gh-pages-content
-
-        # Replace vc-docs/site with versioned content from mike
-        rm -rf vc-docs/site
-        mkdir -p vc-docs/site
-        cp -r gh-pages-content/* vc-docs/site/
-
-        echo "✅ Replaced site content with versioned documentation from mike"
-        echo "📁 Content structure:"
-        ls -la vc-docs/site/
+        # The site directory already contains the built documentation from build.ps1
+        # We'll use it as-is for Docker image (single version approach like before)
+        
+        echo "📁 Using built documentation from build.ps1"
+        echo "📁 Site content structure:"
+        ls -la site/ | head -20
+        
+        # The versioning is handled by gh-pages branch
+        # Docker image contains current version only (same as old behavior)
 
     - name: Build and Push Docker Image
       if: steps.check-version.outputs.should_deploy == 'true'
