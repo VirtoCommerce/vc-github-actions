@@ -195,7 +195,20 @@ runs:
         
         # Switch back to feature branch and restore site
         git checkout feature/structure_redesign
+        rm -rf site
         cp -r /tmp/built-site site
+        
+        # Verify site directory was restored
+        if [ -d "site" ]; then
+          echo "✅ Site directory restored successfully"
+          ls -la site/ | head -5
+        else
+          echo "❌ Failed to restore site directory"
+          exit 1
+        fi
+        
+        # Clean up temp directory
+        rm -rf /tmp/built-site
         
         echo "✅ Successfully deployed version $VERSION"
 
