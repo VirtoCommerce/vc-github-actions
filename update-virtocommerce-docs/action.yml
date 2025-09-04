@@ -75,63 +75,66 @@ runs:
         # Fix navigation issues by removing None/null entries
         echo "🔧 Fixing navigation issues..."
         
-        python3 << 'PYTHON_SCRIPT'
-import yaml
-import os
-
-def clean_nav(obj):
-    """Remove None values and empty entries from navigation"""
-    if isinstance(obj, dict):
-        cleaned = {}
-        for key, value in obj.items():
-            cleaned_value = clean_nav(value)
-            if cleaned_value is not None:
-                cleaned[key] = cleaned_value
-        return cleaned if cleaned else None
-    elif isinstance(obj, list):
-        cleaned = []
-        for item in obj:
-            cleaned_item = clean_nav(item)
-            if cleaned_item is not None:
-                cleaned.append(cleaned_item)
-        return cleaned if cleaned else None
-    else:
-        # Return None for null/None values, keep everything else
-        return obj if obj is not None else None
-
-try:
-    with open('mkdocs.yml', 'r') as f:
-        config = yaml.safe_load(f)
-    
-    # Clean navigation
-    if 'nav' in config and config['nav']:
-        print("Cleaning navigation...")
-        cleaned_nav = clean_nav(config['nav'])
-        if cleaned_nav:
-            config['nav'] = cleaned_nav
-        else:
-            # If nav becomes empty, remove it entirely to use auto-discovery
-            del config['nav']
-            print("Navigation was empty, using auto-discovery")
+        cat > fix_nav.py << 'FIXNAV'
+        import yaml
+        import os
         
-        # Backup original
-        with open('mkdocs.yml.bak', 'w') as f:
-            yaml.dump(config, f)
+        def clean_nav(obj):
+            """Remove None values and empty entries from navigation"""
+            if isinstance(obj, dict):
+                cleaned = {}
+                for key, value in obj.items():
+                    cleaned_value = clean_nav(value)
+                    if cleaned_value is not None:
+                        cleaned[key] = cleaned_value
+                return cleaned if cleaned else None
+            elif isinstance(obj, list):
+                cleaned = []
+                for item in obj:
+                    cleaned_item = clean_nav(item)
+                    if cleaned_item is not None:
+                        cleaned.append(cleaned_item)
+                return cleaned if cleaned else None
+            else:
+                # Return None for null/None values, keep everything else
+                return obj if obj is not None else None
         
-        # Write cleaned config
-        with open('mkdocs.yml', 'w') as f:
-            yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
+        try:
+            with open('mkdocs.yml', 'r') as f:
+                config = yaml.safe_load(f)
+            
+            # Clean navigation
+            if 'nav' in config and config['nav']:
+                print("Cleaning navigation...")
+                cleaned_nav = clean_nav(config['nav'])
+                if cleaned_nav:
+                    config['nav'] = cleaned_nav
+                else:
+                    # If nav becomes empty, remove it entirely to use auto-discovery
+                    del config['nav']
+                    print("Navigation was empty, using auto-discovery")
+                
+                # Backup original
+                with open('mkdocs.yml.bak', 'w') as f:
+                    yaml.dump(config, f)
+                
+                # Write cleaned config
+                with open('mkdocs.yml', 'w') as f:
+                    yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
+                
+                print("Navigation cleaned successfully")
+            else:
+                print("No navigation found in mkdocs.yml")
+                
+        except Exception as e:
+            print(f"Warning: Could not clean navigation: {e}")
+            # Restore backup if it exists
+            if os.path.exists('mkdocs.yml.bak'):
+                os.rename('mkdocs.yml.bak', 'mkdocs.yml')
+        FIXNAV
         
-        print("Navigation cleaned successfully")
-    else:
-        print("No navigation found in mkdocs.yml")
-        
-except Exception as e:
-    print(f"Warning: Could not clean navigation: {e}")
-    # Restore backup if it exists
-    if os.path.exists('mkdocs.yml.bak'):
-        os.rename('mkdocs.yml.bak', 'mkdocs.yml')
-PYTHON_SCRIPT
+        python3 fix_nav.py || echo "Could not clean navigation"
+        rm -f fix_nav.py
         
         echo "📦 Preparing for Mike deployment..."
         
@@ -161,25 +164,25 @@ PYTHON_SCRIPT
           else
             echo "⚠️ Mike deploy failed, trying without strict mode..."
             # Try with a minimal config
-            cat > mkdocs-minimal.yml << 'EOF'
-site_name: VirtoCommerce Documentation
-site_url: https://docs.virtocommerce.org
-repo_url: https://github.com/VirtoCommerce/vc-docs
-repo_name: VirtoCommerce/vc-docs
-theme:
-  name: material
-  features:
-    - navigation.tabs
-    - navigation.sections
-    - navigation.expand
-plugins:
-  - search
-  - mike:
-      version_selector: true
-      css_dir: css
-      javascript_dir: js
-      canonical_version: latest
-EOF
+            cat > mkdocs-minimal.yml << 'MINCONFIG'
+        site_name: VirtoCommerce Documentation
+        site_url: https://docs.virtocommerce.org
+        repo_url: https://github.com/VirtoCommerce/vc-docs
+        repo_name: VirtoCommerce/vc-docs
+        theme:
+          name: material
+          features:
+            - navigation.tabs
+            - navigation.sections
+            - navigation.expand
+        plugins:
+          - search
+          - mike:
+              version_selector: true
+              css_dir: css
+              javascript_dir: js
+              canonical_version: latest
+        MINCONFIG
             if mike deploy --config-file mkdocs-minimal.yml --push --update-aliases "$VERSION" "$ALIAS" 2>&1; then
               MIKE_DEPLOYED=true
               echo "✅ Deployed with minimal config"
