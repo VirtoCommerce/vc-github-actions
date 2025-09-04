@@ -21607,6 +21607,7 @@ var __webpack_exports__ = {};
 const core = __nccwpck_require__(1120);
 const github = __nccwpck_require__(5760);
 const exec = __nccwpck_require__(2664);
+const fs = __nccwpck_require__(9896);
 const utils = __nccwpck_require__(8163);
 
 async function getCommitMessages(since) {
