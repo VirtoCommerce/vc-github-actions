@@ -33,14 +33,91 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Build docs
-      shell: pwsh
+    - name: Install dependencies
+      shell: bash
+      run: |
+        # Install jq for JSON processing
+        if ! command -v jq &> /dev/null; then
+          sudo apt-get update && sudo apt-get install -y jq wget
+        fi
+    
+    - name: Build docs with mike versioning
+      shell: bash
       working-directory: ${{ github.workspace }}
       run: |
-        #git clone https://github.com/VirtoCommerce/vc-platform.git --branch "master"
+        # Clone repository with full history for mike
         git clone https://github.com/VirtoCommerce/vc-docs --branch "feature/structure_redesign"
         cd vc-docs
-        ./build.ps1
+        
+        # Configure git for mike pushes
+        git config --global user.email "action@github.com"
+        git config --global user.name "GitHub Action"
+        
+        # Fetch gh-pages branch for mike to work with
+        git fetch origin gh-pages:gh-pages || echo "No gh-pages branch yet, mike will create it"
+        
+        # Make scripts executable
+        chmod +x *.sh
+        
+        # Check deployment configuration
+        if ! ./check-version-update.sh; then
+          echo "⏭️ Skipping deployment - deployment disabled in config"
+          exit 0
+        fi
+        
+        # Read version info
+        VERSION=$(jq -r '.version' version-config.json)
+        ALIAS=$(jq -r '.alias' version-config.json)
+        SET_DEFAULT=$(jq -r '.setDefault' version-config.json)
+        
+        # Check if this version already exists in mike
+        if mike list | grep -q "^$VERSION"; then
+          echo "🔄 Updating existing version $VERSION documentation..."
+          # Update existing version (this overwrites the current version's docs)
+          if [ "$ALIAS" != "null" ] && [ "$ALIAS" != "" ]; then
+            mike deploy --push --update-aliases "$VERSION" "$ALIAS"
+          else
+            mike deploy --push "$VERSION"
+          fi
+        else
+          echo "📦 Deploying NEW version $VERSION..."
+          # Deploy new version
+          if [ "$ALIAS" != "null" ] && [ "$ALIAS" != "" ]; then
+            mike deploy --push --update-aliases "$VERSION" "$ALIAS"
+          else
+            mike deploy --push "$VERSION"
+          fi
+          
+          # Set as default if requested for new versions
+          if [ "$SET_DEFAULT" = "true" ]; then
+            echo "🎯 Setting $VERSION as default version..."
+            mike set-default --push "$VERSION"
+          fi
+        fi
+        
+        # Build site for current version using mkdocs
+        echo "📦 Building static site for Docker deployment..."
+        
+        # Build each documentation section
+        mkdocs build -d ./site
+        mkdocs build -f storefront/mkdocs.yml -d ../site/storefront
+        mkdocs build -f storefront/user-guide/mkdocs.yml -d ../../site/storefront/user-guide
+        mkdocs build -f storefront/developer-guide/mkdocs.yml -d ../../site/storefront/developer-guide
+        mkdocs build -f platform/mkdocs.yml -d ../site/platform
+        mkdocs build -f platform/user-guide/mkdocs.yml -d ../../site/platform/user-guide
+        mkdocs build -f platform/developer-guide/mkdocs.yml -d ../../site/platform/developer-guide
+        mkdocs build -f platform/deployment-on-cloud/mkdocs.yml -d ../../site/platform/deployment-on-cloud
+        mkdocs build -f marketplace/mkdocs.yml -d ../site/marketplace
+        mkdocs build -f marketplace/user-guide/mkdocs.yml -d ../../site/marketplace/user-guide
+        mkdocs build -f marketplace/developer-guide/mkdocs.yml -d ../../site/marketplace/developer-guide
+        
+        # Add version selector from mike's gh-pages
+        if [ -d "../.git" ]; then
+          git checkout gh-pages -- versions.json 2>/dev/null || echo "No versions.json yet"
+          if [ -f "versions.json" ]; then
+            cp versions.json site/
+          fi
+        fi
 
     - name: Docker
       shell: pwsh

@@ -43,7 +43,7 @@ jobs:
           githubToken: ${{ secrets.REPO_TOKEN }}
 
       - name: Update versioned docs
-        uses: VirtoCommerce/vc-github-actions/update-virtocommerce-docs@master  # New versioned action
+        uses: VirtoCommerce/vc-github-actions/update-virtocommerce-docs@master
         with:
           azureSubscriptionId: ${{ secrets.AZURESUBSCRIPTIONID }}
           azureResourceGroupName: ${{ secrets.AZURERESOURCEGROUPNAME }}
