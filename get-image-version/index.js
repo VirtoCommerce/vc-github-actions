@@ -10,7 +10,7 @@ const validProjectTypes = [
     utils.projectTypeStorefront
 ];
 
-function pushOutputs(branchName, prefix, suffix, moduleId, moduleDescription="", projectUrl="", iconUrl="") {
+function pushOutputs(branchName, prefix, suffix, moduleId, moduleDescription = "", projectUrl = "", iconUrl = "") {
     branchName = branchName.substring(branchName.lastIndexOf('/') + 1, branchName.length).toLowerCase();
     const sha = github.context.eventName.startsWith('pull_request') ? github.context.payload.pull_request.head.sha.substring(0, 8) : github.context.sha.substring(0, 8);
     const fullSuffix = (suffix) ? suffix + '-' + branchName : branchName;
@@ -43,7 +43,7 @@ function pushOutputs(branchName, prefix, suffix, moduleId, moduleDescription="",
     console.log(`Tag is: ${tag}`);
     console.log(`Full version is: ${fullVersion}`);
     console.log(`Tagged version is: ${taggedVersion}`);
-    
+
     console.log(`moduleDescription: ${moduleDescription}`);
     console.log(`projectUrl: ${projectUrl}`);
     console.log(`iconUrl: ${iconUrl}`);
@@ -80,17 +80,18 @@ async function getCommitCount(baseBranch) {
     return result;
 }
 
-async function run() 
-{
+async function run() {
     // const releaseBranch = core.getInput("releaseBranch");
     let releaseBranch = "";
-    if ( core.getInput("releaseBranch") === "master"){
+    if (core.getInput("releaseBranch") === "master") {
         let actualBranch = github.context.ref;
-        if (actualBranch === "refs/heads/main"){
+        if (actualBranch === "refs/heads/main") {
             releaseBranch = "main";
         } else {
             releaseBranch = "master";
         }
+    } else {
+        releaseBranch = core.getInput("releaseBranch");
     }
     let path = core.getInput("path");
     const inputProjectType = core.getInput("projectType");
@@ -104,9 +105,9 @@ async function run()
     let versionInfo = null;
     let moduleDescription = "";
     let projectUrl = "";
-    let  iconUrl = "";
+    let iconUrl = "";
     console.log(`Project Type: ${projectType}`);
-    switch(projectType) {
+    switch (projectType) {
         case utils.projectTypeTheme:
             versionInfo = await utils.getInfoFromPackageJson(`${path}/package.json`);
             prefix = versionInfo.version;
@@ -127,7 +128,7 @@ async function run()
             projectUrl = versionInfo.projectUrl;
             iconUrl = versionInfo.iconUrl;
 
-            if(prefix !== buildPropsVersionInfo.prefix || suffix !== buildPropsVersionInfo.suffix){
+            if (prefix !== buildPropsVersionInfo.prefix || suffix !== buildPropsVersionInfo.suffix) {
                 core.setFailed(`Versions in module.manifest and Directory.Build.props are different! module.manifest: ${prefix}-${suffix} vs. Directory.Build.props: ${buildPropsVersionInfo.prefix}-${buildPropsVersionInfo.suffix}`);
                 console.log('Try to set an equal version number in module.manifest and Directory.Build.props');
                 return;
@@ -137,14 +138,14 @@ async function run()
         case utils.projectTypeStorefront:
             versionInfo = await utils.getInfoFromDirectoryBuildProps(`${path}/Directory.Build.props`);
             prefix = versionInfo.prefix;
-            suffix = versionInfo.suffix; 
+            suffix = versionInfo.suffix;
             break;
     }
 
     branchName = github.context.eventName.startsWith('pull_request') ? github.context.payload.pull_request.head.ref : github.context.ref;
-    if (github.context.eventName.startsWith('pull_request')){
+    if (github.context.eventName.startsWith('pull_request')) {
         branchName = github.context.payload.pull_request.head.ref;
-    
+
         const sha = github.context.payload.pull_request.head.sha.substring(0, 4);
         suffix = `pr-${github.context.payload.pull_request.number}-${sha}`;
     }
