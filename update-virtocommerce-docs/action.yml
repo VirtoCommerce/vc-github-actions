@@ -28,18 +28,7 @@ inputs:
   dockerPwd:
     description: "Docker Passsword"
     required: true
-  version:
-    description: "Documentation version to deploy (auto=read from file)"
-    required: false
-    default: 'auto'
-  alias:
-    description: "Version alias (auto=read from file, or specify like latest, stable)"
-    required: false
-    default: 'auto'
-  deployMode:
-    description: "Deployment mode: versioned or legacy"
-    required: false
-    default: 'versioned'
+  
 
 runs:
   using: "composite"
@@ -51,43 +40,7 @@ runs:
         #git clone https://github.com/VirtoCommerce/vc-platform.git --branch "master"
         git clone https://github.com/VirtoCommerce/vc-docs --branch "feature/structure_redesign"
         cd vc-docs
-        
-        # Install mike for versioning
-        pip install mike
-        
-        # Choose build method based on deployment mode
-        $deployMode = "${{ inputs.deployMode }}"
-        $inputVersion = "${{ inputs.version }}"
-        $inputAlias = "${{ inputs.alias }}"
-        
-        Write-Host "Deployment Mode: $deployMode"
-        Write-Host "Input Version: $inputVersion"
-        Write-Host "Input Alias: $inputAlias"
-        
-        if ($deployMode -eq "versioned") {
-            # Install Python requirements for version utilities
-            if (Test-Path "requirements.txt") {
-                pip install -r requirements.txt
-            }
-            
-            # Use versioned deployment with mike
-            if ($inputVersion -eq "auto" -or [string]::IsNullOrEmpty($inputVersion)) {
-                Write-Host "Using automatic version detection from local files..."
-                # Copy version utilities and deploy script
-                if (Test-Path "version-utils.py") {
-                    Write-Host "Found version utilities"
-                }
-                # Let the script auto-detect version and alias
-                ./deploy-versioned.sh auto auto versioned
-            } else {
-                # Use provided version and alias
-                $aliasParam = if ($inputAlias -eq "auto" -or [string]::IsNullOrEmpty($inputAlias)) { "auto" } else { $inputAlias }
-                ./deploy-versioned.sh $inputVersion $aliasParam versioned
-            }
-        } else {
-            # Use legacy build method
-            ./build.ps1
-        }
+        ./build.ps1
 
     - name: Docker
       shell: pwsh
@@ -95,17 +48,6 @@ runs:
       run: |
         dotnet tool install --global VirtoCommerce.GlobalTool
         Copy-Item -Path ${{ github.action_path }}/docker/* -Destination ./ -Recurse -Force
-        
-        # Choose appropriate nginx config based on deployment mode
-        $deployMode = "${{ inputs.deployMode }}"
-        if ($deployMode -eq "versioned") {
-            Copy-Item -Path ./nginx.versioned.conf -Destination ./nginx.default.conf -Force
-            Write-Host "Using versioned nginx configuration"
-        } else {
-            # Keep existing nginx.default.conf for legacy mode
-            Write-Host "Using legacy nginx configuration"
-        }
-        
         vc-build BuildAndPush -DockerUsername ${{ inputs.dockerUsr }} -DockerPassword ${{ inputs.dockerPwd }} -DockerfilePath ./Dockerfile -DockerImageName ${{ inputs.dockerRegistry }}/vcpt/docs -DockerImageTag $env:GITHUB_RUN_NUMBER -DockerRegistryUrl ${{ inputs.dockerRegistry }}
         
 #     - name: Upload docs
