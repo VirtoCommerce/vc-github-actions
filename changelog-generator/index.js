@@ -1,6 +1,7 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 const exec = require('@actions/exec');
+const fs = require('fs');
 const utils = require('@virtocommerce/vc-actions-lib');
 
 async function getCommitMessages(since) {
@@ -213,10 +214,7 @@ async function run() {
     }
 
     core.info(commitMessages);
-    process.env.GITHUB_OUTPUT = `${process.env.GITHUB_OUTPUT || ''}changelog<<EOF
-${commitMessages}
-EOF
-`;
+    fs.appendFileSync(process.env.GITHUB_OUTPUT, `changelog=${commitMessages}\n`);
 }
 
 run().catch(err => {
