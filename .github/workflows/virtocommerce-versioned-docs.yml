@@ -1,0 +1,69 @@
+name: "virtocommerce.com docs"
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (auto=read from file, or specify version like v3.2024)'
+        required: false
+        default: 'auto'
+      alias:
+        description: 'Version alias (auto=read from file, or specify like latest, stable)'
+        required: false
+        default: 'auto'
+      deploy_mode:
+        description: 'Deployment mode'
+        required: false
+        default: 'versioned'
+        type: choice
+        options:
+        - versioned
+        - legacy
+  schedule:
+    - cron: '30 19 * * *'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+           # Number of commits to fetch. 0 indicates all history.
+           # Default: 1
+           fetch-depth: 0    
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.9.x'
+
+      - name: Install Dependencies
+        run: |
+           pip install mkdocs
+           pip install mkdocs-awesome-pages-plugin mkdocs-git-revision-date-localized-plugin mkdocs-material==9.5.4 mkdocs-minify-plugin mkdocs-redirects pymdown-extensions jinja2 mkdocs-git-revision-date-localized-plugin==0.5 mkdocs-include-markdown-plugin mkdocs-glightbox mkdocs-monorepo-plugin mike
+
+      - name: Setup Git Credentials
+        uses: VirtoCommerce/vc-github-actions/setup-git-credentials-github@master
+        with: 
+          githubToken: ${{ secrets.REPO_TOKEN }}
+
+      - name: Update docs
+        uses: VirtoCommerce/vc-github-actions/update-virtocommerce-docs@master
+        with:
+          azureSubscriptionId: ${{ secrets.AZURESUBSCRIPTIONID }}
+          azureResourceGroupName: ${{ secrets.AZURERESOURCEGROUPNAME }}
+          azureWebAppName: ${{ secrets.AZUREWEBAPPNAME }}
+          azureApiKey: ${{ secrets.AZUREAPIKEY }}
+          azureTenantId: ${{ secrets.AZURETENANTID }}
+          azureAppId: ${{ secrets.AZUREAPPID }}
+          dockerRegistry: ${{ secrets.MAIN_DOCKER_REGISTRY }}
+          dockerUsr: ${{ secrets.VCPT_DOCKER_USER }}
+          dockerPwd: ${{ secrets.VCPT_DOCKER_PASSWORD }}
+          version: ${{ github.event.inputs.version || 'auto' }}
+          alias: ${{ github.event.inputs.alias || 'auto' }}
+          deployMode: ${{ github.event.inputs.deploy_mode || 'versioned' }}
+
+      - name: Deploy
+        run: |
+            dotnet tool update --global VirtoCommerce.GlobalTool
+            vc-build CloudEnvSetParameter -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HelmParameters custom.app1.image.tag=${{ github.run_number }}
+            vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license  -HealthStatus Progressing
+            vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Healthy -SyncStatus Synced
