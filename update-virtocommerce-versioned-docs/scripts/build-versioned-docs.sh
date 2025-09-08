@@ -45,9 +45,20 @@ if [ -z "$GIT_COMMITTER_NAME" ]; then
     git config user.email "$GIT_COMMITTER_EMAIL"
 fi
 
-# Auto-detect version if needed (using major.minor format as recommended by Mike)
+# Auto-detect version and alias from version.json if needed
 if [ "$VERSION" = "auto" ]; then
-    if [ -f "VERSION" ]; then
+    if [ -f "version.json" ]; then
+        VERSION=$(python3 -c "import json; data=json.load(open('version.json')); print(data.get('version', 'dev'))" 2>/dev/null)
+        echo "Detected version from version.json: $VERSION"
+        
+        # Auto-detect alias if not provided
+        if [ -z "$ALIAS" ] || [ "$ALIAS" = "auto" ]; then
+            ALIAS=$(python3 -c "import json; data=json.load(open('version.json')); print(data.get('alias', ''))" 2>/dev/null)
+            if [ -n "$ALIAS" ]; then
+                echo "Detected alias from version.json: $ALIAS"
+            fi
+        fi
+    elif [ -f "VERSION" ]; then
         VERSION=$(cat VERSION | tr -d '[:space:]')
         # Extract major.minor for Mike's recommended format
         VERSION=$(echo "$VERSION" | sed -E 's/^([0-9]+\.[0-9]+).*/\1/')
@@ -69,8 +80,8 @@ pip install mike
 echo "Fetching gh-pages branch..."
 git fetch origin gh-pages --depth=1 || true
 
-# Build and deploy documentation components with Mike
-echo "Building and deploying documentation components with Mike..."
+# Build and deploy unified documentation with Mike
+echo "Building and deploying unified documentation with Mike..."
 
 # Prepare Mike deploy command base
 MIKE_BASE_CMD="mike deploy --branch $GH_PAGES_BRANCH"
@@ -78,51 +89,30 @@ if [ "$PUSH_TO_REMOTE" = "true" ]; then
     MIKE_BASE_CMD="$MIKE_BASE_CMD --push"
 fi
 
-# Deploy main documentation (includes home page and general structure)
-echo "  - Deploying main documentation..."
+# Deploy unified documentation site (includes all sections: marketplace, platform, storefront)
+echo "  - Deploying unified documentation site..."
 if [ -n "$ALIAS" ]; then
     $MIKE_BASE_CMD --update-aliases "$VERSION" "$ALIAS"
 else
     $MIKE_BASE_CMD "$VERSION"
 fi
 
-# Deploy platform documentation with prefix
-echo "  - Deploying platform documentation..."
-$MIKE_BASE_CMD -F platform/mkdocs.yml --deploy-prefix platform "$VERSION-platform"
+echo "Unified documentation deployed successfully with Mike!"
 
-# Deploy platform subsections
-echo "  - Deploying platform subsections..."
-$MIKE_BASE_CMD -F platform/user-guide/mkdocs.yml --deploy-prefix platform/user-guide "$VERSION-platform-userguide"
-$MIKE_BASE_CMD -F platform/developer-guide/mkdocs.yml --deploy-prefix platform/developer-guide "$VERSION-platform-devguide"  
-$MIKE_BASE_CMD -F platform/deployment-on-cloud/mkdocs.yml --deploy-prefix platform/deployment-on-cloud "$VERSION-platform-deployment"
-
-# Deploy storefront documentation with prefix  
-echo "  - Deploying storefront documentation..."
-$MIKE_BASE_CMD -F storefront/mkdocs.yml --deploy-prefix storefront "$VERSION-storefront"
-
-# Deploy storefront subsections
-echo "  - Deploying storefront subsections..."
-$MIKE_BASE_CMD -F storefront/user-guide/mkdocs.yml --deploy-prefix storefront/user-guide "$VERSION-storefront-userguide"
-$MIKE_BASE_CMD -F storefront/developer-guide/mkdocs.yml --deploy-prefix storefront/developer-guide "$VERSION-storefront-devguide"
-
-# Deploy marketplace documentation with prefix
-echo "  - Deploying marketplace documentation..."
-$MIKE_BASE_CMD -F marketplace/mkdocs.yml --deploy-prefix marketplace "$VERSION-marketplace"
-
-# Deploy marketplace subsections
-echo "  - Deploying marketplace subsections..."
-$MIKE_BASE_CMD -F marketplace/user-guide/mkdocs.yml --deploy-prefix marketplace/user-guide "$VERSION-marketplace-userguide"
-# Note: marketplace/developer-guide/mkdocs.yml might not exist yet
-
-echo "All components deployed successfully with Mike!"
-
-# Set default version if alias is "latest"
-if [ "$ALIAS" = "latest" ]; then
-    echo "Setting latest as default version..."
+# Set default version automatically
+if [ -n "$ALIAS" ]; then
+    echo "Setting $ALIAS as default version..."
     if [ "$PUSH_TO_REMOTE" = "true" ]; then
-        mike set-default --branch $GH_PAGES_BRANCH --push latest
+        mike set-default --branch $GH_PAGES_BRANCH --push "$ALIAS"
     else
-        mike set-default --branch $GH_PAGES_BRANCH latest
+        mike set-default --branch $GH_PAGES_BRANCH "$ALIAS"
+    fi
+else
+    echo "Setting $VERSION as default version..."
+    if [ "$PUSH_TO_REMOTE" = "true" ]; then
+        mike set-default --branch $GH_PAGES_BRANCH --push "$VERSION"
+    else
+        mike set-default --branch $GH_PAGES_BRANCH "$VERSION"
     fi
 fi
 
