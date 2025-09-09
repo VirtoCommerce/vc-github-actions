@@ -30,4 +30,12 @@ runs:
         INSTALL_FOLDER: 'modules'
       shell: pwsh
       run: |
+        Write-Output "Teams Webhook Url: ${{ inputs.teamsWebhookUrl }}"
+        Write-Output "Mentions: ${{ inputs.mentions }}"
+        Write-Output "Title: ${{ inputs.title }}"
+        Write-Output "Workflow Name: ${{ inputs.workflowName }}"
+        Write-Output "Build Id: ${{ inputs.buildId }}"
+        Write-Output "Github Repo: ${{ inputs.githubRepo }}"
+        Write-Output "Command: ./scripts/post-teams-notification.ps1 -teamsWebhookUrl ${{ inputs.teamsWebhookUrl }} -mentions ${{ inputs.mentions }} -title ${{ inputs.title }} -workflowName ${{ inputs.workflowName }} -buildId ${{ inputs.buildId }} -githubRepo ${{ inputs.githubRepo }}"
+        
         ./scripts/post-teams-notification.ps1 -teamsWebhookUrl ${{ inputs.teamsWebhookUrl }} -mentions ${{ inputs.mentions }} -title ${{ inputs.title }} -workflowName ${{ inputs.workflowName }} -buildId ${{ inputs.buildId }} -githubRepo ${{ inputs.githubRepo }}
