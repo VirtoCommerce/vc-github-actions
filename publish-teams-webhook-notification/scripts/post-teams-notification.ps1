@@ -47,4 +47,7 @@ $body = @{
             }
         })
 } | ConvertTo-Json -Depth 10
+Write-Output "Sending message to Teams"
+Write-Output "Body: $body"
+Write-Output "Command: Invoke-RestMethod -Uri $teamsWebhookUrl -Method Post -Body $body -ContentType 'application/json'"
 Invoke-RestMethod -Uri $teamsWebhookUrl -Method Post -Body $body -ContentType 'application/json'
