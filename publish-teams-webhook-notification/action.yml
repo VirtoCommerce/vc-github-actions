@@ -27,4 +27,4 @@ runs:
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
-        ./scripts/post-teams-notification.ps1 -teamsWebhookUrl ${{ inputs.teamsWebhookUrl }} -mentions ${{ inputs.mentions }} -title ${{ inputs.title }} -workflowName ${{ inputs.workflowName }} -buildId ${{ inputs.buildId }} -githubRepo ${{ inputs.githubRepo }}
+        ./scripts/post-teams-notification.ps1 -teamsWebhookUrl "${{ inputs.teamsWebhookUrl }}" -mentions "${{ inputs.mentions }}" -title "${{ inputs.title }}" -workflowName "${{ inputs.workflowName }}" -buildId "${{ inputs.buildId }}" -githubRepo "${{ inputs.githubRepo }}"
