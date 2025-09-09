@@ -5,7 +5,6 @@ param(
     [string]$title,
     [string]$workflowName,
     [string]$buildId,
-    [string]$githubOrg,
     [string]$githubRepo
 )
 $mentionTags = ($mentions | ForEach-Object { "<at>$($_.name)</at>" }) -join ", "
@@ -27,7 +26,7 @@ $body = @{
                     },
                     @{
                         type = "TextBlock"
-                        text = "$mentionTags please check pipeline **$workflowName** - Run **$buildId** - [View Run](https://github.com/$githubOrg/$githubRepo/actions/runs/$buildId)"
+                        text = "$mentionTags please check pipeline **$workflowName** - Run **$buildId** - [View Run](https://github.com/$githubRepo/actions/runs/$buildId)"
                         wrap = $true
                     }
                 )

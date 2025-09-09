@@ -16,10 +16,6 @@ inputs:
   buildId:
     description: 'Build Id'
     required: true
-  githubOrg:
-    description: 'Github Organization'
-    default: 'VirtoCommerce'
-    required: false
   githubRepo:
     description: 'Github Repository'
     required: true
@@ -34,4 +30,4 @@ runs:
         INSTALL_FOLDER: 'modules'
       shell: pwsh
       run: |
-        ./scripts/post-teams-notification.ps1 -teamsWebhookUrl ${{ inputs.teamsWebhookUrl }} -mentions ${{ inputs.mentions }} -title ${{ inputs.title }} -workflowName ${{ inputs.workflowName }} -buildId ${{ inputs.buildId }} -githubOrg ${{ inputs.githubOrg }} -githubRepo ${{ inputs.githubRepo }}
+        ./scripts/post-teams-notification.ps1 -teamsWebhookUrl ${{ inputs.teamsWebhookUrl }} -mentions ${{ inputs.mentions }} -title ${{ inputs.title }} -workflowName ${{ inputs.workflowName }} -buildId ${{ inputs.buildId }} -githubRepo ${{ inputs.githubRepo }}
