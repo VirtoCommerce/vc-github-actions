@@ -48,4 +48,11 @@ $body = @{
         })
 } | ConvertTo-Json -Depth 10
 $callResult = Invoke-RestMethod -Uri $teamsWebhookUrl -Method Post -Body $body -ContentType 'application/json'
-Write-Output "Call result: $callResult"
+if ($callResult -eq '1') {
+    Write-Output "Message sent to Teams"
+}
+else {
+    Write-Output "There was an error sending the message to Teams"
+    Write-Output "Call result: $callResult"
+    exit 1
+}
