@@ -216,15 +216,15 @@ runs:
         InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 15 -WaitSeconds 0
         Write-Host "`e[32mAll containers started."
         
-    # - name: Check Installed Modules
-    #   if: ${{ inputs.installModules == 'true' || inputs.installCustomModule == 'true' }}
-    #   working-directory: ${{ github.action_path }}
-    #   shell: pwsh
-    #   run: |
-    #     Write-Host "`e[33mCheck Installed Modules step started."
-    #     $platformContainer = "virtocommerce-vc-platform-web-1"
-    #     ../docker-env/scripts/check-installed-modules.ps1 -ApiUrl http://localhost:8090 -ContainerId $platformContainer -watchUrlScriptPath ../docker-env/scripts/watch-url-up.ps1 -Password Password3
-    #     Write-Host "`e[32mInstalled Modules checked."
+    - name: Check Installed Modules
+      if: ${{ inputs.installModules == 'true' || inputs.installCustomModule == 'true' }}
+      working-directory: ${{ github.action_path }}
+      shell: pwsh
+      run: |
+        Write-Host "`e[33mCheck Installed Modules step started."
+        $platformContainer = "virtocommerce-vc-platform-web-1"
+        ../docker-env/scripts/check-installed-modules.ps1 -ApiUrl http://localhost:8090 -ContainerId $platformContainer -watchUrlScriptPath ../docker-env/scripts/watch-url-up.ps1 -Password store # Password3
+        Write-Host "`e[32mInstalled Modules checked."
 
 
     # - name: Install Sample Data
