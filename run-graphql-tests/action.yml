@@ -98,12 +98,6 @@ runs:
         ref: ${{ inputs.vctestingRepoBranch }}
         path: ${{ inputs.vctestingPath }}
 
-    - name: Seed test data
-      shell: bash
-      run: |
-        cd ${{ inputs.vctestingPath }}
-        python -m scripts.seed_test_data
-
     - name: Create .env file
       shell: bash
       env:
@@ -147,6 +141,12 @@ runs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest-html
+
+    - name: Seed test data
+      shell: bash
+      run: |
+        cd ${{ inputs.vctestingPath }}
+        python -m scripts.seed_test_data
             
     - name: Install Playwright Browsers
       shell: bash
