@@ -134,70 +134,70 @@ runs:
         docker compose --project-name virtocommerce up -d vc-db es
         Write-Host "`e[32mDatabase and Elasticsearch containers started."
 
-    - name: Import bacpac file to database
-      if: ${{ inputs.bacpacFileUrl != '' }}
-      working-directory: ${{ github.action_path }}
-      shell: pwsh
-      run: |
-        # Install sqlpackage using dotnet tool
-        Write-Host "Installing sqlpackage..."
-        dotnet tool update -g microsoft.sqlpackage
+    # - name: Import bacpac file to database
+    #   if: ${{ inputs.bacpacFileUrl != '' }}
+    #   working-directory: ${{ github.action_path }}
+    #   shell: pwsh
+    #   run: |
+    #     # Install sqlpackage using dotnet tool
+    #     Write-Host "Installing sqlpackage..."
+    #     dotnet tool update -g microsoft.sqlpackage
 
-        Write-Host "`e[33mImport bacpac file step started."
-        # Wait for SQL Server to be ready
-        Write-Host "Waiting for SQL Server to be ready..."
-        $maxAttempts = 30
-        $attempt = 0
-        do {
-            $attempt++
-            try {
-                $connection = New-Object System.Data.SqlClient.SqlConnection
-                $connection.ConnectionString = "Server=localhost,1433;Database=master;User Id=sa;Password=v!rto_Labs!;TrustServerCertificate=True;"
-                $connection.Open()
-                $connection.Close()
-                Write-Host "SQL Server is ready!"
-                break
-            }
-            catch {
-                Write-Host "Attempt $attempt/${maxAttempts}: SQL Server not ready yet, waiting 10 seconds..."
-                Start-Sleep -Seconds 10
-            }
-        } while ($attempt -lt $maxAttempts)
+    #     Write-Host "`e[33mImport bacpac file step started."
+    #     # Wait for SQL Server to be ready
+    #     Write-Host "Waiting for SQL Server to be ready..."
+    #     $maxAttempts = 30
+    #     $attempt = 0
+    #     do {
+    #         $attempt++
+    #         try {
+    #             $connection = New-Object System.Data.SqlClient.SqlConnection
+    #             $connection.ConnectionString = "Server=localhost,1433;Database=master;User Id=sa;Password=v!rto_Labs!;TrustServerCertificate=True;"
+    #             $connection.Open()
+    #             $connection.Close()
+    #             Write-Host "SQL Server is ready!"
+    #             break
+    #         }
+    #         catch {
+    #             Write-Host "Attempt $attempt/${maxAttempts}: SQL Server not ready yet, waiting 10 seconds..."
+    #             Start-Sleep -Seconds 10
+    #         }
+    #     } while ($attempt -lt $maxAttempts)
         
-        if ($attempt -eq $maxAttempts) {
-            Write-Error "SQL Server did not become ready within the expected time"
-            exit 1
-        }
+    #     if ($attempt -eq $maxAttempts) {
+    #         Write-Error "SQL Server did not become ready within the expected time"
+    #         exit 1
+    #     }
         
-        # Download bacpac file
-        Write-Host "Downloading bacpac file from ${{ inputs.bacpacFileUrl }}"
-        $bacpacFileName = Split-Path ${{ inputs.bacpacFileUrl }} -Leaf
-        try {
-            Invoke-WebRequest -Uri ${{ inputs.bacpacFileUrl }} -OutFile $bacpacFileName -UseBasicParsing -OperationTimeoutSeconds 60 -RetryIntervalSec 5 -MaximumRetryCount 3
-            Write-Host "Downloaded '$bacpacFileName' successfully"
-        }
-        catch {
-            Write-Error "Failed to download bacpac file. Error: $_"
-            exit 1
-        }
+    #     # Download bacpac file
+    #     Write-Host "Downloading bacpac file from ${{ inputs.bacpacFileUrl }}"
+    #     $bacpacFileName = Split-Path ${{ inputs.bacpacFileUrl }} -Leaf
+    #     try {
+    #         Invoke-WebRequest -Uri ${{ inputs.bacpacFileUrl }} -OutFile $bacpacFileName -UseBasicParsing -OperationTimeoutSeconds 60 -RetryIntervalSec 5 -MaximumRetryCount 3
+    #         Write-Host "Downloaded '$bacpacFileName' successfully"
+    #     }
+    #     catch {
+    #         Write-Error "Failed to download bacpac file. Error: $_"
+    #         exit 1
+    #     }
         
-        # Import bacpac file using sqlpackage
-        Write-Host "Importing bacpac file to database..."
-        $databaseName = "VirtoCommerce3docker"
+    #     # Import bacpac file using sqlpackage
+    #     Write-Host "Importing bacpac file to database..."
+    #     $databaseName = "VirtoCommerce3docker"
         
-        # Import the bacpac file using dotnet tool version of sqlpackage
-        sqlpackage /Action:Import /SourceFile:$bacpacFileName /TargetServerName:localhost,1433 /TargetDatabaseName:$databaseName /TargetUser:sa /TargetPassword:v!rto_Labs! /TargetTrustServerCertificate:True
+    #     # Import the bacpac file using dotnet tool version of sqlpackage
+    #     sqlpackage /Action:Import /SourceFile:$bacpacFileName /TargetServerName:localhost,1433 /TargetDatabaseName:$databaseName /TargetUser:sa /TargetPassword:v!rto_Labs! /TargetTrustServerCertificate:True
         
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "`e[32mBacpac file imported successfully to database '$databaseName'"
-        } else {
-            Write-Error "Failed to import bacpac file"
-            exit 1
-        }
+    #     if ($LASTEXITCODE -eq 0) {
+    #         Write-Host "`e[32mBacpac file imported successfully to database '$databaseName'"
+    #     } else {
+    #         Write-Error "Failed to import bacpac file"
+    #         exit 1
+    #     }
         
-        # Clean up downloaded file
-        Remove-Item $bacpacFileName -Force
-        Write-Host "`e[32mBacpac import completed."
+    #     # Clean up downloaded file
+    #     Remove-Item $bacpacFileName -Force
+    #     Write-Host "`e[32mBacpac import completed."
 
     - name: Start remaining containers
       env:
@@ -225,6 +225,7 @@ runs:
         $platformContainer = "virtocommerce-vc-platform-web-1"
         ../docker-env/scripts/check-installed-modules.ps1 -ApiUrl http://localhost:8090 -ContainerId $platformContainer -watchUrlScriptPath ../docker-env/scripts/watch-url-up.ps1 -Password Password3
         Write-Host "`e[32mInstalled Modules checked."
+
 
     # - name: Install Sample Data
     #   if: ${{ inputs.installSampleData == 'true' }}

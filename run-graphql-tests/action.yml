@@ -98,6 +98,10 @@ runs:
         ref: ${{ inputs.vctestingRepoBranch }}
         path: ${{ inputs.vctestingPath }}
 
+    - name: Seed test data
+      run: |
+        python -m scripts.seed_test_data
+
     - name: Create .env file
       shell: bash
       env:
