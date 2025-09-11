@@ -1,0 +1,31 @@
+name: 'Publish Teams Webhook Notification'
+description: 'Publish Teams Webhook Notification'
+inputs:
+  teamsWebhookUrl:
+    description: 'Teams Webhook Url'
+    required: true
+  mentions:
+    description: 'Mentions'
+    required: true
+    type: object
+  title:
+    description: 'Message Title'
+    required: true
+  workflowName:
+    description: 'Workflow Name'
+    required: true
+  buildId:
+    description: 'Build Id'
+    required: true
+  githubRepo:
+    description: 'Github Repository'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Commerce Bundle Modules
+      working-directory: ${{ github.action_path }}
+      shell: pwsh
+      run: |
+        ./scripts/post-teams-notification.ps1 -teamsWebhookUrl "${{ inputs.teamsWebhookUrl }}" -mentions ${{ inputs.mentions }} -title "${{ inputs.title }}" -workflowName "${{ inputs.workflowName }}" -buildId "${{ inputs.buildId }}" -githubRepo "${{ inputs.githubRepo }}"
