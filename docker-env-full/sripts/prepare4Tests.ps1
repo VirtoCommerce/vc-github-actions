@@ -166,20 +166,20 @@ $adminToken = (Invoke-WebRequestWithRetry -Uri "$platformUrl/connect/token" -Bod
 $adminToken = $adminToken.access_token
 
 # Set environment variable for use in subsequent scripts
-[Environment]::SetEnvironmentVariable("VC_ADMIN_TOKEN", $adminToken, "Machine")
-Write-Host "Admin token set as environment variable VC_ADMIN_TOKEN for machine-wide access"
+# [Environment]::SetEnvironmentVariable("VC_ADMIN_TOKEN", $adminToken, "Machine")
+# Write-Host "Admin token set as environment variable VC_ADMIN_TOKEN for machine-wide access"
 
 #set api key for admin user
-SetApiKey -username "$adminUsername" -apiKey "$apiKey" -token "$adminToken"
+# SetApiKey -username "$adminUsername" -apiKey "$apiKey" -token "$adminToken"
 
 # create front admin user
-CreateUser -username "$frontAdmin" -password "$frontAdminPassword" -isAdministrator $true -token "$adminToken" -userType 'Administrator' -storeId "$storeId"
+# CreateUser -username "$frontAdmin" -password "$frontAdminPassword" -isAdministrator $true -token "$adminToken" -userType 'Administrator' -storeId "$storeId"
 
 # change user passwords
-ResetUserPassword -username "$userEmail" -newPassword "$frontAdminPassword" -token "$adminToken"
+# ResetUserPassword -username "$userEmail" -newPassword "$frontAdminPassword" -token "$adminToken"
 ResetUserPassword -username "$adminUsername" -newPassword "$newAdminPassword" -token "$adminToken"
 
 # create test users
-CreateUser -username "$testUser1" -password "$testUserPassword" -isAdministrator $false -token "$adminToken" -storeId "$storeId"
-CreateUser -username "$testUser2" -password "$testUserPassword" -isAdministrator $false -token "$adminToken" -storeId "$storeId"
-CreateUser -username "$testUser3" -password "$testUserPassword" -isAdministrator $false -token "$adminToken" -storeId "$storeId"
+# CreateUser -username "$testUser1" -password "$testUserPassword" -isAdministrator $false -token "$adminToken" -storeId "$storeId"
+# CreateUser -username "$testUser2" -password "$testUserPassword" -isAdministrator $false -token "$adminToken" -storeId "$storeId"
+# CreateUser -username "$testUser3" -password "$testUserPassword" -isAdministrator $false -token "$adminToken" -storeId "$storeId"

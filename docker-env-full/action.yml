@@ -226,7 +226,6 @@ runs:
         ../docker-env/scripts/check-installed-modules.ps1 -ApiUrl http://localhost:8090 -ContainerId $platformContainer -watchUrlScriptPath ../docker-env/scripts/watch-url-up.ps1 -Password store # Password3
         Write-Host "`e[32mInstalled Modules checked."
 
-
     # - name: Install Sample Data
     #   if: ${{ inputs.installSampleData == 'true' }}
     #   working-directory: ${{ github.action_path }}
@@ -235,10 +234,10 @@ runs:
     #     Write-Host "`e[33mInstall Sample Data step started."
     #     ../docker-env/scripts/setup-sampledata.ps1 -ApiUrl http://localhost:8090 -Verbose -Debug
 
-    # - name: Prepare data for tests
-    #   if: ${{ inputs.installSampleData == 'true' }}
-    #   working-directory: ${{ github.action_path }}
-    #   shell: pwsh
-    #   run: |
-    #     Write-Host "`e[33mPrepare data for tests step started."
-    #     ./sripts/prepare4Tests.ps1
+    - name: Prepare data for tests
+      if: ${{ inputs.installSampleData == 'true' }}
+      working-directory: ${{ github.action_path }}
+      shell: pwsh
+      run: |
+        Write-Host "`e[33mPrepare data for tests step started."
+        ./sripts/prepare4Tests.ps1
