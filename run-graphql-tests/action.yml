@@ -144,12 +144,9 @@ runs:
 
     - name: Seed test data
       shell: pwsh
-      env:
-        ADMIN_USERNAME: 'admin'
-        ADMIN_PASSWORD: 'store'
       run: |
         cd ${{ inputs.vctestingPath }}
-        $envFile = get-content -path ./env
+        $envFile = get-content -path ./.env
 
         if ( $envFile -match 'TEST_CUSTOMER_PASSWORD=\S+' ) {
           $env:ADMIN_PASSWORD = $matches[0].split('=')[1]
