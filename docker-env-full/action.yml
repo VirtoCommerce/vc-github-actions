@@ -44,6 +44,10 @@ inputs:
     description: 'URL to the bacpac file to import into the database'
     required: false
     default: ''
+  testSecretEnvFile:
+    description: 'Test secret environment file content'
+    required: true
+    type: string
 runs:
   using: "composite"
   steps:
@@ -243,7 +247,7 @@ runs:
       run: |
         if ( $env:SECRET_ENV_FILE -match 'TEST_ADMIN_PASSWORD=\S+' ) {
           $testAdminPassword = $matches[0].split('=')[1]
-          Write-Host "`e[32mSet password for admin user from secret env file"
+          Write-Host "`e[32mSet password for admin user from env variable"
         }
         else {
           $testAdminPassword = 'Password3'
