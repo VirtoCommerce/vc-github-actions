@@ -151,9 +151,10 @@ runs:
         $envFile = get-content -path ./.env
 
         if ( $envFile -match 'TEST_CUSTOMER_PASSWORD=\S+' ) {
-          echo "matches: $matches"
-          $env:ADMIN_PASSWORD = $matches[0].split('=')[1]
-          Write-Host "`e[32mSet password for admin user from env variable"
+          $m = $envFile -match 'TEST_CUSTOMER_PASSWORD=\S+'
+          echo "matches: $m"
+          $env:ADMIN_PASSWORD = $m[0].split('=')[1]
+          Write-Host "`e[32mSet password for admin user from env file"
         }
         else {
           $env:ADMIN_PASSWORD = 'store'
