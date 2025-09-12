@@ -238,6 +238,14 @@ runs:
       if: ${{ inputs.installSampleData == 'true' }}
       working-directory: ${{ github.action_path }}
       shell: pwsh
+      env:
+        SECRET_ENV_FILE: ${{ inputs.testSecretEnvFile }}
       run: |
+        if { $env.SECRET_ENV_FILE -match 'TEST_ADMIN_PASSWORD=\S+' } {
+          $testAdminPassword = $matches[0].split('=')[1]
+        }
+        else {
+          $testAdminPassword = 'Password3'
+        }
         Write-Host "`e[33mPrepare data for tests step started."
-        ./sripts/prepare4Tests.ps1
+        ./sripts/prepare4Tests.ps1 -newAdminPassword $testAdminPassword
