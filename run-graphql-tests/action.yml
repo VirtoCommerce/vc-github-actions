@@ -143,9 +143,24 @@ runs:
         pip install pytest-html
 
     - name: Seed test data
-      shell: bash
+      shell: pwsh
+      env:
+        ADMIN_USERNAME: 'admin'
+        ADMIN_PASSWORD: 'store'
       run: |
         cd ${{ inputs.vctestingPath }}
+        $envFile = get-content -path ./env
+
+        if ( $envFile -match 'TEST_CUSTOMER_PASSWORD=\S+' ) {
+          $env:ADMIN_PASSWORD = $matches[0].split('=')[1]
+          Write-Host "`e[32mSet password for admin user from env variable"
+        }
+        else {
+          $env:ADMIN_PASSWORD = 'store'
+          Write-Host "`e[32mSet password for admin user from default value"
+        }
+
+        $env:ADMIN_USERNAME = 'admin'
         python -m scripts.seed_test_data
             
     - name: Install Playwright Browsers
