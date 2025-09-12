@@ -243,9 +243,11 @@ runs:
       run: |
         if ( $env.SECRET_ENV_FILE -match 'TEST_ADMIN_PASSWORD=\S+' ) {
           $testAdminPassword = $matches[0].split('=')[1]
+          Write-Host "`e[32mSet password for admin user from secret env file"
         }
         else {
           $testAdminPassword = 'Password3'
+          Write-Host "`e[32mSet password for admin user from default value"
         }
         Write-Host "`e[33mPrepare data for tests step started."
         ./sripts/prepare4Tests.ps1 -newAdminPassword $testAdminPassword
