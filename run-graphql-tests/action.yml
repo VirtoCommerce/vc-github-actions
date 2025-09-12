@@ -146,9 +146,12 @@ runs:
       shell: pwsh
       run: |
         cd ${{ inputs.vctestingPath }}
+        echo "ls -la ./"
+        ls -la ./
         $envFile = get-content -path ./.env
 
         if ( $envFile -match 'TEST_CUSTOMER_PASSWORD=\S+' ) {
+          echo "matches: $matches"
           $env:ADMIN_PASSWORD = $matches[0].split('=')[1]
           Write-Host "`e[32mSet password for admin user from env variable"
         }
@@ -158,6 +161,7 @@ runs:
         }
 
         $env:ADMIN_USERNAME = 'admin'
+
         python -m scripts.seed_test_data
             
     - name: Install Playwright Browsers
