@@ -178,14 +178,14 @@ runs:
       env:
         FRONTEND_BASE_URL: ${{ inputs.baseUrl }}
         BACKEND_BASE_URL: ${{ inputs.backUrl }}
-        ADMIN_USERNAME: $ADMIN_USERNAME #${{ inputs.adminUsername }}
-        ADMIN_PASSWORD: $ADMIN_PASSWORD #${{ inputs.adminPassword }}
+        ADMIN_USERNAME: ${{ env.ADMIN_USERNAME }} #${{ inputs.adminUsername }}
+        ADMIN_PASSWORD: ${{ env.ADMIN_PASSWORD }} #${{ inputs.adminPassword }}
         ADMIN_TOKEN: ${{ inputs.adminToken }}
         USER_EMAIL: ${{ inputs.userEmail }}
         FRONT_ADMIN: ${{ inputs.frontAdmin }}
         PASSWORD: ${{ inputs.password }}
         API_KEY: ${{ inputs.apiKey }}
-        STORE_ID: $STORE_ID #${{ inputs.storeId }}
+        STORE_ID: ${{ env.STORE_ID }} #${{ inputs.storeId }}
         PLAYWRIGHT_HEADLESS: ${{ inputs.playwrightHeadless }}
       run: |
         echo "Running GraphQL tests against ${{ inputs.baseUrl }}"
