@@ -163,7 +163,7 @@ runs:
 
         $env:ADMIN_USERNAME = 'admin'
 
-        python -m scripts.seed_test_data
+        python -m scripts.dataset_seeder
             
     - name: Install Playwright Browsers
       shell: bash
