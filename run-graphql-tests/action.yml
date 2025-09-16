@@ -153,17 +153,25 @@ runs:
         if ( $envFile -match 'TEST_CUSTOMER_PASSWORD=\S+' ) {
           $m = $envFile -match 'TEST_CUSTOMER_PASSWORD=\S+'
           echo "matches: $m"
-          $env:ADMIN_PASSWORD = $m[0].split('=')[1]
-          $env:USERS_PASSWORD = $m[0].split('=')[1]
+          $adminPassword = $m[0].split('=')[1]
+          $env:ADMIN_PASSWORD = $adminPassword
+          $env:USERS_PASSWORD = $adminPassword
+          echo "ADMIN_PASSWORD=$adminPassword" >> $env:GITHUB_ENV
+          echo "USERS_PASSWORD=$adminPassword" >> $env:GITHUB_ENV
           Write-Host "`e[32mSet password for admin user from env file"
         }
         else {
           $env:ADMIN_PASSWORD = 'store'
+          echo "ADMIN_PASSWORD=store" >> $env:GITHUB_ENV
           Write-Host "`e[32mSet password for admin user from default value"
         }
 
         $env:ADMIN_USERNAME = 'admin'
         $env:STORE_ID = 'store-acme'
+        
+        # Set environment variables for next steps
+        echo "ADMIN_USERNAME=admin" >> $env:GITHUB_ENV
+        echo "STORE_ID=store-acme" >> $env:GITHUB_ENV
 
         python -m scripts.dataset_seeder
             
