@@ -154,6 +154,7 @@ runs:
           $m = $envFile -match 'TEST_CUSTOMER_PASSWORD=\S+'
           echo "matches: $m"
           $env:ADMIN_PASSWORD = $m[0].split('=')[1]
+          $env:USERS_PASSWORD = $m[0].split('=')[1]
           Write-Host "`e[32mSet password for admin user from env file"
         }
         else {
@@ -162,6 +163,7 @@ runs:
         }
 
         $env:ADMIN_USERNAME = 'admin'
+        $env:STORE_ID = 'store-acme'
 
         python -m scripts.dataset_seeder
             
