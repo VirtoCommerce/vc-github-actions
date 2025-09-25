@@ -1,6 +1,14 @@
 name: 'Update Jira keys for release'
 description: 'Update Jira keys for release'
 inputs:
+  client-id:
+    description: 'Client ID'
+    required: true
+    type: string
+  client-secret:
+    description: 'Client secret'
+    required: true
+    type: string
   ghRepository:
     description: 'GitHub repository in format org/repo'
     required: true
@@ -29,8 +37,8 @@ runs:
       shell: pwsh
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        JIRA_USER: ${{ secrets.JIRA_USER }}
-        JIRA_TOKEN: ${{ secrets.JIRA_TOKEN }}
+        JIRA_USER: ${{ inputs.client-id }}
+        JIRA_TOKEN: ${{ inputs.client-secret }}
       run: |
         $ErrorActionPreference = "Stop"
         $jiraKeys = @()
