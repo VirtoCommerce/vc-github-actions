@@ -36,7 +36,7 @@ runs:
     - name: Process Jira keys
       shell: pwsh
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         JIRA_USER: ${{ inputs.client-id }}
         JIRA_TOKEN: ${{ inputs.client-secret }}
       run: |
