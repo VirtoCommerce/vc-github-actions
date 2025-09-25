@@ -145,32 +145,32 @@ runs:
     - name: Seed test data
       shell: pwsh
       run: |
-        cd ${{ inputs.vctestingPath }}
-        echo "ls -la ./"
-        ls -la ./
-        $envFile = get-content -path ./.env
+        # cd ${{ inputs.vctestingPath }}
+        # echo "ls -la ./"
+        # ls -la ./
+        # $envFile = get-content -path ./.env
 
-        if ( $envFile -match 'TEST_CUSTOMER_PASSWORD=\S+' ) {
-          $m = $envFile -match 'TEST_CUSTOMER_PASSWORD=\S+'
-          echo "matches: $m"
-          $adminPassword = $m[0].split('=')[1]
-          $env:ADMIN_PASSWORD = $adminPassword
-          $env:USERS_PASSWORD = $adminPassword
-          echo "ADMIN_PASSWORD=$adminPassword" >> $env:GITHUB_ENV
-          echo "USERS_PASSWORD=$adminPassword" >> $env:GITHUB_ENV
-          Write-Host "`e[32mSet password for admin user from env file"
-        } else {
-          $env:ADMIN_PASSWORD = 'store'
-          echo "ADMIN_PASSWORD=store" >> $env:GITHUB_ENV
-          Write-Host "`e[32mSet password for admin user from default value"
-        }
+        # if ( $envFile -match 'TEST_CUSTOMER_PASSWORD=\S+' ) {
+        #   $m = $envFile -match 'TEST_CUSTOMER_PASSWORD=\S+'
+        #   echo "matches: $m"
+        #   $adminPassword = $m[0].split('=')[1]
+        #   $env:ADMIN_PASSWORD = $adminPassword
+        #   $env:USERS_PASSWORD = $adminPassword
+        #   echo "ADMIN_PASSWORD=$adminPassword" >> $env:GITHUB_ENV
+        #   echo "USERS_PASSWORD=$adminPassword" >> $env:GITHUB_ENV
+        #   Write-Host "`e[32mSet password for admin user from env file"
+        # } else {
+        #   $env:ADMIN_PASSWORD = 'store'
+        #   echo "ADMIN_PASSWORD=store" >> $env:GITHUB_ENV
+        #   Write-Host "`e[32mSet password for admin user from default value"
+        # }
 
-        $env:ADMIN_USERNAME = 'admin'
-        $env:STORE_ID = 'store-acme'
+        # $env:ADMIN_USERNAME = 'admin'
+        # $env:STORE_ID = 'store-acme'
         
-        # Set environment variables for next steps
-        echo "ADMIN_USERNAME=admin" >> $env:GITHUB_ENV
-        echo "STORE_ID=store-acme" >> $env:GITHUB_ENV
+        # # Set environment variables for next steps
+        # echo "ADMIN_USERNAME=admin" >> $env:GITHUB_ENV
+        # echo "STORE_ID=store-acme" >> $env:GITHUB_ENV
 
         python -m scripts.dataset_seeder
             
@@ -183,18 +183,18 @@ runs:
     - name: Run GraphQL Tests
       shell: bash
       env:
-        FRONTEND_BASE_URL: ${{ inputs.baseUrl }}
-        BACKEND_BASE_URL: ${{ inputs.backUrl }}
-        ADMIN_USERNAME: ${{ env.ADMIN_USERNAME }} #${{ inputs.adminUsername }}
-        ADMIN_PASSWORD: ${{ env.ADMIN_PASSWORD }} #${{ inputs.adminPassword }}
-        USERS_PASSWORD: ${{ env.USERS_PASSWORD }}
-        ADMIN_TOKEN: ${{ inputs.adminToken }}
-        USER_EMAIL: ${{ inputs.userEmail }}
-        FRONT_ADMIN: ${{ inputs.frontAdmin }}
-        PASSWORD: ${{ inputs.password }}
-        API_KEY: ${{ inputs.apiKey }}
-        STORE_ID: ${{ env.STORE_ID }} #${{ inputs.storeId }}
-        PLAYWRIGHT_HEADLESS: ${{ inputs.playwrightHeadless }}
+        # FRONTEND_BASE_URL: ${{ inputs.baseUrl }}
+        # BACKEND_BASE_URL: ${{ inputs.backUrl }}
+        # ADMIN_USERNAME: ${{ env.ADMIN_USERNAME }} #${{ inputs.adminUsername }}
+        # ADMIN_PASSWORD: ${{ env.ADMIN_PASSWORD }} #${{ inputs.adminPassword }}
+        # USERS_PASSWORD: ${{ env.USERS_PASSWORD }}
+        # ADMIN_TOKEN: ${{ inputs.adminToken }}
+        # USER_EMAIL: ${{ inputs.userEmail }}
+        # FRONT_ADMIN: ${{ inputs.frontAdmin }}
+        # PASSWORD: ${{ inputs.password }}
+        # API_KEY: ${{ inputs.apiKey }}
+        # STORE_ID: ${{ env.STORE_ID }} #${{ inputs.storeId }}
+        # PLAYWRIGHT_HEADLESS: ${{ inputs.playwrightHeadless }}
       run: |
         echo "Running GraphQL tests against ${{ inputs.baseUrl }}"
         cd ${{ inputs.vctestingPath }}
