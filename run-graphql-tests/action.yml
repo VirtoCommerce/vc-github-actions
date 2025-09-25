@@ -153,17 +153,23 @@ runs:
         if ( $envFile -match 'TEST_CUSTOMER_PASSWORD=\S+' ) {
           $m = $envFile -match 'TEST_CUSTOMER_PASSWORD=\S+'
           echo "matches: $m"
-          $adminPassword = $m[0].split('=')[1]
-          $env:ADMIN_PASSWORD = $adminPassword
-          $env:USERS_PASSWORD = $adminPassword
-          echo "ADMIN_PASSWORD=$adminPassword" >> $env:GITHUB_ENV
-          echo "USERS_PASSWORD=$adminPassword" >> $env:GITHUB_ENV
+          $userPassword = $m[0].split('=')[1]
+          $env:USERS_PASSWORD = $userPassword
+          echo "USERS_PASSWORD=$userPassword" >> $env:GITHUB_ENV
           Write-Host "`e[32mSet password for admin user from env file"
-        }
-        else {
-          $env:ADMIN_PASSWORD = 'store'
+        } else {
           echo "ADMIN_PASSWORD=store" >> $env:GITHUB_ENV
           Write-Host "`e[32mSet password for admin user from default value"
+        }
+
+        if ( $envFile -match 'TEST_ADMIN_PASSWORD=\S+' ) {
+          $m = $envFile -match 'TEST_ADMIN_PASSWORD=\S+'
+          echo "matches: $m"
+          $adminPassword = $m[0].split('=')[1]
+          $env:ADMIN_PASSWORD = $adminPassword
+          echo "ADMIN_PASSWORD=$adminPassword" >> $env:GITHUB_ENV
+        } else {
+          $env:ADMIN_PASSWORD = 'store'
         }
 
         $env:ADMIN_USERNAME = 'admin'
