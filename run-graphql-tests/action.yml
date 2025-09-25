@@ -145,10 +145,10 @@ runs:
     - name: Seed test data
       shell: pwsh
       run: |
-        # cd ${{ inputs.vctestingPath }}
-        # echo "ls -la ./"
-        # ls -la ./
-        # $envFile = get-content -path ./.env
+        cd ${{ inputs.vctestingPath }}
+        echo "ls -la ./"
+        ls -la ./
+        $envFile = get-content -path ./.env
 
         # if ( $envFile -match 'TEST_CUSTOMER_PASSWORD=\S+' ) {
         #   $m = $envFile -match 'TEST_CUSTOMER_PASSWORD=\S+'
