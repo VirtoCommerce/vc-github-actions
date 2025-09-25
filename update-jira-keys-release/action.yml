@@ -42,7 +42,7 @@ runs:
       run: |
         $ErrorActionPreference = "Stop"
         $jiraKeys = @()
-        $owner, $repo = ${{ inputs.ghRepository }} -split "/"
+        $owner, $repo = "${{ inputs.ghRepository }}" -split "/"
 
         # Get two latest releases
         $releases = gh api "/repos/$owner/$repo/releases" | ConvertFrom-Json
