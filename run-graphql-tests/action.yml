@@ -182,7 +182,7 @@ runs:
             
     - name: Run GraphQL Tests
       shell: bash
-      env:
+      # env:
         # FRONTEND_BASE_URL: ${{ inputs.baseUrl }}
         # BACKEND_BASE_URL: ${{ inputs.backUrl }}
         # ADMIN_USERNAME: ${{ env.ADMIN_USERNAME }} #${{ inputs.adminUsername }}
