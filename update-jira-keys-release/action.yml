@@ -82,7 +82,7 @@ runs:
         }
         $updateBody = @{
             fields = @{
-                ${{ inputs.jiraCustomFieldId }} = ${{ inputs.jiraCustomFieldValue }}
+                "${{ inputs.jiraCustomFieldId }}" = "${{ inputs.jiraCustomFieldValue }}"
             }
         } | ConvertTo-Json -Depth 5
 
