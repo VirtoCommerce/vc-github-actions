@@ -246,6 +246,7 @@ foreach ($mm in $commerceModules) {
 
 # add VirtoCommerce.CustomerExportImport for importing customers
 $packages["VirtoCommerce.CustomerExportImport"] = "VirtoCommerce.CustomerExportImport_$($($edgePackages | Where-Object { $_.Id -eq 'VirtoCommerce.CustomerExportImport' } | Select-Object -ExpandProperty Versions)[0].Version).zip"
+$packages["VirtoCommerce.Quote"] = "VirtoCommerce.Quote$($($edgePackages | Where-Object { $_.Id -eq 'VirtoCommerce.Quote' } | Select-Object -ExpandProperty Versions)[0].Version).zip"
 
 # process the initial first custom module
 ProcessCustomModule -CustomModuleId $customModuleId -CustomModuleUrl $customModuleUrl # -blobPackagesProcessed $blobPackagesProcessed
