@@ -53,10 +53,10 @@ function CheckIndexFinished {
         }
     } while (-not $indexResult.completed)
     Write-Output "Indexing finished."
+    $indexResult
     return $indexResult
 }
 
 $indexResult = StartIndexing -token $adminToken
 $jobId = $indexResult.JobId
 CheckIndexFinished -token $adminToken -jobId $jobId
-$indexResult
