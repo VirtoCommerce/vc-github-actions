@@ -3,7 +3,7 @@ param (
     [string]$platformUrl = 'http://localhost:8090',
     [string]$adminUsername = 'admin', 
     [string]$adminPassword, #= 'store',
-    # [string]$newAdminPassword = 'Password3',
+    [string]$newAdminPassword #= 'Password3',
     # [string]$userEmail = 'b2badmin',
     # [string]$frontAdmin = 'e2e-admin@test.com',
     # [string]$frontAdminPassword = 'Password1',
@@ -11,7 +11,7 @@ param (
     # [string]$testUser1 = 'e2e-gql-test@test.com',
     # [string]$testUser2 = 'e2e-test-customer@test.com',
     # [string]$testUser3 = 'e2e-test-maintainer@e2e-contoso.com',
-    [string]$testUserPassword #= 'Password1!',
+    # [string]$testUserPassword #= 'Password1!',
     # [string]$storeId = 'B2B-store'
 )
 
