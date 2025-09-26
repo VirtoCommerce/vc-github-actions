@@ -173,6 +173,8 @@ runs:
         # echo "STORE_ID=store-acme" >> $env:GITHUB_ENV
 
         python -m scripts.dataset_seeder
+
+        sleep 30
             
     - name: Install Playwright Browsers
       shell: bash
