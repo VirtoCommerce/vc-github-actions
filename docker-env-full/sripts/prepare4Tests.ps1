@@ -61,7 +61,7 @@ function ResetUserPassword {
     }
     $headers = @{
         "Content-Type"  = "application/json-patch+json"
-        "Authorization" = "Bearer $token" #$adminToken"
+        "Authorization" = "Bearer $token"
     }
     Write-Host "Resetting '$username' user password ..."
     $username = [System.Web.HttpUtility]::UrlEncode($username)
