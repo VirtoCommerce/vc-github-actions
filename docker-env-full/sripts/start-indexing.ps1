@@ -31,6 +31,7 @@ function StartIndexing {
     Write-Output "Starting indexing..."
     $startIndexResult = Invoke-WebRequest -Uri "$platformUrl/api/search/indexes/index" -Body ($body | ConvertTo-Json) -Headers $headers -Method POST | ConvertFrom-Json
     Write-Output "Indexing started."
+    $startIndexResult
     return $startIndexResult
 }
 
