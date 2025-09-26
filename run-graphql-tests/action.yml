@@ -146,9 +146,6 @@ runs:
       shell: pwsh
       run: |
         cd ${{ inputs.vctestingPath }}
-        echo "ls -la ./"
-        ls -la ./
-
         $envFile = get-content -path ./.env
         if ( $envFile -match 'ADMIN_PASSWORD=\S+' ) {
           $m = $envFile -match 'ADMIN_PASSWORD=\S+'
@@ -161,13 +158,13 @@ runs:
 
         # $env:ADMIN_USERNAME = 'admin'
         # $env:STORE_ID = 'store-acme'
-        
         # # Set environment variables for next steps
         # echo "ADMIN_USERNAME=admin" >> $env:GITHUB_ENV
         # echo "STORE_ID=store-acme" >> $env:GITHUB_ENV
 
         python -m scripts.dataset_seeder
 
+        cd "${{ github.workspace/vc-github-actions/docker-env-full/scripts }}"
         ./scripts/start-indexing.ps1 -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $adminPassword
             
     - name: Install Playwright Browsers
