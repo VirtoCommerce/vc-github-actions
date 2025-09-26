@@ -1,7 +1,7 @@
 FROM nginx:alpine
 
 RUN rm /usr/share/nginx/html/index.html \
-    && mkdir -p /usr/share/nginx/html \
+    && mkdir -p /usr/share/nginx/html/2.0 \
     && apk update && apk add -u gettext
 
 # Copy versioned documentation (gh-pages branch content)
