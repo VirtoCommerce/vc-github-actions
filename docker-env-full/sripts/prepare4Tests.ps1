@@ -177,7 +177,7 @@ $adminToken = $adminToken.access_token
 
 # change user passwords
 # ResetUserPassword -username "$userEmail" -newPassword "$frontAdminPassword" -token "$adminToken"
-ResetUserPassword -username "$adminUsername" -newPassword "$testUserPassword" -token "$adminToken"
+ResetUserPassword -username "$adminUsername" -newPassword "$newAdminPassword" -token "$adminToken"
 
 # create test users
 # CreateUser -username "$testUser1" -password "$testUserPassword" -isAdministrator $false -token "$adminToken" -storeId "$storeId"
