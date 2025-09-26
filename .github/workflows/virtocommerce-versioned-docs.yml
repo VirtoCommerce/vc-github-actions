@@ -18,8 +18,8 @@ on:
         options:
         - versioned
         - legacy
-  schedule:
-    - cron: '30 19 * * *'
+  # schedule:
+    # - cron: '30 19 * * *'
 
 jobs:
   publish:
