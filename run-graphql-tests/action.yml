@@ -164,7 +164,7 @@ runs:
 
         python -m scripts.dataset_seeder
 
-        cd "${{ github.workspace/vc-github-actions/docker-env-full/scripts }}"
+        cd "${{ github.workspace }}/vc-github-actions/docker-env-full"
         ./scripts/start-indexing.ps1 -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $adminPassword
             
     - name: Install Playwright Browsers
