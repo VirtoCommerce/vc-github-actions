@@ -1,7 +1,7 @@
 param(
     [string]$platformUrl = 'http://localhost:8090',
     [string]$adminUsername = 'admin',
-    [string]$adminPassword
+    [string]$adminPassword = 'Password1'
 )
 
 # get token
@@ -40,10 +40,6 @@ function CheckIndexFinished {
         [string]$jobId
     )
 
-    # $body = @{
-    #     "JobId" = $jobId
-    # }
-
     $headers = @{
         "Content-Type"  = "application/json-patch+json"
         "Authorization" = "Bearer $token"
@@ -63,3 +59,4 @@ function CheckIndexFinished {
 $indexResult = StartIndexing -token $adminToken
 $jobId = $indexResult.JobId
 CheckIndexFinished -token $adminToken -jobId $jobId
+$indexResult
