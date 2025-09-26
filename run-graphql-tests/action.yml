@@ -175,6 +175,7 @@ runs:
         python -m scripts.dataset_seeder
 
         sleep 180
+        echo "Waiting for 180 seconds..."
             
     - name: Install Playwright Browsers
       shell: bash
