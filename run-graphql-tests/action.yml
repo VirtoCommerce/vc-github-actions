@@ -145,8 +145,6 @@ runs:
     - name: Seed test data
       shell: pwsh
       run: |
-        ls -la
-        pwd
         cd ${{ inputs.vctestingPath }}
         $envFile = get-content -path ./.env
         if ( $envFile -match 'ADMIN_PASSWORD=\S+' ) {
@@ -166,7 +164,7 @@ runs:
 
         python -m scripts.dataset_seeder
 
-        wget https://raw.githubusercontent.com/Virtocommerce/vc-github-actions/VCST-2789-1/docker-env-full/scripts/start-indexing.ps1
+        wget https://raw.githubusercontent.com/VirtoCommerce/vc-github-actions/refs/heads/VCST-2789-1/docker-env-full/sripts/start-indexing.ps1
         ./start-indexing.ps1 -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $adminPassword
             
     - name: Install Playwright Browsers
