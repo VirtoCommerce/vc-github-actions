@@ -149,21 +149,15 @@ runs:
         echo "ls -la ./"
         ls -la ./
 
-        # $envFile = get-content -path ./.env
-        # if ( $envFile -match 'TEST_CUSTOMER_PASSWORD=\S+' ) {
-        #   $m = $envFile -match 'TEST_CUSTOMER_PASSWORD=\S+'
-        #   echo "matches: $m"
-        #   $adminPassword = $m[0].split('=')[1]
-        #   $env:ADMIN_PASSWORD = $adminPassword
-        #   $env:USERS_PASSWORD = $adminPassword
-        #   echo "ADMIN_PASSWORD=$adminPassword" >> $env:GITHUB_ENV
-        #   echo "USERS_PASSWORD=$adminPassword" >> $env:GITHUB_ENV
-        #   Write-Host "`e[32mSet password for admin user from env file"
-        # } else {
-        #   $env:ADMIN_PASSWORD = 'store'
-        #   echo "ADMIN_PASSWORD=store" >> $env:GITHUB_ENV
-        #   Write-Host "`e[32mSet password for admin user from default value"
-        # }
+        $envFile = get-content -path ./.env
+        if ( $envFile -match 'ADMIN_PASSWORD=\S+' ) {
+          $m = $envFile -match 'ADMIN_PASSWORD=\S+'
+          $adminPassword = $m[0].split('=')[1]
+          Write-Host "`e[32mSet password for admin user from env file"
+        } else {
+          $adminPassword = 'store'
+          Write-Host "`e[32mSet password for admin user from default value"
+        }
 
         # $env:ADMIN_USERNAME = 'admin'
         # $env:STORE_ID = 'store-acme'
@@ -174,9 +168,7 @@ runs:
 
         python -m scripts.dataset_seeder
 
-        echo "Waiting for 180 seconds..."
-        sleep 180
-        echo "Waiting for 180 seconds... done"
+        ./scripts/start-indexing.ps1 -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $adminPassword
             
     - name: Install Playwright Browsers
       shell: bash
