@@ -55,17 +55,17 @@ runs:
         $commits = gh api "/repos/$owner/$repo/compare/$prevTag...$currentTag" --jq ".commits[].sha"
         
         foreach ($sha in $commits) {
-            $prs = gh api "/repos/$owner/$repo/commits/$sha/pulls" -H "Accept: application/vnd.github.groot-preview+json" | ConvertFrom-Json
-            foreach ($pr in $prs) {
-                if ($null -ne $pr.head.ref) {
-                    if ($pr.head.ref -match '([A-Z]+-\d{1,6})') {
-                        $jiraKeys += $matches[1]
-                    }
-                    else {
-                        Write-Warning "Branch $($pr.head.ref) does not match the pattern [A-Z]+-\d{1,6}"
-                    }
-                }
-            }
+          $prs = gh api "/repos/$owner/$repo/commits/$sha/pulls" -H "Accept: application/vnd.github.groot-preview+json" | ConvertFrom-Json
+          foreach ($pr in $prs) {
+              if ($null -ne $pr.head.ref) {
+                  if ($pr.head.ref -match '([A-Z]+-\d{1,6})') {
+                      $jiraKeys += $matches[1]
+                  }
+                  else {
+                      Write-Warning "Branch $($pr.head.ref) does not match the pattern [A-Z]+-\d{1,6}"
+                  }
+              }
+          }
         }
         
         $uniqueJiraKeys = $jiraKeys | Sort-Object -Unique
