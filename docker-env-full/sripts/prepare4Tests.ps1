@@ -61,9 +61,9 @@ function ResetUserPassword {
     }
     $headers = @{
         "Content-Type"  = "application/json-patch+json"
-        "Authorization" = "Bearer $token #$adminToken"
+        "Authorization" = "Bearer $token" #$adminToken"
     }
-    Write-Host "Resetting user password $username ..."
+    Write-Host "Resetting '$username' user password ..."
     $username = [System.Web.HttpUtility]::UrlEncode($username)
     $resultResetPassword = Invoke-WebRequestWithRetry -Uri "$platformUrl/api/platform/security/users/$username/resetpassword" -Body ($body | ConvertTo-Json) -Headers $headers -Method POST | ConvertFrom-Json
     if ($resultResetPassword.succeeded -eq $false) {
