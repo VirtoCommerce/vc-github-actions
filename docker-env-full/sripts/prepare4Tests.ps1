@@ -2,7 +2,7 @@
 param (
     [string]$platformUrl = 'http://localhost:8090',
     [string]$adminUsername = 'admin', 
-    [string]$adminPassword, #= 'store',
+    [string]$adminPassword = 'store',
     [string]$newAdminPassword #= 'Password3',
     # [string]$userEmail = 'b2badmin',
     # [string]$frontAdmin = 'e2e-admin@test.com',
@@ -61,7 +61,7 @@ function ResetUserPassword {
     }
     $headers = @{
         "Content-Type"  = "application/json-patch+json"
-        "Authorization" = "Bearer $adminToken"
+        "Authorization" = "Bearer $token #$adminToken"
     }
     Write-Host "Resetting user password $username ..."
     $username = [System.Web.HttpUtility]::UrlEncode($username)
