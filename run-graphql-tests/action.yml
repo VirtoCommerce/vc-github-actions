@@ -124,15 +124,15 @@ runs:
         cat .env
         echo "..Done."
 
-    - name: Upload .env file for debugging
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: .env-file-for-debugging
-        path: |
-          ${{ inputs.vctestingPath }}/.env
-        retention-days: 3
-        include-hidden-files: true
+    # - name: Upload .env file for debugging
+    #   if: always()
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: .env-file-for-debugging
+    #     path: |
+    #       ${{ inputs.vctestingPath }}/.env
+    #     retention-days: 3
+    #     include-hidden-files: true
 
     - name: Install dependencies
       shell: bash
@@ -178,20 +178,20 @@ runs:
         playwright install --with-deps ${{ inputs.browser }}
             
     - name: Run GraphQL Tests
-      shell: bash
-      # env:
-        # FRONTEND_BASE_URL: ${{ inputs.baseUrl }}
-        # BACKEND_BASE_URL: ${{ inputs.backUrl }}
-        # ADMIN_USERNAME: ${{ env.ADMIN_USERNAME }} #${{ inputs.adminUsername }}
-        # ADMIN_PASSWORD: ${{ env.ADMIN_PASSWORD }} #${{ inputs.adminPassword }}
-        # USERS_PASSWORD: ${{ env.USERS_PASSWORD }}
-        # ADMIN_TOKEN: ${{ inputs.adminToken }}
-        # USER_EMAIL: ${{ inputs.userEmail }}
-        # FRONT_ADMIN: ${{ inputs.frontAdmin }}
-        # PASSWORD: ${{ inputs.password }}
-        # API_KEY: ${{ inputs.apiKey }}
-        # STORE_ID: ${{ env.STORE_ID }} #${{ inputs.storeId }}
-        # PLAYWRIGHT_HEADLESS: ${{ inputs.playwrightHeadless }}
+        shell: bash
+        # env:
+          # FRONTEND_BASE_URL: ${{ inputs.baseUrl }}
+          # BACKEND_BASE_URL: ${{ inputs.backUrl }}
+          # ADMIN_USERNAME: ${{ env.ADMIN_USERNAME }} #${{ inputs.adminUsername }}
+          # ADMIN_PASSWORD: ${{ env.ADMIN_PASSWORD }} #${{ inputs.adminPassword }}
+          # USERS_PASSWORD: ${{ env.USERS_PASSWORD }}
+          # ADMIN_TOKEN: ${{ inputs.adminToken }}
+          # USER_EMAIL: ${{ inputs.userEmail }}
+          # FRONT_ADMIN: ${{ inputs.frontAdmin }}
+          # PASSWORD: ${{ inputs.password }}
+          # API_KEY: ${{ inputs.apiKey }}
+          # STORE_ID: ${{ env.STORE_ID }} #${{ inputs.storeId }}
+          # PLAYWRIGHT_HEADLESS: ${{ inputs.playwrightHeadless }}
       run: |
         echo "Running GraphQL tests against ${{ inputs.baseUrl }}"
         cd ${{ inputs.vctestingPath }}
