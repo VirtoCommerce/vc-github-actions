@@ -93,6 +93,6 @@ runs:
               Write-Host "✅ Updated task $jiraKey"
             }
             catch {
-              Write-Host "❌ Failed to update task $jiraKey. $_.Exception.Message"
+              Write-Host "❌ Failed to update task $jiraKey. $_"
             }
         }
