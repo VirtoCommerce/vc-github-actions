@@ -1,3 +1,10 @@
+# This action updates JIRA tasks with release information by:
+# 1. Getting the two latest releases from the GitHub repository
+# 2. Finding all commits between these releases
+# 3. Extracting JIRA keys from branch names (format: [A-Z]+-\d{1,6})
+# 4. Updating each JIRA task's custom field with the specified value
+# 5. Handling errors gracefully and logging results
+
 name: 'Update Jira keys for release'
 description: 'Update Jira keys for release'
 inputs:
