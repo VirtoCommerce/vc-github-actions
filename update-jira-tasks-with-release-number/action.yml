@@ -97,3 +97,4 @@ runs:
               Write-Host "❌ Failed to update task $jiraKey. $($_ -replace '\s+', ' ')"
             }
         }
+        Write-Host "🎉 Done updating tasks"
