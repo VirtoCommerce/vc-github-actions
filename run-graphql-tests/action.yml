@@ -174,7 +174,7 @@ runs:
         playwright install --with-deps ${{ inputs.browser }}
             
     - name: Run GraphQL Tests
-        shell: bash
+      shell: bash
         # env:
           # FRONTEND_BASE_URL: ${{ inputs.baseUrl }}
           # BACKEND_BASE_URL: ${{ inputs.backUrl }}
