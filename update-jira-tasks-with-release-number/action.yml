@@ -88,6 +88,7 @@ runs:
         } | ConvertTo-Json -Depth 5
 
         Write-Host "🔄 Updating tasks ..."
+        $uniqueJiraKeys = @('VCST-00260900', 'VCST-2609')
         foreach ($jiraKey in $uniqueJiraKeys) {
             try {
               $response = Invoke-RestMethod -Uri "${{ inputs.jiraBaseUrl }}/rest/api/3/issue/$jiraKey" -Headers $headers -Method Put -Body $updateBody
