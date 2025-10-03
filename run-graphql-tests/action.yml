@@ -162,7 +162,7 @@ runs:
         # echo "ADMIN_USERNAME=admin" >> $env:GITHUB_ENV
         # echo "STORE_ID=store-acme" >> $env:GITHUB_ENV
 
-        python -m scripts.dataset_seeder
+        python -m dataset.dataset_seeder
 
         wget https://raw.githubusercontent.com/VirtoCommerce/vc-github-actions/refs/heads/VCST-2789-1/docker-env-full/sripts/start-indexing.ps1
         ./start-indexing.ps1 -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $adminPassword
