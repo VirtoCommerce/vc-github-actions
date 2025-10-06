@@ -5,8 +5,8 @@
 # 4. Updating each JIRA task's custom field with the specified value
 # 5. Handling errors gracefully and logging results
 
-name: 'Update Jira keys for release'
-description: 'Update Jira keys for release'
+name: 'Update Jira tasks with release number'
+description: 'Update Jira tasks with release number'
 inputs:
   client-id:
     description: 'Client ID'
@@ -49,7 +49,14 @@ runs:
 
         # Get two latest releases
         $releases = gh api "/repos/$owner/$repo/releases" | ConvertFrom-Json
-        $releases = $releases | Sort-Object { [datetime]$_.created_at } -Descending
+        
+        if ($releases.Count -le 2) {
+          Write-Warning "Not enough releases found"
+          exit 0
+        }
+
+        $releases = $releases | Sort-Object { [datetime]$_.created_at } -Descending | Where-Object { $_.tag_name -match '\.0$' }
+
         $currentTag = $releases[0].tag_name
         $prevTag = $releases[1].tag_name
         Write-Host "Comparing $prevTag...$currentTag"
@@ -88,7 +95,6 @@ runs:
         } | ConvertTo-Json -Depth 5
 
         Write-Host "🔄 Updating tasks ..."
-        $uniqueJiraKeys = @('VCST-00260900', 'VCST-2609')
         foreach ($jiraKey in $uniqueJiraKeys) {
             try {
               $response = Invoke-RestMethod -Uri "${{ inputs.jiraBaseUrl }}/rest/api/3/issue/$jiraKey" -Headers $headers -Method Put -Body $updateBody
