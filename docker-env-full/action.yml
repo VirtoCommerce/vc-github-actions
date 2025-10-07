@@ -62,7 +62,7 @@ runs:
         New-Item -Path "./" -Name "${{ env.INSTALL_FOLDER}}" -ItemType "directory"
         Push-Location ./${{ env.INSTALL_FOLDER}}
         vc-build install -Edge -skip InstallPlatform
-        vc-build module install VirtoCommerce.Quote
+        vc-build install -module VirtoCommerce.Quote
 
     - name: Build platform docker image
       if: ${{ inputs.installCustomModule == 'true' }}
