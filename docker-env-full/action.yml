@@ -40,10 +40,6 @@ inputs:
     description: 'Platform Docker Image'
     required: false
     default: 'platform'
-  bacpacFileUrl:
-    description: 'URL to the bacpac file to import into the database'
-    required: false
-    default: ''
   testSecretEnvFile:
     description: 'Test secret environment file content'
     required: true

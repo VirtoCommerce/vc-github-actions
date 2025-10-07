@@ -29,34 +29,6 @@ inputs:
     description: 'Admin Password'
     required: true
     type: string
-  adminToken:
-    description: 'Admin Token'
-    required: true
-    type: string
-  userEmail:
-    description: 'User Email'
-    required: true
-    type: string
-  frontAdmin:
-    description: 'Front Admin'
-    required: true
-    type: string
-  password:
-    description: 'Password'
-    required: true
-    type: string
-  apiKey:
-    description: 'API Key'
-    required: false
-    type: string
-  storeId:
-    description: 'Store ID'
-    required: true
-    type: string
-  playwrightHeadless:
-    description: 'Playwright Headless'
-    required: true
-    type: string
   browser:
     description: 'Browser'
     required: true
