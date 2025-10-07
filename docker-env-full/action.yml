@@ -250,8 +250,8 @@ runs:
       if: ${{ inputs.installSampleData == 'true' }}
       working-directory: ${{ github.action_path }}
       shell: pwsh
-      env:
-        SECRET_ENV_FILE: ${{ inputs.testSecretEnvFile }}
+      # env:
+      #   SECRET_ENV_FILE: ${{ inputs.testSecretEnvFile }}
       run: |
         if ( $env:SECRET_ENV_FILE -match 'ADMIN_PASSWORD=\S+' ) {
           $testAdminPassword = $matches[0].split('=')[1]
