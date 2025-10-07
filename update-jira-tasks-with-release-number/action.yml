@@ -50,22 +50,25 @@ runs:
         # Get two latest releases
         $releases = gh api "/repos/$owner/$repo/releases" | ConvertFrom-Json
         
-        if ($releases.Count -le 2) {
-          Write-Warning "Not enough releases found"
-          exit 0
+        if ($releases.Count -lt 2) {
+          Write-Warning "Not enough releases found, using all commits"
+          # Get all commits
+          $commits = gh api "/repos/$owner/$repo/commits" --jq ".[].sha"
+        } else {
+          $releases = $releases | Sort-Object { [datetime]$_.created_at } -Descending | Where-Object { $_.tag_name -match '\.0$' }
+          $currentTag = $releases[0].tag_name
+          $prevTag = $releases[1].tag_name
+          Write-Host "Comparing $prevTag...$currentTag"
+          # Get commits between tags
+          $commits = gh api "/repos/$owner/$repo/compare/$prevTag...$currentTag" --jq ".commits[].sha"
         }
-
-        $releases = $releases | Sort-Object { [datetime]$_.created_at } -Descending | Where-Object { $_.tag_name -match '\.0$' }
-
-        $currentTag = $releases[0].tag_name
-        $prevTag = $releases[1].tag_name
-        Write-Host "Comparing $prevTag...$currentTag"
-
-        # Get commits between tags
-        $commits = gh api "/repos/$owner/$repo/compare/$prevTag...$currentTag" --jq ".commits[].sha"
         
         foreach ($sha in $commits) {
           $prs = gh api "/repos/$owner/$repo/commits/$sha/pulls" -H "Accept: application/vnd.github.groot-preview+json" | ConvertFrom-Json
+          if ($prs.Count -eq 0) {
+            Write-Warning "No PRs found for commit $sha"
+            continue
+          }
           foreach ($pr in $prs) {
               if ($null -ne $pr.head.ref) {
                   if ($pr.head.ref -match '([A-Z]+-\d{1,6})') {
@@ -78,6 +81,11 @@ runs:
           }
         }
         
+        if ($jiraKeys.Count -eq 0) {
+          Write-Warning "No Jira keys found"
+          exit 0
+        }
+
         $uniqueJiraKeys = $jiraKeys | Sort-Object -Unique
         Write-Host "Jira keys merged since last release:"
         $uniqueJiraKeys | ForEach-Object { Write-Host $_ }
