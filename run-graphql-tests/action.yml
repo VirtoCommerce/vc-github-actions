@@ -73,23 +73,23 @@ runs:
       with:
         python-version: "3.11"
 
-    - name: Check backend and frontend are running
-      shell: pwsh
-      run: |
-        echo "Checking if backend (${{ inputs.backUrl }}) and frontend (${{ inputs.baseUrl }}) are running..."
-        try {
-          $backendResponse = Invoke-WebRequest -Uri "${{ inputs.backUrl }}" -Method GET -TimeoutSec 10
-          Write-Host "Backend is running (Status: $($backendResponse.StatusCode))"
-        } catch {
-          Write-Warning "Backend health check failed: $($_.Exception.Message)"
-        }
+    # - name: Check backend and frontend are running
+    #   shell: pwsh
+    #   run: |
+    #     echo "Checking if backend (${{ inputs.backUrl }}) and frontend (${{ inputs.baseUrl }}) are running..."
+    #     try {
+    #       $backendResponse = Invoke-WebRequest -Uri "${{ inputs.backUrl }}" -Method GET -TimeoutSec 10
+    #       Write-Host "Backend is running (Status: $($backendResponse.StatusCode))"
+    #     } catch {
+    #       Write-Warning "Backend health check failed: $($_.Exception.Message)"
+    #     }
         
-        try {
-          $frontendResponse = Invoke-WebRequest -Uri "${{ inputs.baseUrl }}" -Method GET -TimeoutSec 10
-          Write-Host "Frontend is running (Status: $($frontendResponse.StatusCode))"
-        } catch {
-          Write-Warning "Frontend health check failed: $($_.Exception.Message)"
-        }
+    #     try {
+    #       $frontendResponse = Invoke-WebRequest -Uri "${{ inputs.baseUrl }}" -Method GET -TimeoutSec 10
+    #       Write-Host "Frontend is running (Status: $($frontendResponse.StatusCode))"
+    #     } catch {
+    #       Write-Warning "Frontend health check failed: $($_.Exception.Message)"
+    #     }
 
     - name: Getting tests
       uses: actions/checkout@v4
@@ -146,15 +146,15 @@ runs:
       run: |
         echo "Seeding test data and starting indexing..."
         cd ${{ inputs.vctestingPath }}
-        $envFile = get-content -path ./.env
-        if ( $envFile -match 'ADMIN_PASSWORD=\S+' ) {
-          $m = $envFile -match 'ADMIN_PASSWORD=\S+'
-          $adminPassword = $m[0].split('=')[1]
-          Write-Host "`e[32mSet password for admin user from env file"
-        } else {
-          $adminPassword = 'store'
-          Write-Host "`e[32mSet password for admin user from default value"
-        }
+        # $envFile = get-content -path ./.env
+        # if ( $envFile -match 'ADMIN_PASSWORD=\S+' ) {
+        #   $m = $envFile -match 'ADMIN_PASSWORD=\S+'
+        #   $adminPassword = $m[0].split('=')[1]
+        #   Write-Host "`e[32mSet password for admin user from env file"
+        # } else {
+        #   $adminPassword = 'store'
+        #   Write-Host "`e[32mSet password for admin user from default value"
+        # }
 
         python -m dataset.dataset_seeder
 
