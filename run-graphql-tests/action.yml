@@ -100,8 +100,8 @@ runs:
 
     - name: Create .env file
       shell: bash
-      # env:
-      #   SECRET_ENV_FILE: ${{ inputs.testSecretEnvFile }}
+      env:
+        SECRET_ENV_FILE: ${{ inputs.testSecretEnvFile }}
       run: |
         echo "Creating .env file..."
         cd ${{ inputs.vctestingPath }}
