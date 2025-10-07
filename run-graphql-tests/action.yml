@@ -146,15 +146,15 @@ runs:
       run: |
         echo "Seeding test data and starting indexing..."
         cd ${{ inputs.vctestingPath }}
-        # $envFile = get-content -path ./.env
-        # if ( $envFile -match 'ADMIN_PASSWORD=\S+' ) {
-        #   $m = $envFile -match 'ADMIN_PASSWORD=\S+'
-        #   $adminPassword = $m[0].split('=')[1]
-        #   Write-Host "`e[32mSet password for admin user from env file"
-        # } else {
-        #   $adminPassword = 'store'
-        #   Write-Host "`e[32mSet password for admin user from default value"
-        # }
+        $envFile = get-content -path ./.env
+        if ( $envFile -match 'ADMIN_PASSWORD=\S+' ) {
+          $m = $envFile -match 'ADMIN_PASSWORD=\S+'
+          $adminPassword = $m[0].split('=')[1]
+          Write-Host "`e[32mSet password for admin user from env file"
+        } else {
+          $adminPassword = 'store'
+          Write-Host "`e[32mSet password for admin user from default value"
+        }
 
         python -m dataset.dataset_seeder
 
