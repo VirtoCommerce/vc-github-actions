@@ -73,24 +73,6 @@ runs:
       with:
         python-version: "3.11"
 
-    # - name: Check backend and frontend are running
-    #   shell: pwsh
-    #   run: |
-    #     echo "Checking if backend (${{ inputs.backUrl }}) and frontend (${{ inputs.baseUrl }}) are running..."
-    #     try {
-    #       $backendResponse = Invoke-WebRequest -Uri "${{ inputs.backUrl }}" -Method GET -TimeoutSec 10
-    #       Write-Host "Backend is running (Status: $($backendResponse.StatusCode))"
-    #     } catch {
-    #       Write-Warning "Backend health check failed: $($_.Exception.Message)"
-    #     }
-        
-    #     try {
-    #       $frontendResponse = Invoke-WebRequest -Uri "${{ inputs.baseUrl }}" -Method GET -TimeoutSec 10
-    #       Write-Host "Frontend is running (Status: $($frontendResponse.StatusCode))"
-    #     } catch {
-    #       Write-Warning "Frontend health check failed: $($_.Exception.Message)"
-    #     }
-
     - name: Getting tests
       uses: actions/checkout@v4
       with:
@@ -114,12 +96,10 @@ runs:
       run: |
         echo "Updating .env file to use local backend URLs..."
         cd ${{ inputs.vctestingPath }}
-        
         # Replace any BACKEND_BASE_URL value with localhost URL
         sed -i 's|^BACKEND_BASE_URL=.*|BACKEND_BASE_URL=http://localhost:8090|g' .env
         # Replace any FRONTEND_BASE_URL value with localhost URL
         sed -i 's|^FRONTEND_BASE_URL=.*|FRONTEND_BASE_URL=http://localhost|g' .env
-
         echo "..Done."
 
     # - name: Upload .env file for debugging
@@ -155,9 +135,7 @@ runs:
           $adminPassword = 'store'
           Write-Host "`e[32mSet password for admin user from default value"
         }
-
         python -m dataset.dataset_seeder
-
         wget https://raw.githubusercontent.com/VirtoCommerce/vc-github-actions/refs/heads/VCST-2789-1/docker-env-full/sripts/start-indexing.ps1
         ./start-indexing.ps1 -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $adminPassword
 
