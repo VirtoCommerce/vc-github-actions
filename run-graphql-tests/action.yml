@@ -109,19 +109,17 @@ runs:
         chmod 600 .env
         echo "..Done."
 
-    - name: Update .env file with local backend URL
+    - name: Update .env file with local URLs
       shell: bash
       run: |
-        echo "Updating .env file to use local backend URL..."
+        echo "Updating .env file to use local backend URLs..."
         cd ${{ inputs.vctestingPath }}
         
         # Replace any BACKEND_BASE_URL value with localhost URL
         sed -i 's|^BACKEND_BASE_URL=.*|BACKEND_BASE_URL=http://localhost:8090|g' .env
         # Replace any FRONTEND_BASE_URL value with localhost URL
         sed -i 's|^FRONTEND_BASE_URL=.*|FRONTEND_BASE_URL=http://localhost|g' .env
-        
-        echo "Updated .env content:"
-        cat .env
+
         echo "..Done."
 
     # - name: Upload .env file for debugging
@@ -137,6 +135,7 @@ runs:
     - name: Install dependencies
       shell: bash
       run: |
+        echo "Installing Python dependencies for GraphQL tests..."
         cd ${{ inputs.vctestingPath }}
         python -m pip install --upgrade pip
         pip install -r requirements.txt
@@ -145,6 +144,7 @@ runs:
     - name: Seed test data
       shell: pwsh
       run: |
+        echo "Seeding test data and starting indexing..."
         cd ${{ inputs.vctestingPath }}
         $envFile = get-content -path ./.env
         if ( $envFile -match 'ADMIN_PASSWORD=\S+' ) {
@@ -156,12 +156,6 @@ runs:
           Write-Host "`e[32mSet password for admin user from default value"
         }
 
-        # $env:ADMIN_USERNAME = 'admin'
-        # $env:STORE_ID = 'store-acme'
-        # # Set environment variables for next steps
-        # echo "ADMIN_USERNAME=admin" >> $env:GITHUB_ENV
-        # echo "STORE_ID=store-acme" >> $env:GITHUB_ENV
-
         python -m dataset.dataset_seeder
 
         wget https://raw.githubusercontent.com/VirtoCommerce/vc-github-actions/refs/heads/VCST-2789-1/docker-env-full/sripts/start-indexing.ps1
@@ -170,29 +164,16 @@ runs:
     - name: Install Playwright Browsers
       shell: bash
       run: |
+        echo "Installing Playwright browsers for ${{ inputs.browser }}..."
         cd ${{ inputs.vctestingPath }}
         playwright install --with-deps ${{ inputs.browser }}
             
     - name: Run GraphQL Tests
       shell: bash
-        # env:
-          # FRONTEND_BASE_URL: ${{ inputs.baseUrl }}
-          # BACKEND_BASE_URL: ${{ inputs.backUrl }}
-          # ADMIN_USERNAME: ${{ env.ADMIN_USERNAME }} #${{ inputs.adminUsername }}
-          # ADMIN_PASSWORD: ${{ env.ADMIN_PASSWORD }} #${{ inputs.adminPassword }}
-          # USERS_PASSWORD: ${{ env.USERS_PASSWORD }}
-          # ADMIN_TOKEN: ${{ inputs.adminToken }}
-          # USER_EMAIL: ${{ inputs.userEmail }}
-          # FRONT_ADMIN: ${{ inputs.frontAdmin }}
-          # PASSWORD: ${{ inputs.password }}
-          # API_KEY: ${{ inputs.apiKey }}
-          # STORE_ID: ${{ env.STORE_ID }} #${{ inputs.storeId }}
-          # PLAYWRIGHT_HEADLESS: ${{ inputs.playwrightHeadless }}
       run: |
         echo "Running GraphQL tests against ${{ inputs.baseUrl }}"
         cd ${{ inputs.vctestingPath }}
         pytest tests_graphql/tests/ -m "not ignore" --browser ${{ inputs.browser }} --html=graphql-report.html --self-contained-html --tracing=retain-on-failure -v -s
-        # pytest tests_graphql/tests/test_graphql_get_user.py -v -s
 
     - name: Upload test results
       if: always()
