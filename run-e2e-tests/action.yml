@@ -119,11 +119,10 @@ runs:
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v4
-      working-directory: ${{ inputs.vctestingPath }}
       with:
         name: e2e-test-results-${{ inputs.browser }}
         path: |
-          e2e-report.html
-          playwright-report/
-          test-results/
+          ${{ inputs.vctestingPath }}/e2e-report.html
+          ${{ inputs.vctestingPath }}/playwright-report/
+          ${{ inputs.vctestingPath }}/test-results/
         retention-days: 30
