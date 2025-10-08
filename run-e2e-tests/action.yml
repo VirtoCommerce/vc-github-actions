@@ -98,7 +98,8 @@ runs:
           Write-Host "`e[32mSet password for admin user from default value"
         }
         python -m dataset.dataset_seeder
-        wget https://raw.githubusercontent.com/VirtoCommerce/vc-github-actions/refs/heads/master/docker-env-full/sripts/start-indexing.ps1
+        # wget https://raw.githubusercontent.com/VirtoCommerce/vc-github-actions/refs/heads/master/docker-env-full/sripts/start-indexing.ps1
+        wget https://raw.githubusercontent.com/VirtoCommerce/vc-github-actions/refs/heads/VCST-4078/docker-env-full/sripts/start-indexing.ps1
         ./start-indexing.ps1 -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $adminPassword
 
     - name: Install Playwright Browsers
