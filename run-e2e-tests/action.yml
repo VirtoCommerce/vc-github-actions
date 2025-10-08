@@ -113,7 +113,7 @@ runs:
       shell: bash
       working-directory: ${{ inputs.vctestingPath }}
       run: |
-        echo "Running E2E tests against ${{ inputs.baseUrl }}""
+        echo "Running E2E tests against ${{ inputs.baseUrl }}"
         pytest tests_e2e/tests/ -v -s --checkout-mode single-page --product-quantity-control stepper -m "not ignore" --browser ${{ inputs.browser }} --html=e2e-report.html --self-contained-html --tracing=retain-on-failure
 
     - name: Upload test results
