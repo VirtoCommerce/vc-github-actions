@@ -74,16 +74,6 @@ runs:
         sed -i 's|^FRONTEND_BASE_URL=.*|FRONTEND_BASE_URL=http://localhost|g' .env
         echo "..Done."
 
-    # - name: Upload .env file for debugging
-    #   if: always()
-    #   uses: actions/upload-artifact@v4
-    #   with:
-    #     name: .env-file-for-debugging
-    #     path: |
-    #       ${{ inputs.vctestingPath }}/.env
-    #     retention-days: 3
-    #     include-hidden-files: true
-
     - name: Install dependencies
       shell: bash
       run: |
