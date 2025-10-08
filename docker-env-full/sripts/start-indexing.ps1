@@ -1,7 +1,7 @@
 param(
     [string]$platformUrl = 'http://localhost:8090',
     [string]$adminUsername = 'admin',
-    [string]$adminPassword = 'Password1'
+    [string]$adminPassword = 'store'
 )
 
 # get token

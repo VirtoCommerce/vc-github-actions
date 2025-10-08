@@ -3,16 +3,7 @@ param (
     [string]$platformUrl = 'http://localhost:8090',
     [string]$adminUsername = 'admin', 
     [string]$adminPassword = 'store',
-    [string]$newAdminPassword #= 'Password3',
-    # [string]$userEmail = 'b2badmin',
-    # [string]$frontAdmin = 'e2e-admin@test.com',
-    # [string]$frontAdminPassword = 'Password1',
-    # [string]$apiKey = '1add83ea-2235-41fe-b623-825070824059',
-    # [string]$testUser1 = 'e2e-gql-test@test.com',
-    # [string]$testUser2 = 'e2e-test-customer@test.com',
-    # [string]$testUser3 = 'e2e-test-maintainer@e2e-contoso.com',
-    # [string]$testUserPassword #= 'Password1!',
-    # [string]$storeId = 'B2B-store'
+    [string]$newAdminPassword
 )
 
 function CreateUser {
@@ -165,21 +156,5 @@ $headers = @{
 $adminToken = (Invoke-WebRequestWithRetry -Uri "$platformUrl/connect/token" -Body $body -Headers $headers -Method POST).Content | ConvertFrom-Json
 $adminToken = $adminToken.access_token
 
-# Set environment variable for use in subsequent scripts
-# [Environment]::SetEnvironmentVariable("VC_ADMIN_TOKEN", $adminToken, "Machine")
-# Write-Host "Admin token set as environment variable VC_ADMIN_TOKEN for machine-wide access"
-
-#set api key for admin user
-# SetApiKey -username "$adminUsername" -apiKey "$apiKey" -token "$adminToken"
-
-# create front admin user
-# CreateUser -username "$frontAdmin" -password "$frontAdminPassword" -isAdministrator $true -token "$adminToken" -userType 'Administrator' -storeId "$storeId"
-
 # change user passwords
-# ResetUserPassword -username "$userEmail" -newPassword "$frontAdminPassword" -token "$adminToken"
 ResetUserPassword -username "$adminUsername" -newPassword "$newAdminPassword" -token "$adminToken"
-
-# create test users
-# CreateUser -username "$testUser1" -password "$testUserPassword" -isAdministrator $false -token "$adminToken" -storeId "$storeId"
-# CreateUser -username "$testUser2" -password "$testUserPassword" -isAdministrator $false -token "$adminToken" -storeId "$storeId"
-# CreateUser -username "$testUser3" -password "$testUserPassword" -isAdministrator $false -token "$adminToken" -storeId "$storeId"
