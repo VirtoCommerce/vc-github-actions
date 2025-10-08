@@ -99,7 +99,7 @@ runs:
         }
         python -m dataset.dataset_seeder
         # wget https://raw.githubusercontent.com/VirtoCommerce/vc-github-actions/refs/heads/master/docker-env-full/sripts/start-indexing.ps1
-        wget https://raw.githubusercontent.com/VirtoCommerce/vc-github-actions/refs/heads/VCST-2789-1/docker-env-full/sripts/start-indexing.ps1
+        wget https://raw.githubusercontent.com/VirtoCommerce/vc-github-actions/refs/heads/VCST-2789-1/docker-env-full/sripts/start-indexing.ps1 >> $null
         ./start-indexing.ps1 -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $adminPassword
 
     - name: Install Playwright Browsers
