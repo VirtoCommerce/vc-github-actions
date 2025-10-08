@@ -109,18 +109,18 @@ runs:
         echo "Installing Playwright browsers for ${{ inputs.browser }}..."
         playwright install --with-deps ${{ inputs.browser }}
             
-    - name: Run GraphQL Tests
+    - name: Run E2E Tests
       shell: bash
       working-directory: ${{ inputs.vctestingPath }}
       run: |
-        echo "Running E2E tests against ${{ env.FRONTEND_BASE_URL }}"
-        pytest tests_e2e/tests/ -v -s --checkout-mode single-page --product-quantity-control stepper -m "not ignore" --browser ${{ matrix.browser }} --html=e2e-report.html --self-contained-html --tracing=retain-on-failure
+        echo "Running E2E tests against ${{ inputs.baseUrl }}""
+        pytest tests_e2e/tests/ -v -s --checkout-mode single-page --product-quantity-control stepper -m "not ignore" --browser ${{ inputs.browser }} --html=e2e-report.html --self-contained-html --tracing=retain-on-failure
 
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: e2e-test-results-${{ matrix.browser }}
+        name: e2e-test-results-${{ inputs.browser }}
         path: |
           e2e-report.html
           playwright-report/
