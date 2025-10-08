@@ -1,32 +1,20 @@
 name: 'GraphQL Tests'
 description: 'Runs GraphQL Tests'
 inputs:
-  vctestingRepo:
-    description: 'UI tests repository'
-    required: true
-    type: string
-  vctestingRepoBranch:
-    description: 'UI tests repository branch'
-    required: true
-    type: string
-  vctestingPath:
-    description: 'UI tests path'
-    required: true
-    type: string
-  baseUrl:
-    description: 'Base URL'
-    required: true
-    type: string
-  backUrl:
-    description: 'Back URL'
+  adminPassword:
+    description: 'Admin Password'
     required: true
     type: string
   adminUsername:
     description: 'Admin Username'
     required: true
     type: string
-  adminPassword:
-    description: 'Admin Password'
+  backUrl:
+    description: 'Back URL'
+    required: true
+    type: string
+  baseUrl:
+    description: 'Base URL'
     required: true
     type: string
   browser:
@@ -35,6 +23,18 @@ inputs:
     type: string
   testSecretEnvFile:
     description: 'Test secret environment file content'
+    required: true
+    type: string
+  vctestingPath:
+    description: 'UI tests path'
+    required: true
+    type: string
+  vctestingRepo:
+    description: 'UI tests repository'
+    required: true
+    type: string
+  vctestingRepoBranch:
+    description: 'UI tests repository branch'
     required: true
     type: string
 runs:
@@ -87,6 +87,10 @@ runs:
       shell: pwsh
       run: |
         echo "Seeding test data and starting indexing..."
+        ls -la
+        echo "github.workspace: $github.workspace"
+        ls -la $github.workspace
+
         cd ${{ inputs.vctestingPath }}
         $envFile = get-content -path ./.env
         if ( $envFile -match 'ADMIN_PASSWORD=\S+' ) {
@@ -99,6 +103,7 @@ runs:
         }
         python -m dataset.dataset_seeder
         wget https://raw.githubusercontent.com/VirtoCommerce/vc-github-actions/refs/heads/master/docker-env-full/sripts/start-indexing.ps1
+        # ./start-indexing.ps1 -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $adminPassword
         ./start-indexing.ps1 -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $adminPassword
 
     - name: Install Playwright Browsers
