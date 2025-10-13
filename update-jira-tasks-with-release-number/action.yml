@@ -68,7 +68,7 @@ runs:
             $jiraKeys += $matches[0]
           }
           else {
-            Write-Warning "Commit does not match the pattern [A-Z]{2,}-\d+. Commit URL: $($commit.url)"
+            Write-Warning "Commit message '$($commit.message -split '\n')[0] ...' does not match the pattern [A-Z]{2,}-\d+."
           }
         }
         
@@ -79,7 +79,7 @@ runs:
 
         $uniqueJiraKeys = $jiraKeys | Sort-Object -Unique
         Write-Host "Jira keys merged since last release:"
-        $uniqueJiraKeys | ForEach-Object { Write-Host "$_ `n" }
+        $uniqueJiraKeys | ForEach-Object { Write-Host "$_" }
 
         # # Create Jira auth header
         # $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("${env:JIRA_USER}:${env:JIRA_TOKEN}"))
