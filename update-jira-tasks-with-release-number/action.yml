@@ -68,7 +68,7 @@ runs:
             $jiraKeys += $matches[0]
           }
           else {
-            Write-Warning "Commit message '$commit.message.Split([Environment]::NewLine)[0] ...' does not match the pattern [A-Z]{2,}-\d+."
+            Write-Warning "Commit message '$($commit.message -split "`r?`n")[0] ...' does not match the pattern [A-Z]{2,}-\d+."
           }
         }
         
