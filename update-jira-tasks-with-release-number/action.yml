@@ -60,7 +60,7 @@ runs:
           $prevTag = $releases[1].tag_name
           Write-Host "Comparing $prevTag...$currentTag"
           # Get commits between tags
-          $commitMessages = gh api "/repos/$owner/$repo/compare/$prevTag...$currentTag" --jq ".commits[].commit.message"
+          $commits = $(gh api "/repos/$owner/$repo/compare/$prevTag...$currentTag" | ConvertFrom-Json).commits.commit #--jq ".commits[].commit.message"
         }
         
         # foreach ($sha in $commits) {
@@ -81,12 +81,12 @@ runs:
         #   }
         # }
 
-        foreach ($commitMessage in $commitMessages) {
-          if ($commitMessage -match '([A-Z]+-\d{1,6})') {
+        foreach ($commit in $commits) {
+          if ($commit.message -cmatch '[A-Z]{2,}-\d+') {
             $jiraKeys += $matches[0]
           }
           else {
-            Write-Warning "Commit $commitMessage does not match the pattern [A-Z]+-\d{1,6}"
+            Write-Warning "Commit $commit.message does not match the pattern #[A-Z]+-\d{1,6}"
           }
         }
         
@@ -97,7 +97,7 @@ runs:
 
         $uniqueJiraKeys = $jiraKeys | Sort-Object -Unique
         Write-Host "Jira keys merged since last release:"
-        $uniqueJiraKeys | ForEach-Object { Write-Host $_ }
+        $uniqueJiraKeys | ForEach-Object { Write-Host "$_ `n" }
 
         # # Create Jira auth header
         # $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("${env:JIRA_USER}:${env:JIRA_TOKEN}"))
