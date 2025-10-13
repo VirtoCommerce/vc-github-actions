@@ -1,6 +1,34 @@
 name: 'GraphQL Tests'
 description: 'Runs GraphQL Tests'
 inputs:
+  adminPassword:
+    description: 'Admin Password'
+    required: true
+    type: string
+  adminUsername:
+    description: 'Admin Username'
+    required: true
+    type: string
+  backUrl:
+    description: 'Back URL'
+    required: true
+    type: string
+  baseUrl:
+    description: 'Base URL'
+    required: true
+    type: string
+  browser:
+    description: 'Browser'
+    required: true
+    type: string
+  testSecretEnvFile:
+    description: 'Test secret environment file content'
+    required: true
+    type: string
+  vctestingPath:
+    description: 'UI tests path'
+    required: true
+    type: string
   vctestingRepo:
     description: 'UI tests repository'
     required: true
@@ -9,49 +37,14 @@ inputs:
     description: 'UI tests repository branch'
     required: true
     type: string
-  vctestingPath:
-    description: 'UI tests path'
-    required: true
-    type: string
-  baseUrl:
-    description: 'Base URL'
-    required: true
-  backUrl:
-    description: 'Back URL'
-    required: true
-  adminUsername:
-    description: 'Admin Username'
-    required: true
-  adminPassword:
-    description: 'Admin Password'
-    required: true
-  adminToken:
-    description: 'Admin Token'
-    required: true
-  userEmail:
-    description: 'User Email'
-    required: true
-  frontAdmin:
-    description: 'Front Admin'
-    required: true
-  password:
-    description: 'Password'
-    required: true
-  apiKey:
-    description: 'API Key'
-    required: false
-  storeId:
-    description: 'Store ID'
-    required: true
-  playwrightHeadless:
-    description: 'Playwright Headless'
-    required: true
-  browser:
-    description: 'Browser'
-    required: true
 runs:
   using: "composite"
   steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
     - name: Getting tests
       uses: actions/checkout@v4
       with:
@@ -59,47 +52,71 @@ runs:
         ref: ${{ inputs.vctestingRepoBranch }}
         path: ${{ inputs.vctestingPath }}
 
+    - name: Create .env file
+      shell: bash
+      working-directory: ${{ inputs.vctestingPath }}
+      env:
+        SECRET_ENV_FILE: ${{ inputs.testSecretEnvFile }}
+      run: |
+        echo "Creating .env file..."
+        echo "$SECRET_ENV_FILE" > .env
+        chmod 600 .env
+        echo "..Done."
+
+    - name: Update .env file with local URLs
+      shell: bash
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        echo "Updating .env file to use local backend URLs..."
+        # Replace any BACKEND_BASE_URL value with localhost URL
+        sed -i 's|^BACKEND_BASE_URL=.*|BACKEND_BASE_URL=http://localhost:8090|g' .env
+        # Replace any FRONTEND_BASE_URL value with localhost URL
+        sed -i 's|^FRONTEND_BASE_URL=.*|FRONTEND_BASE_URL=http://localhost|g' .env
+        echo "..Done."
+
     - name: Install dependencies
       shell: bash
+      working-directory: ${{ inputs.vctestingPath }}
       run: |
-        cd ${{ inputs.vctestingPath }}
+        echo "Installing Python dependencies for GraphQL tests..."
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest-html
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.11"
-            
+    - name: Seed test data
+      shell: pwsh
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        echo "Seeding test data and starting indexing..."
+        $envFile = get-content -path ./.env
+        if ( $envFile -match 'ADMIN_PASSWORD=\S+' ) {
+          $m = $envFile -match 'ADMIN_PASSWORD=\S+'
+          $adminPassword = $m[0].split('=')[1]
+          Write-Host "`e[32mSet password for admin user from env file"
+        } else {
+          $adminPassword = 'store'
+          Write-Host "`e[32mSet password for admin user from default value"
+        }
+        python -m dataset.dataset_seeder
+        wget https://raw.githubusercontent.com/VirtoCommerce/vc-github-actions/refs/heads/master/docker-env-full/sripts/start-indexing.ps1
+        ./start-indexing.ps1 -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $adminPassword
+
     - name: Install Playwright Browsers
       shell: bash
+      working-directory: ${{ inputs.vctestingPath }}
       run: |
-        cd ${{ inputs.vctestingPath }}
+        echo "Installing Playwright browsers for ${{ inputs.browser }}..."
         playwright install --with-deps ${{ inputs.browser }}
             
     - name: Run GraphQL Tests
-      if: false
       shell: bash
-      env:
-        FRONTEND_BASE_URL: ${{ inputs.baseUrl }}
-        BACKEND_BASE_URL: ${{ inputs.backUrl }}
-        ADMIN_USERNAME: ${{ inputs.adminUsername }}
-        ADMIN_PASSWORD: ${{ inputs.adminPassword }}
-        ADMIN_TOKEN: ${{ inputs.adminToken }}
-        USER_EMAIL: ${{ inputs.userEmail }}
-        FRONT_ADMIN: ${{ inputs.frontAdmin }}
-        PASSWORD: ${{ inputs.password }}
-        API_KEY: ${{ inputs.apiKey }}
-        STORE_ID: ${{ inputs.storeId }}
-        PLAYWRIGHT_HEADLESS: ${{ inputs.playwrightHeadless }}
+      working-directory: ${{ inputs.vctestingPath }}
       run: |
         echo "Running GraphQL tests against ${{ inputs.baseUrl }}"
-        cd ${{ inputs.vctestingPath }}
-        pytest tests_graphql/tests/ --browser ${{ inputs.browser }} --html=graphql-report.html --self-contained-html --tracing=retain-on-failure -v -s
+        pytest tests_graphql/tests/ -m "not ignore" --browser ${{ inputs.browser }} --html=graphql-report.html --self-contained-html --tracing=retain-on-failure -v -s
 
     - name: Upload test results
-      if: false
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: graphql-test-results-${{ inputs.browser }}

@@ -3,10 +3,7 @@ param (
     [string]$platformUrl = 'http://localhost:8090',
     [string]$adminUsername = 'admin', 
     [string]$adminPassword = 'store',
-    [string]$userEmail = 'b2badmin',
-    [string]$frontAdmin = 'e2e-admin@test.com',
-    [string]$frontAdminPassword = 'Password1',
-    [string]$apiKey = '1add83ea-2235-41fe-b623-825070824059'
+    [string]$newAdminPassword
 )
 
 function CreateUser {
@@ -14,13 +11,18 @@ function CreateUser {
         [string]$username,
         [string]$password,
         [bool]$isAdministrator = $false,
-        [string]$token
+        [string]$token,
+        [string]$userType = 'Customer',
+        [string]$storeId
     )
     $body = @{
         "email"           = "$username"
         "userName"        = "$username"
         "isAdministrator" = $isAdministrator
         "password"        = "$password"
+        "status"          = "Approved"
+        "userType"        = "$userType"
+        "storeId"         = "$storeId"
     }
     $headers = @{
         "accept"        = "application/json"
@@ -32,7 +34,9 @@ function CreateUser {
     if ($result.succeeded -eq $false) {
         Write-Error "Create user succeeded: $($result.succeeded). $($result.errors)"
     }
-    Write-Host "User $username created"
+    else {
+        Write-Host "... user $username created successfully"
+    }
 }
 
 function ResetUserPassword {
@@ -48,13 +52,16 @@ function ResetUserPassword {
     }
     $headers = @{
         "Content-Type"  = "application/json-patch+json"
-        "Authorization" = "Bearer $adminToken"
+        "Authorization" = "Bearer $token"
     }
-    Write-Host "Resetting user password $username ..."
+    Write-Host "Resetting '$username' user password ..."
     $username = [System.Web.HttpUtility]::UrlEncode($username)
     $resultResetPassword = Invoke-WebRequestWithRetry -Uri "$platformUrl/api/platform/security/users/$username/resetpassword" -Body ($body | ConvertTo-Json) -Headers $headers -Method POST | ConvertFrom-Json
     if ($resultResetPassword.succeeded -eq $false) {
         Write-Error "Reset user password succeeded: $($resultResetPassword.succeeded). $($resultResetPassword.error)"
+    }
+    else {
+        Write-Host "... user $username password reset successfully"
     }
 
     # unlock user
@@ -66,7 +73,9 @@ function ResetUserPassword {
     if ($resultUnlock.succeeded -eq $false) {
         Write-Error "Unlock user succeeded: $($resultUnlock.succeeded). $($resultUnlock.error)"
     }
-    Write-Host "Password for user $username reset and user unlocked"
+    else {
+        Write-Host "... user $username unlocked successfully"
+    }
 }
 
 function Invoke-WebRequestWithRetry {
@@ -128,7 +137,12 @@ function SetApiKey {
     }
 
     $apiKeyResult = Invoke-WebRequestWithRetry -Uri "$platformUrl/api/platform/security/users/apikeys" -Body ($body | ConvertTo-Json) -Headers $headers -Method PUT
-    Write-Host "Api key for user $username set"
+    if ($apiKeyResult.succeeded -eq $false) {
+        Write-Error "Set api key for user $username succeeded: $($apiKeyResult.succeeded). $($apiKeyResult.error)"
+    }
+    else {
+        Write-Host "... api key for user $username set successfully"
+    }
 }
 
 $adminToken = ''
@@ -142,15 +156,5 @@ $headers = @{
 $adminToken = (Invoke-WebRequestWithRetry -Uri "$platformUrl/connect/token" -Body $body -Headers $headers -Method POST).Content | ConvertFrom-Json
 $adminToken = $adminToken.access_token
 
-# Set environment variable for use in subsequent scripts
-[Environment]::SetEnvironmentVariable("VC_ADMIN_TOKEN", $adminToken, "Machine")
-Write-Host "Admin token set as environment variable VC_ADMIN_TOKEN for machine-wide access"
-
-#set api key for admin user
-SetApiKey -username "$adminUsername" -apiKey "$apiKey" -token "$adminToken"
-
-#create front admin user
-CreateUser -username "$frontAdmin" -password "$frontAdminPassword" -isAdministrator $true -token "$adminToken"
-
-#change user password
-ResetUserPassword -username "$userEmail" -newPassword "$frontAdminPassword" -token "$adminToken"
+# change user passwords
+ResetUserPassword -username "$adminUsername" -newPassword "$newAdminPassword" -token "$adminToken"

@@ -40,6 +40,10 @@ inputs:
     description: 'Platform Docker Image'
     required: false
     default: 'platform'
+  testSecretEnvFile:
+    description: 'Test secret environment file content'
+    required: true
+    type: string
 runs:
   using: "composite"
   steps:
@@ -54,6 +58,7 @@ runs:
         New-Item -Path "./" -Name "${{ env.INSTALL_FOLDER}}" -ItemType "directory"
         Push-Location ./${{ env.INSTALL_FOLDER}}
         vc-build install -Edge -skip InstallPlatform
+        vc-build install -module VirtoCommerce.Quote
 
     - name: Build platform docker image
       if: ${{ inputs.installCustomModule == 'true' }}
@@ -91,10 +96,18 @@ runs:
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
-        Write-Host "`e[32mDownload frontend zip and build image"
+        if ( "${{ inputs.frontendZipUrl }}" -eq 'latest' ) {
+          $frontendReleaseInfo = Invoke-RestMethod -Uri "https://api.github.com/repos/VirtoCommerce/vc-frontend/releases/latest"
+          $frontendZipUrl = $frontendReleaseInfo.assets.browser_download_url
+          Write-Host "`e[32mDownload latest frontend zip and build image"
+        }
+        else {
+          $frontendZipUrl = "${{ inputs.frontendZipUrl }}"
+          Write-Host "`e[32mDownload frontend zip from $frontendZipUrl and build image"
+        }
         try {
-                $fileName = Split-Path ${{ inputs.frontendZipUrl }} -Leaf
-                Invoke-WebRequest -Uri ${{ inputs.frontendZipUrl }} -OutFile $fileName -UseBasicParsing -OperationTimeoutSeconds 15 -RetryIntervalSec 1 -MaximumRetryCount 3
+                $fileName = Split-Path $frontendZipUrl -Leaf
+                Invoke-WebRequest -Uri $frontendZipUrl -OutFile $fileName -UseBasicParsing -OperationTimeoutSeconds 15 -RetryIntervalSec 1 -MaximumRetryCount 3
                 Write-Host "Downloaded '$fileName' successfully"
             }
             catch {
@@ -105,7 +118,7 @@ runs:
         unzip -o $fileName -d ./frontend
         docker build -f ./nginx/Dockerfile -t "${{ inputs.frontendImage }}:${{ inputs.frontendDockerTag }}" .
 
-    - name: Start containers
+    - name: Start database container only
       env:
         PLATFORM_IMAGE: ${{ inputs.platformImage }}
         PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
@@ -113,9 +126,7 @@ runs:
       shell: pwsh
       working-directory: ${{ github.action_path }}
       run: |
-        Write-Host "`e[33mStart Containers step started."
-        $platformContainer = "virtocommerce-vc-platform-web-1"
-        . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
+        Write-Host "`e[33mStart Database Container step started."
         # for the case of install modules
         echo "inputs.installModules is ${{ inputs.installModules }}"
         if ( '${{ inputs.installModules }}' -eq 'true' ){
@@ -128,9 +139,26 @@ runs:
           cat ./docker-compose.yml
           Write-Host "`e[32mDocker-compose.yml modified"
         }
+        # Start only the database and elasticsearch containers first
+        docker compose --project-name virtocommerce up -d vc-db es
+        Write-Host "`e[32mDatabase and Elasticsearch containers started."
+
+    - name: Start remaining containers
+      env:
+        PLATFORM_IMAGE: ${{ inputs.platformImage }}
+        PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
+        ENV_DIR: ${{ inputs.envDir }}
+      shell: pwsh
+      working-directory: ${{ github.action_path }}
+      run: |
+        Write-Host "`e[33mStart Remaining Containers step started."
+        $platformContainer = "virtocommerce-vc-platform-web-1"
+        . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
+        
+        # Start the remaining containers (platform and frontend)
         docker compose --project-name virtocommerce up -d
         InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 15 -WaitSeconds 0
-        Write-Host "`e[32mContainers started."
+        Write-Host "`e[32mAll containers started."
         
     - name: Check Installed Modules
       if: ${{ inputs.installModules == 'true' || inputs.installCustomModule == 'true' }}
@@ -139,21 +167,23 @@ runs:
       run: |
         Write-Host "`e[33mCheck Installed Modules step started."
         $platformContainer = "virtocommerce-vc-platform-web-1"
-        ../docker-env/scripts/check-installed-modules.ps1 -ApiUrl http://localhost:8090 -ContainerId $platformContainer -watchUrlScriptPath ../docker-env/scripts/watch-url-up.ps1
+        ../docker-env/scripts/check-installed-modules.ps1 -ApiUrl http://localhost:8090 -ContainerId $platformContainer -watchUrlScriptPath ../docker-env/scripts/watch-url-up.ps1 -Password store
         Write-Host "`e[32mInstalled Modules checked."
-
-    - name: Install Sample Data
-      if: ${{ inputs.installSampleData == 'true' }}
-      working-directory: ${{ github.action_path }}
-      shell: pwsh
-      run: |
-        Write-Host "`e[33mInstall Sample Data step started."
-        ../docker-env/scripts/setup-sampledata.ps1 -ApiUrl http://localhost:8090 -Verbose -Debug
 
     - name: Prepare data for tests
       if: ${{ inputs.installSampleData == 'true' }}
       working-directory: ${{ github.action_path }}
       shell: pwsh
+      env:
+        SECRET_ENV_FILE: ${{ inputs.testSecretEnvFile }}
       run: |
+        if ( $env:SECRET_ENV_FILE -match 'ADMIN_PASSWORD=\S+' ) {
+          $testAdminPassword = $matches[0].split('=')[1]
+          Write-Host "`e[32mSet password for admin user from env variable"
+        }
+        else {
+          $testAdminPassword = 'store'
+          Write-Host "`e[32mSet password for admin user from default value"
+        }
         Write-Host "`e[33mPrepare data for tests step started."
-        ./sripts/prepare4Tests.ps1
+        ./sripts/prepare4Tests.ps1 -newAdminPassword $testAdminPassword
