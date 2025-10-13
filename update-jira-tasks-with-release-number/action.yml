@@ -81,26 +81,26 @@ runs:
         Write-Host "Jira keys merged since last release:"
         $uniqueJiraKeys | ForEach-Object { Write-Host "$_" }
 
-        # # Create Jira auth header
-        # $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("${env:JIRA_USER}:${env:JIRA_TOKEN}"))
-        # $headers = @{
-        #     "Authorization" = "Basic $base64AuthInfo"
-        #     "Content-Type"  = "application/json"
-        # }
-        # $updateBody = @{
-        #     fields = @{
-        #         "${{ inputs.jiraCustomFieldId }}" = "${{ inputs.jiraCustomFieldValue }}"
-        #     }
-        # } | ConvertTo-Json -Depth 5
+        # Create Jira auth header
+        $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("${env:JIRA_USER}:${env:JIRA_TOKEN}"))
+        $headers = @{
+            "Authorization" = "Basic $base64AuthInfo"
+            "Content-Type"  = "application/json"
+        }
+        $updateBody = @{
+            fields = @{
+                "${{ inputs.jiraCustomFieldId }}" = "${{ inputs.jiraCustomFieldValue }}"
+            }
+        } | ConvertTo-Json -Depth 5
 
-        # Write-Host "🔄 Updating tasks ..."
-        # foreach ($jiraKey in $uniqueJiraKeys) {
-        #     try {
-        #       $response = Invoke-RestMethod -Uri "${{ inputs.jiraBaseUrl }}/rest/api/3/issue/$jiraKey" -Headers $headers -Method Put -Body $updateBody
-        #       Write-Host "✅ Updated task $jiraKey"
-        #     }
-        #     catch {
-        #       Write-Host "❌ Failed to update task $jiraKey. $($_ -replace '\s+', ' ')"
-        #     }
-        # }
-        # Write-Host "🎉 Done updating tasks"
+        Write-Host "🔄 Updating tasks ..."
+        foreach ($jiraKey in $uniqueJiraKeys) {
+            try {
+              $response = Invoke-RestMethod -Uri "${{ inputs.jiraBaseUrl }}/rest/api/3/issue/$jiraKey" -Headers $headers -Method Put -Body $updateBody
+              Write-Host "✅ Updated task $jiraKey"
+            }
+            catch {
+              Write-Host "❌ Failed to update task $jiraKey. $($_ -replace '\s+', ' ')"
+            }
+        }
+        Write-Host "🎉 Done updating tasks"
