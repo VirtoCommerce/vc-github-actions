@@ -1,0 +1,106 @@
+# This action updates JIRA tasks with release information by:
+# 1. Getting the two latest releases from the GitHub repository
+# 2. Finding all commits between these releases
+# 3. Extracting JIRA keys from branch names (format: [A-Z]+-\d{1,6})
+# 4. Updating each JIRA task's custom field with the specified value
+# 5. Handling errors gracefully and logging results
+
+name: 'Update Jira tasks with release number'
+description: 'Update Jira tasks with release number'
+inputs:
+  client-id:
+    description: 'Client ID'
+    required: true
+    type: string
+  client-secret:
+    description: 'Client secret'
+    required: true
+    type: string
+  ghRepository:
+    description: 'GitHub repository in format org/repo'
+    required: true
+    type: string
+  jiraBaseUrl:
+    description: 'Jira base URL'
+    default: 'https://virtocommerce.atlassian.net'
+    required: true
+    type: string
+  jiraCustomFieldId:
+    description: 'Jira custom field ID to update'
+    required: true
+    type: string
+  jiraCustomFieldValue:
+    description: 'Jira custom field value to set'
+    required: true
+    type: string
+  
+runs:
+  using: "composite"
+  steps:       
+    - name: Process Jira keys
+      shell: pwsh
+      env:
+        JIRA_USER: ${{ inputs.client-id }}
+        JIRA_TOKEN: ${{ inputs.client-secret }}
+      run: |
+        $ErrorActionPreference = "Stop"
+        $jiraKeys = @()
+        $owner, $repo = "${{ inputs.ghRepository }}" -split "/"
+
+        # Get two latest releases
+        $releases = gh api "/repos/$owner/$repo/releases" | ConvertFrom-Json
+        $releases = $releases | Sort-Object { [datetime]$_.created_at } -Descending | Where-Object { $_.tag_name -match '\.0$' }
+        
+        if ($releases.Count -lt 2) {
+          Write-Warning "Not enough releases found, using all commits"
+          # Get all commits
+          $commits = gh api "/repos/$owner/$repo/commits" --jq ".[].sha"
+        } else {
+          $currentTag = $releases[0].tag_name
+          $prevTag = $releases[1].tag_name
+          Write-Host "Comparing $prevTag...$currentTag"
+          # Get commits between tags
+          $commits = $(gh api "/repos/$owner/$repo/compare/$prevTag...$currentTag" | ConvertFrom-Json).commits.commit #--jq ".commits[].commit.message"
+        }
+
+        foreach ($commit in $commits) {
+          if ($commit.message -cmatch '[A-Z]{2,}-\d+') {
+            $jiraKeys += $matches[0]
+          }
+          else {
+            Write-Warning "Commit did not match the pattern [A-Z]{2,}-\d+. Commit URL: $($commit.url)"
+          }
+        }
+        
+        if ($jiraKeys.Count -eq 0) {
+          Write-Warning "No Jira keys found"
+          exit 0
+        }
+
+        $uniqueJiraKeys = $jiraKeys | Sort-Object -Unique
+        Write-Host "Jira keys merged since last release:"
+        $uniqueJiraKeys | ForEach-Object { Write-Host "$_" }
+
+        # Create Jira auth header
+        $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("${env:JIRA_USER}:${env:JIRA_TOKEN}"))
+        $headers = @{
+            "Authorization" = "Basic $base64AuthInfo"
+            "Content-Type"  = "application/json"
+        }
+        $updateBody = @{
+            fields = @{
+                "${{ inputs.jiraCustomFieldId }}" = "${{ inputs.jiraCustomFieldValue }}"
+            }
+        } | ConvertTo-Json -Depth 5
+
+        Write-Host "🔄 Updating tasks ..."
+        foreach ($jiraKey in $uniqueJiraKeys) {
+            try {
+              $response = Invoke-RestMethod -Uri "${{ inputs.jiraBaseUrl }}/rest/api/3/issue/$jiraKey" -Headers $headers -Method Put -Body $updateBody
+              Write-Host "✅ Updated task $jiraKey"
+            }
+            catch {
+              Write-Host "❌ Failed to update task $jiraKey. $($_ -replace '\s+', ' ')"
+            }
+        }
+        Write-Host "🎉 Done updating tasks"
