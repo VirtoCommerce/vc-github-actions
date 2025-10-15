@@ -1,0 +1,151 @@
+name: 'Update docs.virtocommerce.org (Versioned)'
+description: 'Makes and updates versioned documentation for docs.virtocommerce.org using Mike'
+inputs:
+  version:
+    description: "Documentation version to deploy (e.g., 3.2025-S13, 1.0)"
+    required: true
+  setAsLatest:
+    description: "Set this version as 'latest' alias"
+    required: false
+    default: 'true'
+  setAsDefault:
+    description: "Set this version as default version"
+    required: false
+    default: 'false'
+  azureSubscriptionId:
+    description: "Azure Subscription ID"
+    required: true
+  azureResourceGroupName:
+    description: "Azure Resource Group Name"
+    required: true
+  azureWebAppName:
+    description: "Azure WebApp Name"
+    required: true
+  azureTenantId:
+    description: "Azure Tenant ID"
+    required: true
+  azureApiKey:
+    description: "Azure API Key"
+    required: true
+  azureAppId:
+    description: "Azure App ID"
+    required: true
+  dockerRegistry:
+    description: "Docker Registry"
+    required: true
+  dockerUsr:
+    description: "Docker User"
+    required: true
+  dockerPwd:
+    description: "Docker Password"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout vc-docs repository
+      uses: actions/checkout@v3
+      with:
+        repository: VirtoCommerce/vc-docs
+        ref: main
+        path: vc-docs
+        fetch-depth: 0  # Need full history for gh-pages branch
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install MkDocs and Mike
+      shell: bash
+      run: |
+        pip install mkdocs-material mike
+        pip install mkdocs-awesome-pages-plugin mkdocs-git-revision-date-localized-plugin
+        pip install mkdocs-minify-plugin mkdocs-redirects mkdocs-monorepo-plugin
+        pip install mkdocs-include-markdown-plugin pymdown-extensions jinja2
+
+    - name: Configure Git
+      shell: bash
+      working-directory: ${{ github.workspace }}/vc-docs
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: Build and deploy versioned documentation
+      shell: bash
+      working-directory: ${{ github.workspace }}/vc-docs
+      run: |
+        chmod +x scripts/build-versioned.sh
+        
+        # Build parameters
+        BUILD_PARAMS="${{ inputs.version }}"
+        
+        if [ "${{ inputs.setAsLatest }}" == "true" ]; then
+          BUILD_PARAMS="$BUILD_PARAMS --set-latest"
+        fi
+        
+        if [ "${{ inputs.setAsDefault }}" == "true" ]; then
+          BUILD_PARAMS="$BUILD_PARAMS --set-default"
+        fi
+        
+        # Deploy all subsites with versioning
+        ./scripts/build-versioned.sh $BUILD_PARAMS --subsites-only
+
+    - name: Export versioned documentation from gh-pages
+      shell: bash
+      working-directory: ${{ github.workspace }}/vc-docs
+      run: |
+        # Switch to gh-pages branch
+        git checkout gh-pages
+        
+        # Copy all versioned content to site directory
+        mkdir -p ../site
+        cp -r . ../site/
+        
+        # Switch back to main branch
+        git checkout -
+
+    - name: Build non-versioned root and intermediate sites
+      shell: bash
+      working-directory: ${{ github.workspace }}/vc-docs
+      run: |
+        # Build root site
+        mkdocs build -d ../site-temp
+        
+        # Copy root site files (not overwriting versioned subsites)
+        cp -n ../site-temp/* ../site/ || true
+        cp -rn ../site-temp/assets ../site/ || true
+        
+        # Build intermediate sites
+        mkdocs build -f storefront/mkdocs.yml -d ../site-temp/storefront
+        mkdocs build -f platform/mkdocs.yml -d ../site-temp/platform
+        mkdocs build -f marketplace/mkdocs.yml -d ../site-temp/marketplace
+        
+        # Copy intermediate sites (not overwriting versioned subsites)
+        cp -rn ../site-temp/storefront/* ../site/storefront/ || true
+        cp -rn ../site-temp/platform/* ../site/platform/ || true
+        cp -rn ../site-temp/marketplace/* ../site/marketplace/ || true
+
+    - name: Prepare Docker context
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      run: |
+        # Copy site directory for Docker
+        cp -r site vc-docs/
+        
+        # Copy Docker files
+        cp -r ${{ github.action_path }}/docker/* ./
+
+    - name: Build and Push Docker image
+      shell: pwsh
+      working-directory: ${{ github.workspace }}
+      run: |
+        dotnet tool install --global VirtoCommerce.GlobalTool
+        vc-build BuildAndPush `
+          -DockerUsername ${{ inputs.dockerUsr }} `
+          -DockerPassword ${{ inputs.dockerPwd }} `
+          -DockerfilePath ./Dockerfile `
+          -DockerImageName ${{ inputs.dockerRegistry }}/vcpt/docs-versioned `
+          -DockerImageTag ${{ inputs.version }} `
+          -DockerRegistryUrl ${{ inputs.dockerRegistry }}
+

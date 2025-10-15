@@ -1,0 +1,92 @@
+# Example workflow for deploying versioned documentation
+# 
+# This file should be placed in vc-docs repository as:
+# .github/workflows/deploy-versioned-docs.yml
+
+name: Deploy Versioned Documentation
+
+on:
+  # Deploy on version tags
+  push:
+    tags:
+      - 'v*'
+      - 'docs-v*'
+  
+  # Manual trigger with version input
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (e.g., 3.2025-S13, 1.0)'
+        required: true
+        type: string
+      setAsLatest:
+        description: 'Set as latest version'
+        required: false
+        type: boolean
+        default: true
+      setAsDefault:
+        description: 'Set as default version'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  deploy-versioned:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Extract version from tag
+        id: extract-version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            echo "SET_LATEST=${{ github.event.inputs.setAsLatest }}" >> $GITHUB_OUTPUT
+            echo "SET_DEFAULT=${{ github.event.inputs.setAsDefault }}" >> $GITHUB_OUTPUT
+          else
+            # Extract version from tag (remove 'v' or 'docs-v' prefix)
+            VERSION="${GITHUB_REF#refs/tags/}"
+            VERSION="${VERSION#v}"
+            VERSION="${VERSION#docs-v}"
+            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+            echo "SET_LATEST=true" >> $GITHUB_OUTPUT
+            echo "SET_DEFAULT=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy Versioned Documentation
+        uses: VirtoCommerce/vc-github-actions/update-virtocommerce-docs-versioned@main
+        with:
+          version: ${{ steps.extract-version.outputs.VERSION }}
+          setAsLatest: ${{ steps.extract-version.outputs.SET_LATEST }}
+          setAsDefault: ${{ steps.extract-version.outputs.SET_DEFAULT }}
+          azureSubscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          azureResourceGroupName: ${{ secrets.AZURE_RESOURCE_GROUP }}
+          azureWebAppName: ${{ secrets.AZURE_WEBAPP_NAME }}
+          azureTenantId: ${{ secrets.AZURE_TENANT_ID }}
+          azureApiKey: ${{ secrets.AZURE_API_KEY }}
+          azureAppId: ${{ secrets.AZURE_APP_ID }}
+          dockerRegistry: ${{ secrets.DOCKER_REGISTRY }}
+          dockerUsr: ${{ secrets.DOCKER_USERNAME }}
+          dockerPwd: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Deployment Summary
+        run: |
+          echo "### Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ steps.extract-version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Set as Latest**: ${{ steps.extract-version.outputs.SET_LATEST }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Set as Default**: ${{ steps.extract-version.outputs.SET_DEFAULT }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Versioned Subsites:**" >> $GITHUB_STEP_SUMMARY
+          echo "- marketplace/developer-guide" >> $GITHUB_STEP_SUMMARY
+          echo "- marketplace/user-guide" >> $GITHUB_STEP_SUMMARY
+          echo "- platform/developer-guide" >> $GITHUB_STEP_SUMMARY
+          echo "- platform/user-guide" >> $GITHUB_STEP_SUMMARY
+          echo "- platform/deployment-on-cloud" >> $GITHUB_STEP_SUMMARY
+          echo "- storefront/developer-guide" >> $GITHUB_STEP_SUMMARY
+          echo "- storefront/user-guide" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Access URLs:**" >> $GITHUB_STEP_SUMMARY
+          echo "- [Marketplace Developer Guide](https://docs.virtocommerce.org/marketplace/developer-guide/${{ steps.extract-version.outputs.VERSION }}/)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Platform User Guide](https://docs.virtocommerce.org/platform/user-guide/${{ steps.extract-version.outputs.VERSION }}/)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Storefront Developer Guide](https://docs.virtocommerce.org/storefront/developer-guide/${{ steps.extract-version.outputs.VERSION }}/)" >> $GITHUB_STEP_SUMMARY
+
