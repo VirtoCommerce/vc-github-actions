@@ -75,21 +75,58 @@ runs:
       shell: bash
       working-directory: ${{ github.workspace }}/vc-docs
       run: |
-        chmod +x scripts/build-versioned.sh
+        # List of all subsites to version
+        SUBSITES=(
+          "marketplace/developer-guide"
+          "marketplace/user-guide"
+          "platform/developer-guide"
+          "platform/user-guide"
+          "platform/deployment-on-cloud"
+          "storefront/developer-guide"
+          "storefront/user-guide"
+        )
         
-        # Build parameters
-        BUILD_PARAMS="${{ inputs.version }}"
+        VERSION="${{ inputs.version }}"
+        SET_LATEST="${{ inputs.setAsLatest }}"
+        SET_DEFAULT="${{ inputs.setAsDefault }}"
         
-        if [ "${{ inputs.setAsLatest }}" == "true" ]; then
-          BUILD_PARAMS="$BUILD_PARAMS --set-latest"
-        fi
+        echo "Deploying version $VERSION to all subsites..."
+        echo "Set as latest: $SET_LATEST"
+        echo "Set as default: $SET_DEFAULT"
+        echo ""
         
-        if [ "${{ inputs.setAsDefault }}" == "true" ]; then
-          BUILD_PARAMS="$BUILD_PARAMS --set-default"
-        fi
+        # Deploy each subsite
+        for SUBSITE in "${SUBSITES[@]}"; do
+          echo "→ Deploying $SUBSITE..."
+          
+          CONFIG="$SUBSITE/mkdocs.yml"
+          
+          # Build mike command
+          MIKE_ARGS=("deploy" "-F" "$CONFIG" "--deploy-prefix" "$SUBSITE" "$VERSION")
+          
+          # Add latest alias if requested
+          if [ "$SET_LATEST" == "true" ]; then
+            MIKE_ARGS+=("latest")
+          fi
+          
+          # Add push flag to automatically push to gh-pages
+          MIKE_ARGS+=("--push")
+          
+          # Execute mike deploy
+          mike "${MIKE_ARGS[@]}"
+          
+          # Set as default if requested
+          if [ "$SET_DEFAULT" == "true" ]; then
+            echo "  Setting as default..."
+            mike set-default -F "$CONFIG" --deploy-prefix "$SUBSITE" "$VERSION" --push
+          fi
+          
+          echo "  ✓ Done"
+          echo ""
+        done
         
-        # Deploy all subsites with versioning
-        ./scripts/build-versioned.sh $BUILD_PARAMS --subsites-only
+        echo "✓ All subsites deployed successfully!"
+        echo "Changes pushed to gh-pages branch"
 
     - name: Export versioned documentation from gh-pages
       shell: bash

@@ -6,6 +6,7 @@ GitHub Action for deploying versioned Virto Commerce documentation using Mike.
 
 - **Independent Versioning**: Each subsite (marketplace/developer-guide, platform/user-guide, etc.) has independent version management
 - **Mike Integration**: Uses Mike for version deployment and version selector
+- **Automatic Push**: Automatically pushes changes to gh-pages branch using `--push` flag
 - **URL Structure**: `/marketplace/developer-guide/1.0/`, `/platform/user-guide/3.2025-S13/`
 - **Docker Deployment**: Builds and deploys to Azure via Docker container
 - **Nginx Configuration**: Optimized for versioned documentation with proper routing
@@ -152,6 +153,12 @@ git push origin v3.2025-S13
 # Or manually trigger workflow with version input
 ```
 
+The action will automatically:
+1. Deploy the version to all 7 subsites using Mike
+2. Push changes to `gh-pages` branch (using `--push` flag)
+3. Build Docker image with versioned documentation
+4. Deploy to Azure
+
 ### Set Latest Alias
 
 ```yaml
@@ -163,6 +170,10 @@ setAsLatest: 'true'  # Updates 'latest' alias to point to this version
 ```yaml
 setAsDefault: 'true'  # Sets this version as default (root URL redirects here)
 ```
+
+### Automatic Push to gh-pages
+
+The action uses Mike's `--push` flag to automatically push changes to the `gh-pages` branch. You don't need to manually push or manage the branch.
 
 ## Troubleshooting
 
