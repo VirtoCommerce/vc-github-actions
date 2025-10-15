@@ -215,20 +215,15 @@ runs:
         # Copy Docker files
         cp -r ${{ github.action_path }}/docker/* ./
 
-    - name: Docker Login
-      shell: bash
-      run: |
-        echo "${{ inputs.dockerPwd }}" | docker login ${{ inputs.dockerRegistry }} -u ${{ inputs.dockerUsr }} --password-stdin
-
     - name: Determine Docker Image Tag
       id: docker-tag
       shell: bash
       run: |
-        # Use global version if available, otherwise use timestamp
+        # Use global version if available, otherwise use run number
         if [ -n "${{ inputs.version }}" ]; then
-          TAG="${{ inputs.version }}"
+          TAG="versioned-${{ inputs.version }}"
         else
-          TAG="$(date +%Y%m%d-%H%M%S)"
+          TAG="versioned-${{ github.run_number }}"
         fi
         echo "tag=$TAG" >> $GITHUB_OUTPUT
         echo "Docker image tag: $TAG"
@@ -242,7 +237,7 @@ runs:
           -DockerUsername ${{ inputs.dockerUsr }} `
           -DockerPassword ${{ inputs.dockerPwd }} `
           -DockerfilePath ./Dockerfile `
-          -DockerImageName ${{ inputs.dockerRegistry }}/vcpt/docs-versioned `
+          -DockerImageName ${{ inputs.dockerRegistry }}/vcpt/docs `
           -DockerImageTag ${{ steps.docker-tag.outputs.tag }} `
           -DockerRegistryUrl ${{ inputs.dockerRegistry }}
 
