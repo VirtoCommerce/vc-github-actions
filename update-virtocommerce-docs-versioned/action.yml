@@ -102,7 +102,7 @@ runs:
           CONFIG="$SUBSITE/mkdocs.yml"
           
           # Build mike command
-          MIKE_ARGS=("deploy" "-F" "$CONFIG" "--deploy-prefix" "$SUBSITE" "$VERSION")
+          MIKE_ARGS=("deploy" "-F" "$CONFIG" "--deploy-prefix" "$SUBSITE" "--update-aliases" "$VERSION")
           
           # Add latest alias if requested
           if [ "$SET_LATEST" == "true" ]; then
