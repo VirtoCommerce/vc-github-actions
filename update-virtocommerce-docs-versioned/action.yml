@@ -1,6 +1,9 @@
 name: 'Update docs.virtocommerce.org (Versioned)'
 description: 'Makes and updates versioned documentation for docs.virtocommerce.org using Mike'
 inputs:
+  githubToken:
+    description: "GitHub token with push permissions to gh-pages branch"
+    required: true
   version:
     description: "Documentation version to deploy for ALL subsites (e.g., 3.2025-S13, 1.0). Leave empty to use individual versions."
     required: false
@@ -72,6 +75,8 @@ runs:
         ref: feat/custom_versioning
         path: vc-docs
         fetch-depth: 0  # Need full history for gh-pages branch
+        token: ${{ inputs.githubToken }}
+        persist-credentials: true
 
     - name: Setup Python
       uses: actions/setup-python@v4

@@ -19,6 +19,7 @@ GitHub Action for deploying versioned Virto Commerce documentation using Mike.
 - name: Deploy Versioned Docs
   uses: VirtoCommerce/vc-github-actions/update-virtocommerce-docs-versioned@main
   with:
+    githubToken: ${{ secrets.REPO_TOKEN }}
     version: '3.2025-S13'
     setAsLatest: 'true'
     setAsDefault: 'false'
@@ -39,6 +40,7 @@ GitHub Action for deploying versioned Virto Commerce documentation using Mike.
 - name: Deploy Versioned Docs with Individual Versions
   uses: VirtoCommerce/vc-github-actions/update-virtocommerce-docs-versioned@main
   with:
+    githubToken: ${{ secrets.REPO_TOKEN }}
     # No global version - use individual versions
     platformDeveloperGuideVersion: '3.2025-S13'
     platformUserGuideVersion: '3.2025-S13'
@@ -57,6 +59,7 @@ GitHub Action for deploying versioned Virto Commerce documentation using Mike.
 - name: Deploy with Mixed Versions
   uses: VirtoCommerce/vc-github-actions/update-virtocommerce-docs-versioned@main
   with:
+    githubToken: ${{ secrets.REPO_TOKEN }}
     version: '1.0'  # Default for all subsites
     platformDeveloperGuideVersion: '3.2025-S13'  # Override for platform/developer-guide
     platformUserGuideVersion: '3.2025-S13'  # Override for platform/user-guide
@@ -69,6 +72,7 @@ GitHub Action for deploying versioned Virto Commerce documentation using Mike.
 
 | Input | Required | Default | Description |
 |-------|----------|---------|-------------|
+| `githubToken` | Yes | - | GitHub token with push permissions to gh-pages branch |
 | `version` | No* | - | Global version for ALL subsites (e.g., "3.2025-S13", "1.0") |
 | `setAsLatest` | No | `true` | Set this version as 'latest' alias |
 | `setAsDefault` | No | `false` | Set this version as default version |
