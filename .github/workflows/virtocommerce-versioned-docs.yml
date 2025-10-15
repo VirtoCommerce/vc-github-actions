@@ -2,10 +2,45 @@ name: "virtocommerce.com docs"
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Version to deploy (e.g., 1.0, 3.2025-S13)'
+      deployMode:
+        description: 'Deployment mode'
         required: true
-        default: '1.0'
+        default: 'all-same'
+        type: choice
+        options:
+          - all-same
+          - individual
+      version:
+        description: '[all-same mode] Version to deploy to ALL subsites (e.g., 1.0, 3.2025-S13)'
+        required: false
+        type: string
+      marketplaceDeveloperGuideVersion:
+        description: '[individual mode] marketplace/developer-guide version'
+        required: false
+        type: string
+      marketplaceUserGuideVersion:
+        description: '[individual mode] marketplace/user-guide version'
+        required: false
+        type: string
+      platformDeveloperGuideVersion:
+        description: '[individual mode] platform/developer-guide version'
+        required: false
+        type: string
+      platformUserGuideVersion:
+        description: '[individual mode] platform/user-guide version'
+        required: false
+        type: string
+      platformDeploymentOnCloudVersion:
+        description: '[individual mode] platform/deployment-on-cloud version'
+        required: false
+        type: string
+      storefrontDeveloperGuideVersion:
+        description: '[individual mode] storefront/developer-guide version'
+        required: false
+        type: string
+      storefrontUserGuideVersion:
+        description: '[individual mode] storefront/user-guide version'
+        required: false
         type: string
       setAsLatest:
         description: 'Set as latest version'
@@ -48,6 +83,13 @@ jobs:
         uses: VirtoCommerce/vc-github-actions/update-virtocommerce-docs-versioned@master
         with:
           version: ${{ github.event.inputs.version }}
+          marketplaceDeveloperGuideVersion: ${{ github.event.inputs.marketplaceDeveloperGuideVersion }}
+          marketplaceUserGuideVersion: ${{ github.event.inputs.marketplaceUserGuideVersion }}
+          platformDeveloperGuideVersion: ${{ github.event.inputs.platformDeveloperGuideVersion }}
+          platformUserGuideVersion: ${{ github.event.inputs.platformUserGuideVersion }}
+          platformDeploymentOnCloudVersion: ${{ github.event.inputs.platformDeploymentOnCloudVersion }}
+          storefrontDeveloperGuideVersion: ${{ github.event.inputs.storefrontDeveloperGuideVersion }}
+          storefrontUserGuideVersion: ${{ github.event.inputs.storefrontUserGuideVersion }}
           setAsLatest: ${{ github.event.inputs.setAsLatest }}
           setAsDefault: ${{ github.event.inputs.setAsDefault }}
           azureSubscriptionId: ${{ secrets.AZURESUBSCRIPTIONID }}

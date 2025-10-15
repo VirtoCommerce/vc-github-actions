@@ -13,6 +13,8 @@ GitHub Action for deploying versioned Virto Commerce documentation using Mike.
 
 ## Usage
 
+### Deploy same version to all subsites
+
 ```yaml
 - name: Deploy Versioned Docs
   uses: VirtoCommerce/vc-github-actions/update-virtocommerce-docs-versioned@main
@@ -31,13 +33,54 @@ GitHub Action for deploying versioned Virto Commerce documentation using Mike.
     dockerPwd: ${{ secrets.DOCKER_PASSWORD }}
 ```
 
+### Deploy different versions to specific subsites
+
+```yaml
+- name: Deploy Versioned Docs with Individual Versions
+  uses: VirtoCommerce/vc-github-actions/update-virtocommerce-docs-versioned@main
+  with:
+    # No global version - use individual versions
+    platformDeveloperGuideVersion: '3.2025-S13'
+    platformUserGuideVersion: '3.2025-S13'
+    marketplaceDeveloperGuideVersion: '1.2'
+    marketplaceUserGuideVersion: '1.2'
+    storefrontDeveloperGuideVersion: '2.0'
+    storefrontUserGuideVersion: '2.0'
+    platformDeploymentOnCloudVersion: '1.0'
+    setAsLatest: 'true'
+    # ... Azure credentials
+```
+
+### Mix global and individual versions
+
+```yaml
+- name: Deploy with Mixed Versions
+  uses: VirtoCommerce/vc-github-actions/update-virtocommerce-docs-versioned@main
+  with:
+    version: '1.0'  # Default for all subsites
+    platformDeveloperGuideVersion: '3.2025-S13'  # Override for platform/developer-guide
+    platformUserGuideVersion: '3.2025-S13'  # Override for platform/user-guide
+    # Other subsites will use version '1.0'
+    setAsLatest: 'true'
+    # ... Azure credentials
+```
+
 ## Inputs
 
 | Input | Required | Default | Description |
 |-------|----------|---------|-------------|
-| `version` | Yes | - | Documentation version to deploy (e.g., "3.2025-S13", "1.0") |
+| `version` | No* | - | Global version for ALL subsites (e.g., "3.2025-S13", "1.0") |
 | `setAsLatest` | No | `true` | Set this version as 'latest' alias |
 | `setAsDefault` | No | `false` | Set this version as default version |
+| **Individual Subsite Versions** | | | |
+| `marketplaceDeveloperGuideVersion` | No | - | Version for marketplace/developer-guide |
+| `marketplaceUserGuideVersion` | No | - | Version for marketplace/user-guide |
+| `platformDeveloperGuideVersion` | No | - | Version for platform/developer-guide |
+| `platformUserGuideVersion` | No | - | Version for platform/user-guide |
+| `platformDeploymentOnCloudVersion` | No | - | Version for platform/deployment-on-cloud |
+| `storefrontDeveloperGuideVersion` | No | - | Version for storefront/developer-guide |
+| `storefrontUserGuideVersion` | No | - | Version for storefront/user-guide |
+| **Azure & Docker** | | | |
 | `azureSubscriptionId` | Yes | - | Azure Subscription ID |
 | `azureResourceGroupName` | Yes | - | Azure Resource Group Name |
 | `azureWebAppName` | Yes | - | Azure WebApp Name |
@@ -47,6 +90,8 @@ GitHub Action for deploying versioned Virto Commerce documentation using Mike.
 | `dockerRegistry` | Yes | - | Docker Registry URL |
 | `dockerUsr` | Yes | - | Docker Registry Username |
 | `dockerPwd` | Yes | - | Docker Registry Password |
+
+\* Either `version` or at least one individual subsite version must be provided.
 
 ## Versioned Subsites
 

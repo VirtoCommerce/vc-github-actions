@@ -2,8 +2,8 @@ name: 'Update docs.virtocommerce.org (Versioned)'
 description: 'Makes and updates versioned documentation for docs.virtocommerce.org using Mike'
 inputs:
   version:
-    description: "Documentation version to deploy (e.g., 3.2025-S13, 1.0)"
-    required: true
+    description: "Documentation version to deploy for ALL subsites (e.g., 3.2025-S13, 1.0). Leave empty to use individual versions."
+    required: false
   setAsLatest:
     description: "Set this version as 'latest' alias"
     required: false
@@ -12,6 +12,28 @@ inputs:
     description: "Set this version as default version"
     required: false
     default: 'false'
+  # Individual subsite versions (optional, override global version)
+  marketplaceDeveloperGuideVersion:
+    description: "Version for marketplace/developer-guide (overrides global version)"
+    required: false
+  marketplaceUserGuideVersion:
+    description: "Version for marketplace/user-guide (overrides global version)"
+    required: false
+  platformDeveloperGuideVersion:
+    description: "Version for platform/developer-guide (overrides global version)"
+    required: false
+  platformUserGuideVersion:
+    description: "Version for platform/user-guide (overrides global version)"
+    required: false
+  platformDeploymentOnCloudVersion:
+    description: "Version for platform/deployment-on-cloud (overrides global version)"
+    required: false
+  storefrontDeveloperGuideVersion:
+    description: "Version for storefront/developer-guide (overrides global version)"
+    required: false
+  storefrontUserGuideVersion:
+    description: "Version for storefront/user-guide (overrides global version)"
+    required: false
   azureSubscriptionId:
     description: "Azure Subscription ID"
     required: true
@@ -75,34 +97,49 @@ runs:
       shell: bash
       working-directory: ${{ github.workspace }}/vc-docs
       run: |
-        # List of all subsites to version
-        SUBSITES=(
-          "marketplace/developer-guide"
-          "marketplace/user-guide"
-          "platform/developer-guide"
-          "platform/user-guide"
-          "platform/deployment-on-cloud"
-          "storefront/developer-guide"
-          "storefront/user-guide"
-        )
+        # Map subsites to their versions
+        declare -A SUBSITE_VERSIONS
         
-        VERSION="${{ inputs.version }}"
+        GLOBAL_VERSION="${{ inputs.version }}"
         SET_LATEST="${{ inputs.setAsLatest }}"
         SET_DEFAULT="${{ inputs.setAsDefault }}"
         
-        echo "Deploying version $VERSION to all subsites..."
+        # Set individual versions or use global version
+        SUBSITE_VERSIONS["marketplace/developer-guide"]="${{ inputs.marketplaceDeveloperGuideVersion }}"
+        SUBSITE_VERSIONS["marketplace/user-guide"]="${{ inputs.marketplaceUserGuideVersion }}"
+        SUBSITE_VERSIONS["platform/developer-guide"]="${{ inputs.platformDeveloperGuideVersion }}"
+        SUBSITE_VERSIONS["platform/user-guide"]="${{ inputs.platformUserGuideVersion }}"
+        SUBSITE_VERSIONS["platform/deployment-on-cloud"]="${{ inputs.platformDeploymentOnCloudVersion }}"
+        SUBSITE_VERSIONS["storefront/developer-guide"]="${{ inputs.storefrontDeveloperGuideVersion }}"
+        SUBSITE_VERSIONS["storefront/user-guide"]="${{ inputs.storefrontUserGuideVersion }}"
+        
+        echo "Deploying versioned documentation..."
+        echo "Global version: ${GLOBAL_VERSION:-'not set'}"
         echo "Set as latest: $SET_LATEST"
         echo "Set as default: $SET_DEFAULT"
         echo ""
         
         # Deploy each subsite
-        for SUBSITE in "${SUBSITES[@]}"; do
-          echo "→ Deploying $SUBSITE..."
+        for SUBSITE in "marketplace/developer-guide" "marketplace/user-guide" "platform/developer-guide" "platform/user-guide" "platform/deployment-on-cloud" "storefront/developer-guide" "storefront/user-guide"; do
+          # Get version for this subsite (individual or global)
+          SUBSITE_VERSION="${SUBSITE_VERSIONS[$SUBSITE]}"
+          if [ -z "$SUBSITE_VERSION" ]; then
+            SUBSITE_VERSION="$GLOBAL_VERSION"
+          fi
+          
+          # Skip if no version specified
+          if [ -z "$SUBSITE_VERSION" ]; then
+            echo "⊘ Skipping $SUBSITE (no version specified)"
+            echo ""
+            continue
+          fi
+          
+          echo "→ Deploying $SUBSITE (version: $SUBSITE_VERSION)..."
           
           CONFIG="$SUBSITE/mkdocs.yml"
           
           # Build mike command
-          MIKE_ARGS=("deploy" "-F" "$CONFIG" "--deploy-prefix" "$SUBSITE" "--update-aliases" "$VERSION")
+          MIKE_ARGS=("deploy" "-F" "$CONFIG" "--deploy-prefix" "$SUBSITE" "--update-aliases" "$SUBSITE_VERSION")
           
           # Add latest alias if requested
           if [ "$SET_LATEST" == "true" ]; then
@@ -118,14 +155,14 @@ runs:
           # Set as default if requested
           if [ "$SET_DEFAULT" == "true" ]; then
             echo "  Setting as default..."
-            mike set-default -F "$CONFIG" --deploy-prefix "$SUBSITE" "$VERSION" --push
+            mike set-default -F "$CONFIG" --deploy-prefix "$SUBSITE" "$SUBSITE_VERSION" --push
           fi
           
           echo "  ✓ Done"
           echo ""
         done
         
-        echo "✓ All subsites deployed successfully!"
+        echo "✓ Deployment completed!"
         echo "Changes pushed to gh-pages branch"
 
     - name: Export versioned documentation from gh-pages
