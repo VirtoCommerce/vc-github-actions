@@ -1,4 +1,4 @@
-name: "virtocommerce.com docs"
+name: "virtocommerce.com docs versioned"
 on:
   workflow_dispatch:
     inputs:
