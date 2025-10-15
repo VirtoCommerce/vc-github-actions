@@ -74,6 +74,7 @@ jobs:
       - name: Update docs
         uses: VirtoCommerce/vc-github-actions/update-virtocommerce-docs-versioned@master
         with:
+          githubToken: ${{ secrets.REPO_TOKEN }}
           version: ${{ github.event.inputs.version }}
           marketplaceDeveloperGuideVersion: ${{ github.event.inputs.marketplaceDeveloperGuideVersion }}
           marketplaceUserGuideVersion: ${{ github.event.inputs.marketplaceUserGuideVersion }}
