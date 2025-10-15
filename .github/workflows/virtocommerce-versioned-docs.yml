@@ -2,58 +2,50 @@ name: "virtocommerce.com docs versioned"
 on:
   workflow_dispatch:
     inputs:
-      deployMode:
-        description: 'Deployment mode'
-        required: true
-        default: 'all-same'
-        type: choice
-        options:
-          - all-same
-          - individual
       version:
-        description: '[all-same mode] Version to deploy to ALL subsites (e.g., 1.0, 3.2025-S13)'
+        description: "[all-same mode] Version to deploy to ALL subsites (e.g., 1.0, 3.2025-S13)"
         required: false
         type: string
       marketplaceDeveloperGuideVersion:
-        description: '[individual mode] marketplace/developer-guide version'
+        description: "[individual mode] marketplace/developer-guide version"
         required: false
         type: string
       marketplaceUserGuideVersion:
-        description: '[individual mode] marketplace/user-guide version'
+        description: "[individual mode] marketplace/user-guide version"
         required: false
         type: string
       platformDeveloperGuideVersion:
-        description: '[individual mode] platform/developer-guide version'
+        description: "[individual mode] platform/developer-guide version"
         required: false
         type: string
       platformUserGuideVersion:
-        description: '[individual mode] platform/user-guide version'
+        description: "[individual mode] platform/user-guide version"
         required: false
         type: string
       platformDeploymentOnCloudVersion:
-        description: '[individual mode] platform/deployment-on-cloud version'
+        description: "[individual mode] platform/deployment-on-cloud version"
         required: false
         type: string
       storefrontDeveloperGuideVersion:
-        description: '[individual mode] storefront/developer-guide version'
+        description: "[individual mode] storefront/developer-guide version"
         required: false
         type: string
       storefrontUserGuideVersion:
-        description: '[individual mode] storefront/user-guide version'
+        description: "[individual mode] storefront/user-guide version"
         required: false
         type: string
       setAsLatest:
-        description: 'Set as latest version'
+        description: "Set as latest version"
         required: false
         default: true
         type: boolean
       setAsDefault:
-        description: 'Set as default version'
+        description: "Set as default version"
         required: false
         default: false
         type: boolean
   # schedule:
-    # - cron: '30 19 * * *'
+  # - cron: '30 19 * * *'
 
 jobs:
   publish:
@@ -62,21 +54,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-           # Number of commits to fetch. 0 indicates all history.
-           # Default: 1
-           fetch-depth: 0    
+          # Number of commits to fetch. 0 indicates all history.
+          # Default: 1
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.9.x'
+          python-version: "3.9.x"
 
       - name: Install Dependencies
         run: |
-           pip install mkdocs
-           pip install mkdocs-awesome-pages-plugin mkdocs-git-revision-date-localized-plugin mkdocs-material==9.5.4 mkdocs-minify-plugin mkdocs-redirects pymdown-extensions jinja2 mkdocs-git-revision-date-localized-plugin==0.5 mkdocs-include-markdown-plugin mkdocs-glightbox mkdocs-monorepo-plugin mike
+          pip install mkdocs
+          pip install mkdocs-awesome-pages-plugin mkdocs-git-revision-date-localized-plugin mkdocs-material==9.5.4 mkdocs-minify-plugin mkdocs-redirects pymdown-extensions jinja2 mkdocs-git-revision-date-localized-plugin==0.5 mkdocs-include-markdown-plugin mkdocs-glightbox mkdocs-monorepo-plugin mike
 
       - name: Setup Git Credentials
         uses: VirtoCommerce/vc-github-actions/setup-git-credentials-github@master
-        with: 
+        with:
           githubToken: ${{ secrets.REPO_TOKEN }}
 
       - name: Update docs
@@ -104,7 +96,7 @@ jobs:
 
       - name: Deploy
         run: |
-            dotnet tool update --global VirtoCommerce.GlobalTool
-            vc-build CloudEnvSetParameter -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HelmParameters custom.app1.image.tag=${{ github.run_number }}
-            vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license  -HealthStatus Progressing
-            vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Healthy -SyncStatus Synced
+          dotnet tool update --global VirtoCommerce.GlobalTool
+          vc-build CloudEnvSetParameter -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HelmParameters custom.app1.image.tag=${{ github.run_number }}
+          vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license  -HealthStatus Progressing
+          vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Healthy -SyncStatus Synced
