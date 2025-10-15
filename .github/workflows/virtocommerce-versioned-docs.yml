@@ -72,6 +72,7 @@ jobs:
           githubToken: ${{ secrets.REPO_TOKEN }}
 
       - name: Update docs
+        id: update-docs
         uses: VirtoCommerce/vc-github-actions/update-virtocommerce-docs-versioned@master
         with:
           githubToken: ${{ secrets.REPO_TOKEN }}
@@ -98,6 +99,6 @@ jobs:
       - name: Deploy
         run: |
           dotnet tool update --global VirtoCommerce.GlobalTool
-          vc-build CloudEnvSetParameter -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HelmParameters custom.app1.image.tag=${{ github.run_number }}
+          vc-build CloudEnvSetParameter -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HelmParameters custom.app1.image.tag=${{ steps.update-docs.outputs.docker-image-tag }}
           vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license  -HealthStatus Progressing
           vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Healthy -SyncStatus Synced

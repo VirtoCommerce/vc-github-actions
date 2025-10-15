@@ -1,5 +1,9 @@
 name: 'Update docs.virtocommerce.org (Versioned)'
 description: 'Makes and updates versioned documentation for docs.virtocommerce.org using Mike'
+outputs:
+  docker-image-tag:
+    description: "Docker image tag that was used for the build"
+    value: ${{ steps.docker-tag.outputs.tag }}
 inputs:
   githubToken:
     description: "GitHub token with push permissions to gh-pages branch"
