@@ -3,21 +3,20 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to deploy (auto=read from file, or specify version like v3.2024)'
+        description: 'Version to deploy (e.g., 1.0, 3.2025-S13)'
+        required: true
+        default: '1.0'
+        type: string
+      setAsLatest:
+        description: 'Set as latest version'
         required: false
-        default: 'auto'
-      alias:
-        description: 'Version alias (auto=read from file, or specify like latest, stable)'
+        default: true
+        type: boolean
+      setAsDefault:
+        description: 'Set as default version'
         required: false
-        default: 'auto'
-      deploy_mode:
-        description: 'Deployment mode'
-        required: false
-        default: 'versioned'
-        type: choice
-        options:
-        - versioned
-        - legacy
+        default: false
+        type: boolean
   # schedule:
     # - cron: '30 19 * * *'
 
@@ -46,8 +45,11 @@ jobs:
           githubToken: ${{ secrets.REPO_TOKEN }}
 
       - name: Update docs
-        uses: VirtoCommerce/vc-github-actions/update-virtocommerce-versioned-docs@master
+        uses: VirtoCommerce/vc-github-actions/update-virtocommerce-docs-versioned@master
         with:
+          version: ${{ github.event.inputs.version }}
+          setAsLatest: ${{ github.event.inputs.setAsLatest }}
+          setAsDefault: ${{ github.event.inputs.setAsDefault }}
           azureSubscriptionId: ${{ secrets.AZURESUBSCRIPTIONID }}
           azureResourceGroupName: ${{ secrets.AZURERESOURCEGROUPNAME }}
           azureWebAppName: ${{ secrets.AZUREWEBAPPNAME }}
@@ -57,9 +59,6 @@ jobs:
           dockerRegistry: ${{ secrets.MAIN_DOCKER_REGISTRY }}
           dockerUsr: ${{ secrets.VCPT_DOCKER_USER }}
           dockerPwd: ${{ secrets.VCPT_DOCKER_PASSWORD }}
-          version: ${{ github.event.inputs.version || 'auto' }}
-          alias: ${{ github.event.inputs.alias || 'auto' }}
-          deployMode: ${{ github.event.inputs.deploy_mode || 'versioned' }}
 
       - name: Deploy
         run: |
