@@ -73,7 +73,7 @@ jobs:
 
       - name: Update docs
         id: update-docs
-        uses: VirtoCommerce/vc-github-actions/update-virtocommerce-docs-versioned@master
+        uses: VirtoCommerce/vc-github-actions/update-virtocommerce-docs-versioned@feat/custom_versioning
         with:
           githubToken: ${{ secrets.REPO_TOKEN }}
           version: ${{ github.event.inputs.version }}

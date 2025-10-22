@@ -106,141 +106,91 @@ runs:
       shell: bash
       working-directory: ${{ github.workspace }}/vc-docs
       run: |
-        # Map subsites to their versions
-        declare -A SUBSITE_VERSIONS
-        
-        GLOBAL_VERSION="${{ inputs.version }}"
-        SET_LATEST="${{ inputs.setAsLatest }}"
-        SET_DEFAULT="${{ inputs.setAsDefault }}"
-        
-        # Set individual versions or use global version
-        SUBSITE_VERSIONS["marketplace/developer-guide"]="${{ inputs.marketplaceDeveloperGuideVersion }}"
-        SUBSITE_VERSIONS["marketplace/user-guide"]="${{ inputs.marketplaceUserGuideVersion }}"
-        SUBSITE_VERSIONS["platform/developer-guide"]="${{ inputs.platformDeveloperGuideVersion }}"
-        SUBSITE_VERSIONS["platform/user-guide"]="${{ inputs.platformUserGuideVersion }}"
-        SUBSITE_VERSIONS["platform/deployment-on-cloud"]="${{ inputs.platformDeploymentOnCloudVersion }}"
-        SUBSITE_VERSIONS["storefront/developer-guide"]="${{ inputs.storefrontDeveloperGuideVersion }}"
-        SUBSITE_VERSIONS["storefront/user-guide"]="${{ inputs.storefrontUserGuideVersion }}"
-        
-        echo "Deploying versioned documentation..."
-        echo "Global version: ${GLOBAL_VERSION:-'not set'}"
-        echo "Set as latest: $SET_LATEST"
-        echo "Set as default: $SET_DEFAULT"
+        echo "Deploying versioned documentation using Python script..."
+        echo "Global version: ${{ inputs.version || 'not set' }}"
+        echo "Set as latest: ${{ inputs.setAsLatest }}"
+        echo "Set as default: ${{ inputs.setAsDefault }}"
         echo ""
         
-        # Deploy each subsite
-        for SUBSITE in "marketplace/developer-guide" "marketplace/user-guide" "platform/developer-guide" "platform/user-guide" "platform/deployment-on-cloud" "storefront/developer-guide" "storefront/user-guide"; do
-          # Get version for this subsite (individual or global)
-          SUBSITE_VERSION="${SUBSITE_VERSIONS[$SUBSITE]}"
-          if [ -z "$SUBSITE_VERSION" ]; then
-            SUBSITE_VERSION="$GLOBAL_VERSION"
-          fi
-          
-          # Skip if no version specified
-          if [ -z "$SUBSITE_VERSION" ]; then
-            echo "⊘ Skipping $SUBSITE (no version specified)"
-            echo ""
-            continue
-          fi
-          
-          echo "→ Deploying $SUBSITE (version: $SUBSITE_VERSION)..."
-          
-          CONFIG="$SUBSITE/mkdocs.yml"
-          
-          # Build mike command
-          MIKE_ARGS=("deploy" "-F" "$CONFIG" "--deploy-prefix" "$SUBSITE" "--update-aliases" "$SUBSITE_VERSION")
-          
-          # Add latest alias if requested
-          if [ "$SET_LATEST" == "true" ]; then
-            MIKE_ARGS+=("latest")
-          fi
-          
-          # Add push flag to automatically push to gh-pages
-          MIKE_ARGS+=("--push")
-          
-          # Execute mike deploy
-          mike "${MIKE_ARGS[@]}"
-          
-          # Set as default if requested
-          if [ "$SET_DEFAULT" == "true" ]; then
-            echo "  Setting as default..."
-            mike set-default -F "$CONFIG" --deploy-prefix "$SUBSITE" "$SUBSITE_VERSION" --push
-          fi
-          
-          echo "  ✓ Done"
-          echo ""
-        done
+        # Build command arguments
+        PYTHON_ARGS=("python3" "versioned-build-cicd.py")
         
-        echo "✓ Deployment completed!"
-        echo "Changes pushed to gh-pages branch"
+        # Add global version if provided
+        if [ -n "${{ inputs.version }}" ]; then
+          PYTHON_ARGS+=("--version" "${{ inputs.version }}")
+        fi
+        
+        # Add individual subsite versions
+        if [ -n "${{ inputs.marketplaceDeveloperGuideVersion }}" ]; then
+          PYTHON_ARGS+=("--marketplace-developer-guide-version" "${{ inputs.marketplaceDeveloperGuideVersion }}")
+        fi
+        if [ -n "${{ inputs.marketplaceUserGuideVersion }}" ]; then
+          PYTHON_ARGS+=("--marketplace-user-guide-version" "${{ inputs.marketplaceUserGuideVersion }}")
+        fi
+        if [ -n "${{ inputs.platformDeveloperGuideVersion }}" ]; then
+          PYTHON_ARGS+=("--platform-developer-guide-version" "${{ inputs.platformDeveloperGuideVersion }}")
+        fi
+        if [ -n "${{ inputs.platformUserGuideVersion }}" ]; then
+          PYTHON_ARGS+=("--platform-user-guide-version" "${{ inputs.platformUserGuideVersion }}")
+        fi
+        if [ -n "${{ inputs.platformDeploymentOnCloudVersion }}" ]; then
+          PYTHON_ARGS+=("--platform-deployment-on-cloud-version" "${{ inputs.platformDeploymentOnCloudVersion }}")
+        fi
+        if [ -n "${{ inputs.storefrontDeveloperGuideVersion }}" ]; then
+          PYTHON_ARGS+=("--storefront-developer-guide-version" "${{ inputs.storefrontDeveloperGuideVersion }}")
+        fi
+        if [ -n "${{ inputs.storefrontUserGuideVersion }}" ]; then
+          PYTHON_ARGS+=("--storefront-user-guide-version" "${{ inputs.storefrontUserGuideVersion }}")
+        fi
+        
+        # Add flags
+        if [ "${{ inputs.setAsLatest }}" == "true" ]; then
+          PYTHON_ARGS+=("--set-as-latest")
+        fi
+        if [ "${{ inputs.setAsDefault }}" == "true" ]; then
+          PYTHON_ARGS+=("--set-as-default")
+        fi
+        
+        # Execute Python script
+        "${PYTHON_ARGS[@]}"
+        
+        echo "✓ Deployment completed using Python script!"
 
-    - name: Export versioned documentation from gh-pages
+    - name: Verify build output
       shell: bash
       working-directory: ${{ github.workspace }}/vc-docs
       run: |
-        echo "Exporting versioned content from gh-pages branch..."
+        echo "Verifying build output..."
         
-        # Save current branch
-        CURRENT_BRANCH=$(git branch --show-current)
+        # Check if site directory exists and has content
+        if [ -d "site" ]; then
+          echo "✓ Site directory created"
+          echo "Site contents:"
+          ls -la site/
+        else
+          echo "❌ Site directory not found"
+          exit 1
+        fi
         
-        # Checkout gh-pages and copy all content
-        git checkout gh-pages
-        mkdir -p ../site
-        # Copy everything including hidden files but excluding .git
-        rsync -a --exclude='.git' ./ ../site/
-        
-        # Return to original branch
-        git checkout $CURRENT_BRANCH
-        
-        echo "✓ Versioned content exported"
-
-    - name: Build non-versioned root and intermediate sites
-      shell: bash
-      working-directory: ${{ github.workspace }}/vc-docs
-      run: |
-        echo "Building non-versioned root and intermediate sites..."
-        
-        # IMPORTANT: Temporarily disable !include directives to avoid building versioned subsites
-        # Root mkdocs.yml includes all subsites which would conflict with versioned content
-        
-        # Create temporary mkdocs.yml for root without subsites
-        cat > mkdocs-temp-root.yml << 'EOF'
-        INHERIT: mkdocs.yml
-        nav:
-            - Home: index.md
-        EOF
-        
-        # Build root site without subsites
-        mkdocs build -f mkdocs-temp-root.yml -d ../site-root-temp
-        
-        # Build intermediate sites (they already have subsites commented out in nav)
-        mkdocs build -f storefront/mkdocs.yml -d ../site-storefront-temp
-        mkdocs build -f platform/mkdocs.yml -d ../site-platform-temp
-        mkdocs build -f marketplace/mkdocs.yml -d ../site-marketplace-temp
-        
-        # Copy root site to main site (versioned content has priority)
-        rsync -a --ignore-existing ../site-root-temp/ ../site/
-        
-        # Copy intermediate sites (versioned subsites have priority)
-        mkdir -p ../site/storefront ../site/platform ../site/marketplace
-        rsync -a --ignore-existing ../site-storefront-temp/ ../site/storefront/
-        rsync -a --ignore-existing ../site-platform-temp/ ../site/platform/
-        rsync -a --ignore-existing ../site-marketplace-temp/ ../site/marketplace/
-        
-        # Cleanup
-        rm -f mkdocs-temp-root.yml
-        
-        echo "✓ Non-versioned sites built and merged"
+        # Check if build-info.json exists
+        if [ -f "build-info.json" ]; then
+          echo "✓ Build info file created"
+          cat build-info.json
+        else
+          echo "⚠️  Build info file not found"
+        fi
 
     - name: Prepare Docker context
       shell: bash
       working-directory: ${{ github.workspace }}
       run: |
         # Copy versioned site directory for Docker
-        cp -r site vc-docs/
+        cp -r vc-docs/site ./
         
         # Copy Docker files
         cp -r ${{ github.action_path }}/docker/* ./
+        
+        echo "✓ Docker context prepared"
 
     - name: Determine Docker Image Tag
       id: docker-tag
