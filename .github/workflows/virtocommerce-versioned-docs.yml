@@ -44,8 +44,8 @@ on:
         required: false
         default: false
         type: boolean
-  # schedule:
-  # - cron: '30 19 * * *'
+  schedule:
+    - cron: "30 19 * * *"
 
 jobs:
   publish:
