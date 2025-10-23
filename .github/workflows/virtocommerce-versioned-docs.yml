@@ -135,10 +135,35 @@ jobs:
           
           if [ "$DEPLOYMENT_STARTED" = true ]; then
             echo "Waiting for deployment to complete..."
-            vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Healthy -SyncStatus Synced
+            
+            # Retry CloudEnvStatus multiple times as deployment may take longer than default timeout
+            MAX_RETRIES=5
+            RETRY=1
+            SUCCESS=false
+            
+            while [ $RETRY -le $MAX_RETRIES ]; do
+              echo "Deployment completion check attempt $RETRY/$MAX_RETRIES..."
+              
+              if vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Healthy -SyncStatus Synced; then
+                echo "✓ Deployment completed successfully!"
+                SUCCESS=true
+                break
+              else
+                if [ $RETRY -lt $MAX_RETRIES ]; then
+                  echo "⚠️  Deployment still in progress, waiting 30 seconds before retry..."
+                  sleep 30
+                fi
+              fi
+              
+              RETRY=$((RETRY + 1))
+            done
+            
+            if [ "$SUCCESS" = false ]; then
+              echo "❌ Deployment did not complete within expected time"
+              exit 1
+            fi
           else
             echo "Verifying final status..."
             vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Healthy -SyncStatus Synced
+            echo "✓ Environment is healthy and synced!"
           fi
-          
-          echo "✓ Deployment completed successfully!"
