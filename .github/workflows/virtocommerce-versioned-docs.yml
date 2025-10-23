@@ -98,72 +98,11 @@ jobs:
           dockerPwd: ${{ secrets.VCPT_DOCKER_PASSWORD }}
 
       - name: Deploy
-        timeout-minutes: 15
         run: |
           dotnet tool update --global VirtoCommerce.GlobalTool
-          
-          echo "Setting new image tag: ${{ steps.update-docs.outputs.docker-image-tag }}"
           vc-build CloudEnvSetParameter -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HelmParameters custom.app1.image.tag=${{ steps.update-docs.outputs.docker-image-tag }}
-          
-          echo "Waiting 10 seconds for ArgoCD to detect changes..."
-          sleep 10
-          
-          echo "Checking deployment status..."
-          MAX_ATTEMPTS=20
-          ATTEMPT=1
-          DEPLOYMENT_STARTED=false
-          
-          # Try to detect if deployment started (status changed to Progressing)
-          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-            echo "Attempt $ATTEMPT/$MAX_ATTEMPTS: Checking if deployment is in progress..."
-            if vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Progressing 2>/dev/null; then
-              echo "✓ Deployment started (Progressing status detected)"
-              DEPLOYMENT_STARTED=true
-              break
-            fi
-            
-            # Check if environment is already in desired state (Healthy + Synced)
-            if vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Healthy -SyncStatus Synced 2>/dev/null; then
-              echo "✓ Environment is already Healthy and Synced - deployment may have completed quickly or no changes were needed"
-              DEPLOYMENT_STARTED=false
-              break
-            fi
-            
-            ATTEMPT=$((ATTEMPT + 1))
-            sleep 5
-          done
-          
-          if [ "$DEPLOYMENT_STARTED" = true ]; then
-            echo "Waiting for deployment to complete..."
-            
-            # Retry CloudEnvStatus multiple times as deployment may take longer than default timeout
-            MAX_RETRIES=5
-            RETRY=1
-            SUCCESS=false
-            
-            while [ $RETRY -le $MAX_RETRIES ]; do
-              echo "Deployment completion check attempt $RETRY/$MAX_RETRIES..."
-              
-              if vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Healthy -SyncStatus Synced; then
-                echo "✓ Deployment completed successfully!"
-                SUCCESS=true
-                break
-              else
-                if [ $RETRY -lt $MAX_RETRIES ]; then
-                  echo "⚠️  Deployment still in progress, waiting 30 seconds before retry..."
-                  sleep 30
-                fi
-              fi
-              
-              RETRY=$((RETRY + 1))
-            done
-            
-            if [ "$SUCCESS" = false ]; then
-              echo "❌ Deployment did not complete within expected time"
-              exit 1
-            fi
-          else
-            echo "Verifying final status..."
-            vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Healthy -SyncStatus Synced
-            echo "✓ Environment is healthy and synced!"
-          fi
+          echo "Waiting for deployment to start..."
+          vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Progressing
+          echo "Waiting for deployment to complete..."
+          vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Healthy -SyncStatus Synced
+          echo "Deployment completed successfully!"
