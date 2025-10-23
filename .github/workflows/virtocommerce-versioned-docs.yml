@@ -98,11 +98,47 @@ jobs:
           dockerPwd: ${{ secrets.VCPT_DOCKER_PASSWORD }}
 
       - name: Deploy
+        timeout-minutes: 15
         run: |
           dotnet tool update --global VirtoCommerce.GlobalTool
+          
+          echo "Setting new image tag: ${{ steps.update-docs.outputs.docker-image-tag }}"
           vc-build CloudEnvSetParameter -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HelmParameters custom.app1.image.tag=${{ steps.update-docs.outputs.docker-image-tag }}
-          echo "Waiting for deployment to start..."
-          vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Progressing
-          echo "Waiting for deployment to complete..."
-          vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Healthy -SyncStatus Synced
-          echo "Deployment completed successfully!"
+          
+          echo "Waiting 10 seconds for ArgoCD to detect changes..."
+          sleep 10
+          
+          echo "Checking deployment status..."
+          MAX_ATTEMPTS=20
+          ATTEMPT=1
+          DEPLOYMENT_STARTED=false
+          
+          # Try to detect if deployment started (status changed to Progressing)
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            echo "Attempt $ATTEMPT/$MAX_ATTEMPTS: Checking if deployment is in progress..."
+            if vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Progressing 2>/dev/null; then
+              echo "✓ Deployment started (Progressing status detected)"
+              DEPLOYMENT_STARTED=true
+              break
+            fi
+            
+            # Check if environment is already in desired state (Healthy + Synced)
+            if vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Healthy -SyncStatus Synced 2>/dev/null; then
+              echo "✓ Environment is already Healthy and Synced - deployment may have completed quickly or no changes were needed"
+              DEPLOYMENT_STARTED=false
+              break
+            fi
+            
+            ATTEMPT=$((ATTEMPT + 1))
+            sleep 5
+          done
+          
+          if [ "$DEPLOYMENT_STARTED" = true ]; then
+            echo "Waiting for deployment to complete..."
+            vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Healthy -SyncStatus Synced
+          else
+            echo "Verifying final status..."
+            vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Healthy -SyncStatus Synced
+          fi
+          
+          echo "✓ Deployment completed successfully!"
