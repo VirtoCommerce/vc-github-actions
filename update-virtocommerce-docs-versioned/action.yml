@@ -1,5 +1,5 @@
-name: 'Update docs.virtocommerce.org (Versioned)'
-description: 'Makes and updates versioned documentation for docs.virtocommerce.org using Mike'
+name: "Update docs.virtocommerce.org (Versioned)"
+description: "Makes and updates versioned documentation for docs.virtocommerce.org using Mike"
 outputs:
   docker-image-tag:
     description: "Docker image tag that was used for the build"
@@ -14,11 +14,11 @@ inputs:
   setAsLatest:
     description: "Set this version as 'latest' alias"
     required: false
-    default: 'true'
+    default: "true"
   setAsDefault:
     description: "Set this version as default version"
     required: false
-    default: 'false'
+    default: "false"
   # Individual subsite versions (optional, override global version)
   marketplaceDeveloperGuideVersion:
     description: "Version for marketplace/developer-guide (overrides global version)"
@@ -76,16 +76,16 @@ runs:
       uses: actions/checkout@v3
       with:
         repository: VirtoCommerce/vc-docs
-        ref: feat/structure_redesign
+        ref: feature/structure_redesign
         path: vc-docs
-        fetch-depth: 0  # Need full history for gh-pages branch
+        fetch-depth: 0 # Need full history for gh-pages branch
         token: ${{ inputs.githubToken }}
         persist-credentials: true
 
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.x'
+        python-version: "3.x"
 
     - name: Install MkDocs and Mike
       shell: bash
@@ -111,15 +111,15 @@ runs:
         echo "Set as latest: ${{ inputs.setAsLatest }}"
         echo "Set as default: ${{ inputs.setAsDefault }}"
         echo ""
-        
+
         # Build command arguments
         PYTHON_ARGS=("python3" "versioned-build-cicd.py")
-        
+
         # Add global version if provided
         if [ -n "${{ inputs.version }}" ]; then
           PYTHON_ARGS+=("--version" "${{ inputs.version }}")
         fi
-        
+
         # Add individual subsite versions
         if [ -n "${{ inputs.marketplaceDeveloperGuideVersion }}" ]; then
           PYTHON_ARGS+=("--marketplace-developer-guide-version" "${{ inputs.marketplaceDeveloperGuideVersion }}")
@@ -142,7 +142,7 @@ runs:
         if [ -n "${{ inputs.storefrontUserGuideVersion }}" ]; then
           PYTHON_ARGS+=("--storefront-user-guide-version" "${{ inputs.storefrontUserGuideVersion }}")
         fi
-        
+
         # Add flags
         if [ "${{ inputs.setAsLatest }}" == "true" ]; then
           PYTHON_ARGS+=("--set-as-latest")
@@ -150,10 +150,10 @@ runs:
         if [ "${{ inputs.setAsDefault }}" == "true" ]; then
           PYTHON_ARGS+=("--set-as-default")
         fi
-        
+
         # Execute Python script
         "${PYTHON_ARGS[@]}"
-        
+
         echo "✓ Deployment completed using Python script!"
 
     - name: Verify build output
@@ -161,7 +161,7 @@ runs:
       working-directory: ${{ github.workspace }}/vc-docs
       run: |
         echo "Verifying build output..."
-        
+
         # Check if site directory exists and has content
         if [ -d "site" ]; then
           echo "✓ Site directory created"
@@ -171,7 +171,7 @@ runs:
           echo "❌ Site directory not found"
           exit 1
         fi
-        
+
         # Check if build-info.json exists
         if [ -f "build-info.json" ]; then
           echo "✓ Build info file created"
@@ -186,10 +186,10 @@ runs:
       run: |
         # Copy versioned site directory for Docker
         cp -r vc-docs/site ./
-        
+
         # Copy Docker files
         cp -r ${{ github.action_path }}/docker/* ./
-        
+
         echo "✓ Docker context prepared"
 
     - name: Determine Docker Image Tag
@@ -217,4 +217,3 @@ runs:
           -DockerImageName ${{ inputs.dockerRegistry }}/vcpt/docs `
           -DockerImageTag ${{ steps.docker-tag.outputs.tag }} `
           -DockerRegistryUrl ${{ inputs.dockerRegistry }}
-
