@@ -197,8 +197,9 @@ runs:
       shell: bash
       run: |
         # Use global version if available, otherwise use run number
+        # Always append run number to ensure unique tags for each deployment
         if [ -n "${{ inputs.version }}" ]; then
-          TAG="versioned-${{ inputs.version }}"
+          TAG="versioned-${{ inputs.version }}-${{ github.run_number }}"
         else
           TAG="versioned-${{ github.run_number }}"
         fi
