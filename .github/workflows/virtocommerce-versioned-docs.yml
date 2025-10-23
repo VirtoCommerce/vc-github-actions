@@ -6,6 +6,7 @@ on:
         description: "[all-same mode] Version to deploy to ALL subsites (e.g., 1.0, 3.2025-S13)"
         required: false
         type: string
+        default: "1.0"
       marketplaceDeveloperGuideVersion:
         description: "[individual mode] marketplace/developer-guide version"
         required: false
@@ -42,7 +43,7 @@ on:
       setAsDefault:
         description: "Set as default version"
         required: false
-        default: false
+        default: true
         type: boolean
   schedule:
     - cron: "30 19 * * *"
