@@ -191,6 +191,12 @@ runs:
         cp -r ${{ github.action_path }}/docker/* ./
 
         echo "✓ Docker context prepared"
+        echo "=== DOCKER CONTEXT DEBUG ==="
+        echo "Site directory contents:"
+        ls -la site/ | head -20
+        echo "Docker files:"
+        ls -la Dockerfile nginx.versioned.conf
+        echo "============================="
 
     - name: Determine Docker Image Tag
       id: docker-tag
