@@ -98,6 +98,7 @@ jobs:
           dockerPwd: ${{ secrets.VCPT_DOCKER_PASSWORD }}
 
       - name: Deploy
+        timeout-minutes: 10
         run: |
           dotnet tool update --global VirtoCommerce.GlobalTool
           
@@ -112,6 +113,20 @@ jobs:
           vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Progressing
           
           echo "Waiting for deployment to complete..."
-          vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Healthy -SyncStatus Synced
+          echo "⚠️  If this hangs for more than 10 minutes, the application is likely failing health checks."
+          echo "⚠️  The deployment will timeout automatically to prevent infinite hanging."
           
-          echo "Deployment completed successfully!"
+          # Use timeout command to prevent infinite hanging
+          timeout 600 vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Healthy -SyncStatus Synced || {
+            echo "❌ Deployment timed out after 10 minutes"
+            echo "This usually means the application is failing health checks in Kubernetes"
+            echo "The Docker image was built successfully, but the application cannot start properly"
+            echo "Possible causes:"
+            echo "  - Missing health check endpoint"
+            echo "  - Nginx configuration error"
+            echo "  - Missing files in the Docker image"
+            echo "  - Kubernetes resource constraints"
+            exit 1
+          }
+          
+          echo "✅ Deployment completed successfully!"
