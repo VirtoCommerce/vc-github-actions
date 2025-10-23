@@ -18,7 +18,7 @@ inputs:
   setAsDefault:
     description: "Set this version as default version"
     required: false
-    default: "false"
+    default: "true"
   # Individual subsite versions (optional, override global version)
   marketplaceDeveloperGuideVersion:
     description: "Version for marketplace/developer-guide (overrides global version)"
