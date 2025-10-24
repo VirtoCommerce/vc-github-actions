@@ -105,16 +105,6 @@ jobs:
           vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Progressing
           
           # Use timeout command to prevent infinite hanging
-          timeout 600 vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Healthy -SyncStatus Synced || {
-            echo "❌ Deployment timed out after 10 minutes"
-            echo "This usually means the application is failing health checks in Kubernetes"
-            echo "The Docker image was built successfully, but the application cannot start properly"
-            echo "Possible causes:"
-            echo "  - Missing health check endpoint"
-            echo "  - Nginx configuration error"
-            echo "  - Missing files in the Docker image"
-            echo "  - Kubernetes resource constraints"
-            exit 1
-          }
+          timeout 600 vc-build CloudEnvStatus -CloudUrl https://portal.virtocommerce.cloud -CloudToken ${{ secrets.VCPT_CLOUD_TOKEN }} -EnvironmentName vcpt-license -HealthStatus Healthy -SyncStatus Synced
           
           echo "✅ Deployment completed successfully!"
