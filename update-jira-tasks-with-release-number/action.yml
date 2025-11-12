@@ -51,32 +51,34 @@ runs:
         $jiraKeys = @()
         $owner, $repo = "${{ inputs.ghRepository }}" -split "/"
 
-        # Get two latest releases
         $releases = gh api "/repos/$owner/$repo/releases" | ConvertFrom-Json
         $releaseCounter = 0
         $currentReleaseNumber = -1
-        while ($releaseCounter -lt $releases.Count) {
+        while ($releaseCounter -lt $releases.Count) { # Find the release matching the specified GitHub release tag
           if ($releases[$releaseCounter].tag_name -eq "${{ inputs.ghReleaseTag }}") {
             $currentReleaseNumber = $releaseCounter
             break
           }
           $releaseCounter++
         }
-
-        if ($currentReleaseNumber -eq -1) {
-          Write-Warning "Release tag '${{ inputs.ghReleaseTag }}' not found. Terminating..."
+        if ($currentReleaseNumber -eq -1) { # If the current release tag is not found, terminate the script
+            Write-Warning "Release tag '${{ inputs.ghReleaseTag }}' not found. Terminating..."
           exit 1
         }
-        if ($releases.Count -lt 2) {
-          Write-Warning "Not enough releases found, using 100 last commits"
-          # Get 100 last commits
+        if ($releases.Count -lt 2) { # If there are less than 2 releases, use the last 100 commits
+          Write-Warning "Not enough releases found, using the last 100 commits"
           $commits = $(gh api "/repos/$owner/$repo/commits?per_page=100" | ConvertFrom-Json).commit
         } else {
           $currentTag = $releases[$currentReleaseNumber].tag_name
           $prevTag = $releases[$($currentReleaseNumber + 1)].tag_name
+          try {
+            gh api "/repos/$owner/$repo/releases/tags/$prevTag" | ConvertFrom-Json # Check if the previous release tag exists
+          } catch {
+            Write-Warning "Previous release tag '$prevTag' not found. Terminating..."
+            exit 1
+          }
           Write-Host "Comparing $prevTag...$currentTag"
-          # Get commits between tags
-          $commits = $(gh api "/repos/$owner/$repo/compare/$prevTag...$currentTag" | ConvertFrom-Json).commits.commit
+          $commits = $(gh api "/repos/$owner/$repo/compare/$prevTag...$currentTag" | ConvertFrom-Json).commits.commit # Get the commits between the previous and current release tags
         }
 
         foreach ($commit in $commits) {
