@@ -68,9 +68,9 @@ runs:
           exit 1
         }
         if ($releases.Count -lt 2) {
-          Write-Warning "Not enough releases found, using all commits"
-          # Get all commits
-          $commits = gh api "/repos/$owner/$repo/commits" | ConvertFrom-Json
+          Write-Warning "Not enough releases found, using 100 last commits"
+          # Get 100 last commits
+          $commits = $(gh api "/repos/$owner/$repo/commits?per_page=100" | ConvertFrom-Json).commit
         } else {
           $currentTag = $releases[$currentReleaseNumber].tag_name
           $prevTag = $releases[$($currentReleaseNumber + 1)].tag_name
@@ -80,7 +80,7 @@ runs:
         }
 
         foreach ($commit in $commits) {
-          if ($commit.message -cmatch '[A-Z]{2,}-\d+') {
+          if ($commit.message -match '[A-Z]{2,}-\d+') {
             $jiraKeys += $matches[0]
           }
           else {
