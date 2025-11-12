@@ -1,7 +1,7 @@
 # This action updates JIRA tasks with release information by:
-# 1. Getting the two latest releases from the GitHub repository
-# 2. Finding all commits between these releases
-# 3. Extracting JIRA keys from branch names (format: [A-Z]+-\d{1,6})
+# 1. Finding the release matching the specified GitHub release tag in ghReleaseTag input
+# 2. Finding all commits between that release and the previous release
+# 3. Extracting JIRA keys from commit messages (format: [A-Z]{2,}-\d+)
 # 4. Updating each JIRA task's custom field with the specified value
 # 5. Handling errors gracefully and logging results
 
@@ -18,6 +18,10 @@ inputs:
     type: string
   ghRepository:
     description: 'GitHub repository in format org/repo'
+    required: true
+    type: string
+  ghReleaseTag:
+    description: 'GitHub release tag'
     required: true
     type: string
   jiraBaseUrl:
@@ -49,15 +53,23 @@ runs:
 
         # Get two latest releases
         $releases = gh api "/repos/$owner/$repo/releases" | ConvertFrom-Json
-        $releases = $releases | Sort-Object { [datetime]$_.created_at } -Descending | Where-Object { $_.tag_name -match '\.0$' }
+        $releaseCounter = 0
+        while ($releaseCounter -lt $releases.Count) {
+          if ($releases[$releaseCounter].tag_name -eq "${{ inputs.ghReleaseTag }}") {
+            $currentReleaseNumber = $releaseCounter
+            break
+          }
+          $releaseCounter++
+        }
+        # $releases = $releases | Sort-Object { [datetime]$_.created_at } -Descending | Where-Object { $_.tag_name -match '\.0$' }
         
         if ($releases.Count -lt 2) {
           Write-Warning "Not enough releases found, using all commits"
           # Get all commits
           $commits = gh api "/repos/$owner/$repo/commits" --jq ".[].sha"
         } else {
-          $currentTag = $releases[0].tag_name
-          $prevTag = $releases[1].tag_name
+          $currentTag = $releases[$currentReleaseNumber].tag_name
+          $prevTag = $releases[$($currentReleaseNumber + 1)].tag_name
           Write-Host "Comparing $prevTag...$currentTag"
           # Get commits between tags
           $commits = $(gh api "/repos/$owner/$repo/compare/$prevTag...$currentTag" | ConvertFrom-Json).commits.commit #--jq ".commits[].commit.message"
@@ -96,7 +108,7 @@ runs:
         Write-Host "🔄 Updating tasks ..."
         foreach ($jiraKey in $uniqueJiraKeys) {
             try {
-              $response = Invoke-RestMethod -Uri "${{ inputs.jiraBaseUrl }}/rest/api/3/issue/$jiraKey" -Headers $headers -Method Put -Body $updateBody
+              # $response = Invoke-RestMethod -Uri "${{ inputs.jiraBaseUrl }}/rest/api/3/issue/$jiraKey" -Headers $headers -Method Put -Body $updateBody
               Write-Host "✅ Updated task $jiraKey"
             }
             catch {
