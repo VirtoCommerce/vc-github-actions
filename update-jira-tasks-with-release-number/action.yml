@@ -54,6 +54,7 @@ runs:
         # Get two latest releases
         $releases = gh api "/repos/$owner/$repo/releases" | ConvertFrom-Json
         $releaseCounter = 0
+        $currentReleaseNumber = -1
         while ($releaseCounter -lt $releases.Count) {
           if ($releases[$releaseCounter].tag_name -eq "${{ inputs.ghReleaseTag }}") {
             $currentReleaseNumber = $releaseCounter
@@ -61,18 +62,21 @@ runs:
           }
           $releaseCounter++
         }
-        # $releases = $releases | Sort-Object { [datetime]$_.created_at } -Descending | Where-Object { $_.tag_name -match '\.0$' }
-        
+
+        if ($currentReleaseNumber -eq -1) {
+          Write-Warning "Release tag '${{ inputs.ghReleaseTag }}' not found. Terminating..."
+          exit 1
+        }
         if ($releases.Count -lt 2) {
           Write-Warning "Not enough releases found, using all commits"
           # Get all commits
-          $commits = gh api "/repos/$owner/$repo/commits" --jq ".[].sha"
+          $commits = gh api "/repos/$owner/$repo/commits" | ConvertFrom-Json
         } else {
           $currentTag = $releases[$currentReleaseNumber].tag_name
           $prevTag = $releases[$($currentReleaseNumber + 1)].tag_name
           Write-Host "Comparing $prevTag...$currentTag"
           # Get commits between tags
-          $commits = $(gh api "/repos/$owner/$repo/compare/$prevTag...$currentTag" | ConvertFrom-Json).commits.commit #--jq ".commits[].commit.message"
+          $commits = $(gh api "/repos/$owner/$repo/compare/$prevTag...$currentTag" | ConvertFrom-Json).commits.commit
         }
 
         foreach ($commit in $commits) {
@@ -80,7 +84,7 @@ runs:
             $jiraKeys += $matches[0]
           }
           else {
-            Write-Warning "Commit did not match the pattern [A-Z]{2,}-\d+. Commit URL: $($commit.url)"
+            Write-Warning "Commit '$($commit.message)' did not match the pattern [A-Z]{2,}-\d+. Commit URL: $($commit.url)"
           }
         }
         
@@ -108,7 +112,7 @@ runs:
         Write-Host "🔄 Updating tasks ..."
         foreach ($jiraKey in $uniqueJiraKeys) {
             try {
-              # $response = Invoke-RestMethod -Uri "${{ inputs.jiraBaseUrl }}/rest/api/3/issue/$jiraKey" -Headers $headers -Method Put -Body $updateBody
+              $response = Invoke-RestMethod -Uri "${{ inputs.jiraBaseUrl }}/rest/api/3/issue/$jiraKey" -Headers $headers -Method Put -Body $updateBody
               Write-Host "✅ Updated task $jiraKey"
             }
             catch {
