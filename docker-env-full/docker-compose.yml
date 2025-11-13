@@ -87,6 +87,7 @@ services:
       - Search:ElasticSearch8:User=elastic
       - Search:ElasticSearch8:Key=${ELASTIC_PASSWORD:-v!rto_Labs!}
       - Search:ElasticSearch8:EnableCompatibilityMode=true
+      - Search:PickupLocationFullTextSearchEnabled=true
       - IdentityOptions:User:MaxPasswordAge=0
     depends_on:
       - vc-db
