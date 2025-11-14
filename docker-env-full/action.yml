@@ -143,7 +143,9 @@ runs:
                 exit 1
             }
         mkdir -p ./frontend
+        Write-Host "::group::Unzip frontend zip"
         unzip -o $fileName -d ./frontend
+        Write-Host "::endgroup::"
         Write-Host "::group::Build frontend docker image"
         docker build -f ./nginx/Dockerfile -t "${{ inputs.frontendImage }}:${{ inputs.frontendDockerTag }}" .
         Write-Host "::endgroup::"
