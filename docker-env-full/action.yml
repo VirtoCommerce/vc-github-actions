@@ -56,7 +56,7 @@ runs:
   using: "composite"
   steps:
     - name: Use custom packages.json and build platform docker image
-      if: ${{ inputs.customPackagesJsonUrl != '' }}
+      if: ${{ inputs.customPackagesJsonUrl != '' }} && ${{ inputs.installCustomModule == 'false' }}
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
@@ -97,7 +97,7 @@ runs:
         Write-Host "`e[32mPlatform docker image ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} tagged as ${{ inputs.platformImage }}:local-latest"
 
     - name: Build platform docker image
-      if: ${{ inputs.installCustomModule == 'true' }}
+      if: ${{ inputs.installCustomModule == 'true' }} && ${{ inputs.customPackagesJsonUrl == '' }}
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
