@@ -116,7 +116,9 @@ runs:
                 exit 1
             }
         }
+        Write-Host "::group::Build platform docker image"
         docker build -f ./Dockerfile -t "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}" .
+        Write-Host "::endgroup::"
 
     - name: Build frontend docker image
       working-directory: ${{ github.action_path }}
@@ -142,7 +144,9 @@ runs:
             }
         mkdir -p ./frontend
         unzip -o $fileName -d ./frontend
+        Write-Host "::group::Build frontend docker image"
         docker build -f ./nginx/Dockerfile -t "${{ inputs.frontendImage }}:${{ inputs.frontendDockerTag }}" .
+        Write-Host "::endgroup::"
 
     - name: Start database container only
       env:
@@ -166,7 +170,9 @@ runs:
           Write-Host "`e[32mDocker-compose.yml modified"
         }
         # Start only the database and elasticsearch containers first
+        Write-Host "::group::Start Database and Elasticsearch containers"
         docker compose --project-name virtocommerce up -d vc-db es
+        Write-Host "::endgroup::"
         Write-Host "`e[32mDatabase and Elasticsearch containers started."
 
     - name: Start remaining containers
@@ -182,7 +188,9 @@ runs:
         . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
         
         # Start the remaining containers (platform and frontend)
+        Write-Host "::group::Start Remaining Containers"
         docker compose --project-name virtocommerce up -d
+        Write-Host "::endgroup::"
         InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 15 -WaitSeconds 0
         Write-Host "`e[32mAll containers started."
         
