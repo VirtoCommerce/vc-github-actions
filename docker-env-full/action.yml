@@ -80,7 +80,7 @@ runs:
         docker build -f ./Dockerfile -t "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}" .
 
     - name: Install Commerce Bundle Modules
-      if: ${{ inputs.installModules  == 'true' }}
+      if: ${{ inputs.installModules  == 'true' }} && ${{ inputs.customPackagesJsonUrl == '' }}
       working-directory: ${{ github.action_path }}
       env: 
         INSTALL_FOLDER: 'modules'
