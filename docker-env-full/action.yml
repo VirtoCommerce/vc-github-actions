@@ -9,6 +9,10 @@ inputs:
     description: 'Custom module Module url'
     required: false
     default: ''
+  customPackagesJsonUrl:
+    description: 'Custom packages.json file Url'
+    required: false
+    default: ''
   frontendDockerTag:
     description: 'Frontend Docker Tag'
     required: false
@@ -44,29 +48,21 @@ inputs:
     description: 'Test secret environment file content'
     required: true
     type: string
+variables:
+  DOCKER_FILES: 'https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net8/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh'
 runs:
   using: "composite"
   steps:
-    - name: Install Commerce Bundle Modules
-      if: ${{ inputs.installModules  == 'true' }}
-      working-directory: ${{ github.action_path }}
-      env: 
-        INSTALL_FOLDER: 'modules'
-      shell: pwsh
-      run: |
-        Write-Host "`e[33mInstall Modules step started."
-        New-Item -Path "./" -Name "${{ env.INSTALL_FOLDER}}" -ItemType "directory"
-        Push-Location ./${{ env.INSTALL_FOLDER}}
-        vc-build install -Edge -skip InstallPlatform
-        vc-build install -module VirtoCommerce.Quote VirtoCommerce.XPickup
-
-    - name: Build platform docker image
-      if: ${{ inputs.installCustomModule == 'true' }}
+    - name: Use custom packages.json and build platform docker image
+      if: ${{ inputs.customPackagesJsonUrl != '' }}
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
-        ../docker-env/scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }}
-        $dockerFiles = "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net8/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh"
+        Invoke-WebRequest -Uri ${{ inputs.customPackagesJsonUrl }} -OutFile packages.json
+        Write-Host "`e[32mDownloaded custom packages.json from ${{ inputs.customPackagesJsonUrl }} file successfully. Build backend..."
+        vc-build install --package-manifest-path ./packages.json --root ./publish --skip-dependency-solving
+        # vc-build install -PackageManifestPath $(manifestPath) -ProbingPath ./backend/platform/app_data/modules -DiscoveryPath ./backend/platform/modules --root ./backend/platform -SkipDependencySolving
+        $dockerFiles = ${{ env.DOCKER_FILES }}
         Write-Host "`e[32mDownload platform Dockerfile and build image"
         $dockerFilesArray = $dockerFiles.Split(';')
         foreach($file in $dockerFilesArray){
@@ -82,15 +78,44 @@ runs:
         }
         docker build -f ./Dockerfile -t "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}" .
 
-    - name: Pull platform docker image to local storage
+    - name: Install Commerce Bundle Modules
       if: ${{ inputs.installModules  == 'true' }}
       working-directory: ${{ github.action_path }}
+      env: 
+        INSTALL_FOLDER: 'modules'
       shell: pwsh
       run: |
+        Write-Host "`e[33mInstall Modules step started."
+        New-Item -Path "./" -Name "${{ env.INSTALL_FOLDER}}" -ItemType "directory"
+        Push-Location ./${{ env.INSTALL_FOLDER}}
+        vc-build install -Edge -skip InstallPlatform
+        vc-build install -module VirtoCommerce.Quote VirtoCommerce.XPickup
         Write-Host "`e[32mPull platform docker image to local storage"
         docker pull ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }}
         docker tag ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} "${{ inputs.platformImage }}:local-latest"
         Write-Host "`e[32mPlatform docker image ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} tagged as ${{ inputs.platformImage }}:local-latest"
+
+    - name: Build platform docker image
+      if: ${{ inputs.installCustomModule == 'true' }}
+      working-directory: ${{ github.action_path }}
+      shell: pwsh
+      run: |
+        ../docker-env/scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }}
+        $dockerFiles = ${{ env.DOCKER_FILES }}
+        Write-Host "`e[32mDownload platform Dockerfile and build image"
+        $dockerFilesArray = $dockerFiles.Split(';')
+        foreach($file in $dockerFilesArray){
+            try {
+                $fileName = Split-Path $file -Leaf
+                Invoke-WebRequest -Uri $file -OutFile $fileName -UseBasicParsing -OperationTimeoutSeconds 15 -RetryIntervalSec 1 -MaximumRetryCount 3
+                Write-Host "Downloaded '$fileName' successfully"
+            }
+            catch {
+                Write-Error "Failed to download $file. Error: $_"
+                exit 1
+            }
+        }
+        docker build -f ./Dockerfile -t "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}" .
 
     - name: Build frontend docker image
       working-directory: ${{ github.action_path }}
