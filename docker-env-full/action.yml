@@ -65,7 +65,7 @@ runs:
         vc-build install --package-manifest-path ./packages.json --root ./publish --skip-dependency-solving
         # vc-build install -PackageManifestPath $(manifestPath) -ProbingPath ./backend/platform/app_data/modules -DiscoveryPath ./backend/platform/modules --root ./backend/platform -SkipDependencySolving
         Write-Host "`e[32mDownload platform Dockerfile and build image"
-        $dockerFilesArray = ${{ inputs.dockerFiles }}.Split(';')
+        $dockerFilesArray = "${{ inputs.dockerFiles }}".Split(';')
         foreach($file in $dockerFilesArray){
             try {
                 $fileName = Split-Path $file -Leaf
@@ -103,7 +103,7 @@ runs:
       run: |
         ../docker-env/scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }}
         Write-Host "`e[32mDownload platform Dockerfile and build image"
-        $dockerFilesArray = ${{ inputs.dockerFiles }}.Split(';')
+        $dockerFilesArray = "${{ inputs.dockerFiles }}".Split(';')
         foreach($file in $dockerFilesArray){
             try {
                 $fileName = Split-Path $file -Leaf
