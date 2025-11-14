@@ -62,7 +62,7 @@ runs:
         Write-Host "`e[32mDownloaded custom packages.json from ${{ inputs.customPackagesJsonUrl }} file successfully. Build backend..."
         vc-build install --package-manifest-path ./packages.json --root ./publish --skip-dependency-solving
         # vc-build install -PackageManifestPath $(manifestPath) -ProbingPath ./backend/platform/app_data/modules -DiscoveryPath ./backend/platform/modules --root ./backend/platform -SkipDependencySolving
-        $dockerFiles = ${{ env.DOCKER_FILES }}
+        $dockerFiles = "${{ env.DOCKER_FILES }}"
         Write-Host "`e[32mDownload platform Dockerfile and build image"
         $dockerFilesArray = $dockerFiles.Split(';')
         foreach($file in $dockerFilesArray){
@@ -101,7 +101,7 @@ runs:
       shell: pwsh
       run: |
         ../docker-env/scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }}
-        $dockerFiles = ${{ env.DOCKER_FILES }}
+        $dockerFiles = "${{ env.DOCKER_FILES }}"
         Write-Host "`e[32mDownload platform Dockerfile and build image"
         $dockerFilesArray = $dockerFiles.Split(';')
         foreach($file in $dockerFilesArray){
