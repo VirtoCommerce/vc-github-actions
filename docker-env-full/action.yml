@@ -63,7 +63,6 @@ runs:
         Invoke-WebRequest -Uri ${{ inputs.customPackagesJsonUrl }} -OutFile packages.json
         Write-Host "`e[32mDownloaded custom packages.json from ${{ inputs.customPackagesJsonUrl }} file successfully. Build backend..."
         vc-build install --package-manifest-path ./packages.json --root ./publish --skip-dependency-solving
-        # vc-build install -PackageManifestPath $(manifestPath) -ProbingPath ./backend/platform/app_data/modules -DiscoveryPath ./backend/platform/modules --root ./backend/platform -SkipDependencySolving
         Write-Host "`e[32mDownload platform Dockerfile and build image"
         $dockerFilesArray = "${{ inputs.dockerFiles }}".Split(';')
         foreach($file in $dockerFilesArray){
@@ -77,7 +76,9 @@ runs:
                 exit 1
             }
         }
+        Write-Host "::group::Build platform docker image"
         docker build -f ./Dockerfile -t "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}" .
+        Write-Host "::endgroup::"
 
     - name: Install Commerce Bundle Modules
       if: ${{ inputs.installModules  == 'true' }}
