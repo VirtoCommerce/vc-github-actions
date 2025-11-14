@@ -48,10 +48,10 @@ inputs:
     description: 'Test secret environment file content'
     required: true
     type: string
-variables:
-  DOCKER_FILES: 'https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net8/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh'
 runs:
   using: "composite"
+  env:
+    DOCKER_FILES: 'https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net8/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh'
   steps:
     - name: Use custom packages.json and build platform docker image
       if: ${{ inputs.customPackagesJsonUrl != '' }}
