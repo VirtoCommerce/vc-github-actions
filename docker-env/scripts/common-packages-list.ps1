@@ -231,7 +231,7 @@ function Invoke-WebRequestWithRetry {
     }
 }
 
-# $requiredModuleVersions = Get-Content -Path C:\Users\AndrewKubyshkin\Downloads\state.json -Raw
+
 
 $packages = @{}
 $packagesProcessed = @()
@@ -242,9 +242,11 @@ $blobPackagesUrl = "https://vc3prerelease.blob.core.windows.net/packages"
 # add required module and platform versions from $requiredModuleVersions
 if ($requiredModuleVersionsUrl -ne '') {
     $requiredModuleVersions = $(Invoke-WebRequestWithRetry -Uri $requiredModuleVersionsUrl).Content
+    # $requiredModuleVersions = Get-Content -Path C:\Users\AndrewKubyshkin\Downloads\state.json -Raw
     $moduleListJson = $requiredModuleVersions | ConvertFrom-Json
     $moduleListJson | ForEach-Object {
-        if ($_.Version -ne '' -or $_.Id -ne 'VirtoCommerce.Platform') {
+        if ($_.Id -ne 'VirtoCommerce.Platform') {
+            echo "$($_.Id) added to packages"
             $packages["$($_.Id)"] = "$($_.Id)_$($_.Version).zip"
         }
         elseif ($_.Id -eq 'VirtoCommerce.Platform') {
@@ -395,13 +397,12 @@ $packagesJson = $(Invoke-WebRequestWithRetry -Uri https://raw.githubusercontent.
 
 $($packagesJson.Sources | Where-Object { $_.Name -eq 'AzureBlob' }).Modules = $updatedBlobModules
 $($packagesJson.Sources | Where-Object { $_.Name -eq 'GithubReleases' }).Modules = $updatedReleaseModules
-# if ($platformVersion.split('.')[2] -match '[A-za-z-]') {
-#     $packagesJson.PlatformAssetUrl = "$blobPackagesUrl/VirtoCommerce.Platform.$platformVersion.zip"
-# }
-# else {
-#     $packagesJson.PlatformVersion = $platformVersion
-# }
-$packagesJson.PlatformVersion = $platformVersion
+if ($platformVersion.split('.')[2] -match '[A-za-z-]') {
+    $packagesJson | Add-Member -MemberType NoteProperty -Name "PlatformAssetUrl" -Value "$blobPackagesUrl/VirtoCommerce.Platform.$platformVersion.zip" -Force
+}
+else {
+    $packagesJson.PlatformVersion = $platformVersion
+}
 $packagesJson | ConvertTo-Json -Depth 10 | Set-Content -Path ./new-packages.json
 
 # Write-Host "Generated packages.json:"
