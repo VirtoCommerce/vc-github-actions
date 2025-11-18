@@ -13,7 +13,8 @@ param (
     [Parameter(Mandatory = $true)]
     [string]$customModuleId,
     [Parameter(Mandatory = $true)]
-    [string]$customModuleUrl
+    [string]$customModuleUrl,
+    [string]$requiredModuleVersions = ''
 )
 
 function IsAlfa {
@@ -221,7 +222,7 @@ function Invoke-WebRequestWithRetry {
         catch {
             $retryCount++
             if ($retryCount -eq $MaxRetries) {
-                Write-Error "Failed to download after $MaxRetries attempts: $_"
+                Write-Error "Failed to download '$Uri' after $MaxRetries attempts: $_"
                 throw
             }
             Write-Warning "Attempt $retryCount failed, retrying in $RetryDelaySeconds seconds..."
@@ -230,22 +231,41 @@ function Invoke-WebRequestWithRetry {
     }
 }
 
+# $requiredModuleVersions = Get-Content -Path C:\Users\AndrewKubyshkin\Downloads\state.json -Raw
+
 $packages = @{}
 $packagesProcessed = @()
 $dependencyList = @{}
 $platformVersion = ''
 $blobPackagesUrl = "https://vc3prerelease.blob.core.windows.net/packages"
 
+# add required module and platform versions from $requiredModuleVersions
+if ($requiredModuleVersions -ne '') {
+    $moduleListJson = $requiredModuleVersions | ConvertFrom-Json
+    $moduleListJson | ForEach-Object {
+        if ($_.Version -ne '' -or $_.Id -ne 'VirtoCommerce.Platform') {
+            $packages["$($_.Id)"] = "$($_.Id)_$($_.Version).zip"
+        }
+        elseif ($_.Id -eq 'VirtoCommerce.Platform') {
+            $platformVersion = $_.Version
+        }
+    }
+}
+
 $edgePackages = $(Invoke-WebRequestWithRetry -Uri https://raw.githubusercontent.com/VirtoCommerce/vc-modules/refs/heads/master/modules_v3.json).Content | ConvertFrom-Json -Depth 10
 
-# add "commerce" group modlues
+# add "commerce" group modules
 $commerceModules = $($edgePackages | Where-Object { $_.Groups -eq 'commerce' } | Select-Object -ExcludeProperty Versions).Id
 foreach ($mm in $commerceModules) {
-    $packages["$mm"] = "$($mm)_$($($edgePackages | Where-Object { $_.Id -eq $mm } | Select-Object -ExpandProperty Versions)[0].Version).zip"
+    if ($null -eq $packages["$mm"]) {
+        $packages["$mm"] = "$($mm)_$($($edgePackages | Where-Object { $_.Id -eq $mm } | Select-Object -ExpandProperty Versions)[0].Version).zip"
+    }
 }
 
 # add VirtoCommerce.CustomerExportImport for importing customers
-$packages["VirtoCommerce.Quote"] = "VirtoCommerce.Quote_$($($edgePackages | Where-Object { $_.Id -eq 'VirtoCommerce.Quote' } | Select-Object -ExpandProperty Versions)[0].Version).zip"
+if ($null -ne $packages["VirtoCommerce.Quote"]) {
+    $packages["VirtoCommerce.Quote"] = "VirtoCommerce.Quote_$($($edgePackages | Where-Object { $_.Id -eq 'VirtoCommerce.Quote' } | Select-Object -ExpandProperty Versions)[0].Version).zip"
+}
 
 # process the initial first custom module
 ProcessCustomModule -CustomModuleId $customModuleId -CustomModuleUrl $customModuleUrl # -blobPackagesProcessed $blobPackagesProcessed
@@ -374,12 +394,13 @@ $packagesJson = $(Invoke-WebRequestWithRetry -Uri https://raw.githubusercontent.
 
 $($packagesJson.Sources | Where-Object { $_.Name -eq 'AzureBlob' }).Modules = $updatedBlobModules
 $($packagesJson.Sources | Where-Object { $_.Name -eq 'GithubReleases' }).Modules = $updatedReleaseModules
-if ($platformVersion.split('.')[2] -match '[A-za-z-]') {
-    $packagesJson.PlatformAssetUrl = "$blobPackagesUrl/VirtoCommerce.Platform.$platformVersion.zip"
-}
-else {
-    $packagesJson.PlatformVersion = $platformVersion
-}
+# if ($platformVersion.split('.')[2] -match '[A-za-z-]') {
+#     $packagesJson.PlatformAssetUrl = "$blobPackagesUrl/VirtoCommerce.Platform.$platformVersion.zip"
+# }
+# else {
+#     $packagesJson.PlatformVersion = $platformVersion
+# }
+$packagesJson.PlatformVersion = $platformVersion
 $packagesJson | ConvertTo-Json -Depth 10 | Set-Content -Path ./new-packages.json
 
 # Write-Host "Generated packages.json:"
