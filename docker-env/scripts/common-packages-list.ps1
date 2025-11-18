@@ -14,7 +14,7 @@ param (
     [string]$customModuleId,
     [Parameter(Mandatory = $true)]
     [string]$customModuleUrl,
-    [string]$requiredModuleVersions = ''
+    [string]$requiredModuleVersionsUrl = ''
 )
 
 function IsAlfa {
@@ -240,7 +240,8 @@ $platformVersion = ''
 $blobPackagesUrl = "https://vc3prerelease.blob.core.windows.net/packages"
 
 # add required module and platform versions from $requiredModuleVersions
-if ($requiredModuleVersions -ne '') {
+if ($requiredModuleVersionsUrl -ne '') {
+    $requiredModuleVersions = $(Invoke-WebRequestWithRetry -Uri $requiredModuleVersionsUrl).Content
     $moduleListJson = $requiredModuleVersions | ConvertFrom-Json
     $moduleListJson | ForEach-Object {
         if ($_.Version -ne '' -or $_.Id -ne 'VirtoCommerce.Platform') {
