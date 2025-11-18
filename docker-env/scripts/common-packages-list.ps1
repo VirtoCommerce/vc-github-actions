@@ -246,7 +246,7 @@ if ($requiredModuleVersionsUrl -ne '') {
     $moduleListJson = $requiredModuleVersions | ConvertFrom-Json
     $moduleListJson | ForEach-Object {
         if ($_.Id -ne 'VirtoCommerce.Platform') {
-            echo "$($_.Id) added to packages"
+            # echo "$($_.Id) added to packages"
             $packages["$($_.Id)"] = "$($_.Id)_$($_.Version).zip"
         }
         elseif ($_.Id -eq 'VirtoCommerce.Platform') {
@@ -405,8 +405,8 @@ else {
 }
 $packagesJson | ConvertTo-Json -Depth 10 | Set-Content -Path ./new-packages.json
 
-# Write-Host "Generated packages.json:"
-# Write-Host (Get-Content ./new-packages.json)
+Write-Host "Generated packages.json:"
+Write-Host (Get-Content ./new-packages.json)
 
 # buil VC solution
 Write-Host "`e[32mPlatform and modules installation started"
