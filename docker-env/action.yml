@@ -33,8 +33,8 @@ inputs:
     description: 'Custom module Module url'
     required: false
     default: ''
-  customModuleListUrl:
-    description: 'Required module versions url'
+  requiredModulesListUrl:
+    description: 'The URL of the JSON file with the required modules list'
     required: false
     default: ''
   installModules:
@@ -73,7 +73,7 @@ runs:
       shell: pwsh
       run: |
         Write-Host "::group::Start Custom Module step started."
-        ./scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }} -requiredModuleVersionsUrl ${{ inputs.customModuleListUrl }}
+        ./scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }} -requiredModulesListUrl ${{ inputs.requiredModulesListUrl }}
         Write-Host "::endgroup::"
         $dockerFiles = "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net8/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh"
         Write-Host "`e[32mDownload Dockerfile and build image"
@@ -93,7 +93,7 @@ runs:
         docker build ./ --build-arg SOURCE=. --tag "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}"
         Write-Host "::endgroup::"
 
-    - name:  .env files
+    - name: .env files
       env:
         ENV_DIR: ${{ inputs.envDir }}
       shell: bash

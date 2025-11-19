@@ -14,7 +14,7 @@ param (
     [string]$customModuleId,
     [Parameter(Mandatory = $true)]
     [string]$customModuleUrl,
-    [string]$requiredModuleVersionsUrl = ''
+    [string]$requiredModulesListUrl = ''
 )
 
 function IsAlfa {
@@ -23,7 +23,7 @@ function IsAlfa {
     )
     if ($version -match '[A-za-z-]') {
         return $true
-    } 
+    }
     else {
         return $false
     }
@@ -168,12 +168,12 @@ function ProcessCustomModule {
     else {
         $fullVersion = "$version-$versionTag"
     }
-    
+
     $script:packages["$CustomModuleId"] = "$($CustomModuleId)_$($fullVersion).zip"
-    
+
     # resolve dependencies for custom module
     $xmlDependency = $(Select-Xml -Content $content -XPath "//dependencies").Node.dependency
-    
+
     if ($recursive -eq $true) {
         foreach ($dependency in $xmlDependency) {
             if ($script:packages["$($dependency.id)"] -match "\w._(.*).zip") {
@@ -207,7 +207,7 @@ function Invoke-WebRequestWithRetry {
         [int]$MaxRetries = 3,
         [int]$RetryDelaySeconds = 1
     )
-    
+
     $retryCount = 0
     while ($retryCount -lt $MaxRetries) {
         try {
@@ -239,25 +239,25 @@ $dependencyList = @{}
 $platformVersion = ''
 $blobPackagesUrl = "https://vc3prerelease.blob.core.windows.net/packages"
 
-# add required module and platform versions from $requiredModuleVersions
-if ($requiredModuleVersionsUrl -ne '') {
-    $requiredModuleVersions = $(Invoke-WebRequestWithRetry -Uri $requiredModuleVersionsUrl).Content
-    # $requiredModuleVersions = Get-Content -Path C:\Users\AndrewKubyshkin\Downloads\state.json -Raw
-    $moduleListJson = $requiredModuleVersions | ConvertFrom-Json
-    $moduleListJson | ForEach-Object {
-        if ($_.Id -ne 'VirtoCommerce.Platform') {
+# add required module and platform versions from $requiredModulesListUrl
+if ($requiredModulesListUrl -ne '') {
+    $requiredModulesListContent = $(Invoke-WebRequestWithRetry -Uri $requiredModulesListUrl).Content
+    # $requiredModulesListContent = Get-Content -Path C:\Users\AndrewKubyshkin\Downloads\state.json -Raw
+    $requiredModulesListJson = $requiredModulesListContent | ConvertFrom-Json
+    $requiredModulesListJson | ForEach-Object {
+        if ($_.Id -eq 'VirtoCommerce.Platform') {
+            $platformVersion = $_.Version
+        }
+        else {
             # echo "$($_.Id) added to packages"
             $packages["$($_.Id)"] = "$($_.Id)_$($_.Version).zip"
-        }
-        elseif ($_.Id -eq 'VirtoCommerce.Platform') {
-            $platformVersion = $_.Version
         }
     }
 }
 
 $edgePackages = $(Invoke-WebRequestWithRetry -Uri https://raw.githubusercontent.com/VirtoCommerce/vc-modules/refs/heads/master/modules_v3.json).Content | ConvertFrom-Json -Depth 10
 
-# add "commerce" group modules
+# add modules from the "commerce" group
 $commerceModules = $($edgePackages | Where-Object { $_.Groups -eq 'commerce' } | Select-Object -ExcludeProperty Versions).Id
 foreach ($mm in $commerceModules) {
     if ($null -eq $packages["$mm"]) {
@@ -314,7 +314,7 @@ foreach ($key in $dependencyList.Keys) {
         $packagesProcessed += "$key"
         $customModuleUrl = "$blobPackagesUrl/$($key)_$($dependencyList["$key"]).zip"
         ProcessCustomModule -CustomModuleId $key -CustomModuleUrl $customModuleUrl -recursive $true
-    } 
+    }
 }
 
 # resolve recursive dependencies
