@@ -72,8 +72,9 @@ runs:
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
+        Write-Host "::group::Start Custom Module step started."
         ./scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }} -requiredModuleVersionsUrl ${{ inputs.customModuleListUrl }}
-
+        Write-Host "::endgroup::"
         $dockerFiles = "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net8/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh"
         Write-Host "`e[32mDownload Dockerfile and build image"
         $dockerFilesArray = $dockerFiles.Split(';')
@@ -88,7 +89,9 @@ runs:
                 exit 1
             }
         }
+        Write-Host "::group::Build platform docker image"
         docker build ./ --build-arg SOURCE=. --tag "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}"
+        Write-Host "::endgroup::"
 
     - name:  .env files
       env:
@@ -123,7 +126,9 @@ runs:
           $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/app_data:/opt/virtocommerce/platform/app_data')
           $parsedYaml | ConvertTo-Yaml | Set-Content ./docker-compose.yml
         }
+        Write-Host "::group::Start containers"
         docker compose --project-name virtocommerce up -d
+        Write-Host "::endgroup::"
         InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 15 -WaitSeconds 0
         Write-Host "`e[32mContainers started."
         
@@ -142,8 +147,10 @@ runs:
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
+        Write-Host "::group::Install Sample Data step started."
         Write-Host "`e[33mInstall Sample Data step started."
         scripts/setup-sampledata.ps1 -ApiUrl http://localhost:8090 -Verbose -Debug
+        Write-Host "::endgroup::"
 
     - name: Swagger Schema Validation
       if: ${{ inputs.validateSwagger == 'true' }}
