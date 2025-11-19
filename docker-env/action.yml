@@ -33,6 +33,10 @@ inputs:
     description: 'Custom module Module url'
     required: false
     default: ''
+  customModuleListUrl:
+    description: 'Required module versions url'
+    required: false
+    default: ''
   installModules:
     description: 'Enable or disable "Install Modules" step'
     required: false
@@ -68,7 +72,7 @@ runs:
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
-        ./scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }}
+        ./scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }} -customModuleListUrl ${{ inputs.customModuleListUrl }}
 
         $dockerFiles = "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net8/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh"
         Write-Host "`e[32mDownload Dockerfile and build image"
