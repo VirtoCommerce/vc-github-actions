@@ -7,6 +7,8 @@
     The ID of the custom module to process.
 .PARAMETER customModuleUrl
     The URL where the custom module can be downloaded from.
+.PARAMETER requiredModulesListUrl
+    The URL where the required modules list can be downloaded from.
 #>
 [CmdletBinding()]
 param (
@@ -242,14 +244,12 @@ $blobPackagesUrl = "https://vc3prerelease.blob.core.windows.net/packages"
 # add required module and platform versions from $requiredModulesListUrl
 if ($requiredModulesListUrl -ne '') {
     $requiredModulesListContent = $(Invoke-WebRequestWithRetry -Uri $requiredModulesListUrl).Content
-    # $requiredModulesListContent = Get-Content -Path C:\Users\AndrewKubyshkin\Downloads\state.json -Raw
     $requiredModulesListJson = $requiredModulesListContent | ConvertFrom-Json
     $requiredModulesListJson | ForEach-Object {
         if ($_.Id -eq 'VirtoCommerce.Platform') {
             $platformVersion = $_.Version
         }
         else {
-            # echo "$($_.Id) added to packages"
             $packages["$($_.Id)"] = "$($_.Id)_$($_.Version).zip"
         }
     }
@@ -393,8 +393,7 @@ Write-Host "`e[32mBlob modules count: $($updatedBlobModules.Count)"
 
 $packagesJson = $(Invoke-WebRequestWithRetry -Uri https://raw.githubusercontent.com/VirtoCommerce/vc-modules/refs/heads/master/bundles/latest/package.json).Content | ConvertFrom-Json
 
-# Save the changes back to the JSON file
-
+# Check the case if platform version is alfa
 $($packagesJson.Sources | Where-Object { $_.Name -eq 'AzureBlob' }).Modules = $updatedBlobModules
 $($packagesJson.Sources | Where-Object { $_.Name -eq 'GithubReleases' }).Modules = $updatedReleaseModules
 if ($platformVersion.split('.')[2] -match '[A-za-z-]') {
@@ -403,6 +402,7 @@ if ($platformVersion.split('.')[2] -match '[A-za-z-]') {
 else {
     $packagesJson.PlatformVersion = $platformVersion
 }
+# Save the changes back to the JSON file
 $packagesJson | ConvertTo-Json -Depth 10 | Set-Content -Path ./new-packages.json
 
 Write-Host "Generated packages.json:"
