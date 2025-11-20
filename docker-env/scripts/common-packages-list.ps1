@@ -265,8 +265,8 @@ foreach ($mm in $commerceModules) {
     }
 }
 
-# add VirtoCommerce.CustomerExportImport for importing customers
-if ($null -ne $packages["VirtoCommerce.Quote"]) {
+# add VirtoCommerce.Quote module required for some tests
+if ($null -eq $packages["VirtoCommerce.Quote"]) {
     $packages["VirtoCommerce.Quote"] = "VirtoCommerce.Quote_$($($edgePackages | Where-Object { $_.Id -eq 'VirtoCommerce.Quote' } | Select-Object -ExpandProperty Versions)[0].Version).zip"
 }
 
