@@ -194,7 +194,13 @@ function ProcessCustomModule {
             Write-Host "`e[32mAdd the $($dependency.id) module $($dependency.version) version to the dependencies list"
         }
         $script:packagesProcessed += "$CustomModuleId"
-        $script:platformVersion = $(Select-Xml -Content $content -XPath "/module/platformVersion").Node.InnerText
+        $requiredPlatformVersion = $(Select-Xml -Content $content -XPath "/module/platformVersion").Node.InnerText
+        if ($script:platformVersion -ne '') {
+            CompareVersions -currentVersion $script:platformVersion -requiredVersion $requiredPlatformVersion -moduleId 'platform'
+        }
+        else {
+            $script:platformVersion = $requiredPlatformVersion
+        }
     }
     Remove-Item -Path ./"$CustomModuleId" -Force -Recurse
     Write-Host "`e[32m$CustomModuleId deleted."
@@ -271,7 +277,7 @@ if ($null -eq $packages["VirtoCommerce.Quote"]) {
 }
 
 # process the initial first custom module
-ProcessCustomModule -CustomModuleId $customModuleId -CustomModuleUrl $customModuleUrl # -blobPackagesProcessed $blobPackagesProcessed
+ProcessCustomModule -CustomModuleId $customModuleId -CustomModuleUrl $customModuleUrl
 
 # resolve first level dependencies
 foreach ($key in $dependencyList.Keys) {
