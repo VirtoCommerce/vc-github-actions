@@ -9,6 +9,10 @@ inputs:
     description: 'Custom module Module url'
     required: false
     default: ''
+  customPackagesJsonUrl:
+    description: 'Custom packages.json file Url'
+    required: false
+    default: ''
   frontendDockerTag:
     description: 'Frontend Docker Tag'
     required: false
@@ -44,9 +48,38 @@ inputs:
     description: 'Test secret environment file content'
     required: true
     type: string
+  dockerFiles:
+    description: 'Docker files'
+    required: false
+    default: 'https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net8/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh'
 runs:
   using: "composite"
   steps:
+    - name: Use custom packages.json and build platform docker image
+      if: ${{ inputs.customPackagesJsonUrl != '' }}
+      working-directory: ${{ github.action_path }}
+      shell: pwsh
+      run: |
+        Invoke-WebRequest -Uri ${{ inputs.customPackagesJsonUrl }} -OutFile packages.json
+        Write-Host "`e[32mDownloaded custom packages.json from ${{ inputs.customPackagesJsonUrl }} file successfully. Build backend..."
+        vc-build install --package-manifest-path ./packages.json --root ./publish --skip-dependency-solving
+        Write-Host "`e[32mDownload platform Dockerfile and build image"
+        $dockerFilesArray = "${{ inputs.dockerFiles }}".Split(';')
+        foreach($file in $dockerFilesArray){
+            try {
+                $fileName = Split-Path $file -Leaf
+                Invoke-WebRequest -Uri $file -OutFile $fileName -UseBasicParsing -OperationTimeoutSeconds 15 -RetryIntervalSec 1 -MaximumRetryCount 3
+                Write-Host "Downloaded '$fileName' successfully"
+            }
+            catch {
+                Write-Error "Failed to download $file. Error: $_"
+                exit 1
+            }
+        }
+        Write-Host "::group::Build platform docker image"
+        docker build -f ./Dockerfile -t "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}" .
+        Write-Host "::endgroup::"
+
     - name: Install Commerce Bundle Modules
       if: ${{ inputs.installModules  == 'true' }}
       working-directory: ${{ github.action_path }}
@@ -59,6 +92,10 @@ runs:
         Push-Location ./${{ env.INSTALL_FOLDER}}
         vc-build install -Edge -skip InstallPlatform
         vc-build install -module VirtoCommerce.Quote VirtoCommerce.XPickup
+        Write-Host "`e[32mPull platform docker image to local storage"
+        docker pull ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }}
+        docker tag ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} "${{ inputs.platformImage }}:local-latest"
+        Write-Host "`e[32mPlatform docker image ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} tagged as ${{ inputs.platformImage }}:local-latest"
 
     - name: Build platform docker image
       if: ${{ inputs.installCustomModule == 'true' }}
@@ -66,9 +103,8 @@ runs:
       shell: pwsh
       run: |
         ../docker-env/scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }}
-        $dockerFiles = "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net8/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh"
         Write-Host "`e[32mDownload platform Dockerfile and build image"
-        $dockerFilesArray = $dockerFiles.Split(';')
+        $dockerFilesArray = "${{ inputs.dockerFiles }}".Split(';')
         foreach($file in $dockerFilesArray){
             try {
                 $fileName = Split-Path $file -Leaf
@@ -80,17 +116,9 @@ runs:
                 exit 1
             }
         }
+        Write-Host "::group::Build platform docker image"
         docker build -f ./Dockerfile -t "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}" .
-
-    - name: Pull platform docker image to local storage
-      if: ${{ inputs.installModules  == 'true' }}
-      working-directory: ${{ github.action_path }}
-      shell: pwsh
-      run: |
-        Write-Host "`e[32mPull platform docker image to local storage"
-        docker pull ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }}
-        docker tag ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} "${{ inputs.platformImage }}:local-latest"
-        Write-Host "`e[32mPlatform docker image ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} tagged as ${{ inputs.platformImage }}:local-latest"
+        Write-Host "::endgroup::"
 
     - name: Build frontend docker image
       working-directory: ${{ github.action_path }}
@@ -115,8 +143,12 @@ runs:
                 exit 1
             }
         mkdir -p ./frontend
+        Write-Host "::group::Unzip frontend zip"
         unzip -o $fileName -d ./frontend
+        Write-Host "::endgroup::"
+        Write-Host "::group::Build frontend docker image"
         docker build -f ./nginx/Dockerfile -t "${{ inputs.frontendImage }}:${{ inputs.frontendDockerTag }}" .
+        Write-Host "::endgroup::"
 
     - name: Start database container only
       env:
@@ -140,7 +172,9 @@ runs:
           Write-Host "`e[32mDocker-compose.yml modified"
         }
         # Start only the database and elasticsearch containers first
+        Write-Host "::group::Start Database and Elasticsearch containers"
         docker compose --project-name virtocommerce up -d vc-db es
+        Write-Host "::endgroup::"
         Write-Host "`e[32mDatabase and Elasticsearch containers started."
 
     - name: Start remaining containers
@@ -156,12 +190,14 @@ runs:
         . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
         
         # Start the remaining containers (platform and frontend)
+        Write-Host "::group::Start Remaining Containers"
         docker compose --project-name virtocommerce up -d
+        Write-Host "::endgroup::"
         InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 15 -WaitSeconds 0
         Write-Host "`e[32mAll containers started."
         
     - name: Check Installed Modules
-      if: ${{ inputs.installModules == 'true' || inputs.installCustomModule == 'true' }}
+      if: ${{ inputs.installModules == 'true' || inputs.installCustomModule == 'true' || inputs.customPackagesJsonUrl != '' }}
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
