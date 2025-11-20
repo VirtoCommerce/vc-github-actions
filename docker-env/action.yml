@@ -73,7 +73,7 @@ runs:
       shell: pwsh
       run: |
         Write-Host "::group::Start Custom Module step started."
-        ./scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }} -requiredModulesListUrl ${{ inputs.requiredModulesListUrl }}
+        ./scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }} -requiredModulesListUrl "${{ inputs.requiredModulesListUrl }}"
         Write-Host "::endgroup::"
         $dockerFiles = "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net8/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh"
         Write-Host "`e[32mDownload Dockerfile and build image"
