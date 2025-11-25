@@ -5,7 +5,7 @@ RUN rm /usr/share/nginx/html/index.html \
     && apk update && apk add -u gettext
 
 # Copy versioned documentation (from gh-pages + root/intermediate sites)
-COPY ./vc-docs/site /usr/share/nginx/html
+COPY ./site /usr/share/nginx/html
 
 # Copy nginx configuration for versioned setup
 COPY ./nginx.versioned.conf /etc/nginx/conf.d/default.conf
