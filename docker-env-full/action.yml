@@ -182,6 +182,7 @@ runs:
         PLATFORM_IMAGE: ${{ inputs.platformImage }}
         PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
         ENV_DIR: ${{ inputs.envDir }}
+        SENDGRID_API_KEY: ${{ secrets.sendgrid-apikey-4e2e-autotests }}
       shell: pwsh
       working-directory: ${{ github.action_path }}
       run: |
