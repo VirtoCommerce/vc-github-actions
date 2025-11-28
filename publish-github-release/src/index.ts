@@ -5,8 +5,7 @@ import * as fs from 'fs'
 import path from 'path'
 import * as utils from '@virtocommerce/vc-actions-lib'
 
-async function installGithubRelease()
-{
+async function installGithubRelease() {
     const ghReleaseUrl = "github.com/github-release/github-release@latest";
     await exec.exec(`go install ${ghReleaseUrl}`);
     process.env.PATH = `${process.env.PATH}:${process.env.HOME}/go/bin`;
@@ -23,10 +22,10 @@ async function getDownloadUrl() {
         const repoName = github.context.repo.repo;
         const artifactPath = await utils.findArtifact("artifacts/*.zip");
         console.log(artifactPath);
-        
+
         const artifactFileName = artifactPath.split(path.sep).pop();
         console.log(artifactFileName);
-    
+
         const downloadUrl = `https://github.com/${ownerName}/${repoName}/releases/download/${buildPropsVersionInfo.prefix}/${artifactFileName}`;
         console.log(`\x1b[32mDownload url:\x1b[0m ${downloadUrl}`);
 
@@ -39,29 +38,27 @@ async function getDownloadUrl() {
     return result;
 }
 
-async function run()
-{
+async function run() {
     const modulesJsonUrl = core.getInput("modulesJsonUrl");
     const skipString = core.getInput("skipString");
     const prerelease = core.getInput("prerelease");
     const makeLatest = core.getInput("makeLatest");
     console.log(`modulesJsonUrl: ${modulesJsonUrl}`);
-    
+
     let branchName = await utils.getBranchName(github);
     await installGithubRelease();
     let orgName = core.getInput("organization") ?? process.env.GITHUB_REPOSITORY?.split('/')[0];
     let changelog = core.getInput('changelog');
     let changelogFilePath = `artifacts/changelog.txt`;
     let prereleaseParameter = "";
-    if(prerelease === 'true'){
+    if (prerelease === 'true') {
         prereleaseParameter = '-PreRelease';
     }
     fs.writeFileSync(changelogFilePath, changelog);
-    let releaseNotesArg = `-ReleaseNotes "${changelogFilePath}"`;
+    let releaseNotesArg = `-ReleaseNotes ${changelogFilePath}`;
     try {
         await exec.exec(`vc-build Release -GitHubUser ${orgName} -GitHubToken ${process.env.GITHUB_TOKEN} ${prereleaseParameter} -ReleaseBranch ${branchName} ${releaseNotesArg} -skip ${skipString} -MakeLatest ${makeLatest}`, [], { ignoreReturnCode: true, failOnStdErr: false }).then(exitCode => {
-            if(exitCode != 0 && exitCode != 422)
-            {
+            if (exitCode != 0 && exitCode != 422) {
                 core.setFailed(`vc-build Release exit code: ${exitCode}`);
                 process.exit();
             }
@@ -71,9 +68,9 @@ async function run()
         core.setFailed('\x1b[41mError while vc-build Release executed detected:\x1b[0m');
     }
     const downloadUrl = await getDownloadUrl();
-    core.setOutput('downloadUrl',downloadUrl);
+    core.setOutput('downloadUrl', downloadUrl);
 }
 
 run().catch(error => {
-	core.setFailed(error.message);
+    core.setFailed(error.message);
 });
