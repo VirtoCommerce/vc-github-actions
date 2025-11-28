@@ -285,6 +285,10 @@ foreach ($key in $dependencyList.Keys) {
     if ($packages["$key"] -match "\w._(.*).zip") {
         CompareVersions -currentVersion $Matches[1] -requiredVersion $dependencyList["$key"] -moduleId $key
     }
+    elseif ($packages["$key"] -match "") {
+        Write-Warning "The module $key was not found in the commerceModules list. Adding it to the packages list."
+        $packages["$key"] = "$($key)_$($dependencyList["$key"]).zip"
+    }
     else {
         Write-Warning "Unable to parse version from packages list. Tried $packages[$key] -match '\w._(.*).zip'"
     }
