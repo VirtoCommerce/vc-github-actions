@@ -91,7 +91,7 @@ services:
       - IdentityOptions:User:MaxPasswordAge=0
       - Notifications:DefaultSender=virto.start@virtoway.com
       - Notifications:Gateway=SendGrid
-      - Notifications:SendGrid:ApiKey=${SENDGRID_API_KEY:-'SG.fake.key'}
+      - Notifications:SendGrid:ApiKey=${SENDGRID_API_KEY} #${SENDGRID_API_KEY:-'SG.fake.key'}
     depends_on:
       - vc-db
       - es
