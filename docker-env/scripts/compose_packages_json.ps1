@@ -1,15 +1,19 @@
 <#
 .SYNOPSIS
-    Checks dependencies for alpha modules starting from a custom module URL.
+    Composes a packages.json file from a custom alpha module and its dependencies.
 .DESCRIPTION
     Downloads an alpha module from the provided URL, extracts its manifest, and recursively checks
     all dependencies (both alpha and release versions) for compatibility and availability.
+    When using Json output format, creates a packages.json file that includes:
+    - All modules from the dependency tree of the custom module
+    - All modules from the 'commerce' group in modules_v3.json (and their dependencies)
+    Modules are organized into GithubReleases (release versions) and AzureBlob (alpha versions) sources.
 .PARAMETER customModuleUrl
     The URL where the alpha module can be downloaded from.
 .PARAMETER customModuleId
     Optional. The ID of the custom module. If not provided, will be extracted from the URL or manifest.
 .PARAMETER OutputFormat
-    Output format: 'Console' (default) or 'Json'. Json format outputs results to a file.
+    Output format: 'Console' or 'Json' (default). Json format creates a packages.json file.
 .PARAMETER OutputFile
     Path to output file when using Json format. Default: 'new-packages.json'
 #>
