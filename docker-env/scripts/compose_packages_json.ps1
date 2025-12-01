@@ -15,8 +15,8 @@
 #>
 [CmdletBinding()]
 param (
-    # [Parameter(Mandatory = $true)]
-    [string]$customModuleUrl = 'https://vc3prerelease.blob.core.windows.net/packages/VirtoCommerce.FileExperienceApi_3.906.0-pr-16-5ad0.zip',
+    [Parameter(Mandatory = $true)]
+    [string]$customModuleUrl,
     [string]$customModuleId = '',
     [ValidateSet('Console', 'Json')]
     [string]$OutputFormat = 'Json',
