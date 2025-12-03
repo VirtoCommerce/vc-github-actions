@@ -111,7 +111,6 @@ runs:
       shell: pwsh
       run: |
         ../docker-env/scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }}
-        # ../docker-env/scripts/compose_packages_json.ps1 -customModuleUrl ${{ inputs.customModuleUrl }}
         Write-Host "`e[32mDownload platform Dockerfile and build image"
         $dockerFilesArray = "${{ inputs.dockerFiles }}".Split(';')
         foreach($file in $dockerFilesArray){
