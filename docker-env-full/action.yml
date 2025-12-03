@@ -52,6 +52,13 @@ inputs:
     description: 'Docker files'
     required: false
     default: 'https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net8/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh'
+  sendgridApiKey:
+    description: 'SendGrid API Key'
+    required: true
+  envDir:
+    description: 'Directory with environment files'
+    required: false
+    default: '.'
 runs:
   using: "composite"
   steps:
@@ -182,6 +189,7 @@ runs:
         PLATFORM_IMAGE: ${{ inputs.platformImage }}
         PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
         ENV_DIR: ${{ inputs.envDir }}
+        SENDGRID_API_KEY: ${{ inputs.sendgridApiKey }}
       shell: pwsh
       working-directory: ${{ github.action_path }}
       run: |
