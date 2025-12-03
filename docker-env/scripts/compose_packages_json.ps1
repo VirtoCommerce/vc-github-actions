@@ -886,7 +886,7 @@ if ($OutputFormat -eq 'Json') {
 }
 else {
     # Console output
-    Write-Host "`n" + "="*80 -ForegroundColor Cyan
+    Write-Host ("`n" + "=" * 80) -ForegroundColor Cyan
     Write-Host "ALPHA MODULES DEPENDENCY CHECK REPORT" -ForegroundColor Cyan
     Write-Host "="*80 -ForegroundColor Cyan
     Write-Host "Generated: $($report.GeneratedAt)" -ForegroundColor White
@@ -896,7 +896,7 @@ else {
     Write-Host "  OK: $($report.Summary.OK)" -ForegroundColor Green
     Write-Host "  Warnings: $($report.Summary.Warning)" -ForegroundColor Yellow
     Write-Host "  Errors: $($report.Summary.Error)" -ForegroundColor Red
-    Write-Host "`n" + "-"*80 -ForegroundColor Gray
+    Write-Host ("`n" + "-" * 80) -ForegroundColor Gray
     
     function PrintModuleDetails {
         param($module, $depth = 0)
@@ -954,7 +954,7 @@ else {
     
     PrintModuleDetails -module $rootResult -depth 0
     
-    Write-Host "`n" + "="*80 -ForegroundColor Cyan
+    Write-Host ("`n" + "=" * 80) -ForegroundColor Cyan
 }
 
 # Write-Host "`nDependency check complete!" -ForegroundColor Green
