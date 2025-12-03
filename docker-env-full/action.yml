@@ -55,7 +55,6 @@ inputs:
   sendgridApiKey:
     description: 'SendGrid API Key'
     required: true
-    default: ''
   envDir:
     description: 'Directory with environment files'
     required: false
