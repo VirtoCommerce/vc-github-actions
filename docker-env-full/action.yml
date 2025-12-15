@@ -51,7 +51,7 @@ inputs:
   dockerFiles:
     description: 'Docker files'
     required: false
-    default: 'https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net8/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh'
+    default: 'https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net10/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh'
   sendgridApiKey:
     description: 'SendGrid API Key'
     required: true
