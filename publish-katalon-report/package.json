@@ -14,7 +14,7 @@
     "@actions/exec": "^1.0.4",
     "@actions/github": "^4.0.0",
     "@virtocommerce/vc-actions-lib": "^1.2.0",
-    "xml2js": "^0.4.23"
+    "xml2js": "^0.5.0"
   },
   "devDependencies": {
     "@types/xml2js": "^0.4.7"
