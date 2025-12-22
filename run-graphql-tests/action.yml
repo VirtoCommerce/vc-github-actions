@@ -97,7 +97,7 @@ runs:
           $adminPassword = 'store'
           Write-Host "`e[32mSet password for admin user from default value"
         }
-        dataset_manager --seed
+        python -m dataset.dataset_manager --seed
         wget https://raw.githubusercontent.com/VirtoCommerce/vc-github-actions/refs/heads/master/docker-env-full/sripts/start-indexing.ps1
         ./start-indexing.ps1 -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $adminPassword
 
