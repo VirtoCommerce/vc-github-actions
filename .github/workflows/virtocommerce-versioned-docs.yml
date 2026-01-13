@@ -3,10 +3,10 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "[all-same mode] Version to deploy to ALL subsites (e.g., 1.0, 3.2025-S13)"
+        description: "[all-same mode] Version to deploy to ALL subsites (e.g., 2.0, 3.2025-S13)"
         required: false
         type: string
-        default: "1.0"
+        default: "2.0"
       marketplaceDeveloperGuideVersion:
         description: "[individual mode] marketplace/developer-guide version"
         required: false
