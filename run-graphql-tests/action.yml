@@ -101,6 +101,15 @@ runs:
         wget https://raw.githubusercontent.com/VirtoCommerce/vc-github-actions/refs/heads/master/docker-env-full/sripts/start-indexing.ps1
         ./start-indexing.ps1 -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $adminPassword
 
+    - name: Upload dataset_manager log
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: dataset_manager.log
+        path: ${{ inputs.vctestingPath }}/dataset/dataset_manager.log
+        if-no-files-found: warn
+        retention-days: 30
+
     - name: Install Playwright Browsers
       shell: bash
       working-directory: ${{ inputs.vctestingPath }}
