@@ -97,9 +97,18 @@ runs:
           $adminPassword = 'store'
           Write-Host "`e[32mSet password for admin user from default value"
         }
-        python -m dataset.dataset_seeder
+        python -m dataset.dataset_manager --seed
         wget https://raw.githubusercontent.com/VirtoCommerce/vc-github-actions/refs/heads/master/docker-env-full/sripts/start-indexing.ps1
         ./start-indexing.ps1 -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $adminPassword
+
+    - name: Upload dataset_manager log
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: graphql-dataset-manager-log-${{ inputs.browser }}-${{ github.run_number }}-${{ github.run_attempt }}
+        path: ${{ inputs.vctestingPath }}/dataset/dataset_manager.log
+        if-no-files-found: warn
+        retention-days: 30
 
     - name: Install Playwright Browsers
       shell: bash
@@ -119,7 +128,7 @@ runs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: graphql-test-results-${{ inputs.browser }}
+        name: graphql-test-results-${{ inputs.browser }}-${{ github.run_number }}-${{ github.run_attempt }}
         path: |
           ${{ inputs.vctestingPath }}/graphql-report.html
           ${{ inputs.vctestingPath }}/playwright-report/
