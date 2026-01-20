@@ -105,7 +105,7 @@ runs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: dataset_manager.log
+        name: graphql-dataset-manager-log-${{ inputs.browser }}-${{ github.run_number }}-${{ github.run_attempt }}
         path: ${{ inputs.vctestingPath }}/dataset/dataset_manager.log
         if-no-files-found: warn
         retention-days: 30
@@ -128,7 +128,7 @@ runs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: graphql-test-results-${{ inputs.browser }}
+        name: graphql-test-results-${{ inputs.browser }}-${{ github.run_number }}-${{ github.run_attempt }}
         path: |
           ${{ inputs.vctestingPath }}/graphql-report.html
           ${{ inputs.vctestingPath }}/playwright-report/
