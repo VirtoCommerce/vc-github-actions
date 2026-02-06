@@ -76,7 +76,7 @@ runs:
       uses: actions/checkout@v3
       with:
         repository: VirtoCommerce/vc-docs
-        ref: feature/structure_redesign
+        ref: main
         path: vc-docs
         fetch-depth: 0 # Need full history for gh-pages branch
         token: ${{ inputs.githubToken }}
