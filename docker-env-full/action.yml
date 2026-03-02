@@ -44,6 +44,10 @@ inputs:
     description: 'Platform Docker Image'
     required: false
     default: 'platform'
+  requiredModulesListUrl:
+    description: 'The URL of the JSON file with the required modules list'
+    required: false
+    default: ''
   testSecretEnvFile:
     description: 'Test secret environment file content'
     required: true
