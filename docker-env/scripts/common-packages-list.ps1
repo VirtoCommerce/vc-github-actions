@@ -314,7 +314,7 @@ foreach ($key in $dependencyList.Keys) {
         $i = 0
         $deps = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].Dependencies
         if ($deps) {
-            $deps.GetEnumerator()
+
             while ($i -lt $deps.Count) {
                 $id = $deps[$i].Id
                 $version = $deps[$i].Version
@@ -355,7 +355,7 @@ while ($attempts -le 10) {
             $i = 0
             $deps = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].Dependencies
             if ($deps) {
-                $deps.GetEnumerator()
+    
                 while ($i -lt $deps.Count) {
                     $id = $deps[$i].Id
                     $version = $deps[$i].Version
