@@ -3,6 +3,12 @@
     Composes package.json for custom module installation.
 .DESCRIPTION
     Downloads and processes custom modules, resolves dependencies, and generates an updated package.json file.
+    The resolution summary shows a Source column for each module and for the platform version:
+      PR:required  - pinned via requiredModulesListUrl
+      edge         - latest version from the edge packages list
+      script:fixed - hardcoded as always required by this script
+      custom       - the custom module under test
+      dep:<Id>     - added or upgraded by the named module's dependency declaration
 .PARAMETER customModuleId
     The ID of the custom module to process.
 .PARAMETER customModuleUrl
@@ -191,7 +197,9 @@ function ProcessCustomModule {
             }
             Write-Verbose "Dependency: $($dependency.id) $($dependency.version)"
         }
+        $prevPlatformVersion = $script:platformVersion
         CompareVersions -currentVersion $script:platformVersion -requiredVersion $(Select-Xml -Content $content -XPath "/module/platformVersion").Node.InnerText -moduleId 'platform'
+        if ($script:platformVersion -ne $prevPlatformVersion) { $script:platformVersionSource = "dep:$CustomModuleId" }
     }
     else {
         foreach ($dependency in $xmlDependency) {
@@ -201,10 +209,13 @@ function ProcessCustomModule {
         $script:packagesProcessed += "$CustomModuleId"
         $requiredPlatformVersion = $(Select-Xml -Content $content -XPath "/module/platformVersion").Node.InnerText
         if ($script:platformVersion -ne '') {
+            $prevPlatformVersion = $script:platformVersion
             CompareVersions -currentVersion $script:platformVersion -requiredVersion $requiredPlatformVersion -moduleId 'platform'
+            if ($script:platformVersion -ne $prevPlatformVersion) { $script:platformVersionSource = "dep:$CustomModuleId" }
         }
         else {
             $script:platformVersion = $requiredPlatformVersion
+            $script:platformVersionSource = "dep:$CustomModuleId"
         }
     }
     Remove-Item -Path ./"$CustomModuleId" -Force -Recurse
@@ -251,6 +262,7 @@ $packageSources = @{}
 $packagesProcessed = @()
 $dependencyList = @{}
 $platformVersion = ''
+$platformVersionSource = ''
 $blobPackagesUrl = "https://vc3prerelease.blob.core.windows.net/packages"
 
 # add required module and platform versions from $requiredModulesListUrl
@@ -262,11 +274,12 @@ if ($requiredModulesListUrl -ne '') {
     $requiredModulesListJson | ForEach-Object {
         if ($_.Id -eq 'VirtoCommerce.Platform') {
             $platformVersion = $_.Version
+            $platformVersionSource = 'PR:required'
             Write-Host "  Platform pinned to $($_.Version)"
         }
         else {
             $packages["$($_.Id)"] = "$($_.Id)_$($_.Version).zip"
-            $packageSources["$($_.Id)"] = "pinned"
+            $packageSources["$($_.Id)"] = "PR:required"
             Write-Host "  $($_.Id) pinned to $($_.Version)"
         }
     }
@@ -287,12 +300,12 @@ foreach ($mm in $commerceModules) {
 # add VirtoCommerce.Quote module required for some tests
 if ($null -eq $packages["VirtoCommerce.Quote"]) {
     $packages["VirtoCommerce.Quote"] = "VirtoCommerce.Quote_$($($edgePackages | Where-Object { $_.Id -eq 'VirtoCommerce.Quote' } | Select-Object -ExpandProperty Versions)[0].Version).zip"
-    $packageSources["VirtoCommerce.Quote"] = "fixed"
+    $packageSources["VirtoCommerce.Quote"] = "script:fixed"
 }
 # add VirtoCommerce.XPickup module required for some tests
 if ($null -eq $packages["VirtoCommerce.XPickup"]) {
     $packages["VirtoCommerce.XPickup"] = "VirtoCommerce.XPickup_$($($edgePackages | Where-Object { $_.Id -eq 'VirtoCommerce.XPickup' } | Select-Object -ExpandProperty Versions)[0].Version).zip"
-    $packageSources["VirtoCommerce.XPickup"] = "fixed"
+    $packageSources["VirtoCommerce.XPickup"] = "script:fixed"
 }
 
 # process the initial first custom module
@@ -328,7 +341,9 @@ foreach ($key in $dependencyList.Keys) {
                     if (-not $packageSources.ContainsKey($id)) { $packageSources["$id"] = "dep:$key" }
                 }
                 $platformVersionDep = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].PlatformVersion
+                $prevPlatformVersion = $platformVersion
                 CompareVersions -currentVersion $platformVersion -requiredVersion $platformVersionDep -moduleId platform
+                if ($platformVersion -ne $prevPlatformVersion) { $platformVersionSource = "dep:$key" }
                 $i += 1
             }
         }
@@ -373,7 +388,9 @@ while ($attempts -le 10) {
                     }
                     # compare platform for every dep
                     $depsPlatform = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].PlatformVersion
+                    $prevPlatformVersion = $platformVersion
                     CompareVersions -currentVersion $platformVersion -requiredVersion $depsPlatform -moduleId 'platform'
+                    if ($platformVersion -ne $prevPlatformVersion) { $platformVersionSource = "dep:$key" }
                     $i += 1
                 }
             }
@@ -429,7 +446,7 @@ $packagesJson | ConvertTo-Json -Depth 10 | Set-Content -Path ./new-packages.json
 
 # Print resolution summary
 Write-Host "::group::Package resolution summary"
-Write-Host "Platform : $platformVersion"
+Write-Host "Platform : $platformVersion  [$platformVersionSource]"
 Write-Host ""
 
 $summaryRows = foreach ($p in ($packages.Keys | Sort-Object)) {
