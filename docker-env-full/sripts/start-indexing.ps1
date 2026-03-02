@@ -22,7 +22,8 @@ function StartIndexing {
         @{ "DocumentType" = "Member"; "DeleteExistingIndex" = $true },
         @{ "DocumentType" = "Product"; "DeleteExistingIndex" = $true },
         @{ "DocumentType" = "Category"; "DeleteExistingIndex" = $true },
-        @{ "DocumentType" = "CustomerOrder"; "DeleteExistingIndex" = $true }
+        @{ "DocumentType" = "CustomerOrder"; "DeleteExistingIndex" = $true },
+        @{ "DocumentType" = "PickupLocation"; "DeleteExistingIndex" = $true }
     )
     $headers = @{
         "Content-Type"  = "application/json-patch+json"
