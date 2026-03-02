@@ -90,7 +90,6 @@ function CompareVersions {
                 if ($moduleId -ne 'platform') {
                     Write-Host "`e[33m$moduleId : upgrading to prerelease $requiredVersion (required $requiredVersion > current $currentVersion)"
                     $script:packages["$moduleId"] = "$($moduleId)_$($requiredVersion).zip"
-                    $script:packageSources["$moduleId"] = "upgraded"
                 }
                 else {
                     Write-Host "`e[33mPlatform: upgrading to prerelease $requiredVersion (required $requiredVersion > current $currentVersion)"
@@ -106,7 +105,6 @@ function CompareVersions {
             if ($moduleId -ne 'platform') {
                 Write-Host "`e[33m$moduleId : upgrading to $requiredVersion (required $requiredVersion > current $currentVersion)"
                 $packages["$moduleId"] = "$($moduleId)_$requiredVersion.zip"
-                $script:packageSources["$moduleId"] = "upgraded"
             }
             else {
                 Write-Host "`e[33mPlatform: upgrading to $requiredVersion (required $requiredVersion > current $currentVersion)"
@@ -118,7 +116,6 @@ function CompareVersions {
         if ($moduleId -ne 'platform') {
             Write-Host "`e[33m$moduleId : upgrading to prerelease $requiredVersion (required $requiredVersion > current $currentVersion)"
             $script:packages["$moduleId"] = "$($moduleId)_$requiredVersion.zip"
-            $script:packageSources["$moduleId"] = "upgraded"
         }
         else {
             Write-Host "`e[33mPlatform: upgrading to prerelease $requiredVersion"
@@ -182,7 +179,7 @@ function ProcessCustomModule {
     }
 
     $script:packages["$CustomModuleId"] = "$($CustomModuleId)_$($fullVersion).zip"
-    $script:packageSources["$CustomModuleId"] = "custom"
+    if (-not $recursive) { $script:packageSources["$CustomModuleId"] = "custom" }
 
     # resolve dependencies for custom module
     $xmlDependency = $(Select-Xml -Content $content -XPath "//dependencies").Node.dependency
@@ -355,6 +352,7 @@ foreach ($key in $dependencyList.Keys) {
         $packagesProcessed += "$key"
         $customModuleUrl = "$blobPackagesUrl/$($key)_$($dependencyList["$key"]).zip"
         ProcessCustomModule -CustomModuleId $key -CustomModuleUrl $customModuleUrl -recursive $true
+        if (-not $packageSources.ContainsKey($key)) { $packageSources[$key] = "dep:$customModuleId" }
     }
 }
 
