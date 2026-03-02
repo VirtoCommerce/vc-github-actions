@@ -9,6 +9,9 @@
     The URL where the custom module can be downloaded from.
 .PARAMETER requiredModulesListUrl
     The URL where the required modules list can be downloaded from.
+    The file must be a JSON array of objects with 'Id' and 'Version' fields.
+    'VirtoCommerce.Platform' is a special Id that sets the platform version.
+    Example: [{"Id":"VirtoCommerce.Platform","Version":"3.x.x"},{"Id":"VirtoCommerce.SomeModule","Version":"3.x.x"}]
 #>
 [CmdletBinding()]
 param (
