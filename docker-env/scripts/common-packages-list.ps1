@@ -147,7 +147,7 @@ function ProcessCustomModule {
         [string]$CustomModuleUrl,
         [bool]$recursive = $false
     )
-    Write-Host "Processing '$CustomModuleId' ..."
+    Write-Verbose "Processing '$CustomModuleId' ..."
     $CustomModuleZip = "./$($CustomModuleId).zip"
     Write-Verbose "Downloading $CustomModuleUrl to $CustomModuleZip"
 
@@ -296,12 +296,7 @@ if ($null -eq $packages["VirtoCommerce.XPickup"]) {
 }
 
 # process the initial first custom module
-Write-Host "::group::Process custom module"
 ProcessCustomModule -CustomModuleId $customModuleId -CustomModuleUrl $customModuleUrl
-Write-Host "::endgroup::"
-
-# resolve dependencies
-Write-Host "::group::Resolve dependencies"
 
 # resolve first level dependencies
 foreach ($key in $dependencyList.Keys) {
@@ -315,7 +310,7 @@ foreach ($key in $dependencyList.Keys) {
     # get dep2lev
     if ($($dependencyList["$key"].split('.')[2]) -notmatch '[A-za-z-]' -and $packagesProcessed -notcontains $key) {
         # release version
-        Write-Host "Processing dependent module '$key' ..."
+        Write-Verbose "Processing dependent module '$key' ..."
         $i = 0
         $deps = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].Dependencies
         if ($deps) {
@@ -341,7 +336,7 @@ foreach ($key in $dependencyList.Keys) {
     }
     elseif ($($dependencyList["$key"].split('.')[2]) -match '[A-za-z-]' -and $packagesProcessed -notcontains $key) {
         # blob version
-        Write-Host "Processing dependent module '$key' (prerelease) ..."
+        Write-Verbose "Processing dependent module '$key' (prerelease) ..."
         $packagesProcessed += "$key"
         $customModuleUrl = "$blobPackagesUrl/$($key)_$($dependencyList["$key"]).zip"
         ProcessCustomModule -CustomModuleId $key -CustomModuleUrl $customModuleUrl -recursive $true
@@ -356,7 +351,7 @@ while ($attempts -le 10) {
     foreach ($key in $packagesCopy.Keys) {
         if ($($packages["$key"].split('.')[2]) -notmatch '[A-za-z-]' -and $packagesProcessed -notcontains $key) {
             # release version
-            Write-Host "Processing dependent module '$key' ..."
+            Write-Verbose "Processing dependent module '$key' ..."
             $i = 0
             $deps = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].Dependencies
             if ($deps) {
@@ -386,7 +381,7 @@ while ($attempts -le 10) {
         }
         elseif ($($packages["$key"].split('.')[2]) -match '[A-za-z-]' -and $packagesProcessed -notcontains $key) {
             # blob version
-            Write-Host "Processing dependent module '$key' (prerelease) ..."
+            Write-Verbose "Processing dependent module '$key' (prerelease) ..."
             $customModuleUrl = "$blobPackagesUrl/$($key)_$($packages["$key"]).zip"
             ProcessCustomModule -CustomModuleId $key -CustomModuleUrl $customModuleUrl -recursive $true
             $packagesProcessed += "$key"
@@ -394,8 +389,6 @@ while ($attempts -le 10) {
     }
     $attempts += 1
 }
-
-Write-Host "::endgroup::"
 
 # compose a packages.json file
 $updatedReleaseModules = @()
