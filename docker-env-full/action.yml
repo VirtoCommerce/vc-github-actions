@@ -44,6 +44,10 @@ inputs:
     description: 'Platform Docker Image'
     required: false
     default: 'platform'
+  requiredModulesListUrl:
+    description: 'The URL of the JSON file with the required modules list'
+    required: false
+    default: ''
   testSecretEnvFile:
     description: 'Test secret environment file content'
     required: true
@@ -109,7 +113,7 @@ runs:
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
-        ../docker-env/scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }}
+        ../docker-env/scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }} -requiredModulesListUrl "${{ inputs.requiredModulesListUrl }}"
         Write-Host "`e[32mDownload platform Dockerfile and build image"
         $dockerFilesArray = "${{ inputs.dockerFiles }}".Split(';')
         foreach($file in $dockerFilesArray){

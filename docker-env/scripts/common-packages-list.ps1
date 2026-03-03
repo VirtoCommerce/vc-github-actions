@@ -3,12 +3,21 @@
     Composes package.json for custom module installation.
 .DESCRIPTION
     Downloads and processes custom modules, resolves dependencies, and generates an updated package.json file.
+    The resolution summary shows a Source column for each module and for the platform version:
+      PR:required  - pinned via requiredModulesListUrl
+      edge         - latest version from the edge packages list
+      script:fixed - hardcoded as always required by this script
+      custom       - the custom module under test
+      dep:<Id>     - added or upgraded by the named module's dependency declaration
 .PARAMETER customModuleId
     The ID of the custom module to process.
 .PARAMETER customModuleUrl
     The URL where the custom module can be downloaded from.
 .PARAMETER requiredModulesListUrl
     The URL where the required modules list can be downloaded from.
+    The file must be a JSON array of objects with 'Id' and 'Version' fields.
+    'VirtoCommerce.Platform' is a special Id that sets the platform version.
+    Example: [{"Id":"VirtoCommerce.Platform","Version":"3.x.x"},{"Id":"VirtoCommerce.SomeModule","Version":"3.x.x"}]
 #>
 [CmdletBinding()]
 param (
@@ -47,7 +56,7 @@ function CompareVersions {
     )
     $currentVerSplitted = $currentVersion.split('.')
     $requiredVerSplitted = $requiredVersion.split('.')
-    Write-Host "Comparing versions for $moduleId : $currentVersion vs $requiredVersion"
+    Write-Verbose "Comparing versions for $moduleId : $currentVersion vs $requiredVersion"
     if ($currentVerSplitted.Length -eq $requiredVerSplitted.Length) {
         if (IsAlfa $requiredVerSplitted[2] -or IsAlfa $currentVerSplitted[2]) {
             $currentPatchVersion = $requiredPatchVersion = $currentBaseVersion = $requiredBaseVersion = ''
@@ -69,58 +78,57 @@ function CompareVersions {
             }
             if ([System.Version]$currentBaseVersion -ge [System.Version]$requiredBaseVersion) {
                 if ($moduleId -ne 'platform') {
-                    Write-Warning "Adding the the current version $currentVersion to blob versions ..."
+                    Write-Verbose "$moduleId : keeping current prerelease $currentVersion"
                     $script:packages["$moduleId"] = "$($moduleId)_$($currentVersion).zip"
                 }
                 else {
-                    Write-Warning "Setting the current version $currentVersion for platform ..."
+                    Write-Verbose "Platform: keeping current prerelease $currentVersion"
                     $script:platformVersion = "$currentVersion"
                 }
             }
             else {
                 if ($moduleId -ne 'platform') {
-                    Write-Warning "Adding the required version $requiredVersion to blob versions ..."
+                    Write-Host "`e[33m$moduleId : upgrading to prerelease $requiredVersion (required $requiredVersion > current $currentVersion)"
                     $script:packages["$moduleId"] = "$($moduleId)_$($requiredVersion).zip"
                 }
                 else {
-                    Write-Warning "Setting the required version $requiredVersion for platform ..."
+                    Write-Host "`e[33mPlatform: upgrading to prerelease $requiredVersion (required $requiredVersion > current $currentVersion)"
                     $script:platformVersion = "$requiredVersion"
                 }
             }
             return
         }
         if ([System.Version]$currentVersion -ge [System.Version]$requiredVersion) {
-            Write-Host "Dependency satisfied"
+            Write-Verbose "$moduleId : $currentVersion satisfies requirement $requiredVersion"
         }
         else {
             if ($moduleId -ne 'platform') {
-                Write-Warning "Update required. Add $moduleId $requiredVersion to release versions ..."
+                Write-Host "`e[33m$moduleId : upgrading to $requiredVersion (required $requiredVersion > current $currentVersion)"
                 $packages["$moduleId"] = "$($moduleId)_$requiredVersion.zip"
             }
             else {
-                Write-Warning "Update required. Setting required version $requiredVersion for platform ..."
+                Write-Host "`e[33mPlatform: upgrading to $requiredVersion (required $requiredVersion > current $currentVersion)"
                 $script:platformVersion = "$requiredVersion"
             }
         }
     }
     elseif ($currentVerSplitted.Length -lt $requiredVerSplitted.Length) {
         if ($moduleId -ne 'platform') {
-            Write-Warning "Prerelease version required. Add $moduleId $requiredVersion to blob versions ..."
-            # $script:releasePackages.Remove("$moduleId")
+            Write-Host "`e[33m$moduleId : upgrading to prerelease $requiredVersion (required $requiredVersion > current $currentVersion)"
             $script:packages["$moduleId"] = "$($moduleId)_$requiredVersion.zip"
         }
         else {
-            Write-Warning "Prerelease version required. Setting required version $requiredVersion for platform ..."
+            Write-Host "`e[33mPlatform: upgrading to prerelease $requiredVersion"
             $script:platformVersion = "$requiredVersion"
         }
         return
     }
     elseif ($currentVerSplitted.Length -gt $requiredVerSplitted.Length) {
         if ($moduleId -ne 'platform') {
-            Write-Warning "The the current version is prerelease. Leaving as $currentVersion blob version ..."
+            Write-Verbose "$moduleId : current version $currentVersion is prerelease, leaving as-is"
         }
         else {
-            Write-Warning "The the current version is prerelease. Leaving $currentVersion version for platform ..."
+            Write-Verbose "Platform: current version $currentVersion is prerelease, leaving as-is"
             $script:platformVersion = "$currentVersion"
         }
         return
@@ -142,16 +150,15 @@ function ProcessCustomModule {
         [string]$CustomModuleUrl,
         [bool]$recursive = $false
     )
-    Write-Host "Processing '$CustomModuleId' module ..."
+    Write-Verbose "Processing '$CustomModuleId' ..."
     $CustomModuleZip = "./$($CustomModuleId).zip"
-    Write-Host "`e[32mDownload $($CustomModuleUrl) to $($CustomModuleZip)."
+    Write-Verbose "Downloading $CustomModuleUrl to $CustomModuleZip"
 
     Invoke-WebRequestWithRetry -Uri $CustomModuleUrl -OutFile $CustomModuleZip
 
     Expand-Archive $CustomModuleZip -Force
-    Write-Host "`e[32mDelete $($CustomModuleZip)."
+    Write-Verbose "Removing $CustomModuleZip"
     Remove-Item -Path $CustomModuleZip
-    Write-Host "`e[32m$CustomModuleZip deleted."
     $content = Get-Content -Path $CustomModuleId/module.manifest -Raw
 
     # add prerelease entry to `blobPackages` hashtable
@@ -172,6 +179,7 @@ function ProcessCustomModule {
     }
 
     $script:packages["$CustomModuleId"] = "$($CustomModuleId)_$($fullVersion).zip"
+    if (-not $recursive) { $script:packageSources["$CustomModuleId"] = "custom" }
 
     # resolve dependencies for custom module
     $xmlDependency = $(Select-Xml -Content $content -XPath "//dependencies").Node.dependency
@@ -184,26 +192,31 @@ function ProcessCustomModule {
             else {
                 Write-Warning "Unable to parse version from packages list. Tried $packages[$key] -match '\w._(.*).zip'"
             }
-            Write-Host "`e[32mAdd the $($dependency.id) module $($dependency.version) version to the dependencies list"
+            Write-Verbose "Dependency: $($dependency.id) $($dependency.version)"
         }
+        $prevPlatformVersion = $script:platformVersion
         CompareVersions -currentVersion $script:platformVersion -requiredVersion $(Select-Xml -Content $content -XPath "/module/platformVersion").Node.InnerText -moduleId 'platform'
+        if ($script:platformVersion -ne $prevPlatformVersion) { $script:platformVersionSource = "dep:$CustomModuleId" }
     }
     else {
         foreach ($dependency in $xmlDependency) {
             $script:dependencyList["$($dependency.id)"] = "$($dependency.version)"
-            Write-Host "`e[32mAdd the $($dependency.id) module $($dependency.version) version to the dependencies list"
+            Write-Verbose "Queued dependency: $($dependency.id) $($dependency.version)"
         }
         $script:packagesProcessed += "$CustomModuleId"
         $requiredPlatformVersion = $(Select-Xml -Content $content -XPath "/module/platformVersion").Node.InnerText
         if ($script:platformVersion -ne '') {
+            $prevPlatformVersion = $script:platformVersion
             CompareVersions -currentVersion $script:platformVersion -requiredVersion $requiredPlatformVersion -moduleId 'platform'
+            if ($script:platformVersion -ne $prevPlatformVersion) { $script:platformVersionSource = "dep:$CustomModuleId" }
         }
         else {
             $script:platformVersion = $requiredPlatformVersion
+            $script:platformVersionSource = "dep:$CustomModuleId"
         }
     }
     Remove-Item -Path ./"$CustomModuleId" -Force -Recurse
-    Write-Host "`e[32m$CustomModuleId deleted."
+    Write-Verbose "$CustomModuleId extracted manifest removed."
 }
 
 function Invoke-WebRequestWithRetry {
@@ -242,23 +255,32 @@ function Invoke-WebRequestWithRetry {
 
 
 $packages = @{}
+$packageSources = @{}
 $packagesProcessed = @()
 $dependencyList = @{}
 $platformVersion = ''
+$platformVersionSource = ''
 $blobPackagesUrl = "https://vc3prerelease.blob.core.windows.net/packages"
 
 # add required module and platform versions from $requiredModulesListUrl
 if ($requiredModulesListUrl -ne '') {
+    Write-Host "::group::Load required modules list"
+    Write-Host "Loading required modules list from $requiredModulesListUrl ..."
     $requiredModulesListContent = $(Invoke-WebRequestWithRetry -Uri $requiredModulesListUrl).Content
     $requiredModulesListJson = $requiredModulesListContent | ConvertFrom-Json
     $requiredModulesListJson | ForEach-Object {
         if ($_.Id -eq 'VirtoCommerce.Platform') {
             $platformVersion = $_.Version
+            $platformVersionSource = 'PR:required'
+            Write-Host "  Platform pinned to $($_.Version)"
         }
         else {
             $packages["$($_.Id)"] = "$($_.Id)_$($_.Version).zip"
+            $packageSources["$($_.Id)"] = "PR:required"
+            Write-Host "  $($_.Id) pinned to $($_.Version)"
         }
     }
+    Write-Host "::endgroup::"
 }
 
 $edgePackages = $(Invoke-WebRequestWithRetry -Uri https://raw.githubusercontent.com/VirtoCommerce/vc-modules/refs/heads/master/modules_v3.json).Content | ConvertFrom-Json -Depth 10
@@ -268,16 +290,19 @@ $commerceModules = $($edgePackages | Where-Object { $_.Groups -eq 'commerce' } |
 foreach ($mm in $commerceModules) {
     if ($null -eq $packages["$mm"]) {
         $packages["$mm"] = "$($mm)_$($($edgePackages | Where-Object { $_.Id -eq $mm } | Select-Object -ExpandProperty Versions)[0].Version).zip"
+        $packageSources["$mm"] = "edge"
     }
 }
 
 # add VirtoCommerce.Quote module required for some tests
 if ($null -eq $packages["VirtoCommerce.Quote"]) {
     $packages["VirtoCommerce.Quote"] = "VirtoCommerce.Quote_$($($edgePackages | Where-Object { $_.Id -eq 'VirtoCommerce.Quote' } | Select-Object -ExpandProperty Versions)[0].Version).zip"
+    $packageSources["VirtoCommerce.Quote"] = "script:fixed"
 }
 # add VirtoCommerce.XPickup module required for some tests
 if ($null -eq $packages["VirtoCommerce.XPickup"]) {
     $packages["VirtoCommerce.XPickup"] = "VirtoCommerce.XPickup_$($($edgePackages | Where-Object { $_.Id -eq 'VirtoCommerce.XPickup' } | Select-Object -ExpandProperty Versions)[0].Version).zip"
+    $packageSources["VirtoCommerce.XPickup"] = "script:fixed"
 }
 
 # process the initial first custom module
@@ -295,11 +320,11 @@ foreach ($key in $dependencyList.Keys) {
     # get dep2lev
     if ($($dependencyList["$key"].split('.')[2]) -notmatch '[A-za-z-]' -and $packagesProcessed -notcontains $key) {
         # release version
-        Write-Host "Processing dependent module '$key' ..."
+        Write-Verbose "Processing dependent module '$key' ..."
         $i = 0
         $deps = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].Dependencies
         if ($deps) {
-            $deps.GetEnumerator()
+
             while ($i -lt $deps.Count) {
                 $id = $deps[$i].Id
                 $version = $deps[$i].Version
@@ -310,9 +335,12 @@ foreach ($key in $dependencyList.Keys) {
                 }
                 else {
                     $packages["$id"] = "$($id)_$($version).zip"
+                    if (-not $packageSources.ContainsKey($id)) { $packageSources["$id"] = "dep:$key" }
                 }
                 $platformVersionDep = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].PlatformVersion
+                $prevPlatformVersion = $platformVersion
                 CompareVersions -currentVersion $platformVersion -requiredVersion $platformVersionDep -moduleId platform
+                if ($platformVersion -ne $prevPlatformVersion) { $platformVersionSource = "dep:$key" }
                 $i += 1
             }
         }
@@ -320,10 +348,11 @@ foreach ($key in $dependencyList.Keys) {
     }
     elseif ($($dependencyList["$key"].split('.')[2]) -match '[A-za-z-]' -and $packagesProcessed -notcontains $key) {
         # blob version
-        Write-Host "Processing dependent module '$key' ..."
+        Write-Verbose "Processing dependent module '$key' (prerelease) ..."
         $packagesProcessed += "$key"
         $customModuleUrl = "$blobPackagesUrl/$($key)_$($dependencyList["$key"]).zip"
         ProcessCustomModule -CustomModuleId $key -CustomModuleUrl $customModuleUrl -recursive $true
+        if (-not $packageSources.ContainsKey($key)) { $packageSources[$key] = "dep:$customModuleId" }
     }
 }
 
@@ -335,11 +364,11 @@ while ($attempts -le 10) {
     foreach ($key in $packagesCopy.Keys) {
         if ($($packages["$key"].split('.')[2]) -notmatch '[A-za-z-]' -and $packagesProcessed -notcontains $key) {
             # release version
-            Write-Host "Processing dependent module '$key' ..."
+            Write-Verbose "Processing dependent module '$key' ..."
             $i = 0
             $deps = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].Dependencies
             if ($deps) {
-                $deps.GetEnumerator()
+    
                 while ($i -lt $deps.Count) {
                     $id = $deps[$i].Id
                     $version = $deps[$i].Version
@@ -353,10 +382,13 @@ while ($attempts -le 10) {
                     }
                     else {
                         $packages["$id"] = "$($id)_$($version).zip"
+                        if (-not $packageSources.ContainsKey($id)) { $packageSources["$id"] = "dep:$key" }
                     }
                     # compare platform for every dep
                     $depsPlatform = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].PlatformVersion
+                    $prevPlatformVersion = $platformVersion
                     CompareVersions -currentVersion $platformVersion -requiredVersion $depsPlatform -moduleId 'platform'
+                    if ($platformVersion -ne $prevPlatformVersion) { $platformVersionSource = "dep:$key" }
                     $i += 1
                 }
             }
@@ -364,7 +396,7 @@ while ($attempts -le 10) {
         }
         elseif ($($packages["$key"].split('.')[2]) -match '[A-za-z-]' -and $packagesProcessed -notcontains $key) {
             # blob version
-            Write-Host "Processing dependent module '$key' ..."
+            Write-Verbose "Processing dependent module '$key' (prerelease) ..."
             $customModuleUrl = "$blobPackagesUrl/$($key)_$($packages["$key"]).zip"
             ProcessCustomModule -CustomModuleId $key -CustomModuleUrl $customModuleUrl -recursive $true
             $packagesProcessed += "$key"
@@ -396,11 +428,6 @@ foreach ($p in $packages.Keys) {
     }
 }
 
-Write-Host "`e[32mModules processing complete!"
-Write-Host "`e[32mRelease modules count: $($updatedReleaseModules.Count)"
-Write-Host "`e[32mBlob modules count: $($updatedBlobModules.Count)"
-
-
 $packagesJson = $(Invoke-WebRequestWithRetry -Uri https://raw.githubusercontent.com/VirtoCommerce/vc-modules/refs/heads/master/bundles/latest/package.json).Content | ConvertFrom-Json
 
 # Check the case if platform version is alfa
@@ -415,10 +442,31 @@ else {
 # Save the changes back to the JSON file
 $packagesJson | ConvertTo-Json -Depth 10 | Set-Content -Path ./new-packages.json
 
-Write-Host "Generated packages.json:"
-Write-Host (Get-Content ./new-packages.json)
+# Print resolution summary
+Write-Host "::group::Package resolution summary"
+Write-Host "Platform : $platformVersion  [$platformVersionSource]"
+Write-Host ""
 
-# buil VC solution
+$summaryRows = foreach ($p in ($packages.Keys | Sort-Object)) {
+    $src = if ($packageSources.ContainsKey($p)) { $packageSources[$p] } else { 'unknown' }
+    if ($packages[$p] -match '(?<=_)([\d\.\-a-zA-Z]+)(?=\.zip)') {
+        $ver = $Matches[1]
+    } else {
+        $ver = $packages[$p]
+    }
+    [PSCustomObject]@{ Module = $p; Version = $ver; Source = $src }
+}
+$summaryRows | Format-Table -AutoSize | Out-String | Write-Host
+
+Write-Host "Release modules : $($updatedReleaseModules.Count)"
+Write-Host "Blob modules    : $($updatedBlobModules.Count)"
+Write-Host "::endgroup::"
+
+# Full JSON available in verbose mode: pass -Verbose to the script to enable
+Write-Verbose "Generated packages.json:"
+Write-Verbose (Get-Content ./new-packages.json -Raw)
+
+# build VC solution
 Write-Host "`e[32mPlatform and modules installation started"
 vc-build install --package-manifest-path ./new-packages.json `
     --probing-path ./publish/app_data/modules `
