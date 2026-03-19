@@ -6,7 +6,7 @@ on:
         description: "[all-same mode] Version to deploy to ALL subsites (e.g., 2.0, 3.2025-S13)"
         required: false
         type: string
-        default: "2.0"
+        default: "3.0"
       marketplaceDeveloperGuideVersion:
         description: "[individual mode] marketplace/developer-guide version"
         required: false
