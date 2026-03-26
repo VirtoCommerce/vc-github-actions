@@ -47362,22 +47362,31 @@ function buildCommentBody(testResult, runUrl) {
         `> 🔗 [View run](${runUrl}) · Commit: \`${((_a = process.env.GITHUB_SHA) !== null && _a !== void 0 ? _a : '').slice(0, 7)}\``,
     ].join('\n');
 }
-function hideOutdatedComments(octokit, owner, repo, prNumber) {
+const COMMENT_MARKER = '<!-- katalon-test-report -->';
+function upsertComment(octokit, owner, repo, prNumber, body) {
     return __awaiter(this, void 0, void 0, function* () {
+        const markedBody = `${COMMENT_MARKER}\n${body}`;
         const comments = yield octokit.rest.issues.listComments({ owner, repo, issue_number: prNumber });
-        const botComments = comments.data.filter((c) => {
+        const existing = comments.data.find((c) => {
             var _a, _b;
             return ((_a = c.user) === null || _a === void 0 ? void 0 : _a.login) === 'github-actions[bot]' &&
-                ((_b = c.body) === null || _b === void 0 ? void 0 : _b.includes('🧪 Katalon Test Report'));
+                ((_b = c.body) === null || _b === void 0 ? void 0 : _b.includes(COMMENT_MARKER));
         });
-        for (const comment of botComments) {
-            yield octokit.graphql(`
-            mutation($id: ID!) {
-                minimizeComment(input: { subjectId: $id, classifier: OUTDATED }) {
-                    minimizedComment { isMinimized }
-                }
-            }
-        `, { id: comment.node_id });
+        if (existing) {
+            yield octokit.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body: markedBody
+            });
+        }
+        else {
+            yield octokit.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: prNumber,
+                body: markedBody
+            });
         }
     });
 }
@@ -47410,13 +47419,7 @@ function run() {
         const prNumber = (_b = (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number) !== null && _b !== void 0 ? _b : github.context.issue.number;
         const failed = testResult.failures + testResult.errors;
         if (publishComment) {
-            yield hideOutdatedComments(octokit, repoOrg, github.context.repo.repo, prNumber);
-            yield octokit.rest.issues.createComment({
-                owner: repoOrg,
-                repo: github.context.repo.repo,
-                issue_number: prNumber,
-                body
-            });
+            yield upsertComment(octokit, repoOrg, github.context.repo.repo, prNumber, body);
         }
         if (publishStatus) {
             yield octokit.rest.repos.createCommitStatus({

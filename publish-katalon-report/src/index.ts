@@ -76,21 +76,33 @@ function buildCommentBody(testResult: TestResult, runUrl: string): string {
     ].join('\n')
 }
 
-async function hideOutdatedComments(octokit: ReturnType<typeof github.getOctokit>, owner: string, repo: string, prNumber: number): Promise<void> {
+const COMMENT_MARKER = '<!-- katalon-test-report -->'
+
+async function upsertComment(octokit: ReturnType<typeof github.getOctokit>, owner: string, repo: string, prNumber: number, body: string): Promise<void> {
+    const markedBody = `${COMMENT_MARKER}\n${body}`
+
+    // Find existing bot comment with our hidden marker
     const comments = await octokit.rest.issues.listComments({ owner, repo, issue_number: prNumber })
-    const botComments = comments.data.filter(
-        (c: { user?: { login?: string } | null, body?: string | null, node_id: string }) =>
+    const existing = comments.data.find(
+        (c: { user?: { login?: string } | null, body?: string | null }) =>
             c.user?.login === 'github-actions[bot]' &&
-            c.body?.includes('🧪 Katalon Test Report')
+            c.body?.includes(COMMENT_MARKER)
     )
-    for (const comment of botComments) {
-        await octokit.graphql(`
-            mutation($id: ID!) {
-                minimizeComment(input: { subjectId: $id, classifier: OUTDATED }) {
-                    minimizedComment { isMinimized }
-                }
-            }
-        `, { id: comment.node_id })
+
+    if (existing) {
+        await octokit.rest.issues.updateComment({
+            owner,
+            repo,
+            comment_id: existing.id,
+            body: markedBody
+        })
+    } else {
+        await octokit.rest.issues.createComment({
+            owner,
+            repo,
+            issue_number: prNumber,
+            body: markedBody
+        })
     }
 }
 
@@ -128,15 +140,7 @@ async function run(): Promise<void> {
     const failed = testResult.failures + testResult.errors
 
     if (publishComment) {
-        // Hide all previous Katalon bot comments, then post a fresh one
-        await hideOutdatedComments(octokit, repoOrg, github.context.repo.repo, prNumber)
-
-        await octokit.rest.issues.createComment({
-            owner: repoOrg,
-            repo: github.context.repo.repo,
-            issue_number: prNumber,
-            body
-        })
+        await upsertComment(octokit, repoOrg, github.context.repo.repo, prNumber, body)
     }
 
     if (publishStatus) {
