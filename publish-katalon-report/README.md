@@ -1,31 +1,34 @@
 # publish-katalon-report
 
-Publishes katalon report to the github commit's status
+Publishes Katalon test report as a PR comment and/or GitHub commit status. Parses `JUnit_Report.xml` files, posts a formatted summary with pass/fail counts and progress bar, and optionally sets the commit status to `success` or `failure`.
 
-## inputs:
-###  testProjectPath:
-    description: "Path to Katalon Project"
-    required: false
-    default: "./"
-###  githubToken:
-    description: "GitHub token"
-    required: false
-###  repoOrg:
-    description: "repo org"
-    required: false
-    default: "VirtoCommerce"
-###  publishComment:
-    description: "Publish PR Comment"
-    required: false
-    default: "true"
-###  publishStatus:
-    description: "Publish commit's status"
-    required: false
-    default: "false"
+## Inputs
+
+| Input | Description | Required | Default |
+|-------|-------------|----------|---------|
+| `testProjectPath` | Path to Katalon Project | No | `./` |
+| `githubToken` | GitHub token | No | |
+| `repoOrg` | Repository organization | No | `VirtoCommerce` |
+| `publishComment` | Publish PR comment with test results | No | `true` |
+| `publishStatus` | Publish commit status | No | `false` |
 
 ## Example of usage
 
-```
-- name: Start Containers
+```yaml
+- name: Publish Katalon Report
   uses: VirtoCommerce/vc-github-actions/publish-katalon-report@master
+  with:
+    testProjectPath: "./katalon-project"
+    githubToken: ${{ secrets.GITHUB_TOKEN }}
+    publishComment: "true"
+    publishStatus: "true"
 ```
+
+## Build
+
+```bash
+npm install
+npm run build
+```
+
+This compiles `src/index.ts` and bundles it into `dist/index.js` using [@vercel/ncc](https://github.com/vercel/ncc). The `dist/index.js` file must be committed, as GitHub Actions runs it directly.

@@ -1,93 +1,155 @@
 import * as github from '@actions/github'
 import * as core from '@actions/core'
-import * as exec from '@actions/exec'
 import * as fs from 'fs'
 import * as utils from '@virtocommerce/vc-actions-lib'
 import * as xml2js from 'xml2js'
 import * as path from 'path'
 
-//<testsuite name="DRAFT.Platform_Customer_Organization" tests="7" failures="0" errors="1" time="13.943" timestamp="2020-11-05 15:03:44" hostname="admin - FIX-PC" id="Test Suites/DRAFT/DRAFT.Platform_Customer_Organization">
 interface TestResult {
-    id: string,
-    name: string,
-    tests: number,
-    failures: number,
-    errors: number,
-    time: string,
-    timestamp: string,
+    id: string
+    name: string
+    tests: number
+    failures: number
+    errors: number
+    time: string
+    timestamp: string
     hostname: string
 }
 
-async function getTestResult(reportPath:string): Promise<TestResult> {
+async function getTestResult(reportPath: string): Promise<TestResult> {
     return new Promise((resolve, reject) => {
-        let junitContent = fs.readFileSync(reportPath);
-        xml2js.parseString(junitContent, (error, result)=>{
-            if(error)
-            {
-                reject(error);
-            }
-            let suite = result.testsuites.testsuite[0];
+        const junitContent = fs.readFileSync(reportPath)
+        xml2js.parseString(junitContent, (error, result) => {
+            if (error) { reject(error); return }
+            const suite = result.testsuites.testsuite[0]
             resolve({
                 id: suite.$.id,
                 name: suite.$.name,
-                tests: suite.$.tests,
-                failures: suite.$.failures,
-                errors: suite.$.errors,
+                tests: Number(suite.$.tests),
+                failures: Number(suite.$.failures),
+                errors: Number(suite.$.errors),
                 time: suite.$.time,
                 timestamp: suite.$.timestamp,
                 hostname: suite.$.hostname
-            });
-        });
-    });
+            })
+        })
+    })
+}
+
+function buildProgressBar(passed: number, total: number, width = 20): string {
+    const ratio = total > 0 ? passed / total : 0
+    const filled = Math.round(ratio * width)
+    return `${'█'.repeat(filled)}${'░'.repeat(width - filled)}`
+}
+
+function buildCommentBody(testResult: TestResult, runUrl: string): string {
+    const { tests, failures, errors, id, time, timestamp } = testResult
+    const failed = failures + errors
+    const passed = tests - failed
+    const skipped = 0  // JUnit_Report doesn't expose skipped separately
+    const passRate = tests > 0 ? ((passed / tests) * 100).toFixed(1) : '0.0'
+    const progress = buildProgressBar(passed, tests)
+    const status = failed === 0 ? '✅ PASSED' : '❌ FAILED'
+
+    return [
+        `## 🧪 Katalon Test Report — ${status}`,
+        ``,
+        `| 🔢 Total | ✅ Passed | ❌ Failed | ⏱️ Duration |`,
+        `|:--------:|:---------:|:---------:|:-----------:|`,
+        `| **${tests}** | **${passed}** | **${failed}** | **${Number(time).toFixed(1)}s** |`,
+        ``,
+        `**Pass rate:** \`${progress}\` ${passRate}%`,
+        ``,
+        `<details>`,
+        `<summary>📋 Suite details</summary>`,
+        ``,
+        `| | |`,
+        `|---|---|`,
+        `| **Suite** | \`${id}\` |`,
+        `| **Failures** | ${failures} |`,
+        `| **Errors** | ${errors} |`,
+        `| **Timestamp** | ${timestamp} |`,
+        ``,
+        `</details>`,
+        ``,
+        `> 🔗 [View run](${runUrl}) · Commit: \`${(process.env.GITHUB_SHA ?? '').slice(0, 7)}\``,
+    ].join('\n')
+}
+
+async function hideOutdatedComments(octokit: ReturnType<typeof github.getOctokit>, owner: string, repo: string, prNumber: number): Promise<void> {
+    const comments = await octokit.rest.issues.listComments({ owner, repo, issue_number: prNumber })
+    const botComments = comments.data.filter(
+        (c: { user?: { login?: string } | null, body?: string | null, node_id: string }) =>
+            c.user?.login === 'github-actions[bot]' &&
+            c.body?.includes('🧪 Katalon Test Report')
+    )
+    for (const comment of botComments) {
+        await octokit.graphql(`
+            mutation($id: ID!) {
+                minimizeComment(input: { subjectId: $id, classifier: OUTDATED }) {
+                    minimizedComment { isMinimized }
+                }
+            }
+        `, { id: comment.node_id })
+    }
 }
 
 async function run(): Promise<void> {
-    let GITHUB_TOKEN = core.getInput("githubToken");
-    if(!GITHUB_TOKEN  && process.env.GITHUB_TOKEN !== undefined) GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+    let GITHUB_TOKEN = core.getInput('githubToken')
+    if (!GITHUB_TOKEN && process.env.GITHUB_TOKEN) GITHUB_TOKEN = process.env.GITHUB_TOKEN
 
     if (!GITHUB_TOKEN) {
-        core.error(`Required GITHUB_TOKEN parameter is empty. Step skipped.`);
-        return;
+        core.error('Required GITHUB_TOKEN parameter is empty. Step skipped.')
+        return
     }
 
-    let repoOrg = core.getInput("repoOrg");
-    let katalonProjectDir = core.getInput("testProjectPath");
-    let publishComment = core.getInput("publishComment") === "true";
-    let publishStatus = core.getInput("publishStatus") === "true";
-    let pattern = path.join(katalonProjectDir, "**/JUnit_Report.xml");
-    let files = await utils.findFiles(pattern);
-    let junitReportPath = files[0];
-    if(junitReportPath !== undefined)
-    {
-        let testResult = await getTestResult(junitReportPath);
-        let body = `Test Suite: ${testResult.id}\nTests: ${testResult.tests}\nFailures: ${testResult.failures}\nErrors: ${testResult.errors}\nTime: ${testResult.time}\nTimestamp: ${testResult.timestamp}`;
-        console.log(`Test results: ${body}`);
-        let octokit = github.getOctokit(GITHUB_TOKEN);
-        if(publishComment)
-        {
-            octokit.pulls.createReview({
-                owner: repoOrg,
-                repo: github.context.repo.repo,
-                pull_number: github.context.payload.pull_request?.number ?? github.context.issue.number,
-                body: body,
-                event: "COMMENT"
-            });
-        }
-        if(publishStatus)
-        {
-            octokit.repos.createCommitStatus({
-                owner: repoOrg,
-                repo: github.context.repo.repo,
-                sha: process.env.GITHUB_SHA ?? github.context.sha,
-                state: testResult.errors > 0 || testResult.failures > 0 ? "failure" : "success",
-                context: "E2E Testing",
-                description: `Tests: ${testResult.tests}. Failures: ${testResult.failures}. Errors: ${testResult.errors}`,
-                target_url: `https://github.com/${github.context.repo.owner}/${github.context.repo.repo}/actions/runs/${github.context.runId}`
-            });
-        }
-    } else {
-        console.log("Katalon report is not found");
+    const repoOrg = core.getInput('repoOrg')
+    const katalonProjectDir = core.getInput('testProjectPath')
+    const publishComment = core.getInput('publishComment') === 'true'
+    const publishStatus = core.getInput('publishStatus') === 'true'
+
+    const pattern = path.join(katalonProjectDir, '**/JUnit_Report.xml')
+    const files = await utils.findFiles(pattern)
+    const junitReportPath = files[0]
+
+    if (!junitReportPath) {
+        console.log('Katalon report is not found')
+        return
+    }
+
+    const testResult = await getTestResult(junitReportPath)
+    const runUrl = `https://github.com/${github.context.repo.owner}/${github.context.repo.repo}/actions/runs/${github.context.runId}`
+    const body = buildCommentBody(testResult, runUrl)
+
+    console.log(`Test results:\n${body}`)
+
+    const octokit = github.getOctokit(GITHUB_TOKEN)
+    const prNumber = github.context.payload.pull_request?.number ?? github.context.issue.number
+    const failed = testResult.failures + testResult.errors
+
+    if (publishComment) {
+        // Hide all previous Katalon bot comments, then post a fresh one
+        await hideOutdatedComments(octokit, repoOrg, github.context.repo.repo, prNumber)
+
+        await octokit.rest.issues.createComment({
+            owner: repoOrg,
+            repo: github.context.repo.repo,
+            issue_number: prNumber,
+            body
+        })
+    }
+
+    if (publishStatus) {
+        await octokit.rest.repos.createCommitStatus({
+            owner: repoOrg,
+            repo: github.context.repo.repo,
+            sha: process.env.GITHUB_SHA ?? github.context.sha,
+            state: failed > 0 ? 'failure' : 'success',
+            context: 'E2E Testing',
+            description: `Tests: ${testResult.tests}. Failures: ${testResult.failures}. Errors: ${testResult.errors}`,
+            target_url: runUrl
+        })
     }
 }
 
-run().catch(error => core.setFailed(error.message));
+run().catch(error => core.setFailed(error.message))

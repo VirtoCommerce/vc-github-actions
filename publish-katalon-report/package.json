@@ -2,21 +2,24 @@
   "name": "@virtocommerce/publish-katalon-report",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npx ncc build src/index.ts -o dist --source-map --license licenses.txt",
+    "prepare": "npm run build"
   },
   "keywords": [],
   "author": "Alexander Morogov",
   "license": "ISC",
   "dependencies": {
-    "@actions/core": "^1.2.6",
-    "@actions/exec": "^1.0.4",
-    "@actions/github": "^4.0.0",
+    "@actions/core": "^2.0.3",
+    "@actions/exec": "^2.0.0",
+    "@actions/github": "^8.0.0",
     "@virtocommerce/vc-actions-lib": "^1.2.0",
-    "xml2js": "^0.4.23"
+    "xml2js": "^0.6.2"
   },
   "devDependencies": {
-    "@types/xml2js": "^0.4.7"
+    "@types/xml2js": "^0.4.7",
+    "@vercel/ncc": "^0.38.1",
+    "typescript": "^5.4.5"
   }
 }
