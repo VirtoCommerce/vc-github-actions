@@ -47324,28 +47324,18 @@ function getTestResult(reportPath) {
         });
     });
 }
-function buildProgressBar(passed, total, width = 20) {
-    const ratio = total > 0 ? passed / total : 0;
-    const filled = Math.round(ratio * width);
-    return `${'█'.repeat(filled)}${'░'.repeat(width - filled)}`;
-}
 function buildCommentBody(testResult, runUrl) {
     var _a;
     const { tests, failures, errors, id, time, timestamp } = testResult;
     const failed = failures + errors;
     const passed = tests - failed;
-    const skipped = 0;
-    const passRate = tests > 0 ? ((passed / tests) * 100).toFixed(1) : '0.0';
-    const progress = buildProgressBar(passed, tests);
     const status = failed === 0 ? '✅ PASSED' : '❌ FAILED';
     return [
         `## 🧪 Katalon Test Report — ${status}`,
         ``,
-        `| 🔢 Total | ✅ Passed | ❌ Failed | ⏱️ Duration |`,
-        `|:--------:|:---------:|:---------:|:-----------:|`,
-        `| **${tests}** | **${passed}** | **${failed}** | **${Number(time).toFixed(1)}s** |`,
-        ``,
-        `**Pass rate:** \`${progress}\` ${passRate}%`,
+        `| 🔢 Total | ✅ Passed | ❌ Failed |`,
+        `|:--------:|:---------:|:---------:|`,
+        `| **${tests}** | **${passed}** | **${failed}** |`,
         ``,
         `<details>`,
         `<summary>📋 Suite details</summary>`,
