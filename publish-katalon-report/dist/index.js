@@ -47357,11 +47357,7 @@ function upsertComment(octokit, owner, repo, prNumber, body) {
     return __awaiter(this, void 0, void 0, function* () {
         const markedBody = `${COMMENT_MARKER}\n${body}`;
         const comments = yield octokit.rest.issues.listComments({ owner, repo, issue_number: prNumber });
-        const existing = comments.data.find((c) => {
-            var _a, _b;
-            return ((_a = c.user) === null || _a === void 0 ? void 0 : _a.login) === 'github-actions[bot]' &&
-                ((_b = c.body) === null || _b === void 0 ? void 0 : _b.includes(COMMENT_MARKER));
-        });
+        const existing = comments.data.find((c) => { var _a; return (_a = c.body) === null || _a === void 0 ? void 0 : _a.includes(COMMENT_MARKER); });
         if (existing) {
             yield octokit.rest.issues.updateComment({
                 owner,

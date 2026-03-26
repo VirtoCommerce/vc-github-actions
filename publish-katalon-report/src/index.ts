@@ -73,9 +73,7 @@ async function upsertComment(octokit: ReturnType<typeof github.getOctokit>, owne
     // Find existing bot comment with our hidden marker
     const comments = await octokit.rest.issues.listComments({ owner, repo, issue_number: prNumber })
     const existing = comments.data.find(
-        (c: { user?: { login?: string } | null, body?: string | null }) =>
-            c.user?.login === 'github-actions[bot]' &&
-            c.body?.includes(COMMENT_MARKER)
+        (c: { body?: string | null }) => c.body?.includes(COMMENT_MARKER)
     )
 
     if (existing) {
