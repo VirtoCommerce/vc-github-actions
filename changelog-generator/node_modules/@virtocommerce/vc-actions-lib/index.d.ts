@@ -11,3 +11,8 @@ export declare function getInfoFromDirectoryBuildProps(path: string): Promise<an
 export declare function getInfoFromModuleManifest(path: string): Promise<any>;
 export declare function getInfoFromPackageJson(path: string): Promise<any>;
 export declare function findFiles(pattern: string): Array<string>;
+
+export const projectTypeModule: string;
+export const projectTypeTheme: string;
+export const projectTypePlatform: string;
+export const projectTypeStorefront: string;
