@@ -1,5 +1,5 @@
 name: 'setup-vcbuild'
 description: 'Setups vc-build'
 runs:
-  using: 'node22'
+  using: 'node24'
   main: 'index.js'
