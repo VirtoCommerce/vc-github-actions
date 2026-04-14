@@ -15,5 +15,5 @@ outputs:
     description: "Blob id"
 
 runs:
-  using: 'node20'
+  using: 'node22'
   main: 'dist/index.js' 

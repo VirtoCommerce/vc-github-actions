@@ -11,5 +11,5 @@ inputs:
     default: "virto-commerce"
 
 runs:
-  using: 'node20'
+  using: 'node22'
   main: 'index.js'

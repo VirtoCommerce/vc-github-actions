@@ -1,5 +1,5 @@
 name: 'sonar-scanner-end'
 description: 'Runs vc-build SonarQubeEnd'
 runs:
-  using: 'node20'
+  using: 'node22'
   main: 'dist/index.js'
