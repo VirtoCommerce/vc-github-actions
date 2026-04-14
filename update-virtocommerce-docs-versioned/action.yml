@@ -73,7 +73,7 @@ runs:
   using: "composite"
   steps:
     - name: Checkout vc-docs repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v6
       with:
         repository: VirtoCommerce/vc-docs
         ref: main
@@ -83,7 +83,7 @@ runs:
         persist-credentials: true
 
     - name: Setup Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v6
       with:
         python-version: "3.x"
 

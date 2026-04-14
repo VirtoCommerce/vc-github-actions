@@ -25,5 +25,5 @@ outputs:
   modulesJsonPath:
     description: "Path to updated modules.json"
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.js' 
