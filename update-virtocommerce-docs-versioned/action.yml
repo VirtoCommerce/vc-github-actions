@@ -8,9 +8,10 @@ inputs:
   githubToken:
     description: "GitHub token with push permissions to gh-pages branch"
     required: true
-  version:
-    description: "Documentation version to deploy for ALL subsites (e.g., 3.2025-S13, 1.0). Leave empty to use individual versions."
+  ref:
+    description: "Branch of vc-docs to deploy (main or release/X.0). VERSION file on that ref determines the deployed version."
     required: false
+    default: "main"
   setAsLatest:
     description: "Set this version as 'latest' alias"
     required: false
@@ -19,28 +20,6 @@ inputs:
     description: "Set this version as default version"
     required: false
     default: "true"
-  # Individual subsite versions (optional, override global version)
-  marketplaceDeveloperGuideVersion:
-    description: "Version for marketplace/developer-guide (overrides global version)"
-    required: false
-  marketplaceUserGuideVersion:
-    description: "Version for marketplace/user-guide (overrides global version)"
-    required: false
-  platformDeveloperGuideVersion:
-    description: "Version for platform/developer-guide (overrides global version)"
-    required: false
-  platformUserGuideVersion:
-    description: "Version for platform/user-guide (overrides global version)"
-    required: false
-  platformDeploymentOnCloudVersion:
-    description: "Version for platform/deployment-on-cloud (overrides global version)"
-    required: false
-  storefrontDeveloperGuideVersion:
-    description: "Version for storefront/developer-guide (overrides global version)"
-    required: false
-  storefrontUserGuideVersion:
-    description: "Version for storefront/user-guide (overrides global version)"
-    required: false
   azureSubscriptionId:
     description: "Azure Subscription ID"
     required: true
@@ -76,9 +55,9 @@ runs:
       uses: actions/checkout@v6
       with:
         repository: VirtoCommerce/vc-docs
-        ref: main
+        ref: ${{ inputs.ref }}
         path: vc-docs
-        fetch-depth: 0 # Need full history for gh-pages branch
+        fetch-depth: 0
         token: ${{ inputs.githubToken }}
         persist-credentials: true
 
@@ -106,55 +85,25 @@ runs:
       shell: bash
       working-directory: ${{ github.workspace }}/vc-docs
       run: |
-        echo "Deploying versioned documentation using Python script..."
-        echo "Global version: ${{ inputs.version || 'not set' }}"
+        VERSION=$(tr -d '[:space:]' < VERSION)
+        if [ -z "$VERSION" ]; then
+          echo "❌ VERSION file is empty or missing at vc-docs root"
+          exit 1
+        fi
+        echo "Deploying version $VERSION from ref ${{ inputs.ref }}"
         echo "Set as latest: ${{ inputs.setAsLatest }}"
         echo "Set as default: ${{ inputs.setAsDefault }}"
-        echo ""
 
-        # Build command arguments
-        PYTHON_ARGS=("python3" "versioned-build-cicd.py")
-
-        # Add global version if provided
-        if [ -n "${{ inputs.version }}" ]; then
-          PYTHON_ARGS+=("--version" "${{ inputs.version }}")
+        ARGS=(--version "$VERSION")
+        if [ "${{ inputs.setAsLatest }}" = "true" ]; then
+          ARGS+=(--set-as-latest)
         fi
-
-        # Add individual subsite versions
-        if [ -n "${{ inputs.marketplaceDeveloperGuideVersion }}" ]; then
-          PYTHON_ARGS+=("--marketplace-developer-guide-version" "${{ inputs.marketplaceDeveloperGuideVersion }}")
-        fi
-        if [ -n "${{ inputs.marketplaceUserGuideVersion }}" ]; then
-          PYTHON_ARGS+=("--marketplace-user-guide-version" "${{ inputs.marketplaceUserGuideVersion }}")
-        fi
-        if [ -n "${{ inputs.platformDeveloperGuideVersion }}" ]; then
-          PYTHON_ARGS+=("--platform-developer-guide-version" "${{ inputs.platformDeveloperGuideVersion }}")
-        fi
-        if [ -n "${{ inputs.platformUserGuideVersion }}" ]; then
-          PYTHON_ARGS+=("--platform-user-guide-version" "${{ inputs.platformUserGuideVersion }}")
-        fi
-        if [ -n "${{ inputs.platformDeploymentOnCloudVersion }}" ]; then
-          PYTHON_ARGS+=("--platform-deployment-on-cloud-version" "${{ inputs.platformDeploymentOnCloudVersion }}")
-        fi
-        if [ -n "${{ inputs.storefrontDeveloperGuideVersion }}" ]; then
-          PYTHON_ARGS+=("--storefront-developer-guide-version" "${{ inputs.storefrontDeveloperGuideVersion }}")
-        fi
-        if [ -n "${{ inputs.storefrontUserGuideVersion }}" ]; then
-          PYTHON_ARGS+=("--storefront-user-guide-version" "${{ inputs.storefrontUserGuideVersion }}")
+        if [ "${{ inputs.setAsDefault }}" = "true" ]; then
+          ARGS+=(--set-as-default)
         fi
 
-        # Add flags
-        if [ "${{ inputs.setAsLatest }}" == "true" ]; then
-          PYTHON_ARGS+=("--set-as-latest")
-        fi
-        if [ "${{ inputs.setAsDefault }}" == "true" ]; then
-          PYTHON_ARGS+=("--set-as-default")
-        fi
-
-        # Execute Python script
-        "${PYTHON_ARGS[@]}"
-
-        echo "✓ Deployment completed using Python script!"
+        python3 versioned-build-cicd.py "${ARGS[@]}"
+        echo "✓ Deployment completed"
 
     - name: Verify build output
       shell: bash
@@ -201,14 +150,14 @@ runs:
     - name: Determine Docker Image Tag
       id: docker-tag
       shell: bash
+      working-directory: ${{ github.workspace }}/vc-docs
       run: |
-        # Use global version if available, otherwise use run number
-        # Always append run number to ensure unique tags for each deployment
-        if [ -n "${{ inputs.version }}" ]; then
-          TAG="versioned-${{ inputs.version }}-${{ github.run_number }}"
-        else
-          TAG="versioned-${{ github.run_number }}"
+        VERSION=$(tr -d '[:space:]' < VERSION)
+        if [ -z "$VERSION" ]; then
+          echo "❌ VERSION file is empty or missing at vc-docs root"
+          exit 1
         fi
+        TAG="versioned-${VERSION}-${{ github.run_number }}"
         echo "tag=$TAG" >> $GITHUB_OUTPUT
         echo "Docker image tag: $TAG"
 
