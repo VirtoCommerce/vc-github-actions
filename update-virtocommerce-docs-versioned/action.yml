@@ -20,24 +20,6 @@ inputs:
     description: "Set this version as default version"
     required: false
     default: "true"
-  azureSubscriptionId:
-    description: "Azure Subscription ID"
-    required: true
-  azureResourceGroupName:
-    description: "Azure Resource Group Name"
-    required: true
-  azureWebAppName:
-    description: "Azure WebApp Name"
-    required: true
-  azureTenantId:
-    description: "Azure Tenant ID"
-    required: true
-  azureApiKey:
-    description: "Azure API Key"
-    required: true
-  azureAppId:
-    description: "Azure App ID"
-    required: true
   dockerRegistry:
     description: "Docker Registry"
     required: true
