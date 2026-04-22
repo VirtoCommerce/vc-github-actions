@@ -85,8 +85,7 @@ runs:
           $adminPassword = 'store'
           Write-Host "`e[32mSet password for admin user from default value"
         }
-        source .venv/bin/activate
-        python -m dataset.dataset_manager --seed --mode ci
+        .venv/bin/python -m dataset.dataset_manager --seed --mode ci
         & "${{ github.action_path }}/../docker-env-full/scripts/start-indexing.ps1" -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $adminPassword
         mkdir -p report
 
