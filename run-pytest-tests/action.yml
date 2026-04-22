@@ -1,0 +1,190 @@
+name: 'Pytest Tests'
+description: 'Runs Pytest Tests'
+inputs:
+  testSecretEnvFile:
+    description: 'Test secret environment file content'
+    required: true
+    type: string
+  testSuites:
+    description: 'Comma-separated list of suites to run. Any subset of: graphql, restapi, e2e'
+    required: false
+    default: 'graphql,restapi,e2e'
+    type: string
+  vctestingPath:
+    description: 'UI tests path'
+    required: true
+    type: string
+  vctestingRepo:
+    description: 'UI tests repository'
+    required: true
+    type: string
+  vctestingRepoBranch:
+    description: 'UI tests repository branch'
+    required: true
+    type: string
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: "3.13"
+
+    - name: Getting tests
+      uses: actions/checkout@v6
+      with:
+        repository: ${{ inputs.vctestingRepo }}
+        ref: ${{ inputs.vctestingRepoBranch }}
+        path: ${{ inputs.vctestingPath }}
+
+    - name: Create .env file
+      shell: bash
+      working-directory: ${{ inputs.vctestingPath }}
+      env:
+        SECRET_ENV_FILE: ${{ inputs.testSecretEnvFile }}
+      run: |
+        echo "Creating .env file..."
+        echo "$SECRET_ENV_FILE" > .env
+        chmod 600 .env
+        echo "..Done."
+
+    - name: Update .env file with local URLs
+      shell: bash
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        echo "Updating .env file to use local backend URLs..."
+        # Replace any BACKEND_BASE_URL value with localhost URL
+        sed -i 's|^BACKEND_BASE_URL=.*|BACKEND_BASE_URL=http://localhost:8090|g' .env
+        # Replace any FRONTEND_BASE_URL value with localhost URL
+        sed -i 's|^FRONTEND_BASE_URL=.*|FRONTEND_BASE_URL=http://localhost|g' .env
+        echo "..Done."
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        echo "Installing Python dependencies for tests..."
+        python -m venv .venv
+        source .venv/bin/activate
+        python -m pip install --upgrade pip
+        pip install -e .
+        playwright install --with-deps chromium
+        echo "..Done."
+
+    - name: Seed test data
+      shell: pwsh
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        echo "Seeding test data and starting indexing..."
+        $envFile = get-content -path ./.env
+        if ( $envFile -match 'ADMIN_PASSWORD=\S+' ) {
+          $m = $envFile -match 'ADMIN_PASSWORD=\S+'
+          $adminPassword = $m[0].split('=')[1]
+          Write-Host "`e[32mSet password for admin user from env file"
+        } else {
+          $adminPassword = 'store'
+          Write-Host "`e[32mSet password for admin user from default value"
+        }
+        source .venv/bin/activate
+        python -m dataset.dataset_manager --seed --mode ci
+        & "${{ github.action_path }}/../docker-env-full/scripts/start-indexing.ps1" -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $adminPassword
+        mkdir -p report
+
+    - name: Run GraphQL tests
+      shell: bash
+      if: contains(inputs.testSuites, 'graphql')
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        source .venv/bin/activate
+        pytest tests/graphql -m "not ignore" -v -s --color=yes \
+          --junitxml=report/graphql-junit.xml
+
+    - name: Run E2E tests
+      shell: bash
+      if: (success() || failure()) && contains(inputs.testSuites, 'e2e')
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        source .venv/bin/activate
+        pytest tests/e2e -m "not ignore" --browser chromium -v -s --color=yes \
+          --junitxml=report/e2e-junit.xml
+
+    - name: Run REST API tests (serial — global state mutators)
+      shell: bash
+      if: (success() || failure()) && contains(inputs.testSuites, 'restapi')
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        source .venv/bin/activate
+        pytest tests/restapi -m "restapi and not ignore and not serial" -v -s --color=yes \
+          --junitxml=report/restapi-junit.xml
+        pytest tests/restapi -m "restapi and serial and not ignore" -v -s --color=yes \
+          --junitxml=report/restapi-serial-junit.xml \
+          --deselect tests/restapi/platform/test_misc.py::test_restart_platform
+        pytest tests/restapi/platform/test_misc.py::test_restart_platform -v -s --color=yes \
+          --junitxml=report/restapi-restart-junit.xml
+
+    - name: Install Allure CLI
+      shell: bash
+      if: always()
+      run: |
+        ALLURE_VERSION=2.29.0
+        wget -q -O allure.tgz \
+          "https://github.com/allure-framework/allure2/releases/download/${ALLURE_VERSION}/allure-${ALLURE_VERSION}.tgz"
+        sudo tar -xzf allure.tgz -C /opt
+        sudo ln -sf "/opt/allure-${ALLURE_VERSION}/bin/allure" /usr/local/bin/allure
+        allure --version
+
+    - name: Generate Allure HTML report
+      shell: bash
+      if: always()
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        if [ -d allure-results ] && [ -n "$(ls -A allure-results 2>/dev/null)" ]; then
+          allure generate allure-results --clean -o allure-report
+        else
+          echo "::warning::allure-results is empty — skipping report render"
+        fi
+
+    - name: Bundle Allure into single HTML
+      shell: bash
+      if: always()
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        if [ -d allure-report ]; then
+          pip install allure-combine
+          allure-combine allure-report
+          ls -la allure-report/complete.html
+        else
+          echo "::warning::allure-report missing — skipping allure-combine"
+        fi
+    
+    - name: Upload consolidated test results
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: test-results-${{ github.run_number }}-${{ github.run_attempt }}
+        path: ${{ inputs.vctestingPath }}/report/
+        if-no-files-found: warn
+        retention-days: 30
+
+    # - name: Publish test results summary
+    #   if: always()
+    #   uses: EnricoMi/publish-unit-test-result-action@v2
+    #   with:
+    #     files: |
+    #       ${{ inputs.vctestingPath }}/report/graphql-junit.xml
+    #       ${{ inputs.vctestingPath }}/report/restapi-junit.xml
+    #       ${{ inputs.vctestingPath }}/report/restapi-serial-junit.xml
+    #       ${{ inputs.vctestingPath }}/report/restapi-restart-junit.xml
+    #       ${{ inputs.vctestingPath }}/report/e2e-junit.xml
+    #     check_name: Test Results (Refactored)
+    #     comment_mode: always
+    #     report_individual_runs: true
+
+    - name: Print container logs on failure
+      shell: bash
+      if: failure()
+      run: |
+        echo "=== Platform logs ==="
+        docker logs virtocommerce-vc-platform-web-1 --tail 100
+        echo "=== Elasticsearch logs ==="
+        docker logs virtocommerce-es-1 --tail 50
