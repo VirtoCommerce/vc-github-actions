@@ -92,6 +92,7 @@ services:
       - Notifications:DefaultSender=virto.start@virtoway.com
       - Notifications:Gateway=SendGrid
       - Notifications:SendGrid:ApiKey=${SENDGRID_API_KEY}
+      - VirtoCommerce:LogLevel:Default=Debug
     depends_on:
       - vc-db
       - es
