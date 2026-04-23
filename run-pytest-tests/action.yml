@@ -1,5 +1,5 @@
-name: 'Pytest Tests'
-description: 'Runs Pytest Tests'
+name: 'Auto Tests'
+description: 'Runs Auto Tests'
 inputs:
   testSecretEnvFile:
     description: 'Test secret environment file content'
