@@ -76,17 +76,18 @@ runs:
       working-directory: ${{ inputs.vctestingPath }}
       run: |
         echo "Seeding test data and starting indexing..."
-        $envFile = get-content -path ./.env
-        if ( $envFile -match 'ADMIN_PASSWORD=\S+' ) {
-          $m = $envFile -match 'ADMIN_PASSWORD=\S+'
-          $adminPassword = $m[0].split('=')[1]
-          Write-Host "`e[32mSet password for admin user from env file"
-        } else {
-          $adminPassword = 'store'
-          Write-Host "`e[32mSet password for admin user from default value"
-        }
+        # $envFile = get-content -path ./.env
+        # if ( $envFile -match 'ADMIN_PASSWORD=\S+' ) {
+        #   $m = $envFile -match 'ADMIN_PASSWORD=\S+'
+        #   $adminPassword = $m[0].split('=')[1]
+        #   Write-Host "`e[32mSet password for admin user from env file"
+        # } else {
+        #   $adminPassword = 'store'
+        #   Write-Host "`e[32mSet password for admin user from default value"
+        # }
         .venv/bin/python -m dataset.dataset_manager --seed --mode ci
         & "${{ github.action_path }}/../docker-env-full/scripts/start-indexing.ps1" -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $adminPassword
+        echo "..Done"
         mkdir -p report
 
     - name: Run GraphQL tests
