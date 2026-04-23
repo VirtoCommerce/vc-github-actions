@@ -37,90 +37,95 @@ runs:
         ref: ${{ inputs.vctestingRepoBranch }}
         path: ${{ inputs.vctestingPath }}
 
-    - name: Create .env file
+    - name: Prepare .env file
       shell: bash
       working-directory: ${{ inputs.vctestingPath }}
       env:
         SECRET_ENV_FILE: ${{ inputs.testSecretEnvFile }}
       run: |
-        echo "Creating .env file..."
         echo "$SECRET_ENV_FILE" > .env
         chmod 600 .env
-        ls -la
-        echo "..Done."
-
-    - name: Update .env file with local URLs
-      shell: bash
-      working-directory: ${{ inputs.vctestingPath }}
-      run: |
-        echo "Updating .env file to use local backend URLs..."
-        # Replace any BACKEND_BASE_URL value with localhost URL
         sed -i 's|^BACKEND_BASE_URL=.*|BACKEND_BASE_URL=http://localhost:8090|g' .env
-        # Replace any FRONTEND_BASE_URL value with localhost URL
         sed -i 's|^FRONTEND_BASE_URL=.*|FRONTEND_BASE_URL=http://localhost|g' .env
-        echo "..Done."
+        pw=$(grep -E '^ADMIN_PASSWORD=' .env | head -n1 | cut -d= -f2- | tr -d '\r')
+        [ -n "$pw" ] || pw=store
+        echo "::add-mask::$pw"
+        echo "ADMIN_PASSWORD=$pw" >> "$GITHUB_ENV"
 
     - name: Install dependencies
       shell: bash
       working-directory: ${{ inputs.vctestingPath }}
       run: |
-        echo "Installing Python dependencies for tests..."
+        echo "::group::Install Python dependencies"
         python -m venv .venv
         source .venv/bin/activate
         python -m pip install --upgrade pip
         pip install -e .
         playwright install --with-deps chromium
+        echo "::endgroup::"
         echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
-        echo "..Done."
+        mkdir -p report
 
     - name: Seed test data
       id: seed
       shell: pwsh
       working-directory: ${{ inputs.vctestingPath }}
       run: |
-        echo "Seeding test data and starting indexing..."
-        $envFile = get-content -path ./.env
-        if ( $envFile -match 'ADMIN_PASSWORD=\S+' ) {
-          $m = $envFile -match 'ADMIN_PASSWORD=\S+'
-          $adminPassword = $m[0].split('=')[1]
-          Write-Host "`e[32mUsing password for admin user from env file"
-        } else {
-          $adminPassword = 'store'
-          Write-Host "`e[32mUsing password for admin user from default value"
-        }
+        Write-Host "::group::Seed dataset"
         python -m dataset.dataset_manager --seed --mode ci
-        & "${{ github.action_path }}/../docker-env-full/scripts/start-indexing.ps1" -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $adminPassword
-        echo "..Done"
-        mkdir -p report
+        Write-Host "::endgroup::"
+        & "${{ github.action_path }}/../docker-env-full/scripts/start-indexing.ps1" -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $env:ADMIN_PASSWORD
 
     - name: Run GraphQL tests
       shell: bash
       if: contains(inputs.testSuites, 'graphql')
       working-directory: ${{ inputs.vctestingPath }}
       run: |
+        echo "::group::GraphQL tests"
         pytest tests/graphql -m "not ignore" -v -s --color=yes \
           --junitxml=report/graphql-junit.xml
+        echo "::endgroup::"
 
     - name: Run E2E tests
       shell: bash
       if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'e2e')
       working-directory: ${{ inputs.vctestingPath }}
       run: |
+        echo "::group::E2E tests"
         pytest tests/e2e -m "not ignore" --browser chromium -v -s --color=yes \
           --junitxml=report/e2e-junit.xml
+        echo "::endgroup::"
+
+    - name: Run REST API tests (parallel-safe)
+      shell: bash
+      if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'restapi')
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        echo "::group::REST API tests (parallel-safe)"
+        pytest tests/restapi -m "restapi and not ignore and not serial" -v -s --color=yes \
+          --junitxml=report/restapi-junit.xml
+        echo "::endgroup::"
 
     - name: Run REST API tests (serial — global state mutators)
       shell: bash
       if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'restapi')
       working-directory: ${{ inputs.vctestingPath }}
       run: |
-        pytest tests/restapi -m "restapi and not ignore and not serial" -v -s --color=yes \
-          --junitxml=report/restapi-junit.xml
+        echo "::group::REST API tests (serial)"
         pytest tests/restapi -m "restapi and serial and not ignore" -v -s --color=yes \
           --junitxml=report/restapi-serial-junit.xml \
           --deselect tests/restapi/platform/test_misc.py::test_restart_platform
+        echo "::endgroup::"
+
+    - name: Run REST API test — restart platform (last)
+      shell: bash
+      if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'restapi')
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        echo "::group::REST API restart-platform test"
         pytest tests/restapi/platform/test_misc.py::test_restart_platform -v -s --color=yes \
           --junitxml=report/restapi-restart-junit.xml
+        echo "::endgroup::"
 
     - name: Install Allure CLI
       shell: bash
