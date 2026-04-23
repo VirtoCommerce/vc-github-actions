@@ -153,6 +153,51 @@ runs:
           echo "::warning::allure-results is empty — skipping Allure report"
         fi
     
+    - name: Publish failed tests summary
+      if: failure()
+      shell: bash
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        python - <<'PYEOF'
+        import os
+        import glob
+        import xml.etree.ElementTree as ET
+
+        tests = {}  # key -> 'pass' | 'fail' | 'error' | 'skip' (last-write-wins on retries)
+        for xml in sorted(glob.glob('report/*-junit.xml')):
+            try:
+                tree = ET.parse(xml)
+            except ET.ParseError:
+                continue
+            for tc in tree.iter('testcase'):
+                classname = tc.attrib.get('classname', '')
+                name = tc.attrib.get('name', '')
+                key = f"{classname}::{name}" if classname else name
+                if tc.find('failure') is not None:
+                    status = 'fail'
+                elif tc.find('error') is not None:
+                    status = 'error'
+                elif tc.find('skipped') is not None:
+                    status = 'skip'
+                else:
+                    status = 'pass'
+                tests[key] = status
+
+        failed = [k for k, v in tests.items() if v in ('fail', 'error')]
+        executed = sum(1 for v in tests.values() if v != 'skip')
+
+        if not failed:
+            raise SystemExit(0)
+
+        lines = [f"## Failed tests ({len(failed)} of {executed} executed)", ""]
+        lines += [f"- `{k}`" for k in failed]
+
+        summary = os.environ.get('GITHUB_STEP_SUMMARY')
+        if summary:
+            with open(summary, 'a', encoding='utf-8') as fh:
+                fh.write('\n'.join(lines) + '\n')
+        PYEOF
+
     - name: Upload consolidated test results
       if: always()
       uses: actions/upload-artifact@v7
