@@ -70,6 +70,7 @@ runs:
         python -m pip install --upgrade pip
         pip install -e .
         playwright install --with-deps chromium
+        echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
         echo "..Done."
 
     - name: Seed test data
@@ -87,14 +88,7 @@ runs:
           $adminPassword = 'store'
           Write-Host "`e[32mUsing password for admin user from default value"
         }
-        if ( $envFile -match 'STORE_ID=\S+' ) {
-          $m = $envFile -match 'STORE_ID=\S+'
-          $storeId = $m[0].split('=')[1]
-          Write-Host "`e[32mstoreId is $storeId in .env"
-        } else {
-          Write-Host "`e[32mNo storeId found in .env"
-        }
-        .venv/bin/python -m dataset.dataset_manager --seed --mode ci
+        python -m dataset.dataset_manager --seed --mode ci
         & "${{ github.action_path }}/../docker-env-full/scripts/start-indexing.ps1" -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $adminPassword
         echo "..Done"
         mkdir -p report
@@ -104,7 +98,6 @@ runs:
       if: contains(inputs.testSuites, 'graphql')
       working-directory: ${{ inputs.vctestingPath }}
       run: |
-        source .venv/bin/activate
         pytest tests/graphql -m "not ignore" -v -s --color=yes \
           --junitxml=report/graphql-junit.xml
 
@@ -113,7 +106,6 @@ runs:
       if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'e2e')
       working-directory: ${{ inputs.vctestingPath }}
       run: |
-        source .venv/bin/activate
         pytest tests/e2e -m "not ignore" --browser chromium -v -s --color=yes \
           --junitxml=report/e2e-junit.xml
 
@@ -122,7 +114,6 @@ runs:
       if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'restapi')
       working-directory: ${{ inputs.vctestingPath }}
       run: |
-        source .venv/bin/activate
         pytest tests/restapi -m "restapi and not ignore and not serial" -v -s --color=yes \
           --junitxml=report/restapi-junit.xml
         pytest tests/restapi -m "restapi and serial and not ignore" -v -s --color=yes \
