@@ -8,7 +8,7 @@ inputs:
   testSuites:
     description: 'Comma-separated list of suites to run. Any subset of: graphql, restapi, e2e'
     required: false
-    default: 'graphql' #'graphql,restapi,e2e'
+    default: 'graphql,restapi,e2e'
     type: string
   vctestingPath:
     description: 'UI tests path'
