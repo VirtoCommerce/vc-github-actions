@@ -87,6 +87,13 @@ runs:
           $adminPassword = 'store'
           Write-Host "`e[32mUsing password for admin user from default value"
         }
+        if ( $envFile -match 'STORE_ID=\S+' ) {
+          $m = $envFile -match 'STORE_ID=\S+'
+          $storeId = $m[0].split('=')[1]
+          Write-Host "`e[32mstoreId is $storeId in .env"
+        } else {
+          Write-Host "`e[32mNo storeId found in .env"
+        }
         .venv/bin/python -m dataset.dataset_manager --seed --mode ci
         & "${{ github.action_path }}/../docker-env-full/scripts/start-indexing.ps1" -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $adminPassword
         echo "..Done"
