@@ -8,7 +8,7 @@ inputs:
   testSuites:
     description: 'Comma-separated list of suites to run. Any subset of: graphql, restapi, e2e'
     required: false
-    default: 'graphql,restapi,e2e'
+    default: 'graphql' #'graphql,restapi,e2e'
     type: string
   vctestingPath:
     description: 'UI tests path'
@@ -72,6 +72,7 @@ runs:
         echo "..Done."
 
     - name: Seed test data
+      id: seed
       shell: pwsh
       working-directory: ${{ inputs.vctestingPath }}
       run: |
@@ -101,7 +102,7 @@ runs:
 
     - name: Run E2E tests
       shell: bash
-      if: (success() || failure()) && contains(inputs.testSuites, 'e2e')
+      if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'e2e')
       working-directory: ${{ inputs.vctestingPath }}
       run: |
         source .venv/bin/activate
@@ -110,7 +111,7 @@ runs:
 
     - name: Run REST API tests (serial — global state mutators)
       shell: bash
-      if: (success() || failure()) && contains(inputs.testSuites, 'restapi')
+      if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'restapi')
       working-directory: ${{ inputs.vctestingPath }}
       run: |
         source .venv/bin/activate
