@@ -88,10 +88,17 @@ runs:
         set_env_var BACKEND_BASE_URL "$BACKEND_BASE_URL"
         set_env_var FRONTEND_BASE_URL "$FRONTEND_BASE_URL"
         set_env_var ADMIN_USERNAME "$ADMIN_USERNAME"
-        set_env_var ADMIN_PASSWORD "$ADMIN_PASSWORD_INPUT"
         set_env_var API_KEY "$API_KEY"
-        pw=$(grep -E '^ADMIN_PASSWORD=' .env | head -n1 | cut -d= -f2- | tr -d '\r')
+        # Resolve ADMIN_PASSWORD precedence: input > value in .env (from SECRET_ENV_FILE) > default
+        pw="$ADMIN_PASSWORD_INPUT"
+        [ -n "$pw" ] || pw=$(grep -E '^ADMIN_PASSWORD=' .env | head -n1 | cut -d= -f2- | tr -d '\r')
+        # Strip matching surrounding quotes (e.g. ADMIN_PASSWORD="foo" in .env)
+        case "$pw" in
+          \"*\") pw="${pw#\"}"; pw="${pw%\"}" ;;
+          \'*\') pw="${pw#\'}"; pw="${pw%\'}" ;;
+        esac
         [ -n "$pw" ] || pw=store
+        set_env_var ADMIN_PASSWORD "$pw"
         echo "::add-mask::$pw"
         echo "ADMIN_PASSWORD=$pw" >> "$GITHUB_ENV"
 
