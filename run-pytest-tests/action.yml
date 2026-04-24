@@ -128,7 +128,7 @@ runs:
 
     - name: Run GraphQL tests
       shell: bash
-      if: contains(inputs.testSuites, 'graphql')
+      if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'e2e')
       working-directory: ${{ inputs.vctestingPath }}
       run: |
         echo "::group::GraphQL tests"
