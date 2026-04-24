@@ -1,6 +1,30 @@
 name: 'Auto Tests'
 description: 'Runs Auto Tests'
 inputs:
+  adminPassword:
+    description: 'Admin Password'
+    required: true
+    type: string
+  adminUsername:
+    description: 'Admin Username'
+    required: true
+    type: string
+  apiKey:
+    description: 'API Key'
+    required: true
+    type: string
+  backUrl:
+    description: 'Back URL'
+    required: true
+    type: string
+  baseUrl:
+    description: 'Base URL'
+    required: true
+    type: string
+  browser:
+    description: 'Browser'
+    required: true
+    type: string
   testSecretEnvFile:
     description: 'Test secret environment file content'
     required: true
@@ -42,11 +66,30 @@ runs:
       working-directory: ${{ inputs.vctestingPath }}
       env:
         SECRET_ENV_FILE: ${{ inputs.testSecretEnvFile }}
+        BACKEND_BASE_URL: ${{ inputs.backUrl }}
+        FRONTEND_BASE_URL: ${{ inputs.baseUrl }}
+        ADMIN_USERNAME: ${{ inputs.adminUsername }}
+        ADMIN_PASSWORD_INPUT: ${{ inputs.adminPassword }}
+        API_KEY: ${{ inputs.apiKey }}
       run: |
         echo "$SECRET_ENV_FILE" > .env
         chmod 600 .env
-        sed -i 's|^BACKEND_BASE_URL=.*|BACKEND_BASE_URL=http://localhost:8090|g' .env
-        sed -i 's|^FRONTEND_BASE_URL=.*|FRONTEND_BASE_URL=http://localhost|g' .env
+        set_env_var() {
+          local key="$1"
+          local val="$2"
+          local esc
+          esc=$(printf '%s' "$val" | sed -e 's/[\/&|]/\\&/g')
+          if grep -qE "^${key}=" .env; then
+            sed -i "s|^${key}=.*|${key}=${esc}|" .env
+          else
+            printf '%s=%s\n' "$key" "$val" >> .env
+          fi
+        }
+        set_env_var BACKEND_BASE_URL "$BACKEND_BASE_URL"
+        set_env_var FRONTEND_BASE_URL "$FRONTEND_BASE_URL"
+        set_env_var ADMIN_USERNAME "$ADMIN_USERNAME"
+        set_env_var ADMIN_PASSWORD "$ADMIN_PASSWORD_INPUT"
+        set_env_var API_KEY "$API_KEY"
         pw=$(grep -E '^ADMIN_PASSWORD=' .env | head -n1 | cut -d= -f2- | tr -d '\r')
         [ -n "$pw" ] || pw=store
         echo "::add-mask::$pw"
@@ -61,7 +104,7 @@ runs:
         source .venv/bin/activate
         python -m pip install --upgrade pip
         pip install -e .
-        playwright install --with-deps chromium
+        playwright install --with-deps ${{ inputs.browser }}
         echo "::endgroup::"
         echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
         mkdir -p report
@@ -74,7 +117,7 @@ runs:
         Write-Host "::group::Seed dataset"
         python -m dataset.dataset_manager --seed --mode ci
         Write-Host "::endgroup::"
-        & "${{ github.action_path }}/../docker-env-full/scripts/start-indexing.ps1" -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $env:ADMIN_PASSWORD
+        & "${{ github.action_path }}/../docker-env-full/scripts/start-indexing.ps1" -platformUrl "${{ inputs.backUrl }}" -adminUsername "${{ inputs.adminUsername }}" -adminPassword $env:ADMIN_PASSWORD
 
     - name: Run GraphQL tests
       shell: bash
@@ -92,7 +135,7 @@ runs:
       working-directory: ${{ inputs.vctestingPath }}
       run: |
         echo "::group::E2E tests"
-        pytest tests/e2e -m "not ignore" --browser chromium -v -s --color=yes \
+        pytest tests/e2e -m "not ignore" --browser ${{ inputs.browser }} -v -s --color=yes \
           --junitxml=report/e2e-junit.xml
         echo "::endgroup::"
 
