@@ -144,11 +144,11 @@ runs:
       working-directory: ${{ inputs.vctestingPath }}
       run: |
         if [ -d allure-results ] && [ -n "$(ls -A allure-results 2>/dev/null)" ]; then
-          allure generate allure-results --clean -o allure-report > /tmp/allure-gen.log 2>&1 \
+          allure generate allure-results --clean -o report/allure-report > /tmp/allure-gen.log 2>&1 \
             || { cat /tmp/allure-gen.log; exit 1; }
-          { pip install allure-combine && allure-combine allure-report; } > /tmp/allure-combine.log 2>&1 \
+          { pip install allure-combine && allure-combine report/allure-report; } > /tmp/allure-combine.log 2>&1 \
             || { cat /tmp/allure-combine.log; exit 1; }
-          ls -la allure-report/complete.html
+          ls -la report/allure-report/complete.html
         else
           echo "::warning::allure-results is empty — skipping Allure report"
         fi
