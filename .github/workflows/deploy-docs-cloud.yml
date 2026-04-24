@@ -1,0 +1,46 @@
+name: Deploy docs to VC Cloud
+
+on:
+  repository_dispatch:
+    types: [deploy-docs]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Deploy to VC Cloud
+        env:
+          IMAGE_TAG: ${{ github.event.client_payload.image_tag }}
+          ENVIRONMENT: ${{ github.event.client_payload.environment }}
+          CLOUD_TOKEN: ${{ secrets.VCPT_CLOUD_TOKEN }}
+        run: |
+          dotnet tool update --global VirtoCommerce.GlobalTool
+
+          if [ -z "$IMAGE_TAG" ] || [ -z "$ENVIRONMENT" ]; then
+            echo "❌ Missing required payload: image_tag='$IMAGE_TAG', environment='$ENVIRONMENT'"
+            exit 1
+          fi
+
+          echo "Deploying image $IMAGE_TAG to $ENVIRONMENT"
+
+          vc-build CloudEnvSetParameter \
+            -CloudUrl https://portal.virtocommerce.cloud \
+            -CloudToken "$CLOUD_TOKEN" \
+            -EnvironmentName "$ENVIRONMENT" \
+            -HelmParameters "custom.app1.image.tag=$IMAGE_TAG"
+
+          vc-build CloudEnvStatus \
+            -CloudUrl https://portal.virtocommerce.cloud \
+            -CloudToken "$CLOUD_TOKEN" \
+            -EnvironmentName "$ENVIRONMENT" \
+            -HealthStatus Progressing
+
+          timeout 600 vc-build CloudEnvStatus \
+            -CloudUrl https://portal.virtocommerce.cloud \
+            -CloudToken "$CLOUD_TOKEN" \
+            -EnvironmentName "$ENVIRONMENT" \
+            -HealthStatus Healthy \
+            -SyncStatus Synced
+
+          echo "✅ Deployment of $IMAGE_TAG to $ENVIRONMENT completed"
