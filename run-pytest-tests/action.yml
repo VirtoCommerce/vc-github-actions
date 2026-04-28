@@ -1,0 +1,286 @@
+name: 'Auto Tests'
+description: 'Runs Auto Tests'
+inputs:
+  adminPassword:
+    description: 'Admin Password'
+    required: true
+    type: string
+  adminUsername:
+    description: 'Admin Username'
+    required: true
+    type: string
+  apiKey:
+    description: 'API Key'
+    required: true
+    type: string
+  backUrl:
+    description: 'Back URL'
+    required: true
+    type: string
+  baseUrl:
+    description: 'Base URL'
+    required: true
+    type: string
+  browser:
+    description: 'Browser'
+    required: true
+    type: string
+  testSecretEnvFile:
+    description: 'Test secret environment file content'
+    required: true
+    type: string
+  testSuites:
+    description: 'Comma-separated list of suites to run. Any subset of: graphql, restapi, e2e'
+    required: false
+    default: 'graphql,restapi,e2e'
+    type: string
+  vctestingPath:
+    description: 'UI tests path'
+    required: true
+    type: string
+  vctestingRepo:
+    description: 'UI tests repository'
+    required: true
+    type: string
+  vctestingRepoBranch:
+    description: 'UI tests repository branch'
+    required: true
+    type: string
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: "3.13"
+
+    - name: Getting tests
+      uses: actions/checkout@v6
+      with:
+        repository: ${{ inputs.vctestingRepo }}
+        ref: ${{ inputs.vctestingRepoBranch }}
+        path: ${{ inputs.vctestingPath }}
+
+    - name: Prepare .env file
+      shell: bash
+      working-directory: ${{ inputs.vctestingPath }}
+      env:
+        SECRET_ENV_FILE: ${{ inputs.testSecretEnvFile }}
+        BACKEND_BASE_URL: ${{ inputs.backUrl }}
+        FRONTEND_BASE_URL: ${{ inputs.baseUrl }}
+        ADMIN_USERNAME: ${{ inputs.adminUsername }}
+        ADMIN_PASSWORD_INPUT: ${{ inputs.adminPassword }}
+        API_KEY: ${{ inputs.apiKey }}
+      run: |
+        echo "$SECRET_ENV_FILE" > .env
+        chmod 600 .env
+        set_env_var() {
+          local key="$1"
+          local val="$2"
+          local esc
+          esc=$(printf '%s' "$val" | sed -e 's/[\/&|]/\\&/g')
+          if grep -qE "^${key}=" .env; then
+            sed -i "s|^${key}=.*|${key}=${esc}|" .env
+          else
+            printf '%s=%s\n' "$key" "$val" >> .env
+          fi
+        }
+        set_env_var BACKEND_BASE_URL "$BACKEND_BASE_URL"
+        set_env_var FRONTEND_BASE_URL "$FRONTEND_BASE_URL"
+        set_env_var ADMIN_USERNAME "$ADMIN_USERNAME"
+        set_env_var API_KEY "$API_KEY"
+        # Resolve ADMIN_PASSWORD precedence: input > value in .env (from SECRET_ENV_FILE) > default
+        pw="$ADMIN_PASSWORD_INPUT"
+        [ -n "$pw" ] || pw=$(grep -E '^ADMIN_PASSWORD=' .env | head -n1 | cut -d= -f2- | tr -d '\r')
+        # Strip matching surrounding quotes (e.g. ADMIN_PASSWORD="foo" in .env)
+        case "$pw" in
+          \"*\") pw="${pw#\"}"; pw="${pw%\"}" ;;
+          \'*\') pw="${pw#\'}"; pw="${pw%\'}" ;;
+        esac
+        [ -n "$pw" ] || pw=store
+        set_env_var ADMIN_PASSWORD "$pw"
+        echo "::add-mask::$pw"
+        echo "ADMIN_PASSWORD=$pw" >> "$GITHUB_ENV"
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        echo "::group::Install Python dependencies"
+        python -m venv .venv
+        source .venv/bin/activate
+        python -m pip install --upgrade pip
+        pip install -e .
+        playwright install --with-deps ${{ inputs.browser }}
+        echo "::endgroup::"
+        echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+        mkdir -p report
+
+    - name: Seed test data
+      id: seed
+      shell: pwsh
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        Write-Host "::group::Seed dataset"
+        python -m dataset.dataset_manager --seed --mode ci
+        Write-Host "::endgroup::"
+        & "${{ github.action_path }}/../docker-env-full/scripts/start-indexing.ps1" -platformUrl "${{ inputs.backUrl }}" -adminUsername "${{ inputs.adminUsername }}" -adminPassword $env:ADMIN_PASSWORD
+
+    - name: Run GraphQL tests
+      shell: bash
+      if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'graphql')
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        echo "::group::GraphQL tests"
+        pytest tests/graphql -m "not ignore" -v -s --color=yes \
+          --junitxml=report/graphql-junit.xml
+        echo "::endgroup::"
+
+    - name: Run E2E tests
+      shell: bash
+      if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'e2e')
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        echo "::group::E2E tests"
+        pytest tests/e2e -m "not ignore" --browser ${{ inputs.browser }} -v -s --color=yes \
+          --junitxml=report/e2e-junit.xml
+        echo "::endgroup::"
+
+    - name: Run REST API tests (parallel-safe)
+      shell: bash
+      if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'restapi')
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        echo "::group::REST API tests (parallel-safe)"
+        pytest tests/restapi -m "restapi and not ignore and not serial" -v -s --color=yes \
+          --junitxml=report/restapi-junit.xml
+        echo "::endgroup::"
+
+    - name: Run REST API tests (serial — global state mutators)
+      shell: bash
+      if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'restapi')
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        echo "::group::REST API tests (serial)"
+        pytest tests/restapi -m "restapi and serial and not ignore" -v -s --color=yes \
+          --junitxml=report/restapi-serial-junit.xml \
+          --deselect tests/restapi/platform/test_misc.py::test_restart_platform
+        echo "::endgroup::"
+
+    - name: Run REST API test — restart platform (last)
+      shell: bash
+      if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'restapi')
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        echo "::group::REST API restart-platform test"
+        pytest tests/restapi/platform/test_misc.py::test_restart_platform -v -s --color=yes \
+          --junitxml=report/restapi-restart-junit.xml
+        echo "::endgroup::"
+
+    - name: Install Allure CLI
+      shell: bash
+      if: always()
+      run: |
+        ALLURE_VERSION=2.29.0
+        wget -q -O allure.tgz \
+          "https://github.com/allure-framework/allure2/releases/download/${ALLURE_VERSION}/allure-${ALLURE_VERSION}.tgz"
+        sudo tar -xzf allure.tgz -C /opt
+        sudo ln -sf "/opt/allure-${ALLURE_VERSION}/bin/allure" /usr/local/bin/allure
+        allure --version
+
+    - name: Generate Allure report
+      shell: bash
+      if: always()
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        if [ -d allure-results ] && [ -n "$(ls -A allure-results 2>/dev/null)" ]; then
+          allure generate allure-results --clean -o report/allure-report > /tmp/allure-gen.log 2>&1 \
+            || { cat /tmp/allure-gen.log; exit 1; }
+          { pip install allure-combine && allure-combine report/allure-report; } > /tmp/allure-combine.log 2>&1 \
+            || { cat /tmp/allure-combine.log; exit 1; }
+          ls -la report/allure-report/complete.html
+        else
+          echo "::warning::allure-results is empty — skipping Allure report"
+        fi
+    
+    - name: Publish failed tests summary
+      if: failure()
+      shell: bash
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        python - <<'PYEOF'
+        import os
+        import glob
+        import xml.etree.ElementTree as ET
+
+        tests = {}  # key -> 'pass' | 'fail' | 'error' | 'skip' (last-write-wins on retries)
+        for xml in sorted(glob.glob('report/*-junit.xml')):
+            try:
+                tree = ET.parse(xml)
+            except ET.ParseError:
+                continue
+            for tc in tree.iter('testcase'):
+                classname = tc.attrib.get('classname', '')
+                name = tc.attrib.get('name', '')
+                key = f"{classname}::{name}" if classname else name
+                if tc.find('failure') is not None:
+                    status = 'fail'
+                elif tc.find('error') is not None:
+                    status = 'error'
+                elif tc.find('skipped') is not None:
+                    status = 'skip'
+                else:
+                    status = 'pass'
+                tests[key] = status
+
+        failed = [k for k, v in tests.items() if v in ('fail', 'error')]
+        executed = sum(1 for v in tests.values() if v != 'skip')
+
+        if not failed:
+            raise SystemExit(0)
+
+        lines = [f"## Failed tests ({len(failed)} of {executed} executed)", ""]
+        lines += [f"- `{k}`" for k in failed]
+
+        summary = os.environ.get('GITHUB_STEP_SUMMARY')
+        if summary:
+            with open(summary, 'a', encoding='utf-8') as fh:
+                fh.write('\n'.join(lines) + '\n')
+        PYEOF
+
+    - name: Upload consolidated test results
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: test-results-${{ github.run_number }}-${{ github.run_attempt }}
+        path: ${{ inputs.vctestingPath }}/report/
+        if-no-files-found: warn
+        retention-days: 30
+
+    # - name: Publish test results summary
+    #   if: always()
+    #   uses: EnricoMi/publish-unit-test-result-action@v2
+    #   with:
+    #     files: |
+    #       ${{ inputs.vctestingPath }}/report/graphql-junit.xml
+    #       ${{ inputs.vctestingPath }}/report/restapi-junit.xml
+    #       ${{ inputs.vctestingPath }}/report/restapi-serial-junit.xml
+    #       ${{ inputs.vctestingPath }}/report/restapi-restart-junit.xml
+    #       ${{ inputs.vctestingPath }}/report/e2e-junit.xml
+    #     check_name: Test Results (Refactored)
+    #     comment_mode: always
+    #     report_individual_runs: true
+
+    - name: Print container logs on failure
+      shell: bash
+      if: failure()
+      run: |
+        echo "::group::Platform logs"
+        docker logs virtocommerce-vc-platform-web-1 --tail 100
+        echo "::endgroup::"
+        echo "::group::Database logs"
+        docker logs virtocommerce-vc-db-1 --tail 100
+        echo "::endgroup::"
+        echo "::group::Elasticsearch logs"
+        docker logs virtocommerce-es-1 --tail 50
+        echo "::endgroup::"

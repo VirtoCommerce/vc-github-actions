@@ -234,4 +234,4 @@ runs:
           Write-Host "`e[32mSet password for admin user from default value"
         }
         Write-Host "`e[33mPrepare data for tests step started."
-        ./sripts/prepare4Tests.ps1 -newAdminPassword $testAdminPassword
+        ./scripts/prepare4Tests.ps1 -newAdminPassword $testAdminPassword
