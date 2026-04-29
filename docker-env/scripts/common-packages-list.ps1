@@ -186,11 +186,17 @@ function ProcessCustomModule {
 
     if ($recursive -eq $true) {
         foreach ($dependency in $xmlDependency) {
-            if ($script:packages["$($dependency.id)"] -match "\w._(.*).zip") {
-                CompareVersions -currentVersion $Matches[1] -requiredVersion $($dependency.version) -moduleId $($dependency.id)
+            if ($script:packages.Keys -contains $dependency.id) {
+                if ($script:packages["$($dependency.id)"] -match "\w._(.*).zip") {
+                    CompareVersions -currentVersion $Matches[1] -requiredVersion $($dependency.version) -moduleId $($dependency.id)
+                }
+                else {
+                    Write-Warning "Unable to parse version from packages list. Tried '$($script:packages[$dependency.id])' -match '\w._(.*).zip'"
+                }
             }
             else {
-                Write-Warning "Unable to parse version from packages list. Tried $packages[$key] -match '\w._(.*).zip'"
+                $script:packages["$($dependency.id)"] = "$($dependency.id)_$($dependency.version).zip"
+                if (-not $script:packageSources.ContainsKey($dependency.id)) { $script:packageSources["$($dependency.id)"] = "dep:$CustomModuleId" }
             }
             Write-Verbose "Dependency: $($dependency.id) $($dependency.version)"
         }
@@ -311,11 +317,17 @@ ProcessCustomModule -CustomModuleId $customModuleId -CustomModuleUrl $customModu
 # resolve first level dependencies
 foreach ($key in $dependencyList.Keys) {
     # add dep to packages
-    if ($packages["$key"] -match "\w._(.*).zip") {
-        CompareVersions -currentVersion $Matches[1] -requiredVersion $dependencyList["$key"] -moduleId $key
+    if ($packages.Keys -contains $key) {
+        if ($packages["$key"] -match "\w._(.*).zip") {
+            CompareVersions -currentVersion $Matches[1] -requiredVersion $dependencyList["$key"] -moduleId $key
+        }
+        else {
+            Write-Warning "Unable to parse version from packages list. Tried '$($packages[$key])' -match '\w._(.*).zip'"
+        }
     }
     else {
-        Write-Warning "Unable to parse version from packages list. Tried $packages[$key] -match '\w._(.*).zip'"
+        $packages["$key"] = "$($key)_$($dependencyList[$key]).zip"
+        if (-not $packageSources.ContainsKey($key)) { $packageSources["$key"] = "dep:$customModuleId" }
     }
     # get dep2lev
     if ($($dependencyList["$key"].split('.')[2]) -notmatch '[A-za-z-]' -and $packagesProcessed -notcontains $key) {
