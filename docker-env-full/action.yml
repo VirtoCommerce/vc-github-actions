@@ -202,34 +202,7 @@ runs:
         docker build -f ./nginx/Dockerfile -t "${{ inputs.frontendImage }}:${{ inputs.frontendDockerTag }}" .
         Write-Host "::endgroup::"
 
-    - name: Start database container only
-      env:
-        PLATFORM_IMAGE: ${{ inputs.platformImage }}
-        PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
-        ENV_DIR: ${{ inputs.envDir }}
-      shell: pwsh
-      working-directory: ${{ github.action_path }}
-      run: |
-        Write-Host "`e[33mStart Database Container step started."
-        # for the case of install modules
-        echo "inputs.installModules is ${{ inputs.installModules }}"
-        if ( '${{ inputs.installModules }}' -eq 'true' ){
-          Write-host "Start modify docker-compose.yml"
-          Install-Module -Name powershell-yaml -Force -allowClobber
-          $parsedYaml = Get-Content -Path ./docker-compose.yml -Raw | ConvertFrom-Yaml 
-          $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/modules:/opt/virtocommerce/platform/modules')
-          $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/app_data:/opt/virtocommerce/platform/app_data')
-          $parsedYaml | ConvertTo-Yaml | Set-Content ./docker-compose.yml
-          cat ./docker-compose.yml
-          Write-Host "`e[32mDocker-compose.yml modified"
-        }
-        # Start only the database and elasticsearch containers first
-        Write-Host "::group::Start Database and Elasticsearch containers"
-        docker compose --project-name virtocommerce up -d vc-db es
-        Write-Host "::endgroup::"
-        Write-Host "`e[32mDatabase and Elasticsearch containers started."
-
-    - name: Start remaining containers
+    - name: Start containers
       env:
         PLATFORM_IMAGE: ${{ inputs.platformImage }}
         PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
@@ -238,12 +211,21 @@ runs:
       shell: pwsh
       working-directory: ${{ github.action_path }}
       run: |
-        Write-Host "`e[33mStart Remaining Containers step started."
+        Write-Host "`e[33mStart Containers step started."
         $platformContainer = "virtocommerce-vc-platform-web-1"
         . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
-        
-        # Start the remaining containers (platform and frontend)
-        Write-Host "::group::Start Remaining Containers"
+
+        if ( '${{ inputs.installModules }}' -eq 'true' ){
+          Write-Host "Modify docker-compose.yml to mount installed modules"
+          Install-Module -Name powershell-yaml -Force -allowClobber
+          $parsedYaml = Get-Content -Path ./docker-compose.yml -Raw | ConvertFrom-Yaml
+          $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/modules:/opt/virtocommerce/platform/modules')
+          $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/app_data:/opt/virtocommerce/platform/app_data')
+          $parsedYaml | ConvertTo-Yaml | Set-Content ./docker-compose.yml
+          cat ./docker-compose.yml
+        }
+
+        Write-Host "::group::Start containers"
         docker compose --project-name virtocommerce up -d
         Write-Host "::endgroup::"
         InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 15 -WaitSeconds 0
