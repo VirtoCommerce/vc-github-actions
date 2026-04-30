@@ -63,9 +63,41 @@ inputs:
     description: 'Directory with environment files'
     required: false
     default: '.'
+  prebuiltImagePath:
+    description: 'Path to a docker save tar to load as the platform image instead of building or pulling. When set, installModules / installCustomModule / customPackagesJsonUrl must be unset.'
+    required: false
+    default: ''
 runs:
   using: "composite"
   steps:
+    - name: Validate prebuilt image configuration
+      if: ${{ inputs.prebuiltImagePath != '' }}
+      shell: bash
+      env:
+        INSTALL_MODULES: ${{ inputs.installModules }}
+        INSTALL_CUSTOM_MODULE: ${{ inputs.installCustomModule }}
+        CUSTOM_PACKAGES_JSON_URL: ${{ inputs.customPackagesJsonUrl }}
+      run: |
+        fail=0
+        err() { echo "::error::$1"; fail=1; }
+        [[ "$INSTALL_MODULES" == "true" ]]       && err "installModules must be 'false' — volume mount would shadow baked-in modules."
+        [[ "$INSTALL_CUSTOM_MODULE" == "true" ]] && err "installCustomModule must be 'false' — build step would overwrite the loaded image tag."
+        [[ -n "$CUSTOM_PACKAGES_JSON_URL" ]]     && err "customPackagesJsonUrl must be empty — build step would overwrite the loaded image tag."
+        exit $fail
+
+    - name: Load prebuilt platform image
+      if: ${{ inputs.prebuiltImagePath != '' }}
+      shell: bash
+      env:
+        IMAGE_PATH: ${{ inputs.prebuiltImagePath }}
+        TARGET: ${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}
+      run: |
+        loaded=$(docker load -i "$IMAGE_PATH" | sed -n -e 's/^Loaded image: //p' -e 's/^Loaded image ID: //p' | head -n1)
+        [[ -n "$loaded" ]] || { echo "::error::docker load did not report an image ref"; exit 1; }
+        [[ "$loaded" == "$TARGET" ]] || docker tag "$loaded" "$TARGET"
+        docker image inspect "$TARGET" >/dev/null
+        echo "Loaded $loaded -> $TARGET"
+
     - name: Use custom packages.json and build platform docker image
       if: ${{ inputs.customPackagesJsonUrl != '' }}
       working-directory: ${{ github.action_path }}
