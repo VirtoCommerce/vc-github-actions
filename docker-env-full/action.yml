@@ -63,15 +63,15 @@ inputs:
     description: 'Directory with environment files'
     required: false
     default: '.'
-  prebuiltImagePath:
-    description: 'Path to a docker save tar to load as the platform image instead of building or pulling. When set, installModules / installCustomModule / customPackagesJsonUrl must be unset.'
+  prebuiltImageArtifact:
+    description: 'Name of a workflow artifact containing a docker save tar of the platform image. When set, the action downloads and loads it instead of building or pulling, and installModules / installCustomModule / customPackagesJsonUrl must be unset.'
     required: false
     default: ''
 runs:
   using: "composite"
   steps:
     - name: Validate prebuilt image configuration
-      if: ${{ inputs.prebuiltImagePath != '' }}
+      if: ${{ inputs.prebuiltImageArtifact != '' }}
       shell: bash
       env:
         INSTALL_MODULES: ${{ inputs.installModules }}
@@ -85,14 +85,23 @@ runs:
         [[ -n "$CUSTOM_PACKAGES_JSON_URL" ]]     && err "customPackagesJsonUrl must be empty — build step would overwrite the loaded image tag."
         exit $fail
 
+    - name: Download prebuilt platform image artifact
+      if: ${{ inputs.prebuiltImageArtifact != '' }}
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.prebuiltImageArtifact }}
+        path: ${{ runner.temp }}/prebuilt-image
+
     - name: Load prebuilt platform image
-      if: ${{ inputs.prebuiltImagePath != '' }}
+      if: ${{ inputs.prebuiltImageArtifact != '' }}
       shell: bash
       env:
-        IMAGE_PATH: ${{ inputs.prebuiltImagePath }}
+        ARTIFACT_DIR: ${{ runner.temp }}/prebuilt-image
         TARGET: ${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}
       run: |
-        loaded=$(docker load -i "$IMAGE_PATH" | sed -n -e 's/^Loaded image: //p' -e 's/^Loaded image ID: //p' | head -n1)
+        image_path=$(find "$ARTIFACT_DIR" -maxdepth 2 -name '*.tar' | head -n1)
+        [[ -n "$image_path" ]] || { echo "::error::no *.tar found in artifact at $ARTIFACT_DIR"; exit 1; }
+        loaded=$(docker load -i "$image_path" | sed -n -e 's/^Loaded image: //p' -e 's/^Loaded image ID: //p' | head -n1)
         [[ -n "$loaded" ]] || { echo "::error::docker load did not report an image ref"; exit 1; }
         [[ "$loaded" == "$TARGET" ]] || docker tag "$loaded" "$TARGET"
         docker image inspect "$TARGET" >/dev/null
