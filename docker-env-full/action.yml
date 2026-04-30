@@ -87,7 +87,7 @@ runs:
 
     - name: Download prebuilt platform image artifact
       if: ${{ inputs.prebuiltImageArtifact != '' }}
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: ${{ inputs.prebuiltImageArtifact }}
         path: ${{ runner.temp }}/prebuilt-image
