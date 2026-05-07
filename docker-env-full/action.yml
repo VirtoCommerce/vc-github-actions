@@ -63,6 +63,10 @@ inputs:
     description: 'Directory with environment files'
     required: false
     default: '.'
+  databaseProvider:
+    description: 'Database provider: sqlserver | mysql | postgres'
+    required: false
+    default: 'sqlserver'
 runs:
   using: "composite"
   steps:
@@ -184,7 +188,7 @@ runs:
         }
         # Start only the database and elasticsearch containers first
         Write-Host "::group::Start Database and Elasticsearch containers"
-        docker compose --project-name virtocommerce up -d vc-db es
+        docker compose --project-name virtocommerce -f docker-compose.yml -f docker-compose.${{ inputs.databaseProvider }}.yml up -d vc-db es
         Write-Host "::endgroup::"
         Write-Host "`e[32mDatabase and Elasticsearch containers started."
 
@@ -203,7 +207,7 @@ runs:
         
         # Start the remaining containers (platform and frontend)
         Write-Host "::group::Start Remaining Containers"
-        docker compose --project-name virtocommerce up -d
+        docker compose --project-name virtocommerce -f docker-compose.yml -f docker-compose.${{ inputs.databaseProvider }}.yml up -d
         Write-Host "::endgroup::"
         InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 15 -WaitSeconds 0
         Write-Host "`e[32mAll containers started."

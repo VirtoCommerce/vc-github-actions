@@ -46,6 +46,11 @@ inputs:
     description: 'UI tests repository branch'
     required: true
     type: string
+  artifactSuffix:
+    description: 'Suffix appended to the uploaded artifact name (e.g., a matrix dimension)'
+    required: false
+    default: ''
+    type: string
 runs:
   using: "composite"
   steps:
@@ -252,7 +257,7 @@ runs:
       if: always()
       uses: actions/upload-artifact@v7
       with:
-        name: test-results-${{ github.run_number }}-${{ github.run_attempt }}
+        name: test-results-${{ github.run_number }}-${{ github.run_attempt }}${{ inputs.artifactSuffix }}
         path: ${{ inputs.vctestingPath }}/report/
         if-no-files-found: warn
         retention-days: 30
