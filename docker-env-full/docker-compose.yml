@@ -31,7 +31,7 @@ services:
       - node.name=es
       - cluster.name=${CLUSTER_NAME:-elasticsearch}
       - cluster.initial_master_nodes=es
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-v!rto_Labs!}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - bootstrap.memory_lock=true
       - xpack.security.enabled=false
       - xpack.security.http.ssl.enabled=false
@@ -75,7 +75,7 @@ services:
       - Search:Provider=ElasticSearch8
       - Search:ElasticSearch8:Server=http://es:${ES_PORT:-9200}
       - Search:ElasticSearch8:User=elastic
-      - Search:ElasticSearch8:Key=${ELASTIC_PASSWORD:-v!rto_Labs!}
+      - Search:ElasticSearch8:Key=${ELASTIC_PASSWORD}
       - Search:ElasticSearch8:EnableCompatibilityMode=true
       - Search:PickupLocationFullTextSearchEnabled=true
       - IdentityOptions:User:MaxPasswordAge=0

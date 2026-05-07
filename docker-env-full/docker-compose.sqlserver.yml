@@ -9,14 +9,14 @@ services:
     environment:
       - ACCEPT_EULA=Y
       - MSSQL_PID=Express
-      - MSSQL_SA_PASSWORD=${DB_PASSWORD:-v!rto_Labs!}
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD}
     networks:
       - virto
 
   vc-platform-web:
     environment:
       - DatabaseProvider=SqlServer
-      - ConnectionStrings:VirtoCommerce=Data Source=vc-db;Initial Catalog=VirtoCommerce3docker;Persist Security Info=True;User ID=sa;Password=${DB_PASSWORD:-v!rto_Labs!};MultipleActiveResultSets=False;Connect Timeout=360;TrustServerCertificate=True;
+      - ConnectionStrings:VirtoCommerce=Data Source=vc-db;Initial Catalog=VirtoCommerce3docker;Persist Security Info=True;User ID=sa;Password=${DB_PASSWORD};MultipleActiveResultSets=False;Connect Timeout=360;TrustServerCertificate=True;
     depends_on:
       - vc-db
       - es

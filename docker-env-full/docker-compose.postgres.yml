@@ -7,7 +7,7 @@ services:
     environment:
       - POSTGRES_DB=VirtoCommerce3docker
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-v!rto_Labs!}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql
     networks:
@@ -16,7 +16,7 @@ services:
   vc-platform-web:
     environment:
       - DatabaseProvider=PostgreSql
-      - ConnectionStrings:VirtoCommerce=User ID=postgres;Password=${DB_PASSWORD:-v!rto_Labs!};Host=vc-db;Port=5432;Database=VirtoCommerce3docker
+      - ConnectionStrings:VirtoCommerce=User ID=postgres;Password=${DB_PASSWORD};Host=vc-db;Port=5432;Database=VirtoCommerce3docker
     depends_on:
       - vc-db
       - es

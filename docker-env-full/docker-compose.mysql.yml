@@ -6,7 +6,7 @@ services:
       - "${MYSQL_PORT:-3306}:3306"
     environment:
       - MYSQL_DATABASE=VirtoCommerce3docker
-      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD:-v!rto_Labs!}
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -15,7 +15,7 @@ services:
   vc-platform-web:
     environment:
       - DatabaseProvider=MySql
-      - ConnectionStrings:VirtoCommerce=Server=vc-db;Port=3306;Database=VirtoCommerce3docker;User=root;Password=${DB_PASSWORD:-v!rto_Labs!}
+      - ConnectionStrings:VirtoCommerce=Server=vc-db;Port=3306;Database=VirtoCommerce3docker;User=root;Password=${DB_PASSWORD}
     depends_on:
       - vc-db
       - es

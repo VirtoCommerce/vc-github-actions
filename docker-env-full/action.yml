@@ -165,6 +165,25 @@ runs:
         docker build -f ./nginx/Dockerfile -t "${{ inputs.frontendImage }}:${{ inputs.frontendDockerTag }}" .
         Write-Host "::endgroup::"
 
+    - name: Generate container secrets
+      shell: pwsh
+      run: |
+        function New-RandomPassword {
+          # 32 random alnum chars + 'Vc!' prefix to satisfy SQL Server complexity
+          # (upper/lower/digit/symbol) and stay free of connection-string delimiters.
+          $alphabet = [char[]]'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+          $bytes = New-Object byte[] 32
+          [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+          $chars = foreach ($b in $bytes) { $alphabet[$b % $alphabet.Length] }
+          return 'Vc!' + (-join $chars)
+        }
+        $dbPassword = New-RandomPassword
+        $esPassword = New-RandomPassword
+        Write-Host "::add-mask::$dbPassword"
+        Write-Host "::add-mask::$esPassword"
+        Add-Content -Path $env:GITHUB_ENV -Value "DB_PASSWORD=$dbPassword"
+        Add-Content -Path $env:GITHUB_ENV -Value "ELASTIC_PASSWORD=$esPassword"
+
     - name: Start database container only
       env:
         PLATFORM_IMAGE: ${{ inputs.platformImage }}
