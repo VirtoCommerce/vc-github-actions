@@ -1,0 +1,26 @@
+services:
+
+  vc-db:
+    image: mcr.microsoft.com/mssql/server:${MSSQL_VERSION:-2022-latest}
+    ports:
+      - "${DOCKER_SQL_PORT:-1433}:1433"
+    expose:
+      - 1433
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_PID=Express
+      - MSSQL_SA_PASSWORD=${DB_PASSWORD}
+    networks:
+      - virto
+
+  vc-platform-web:
+    environment:
+      - DatabaseProvider=SqlServer
+      - ConnectionStrings:VirtoCommerce=Data Source=vc-db;Initial Catalog=VirtoCommerce3docker;Persist Security Info=True;User ID=sa;Password=${DB_PASSWORD};MultipleActiveResultSets=False;Connect Timeout=360;TrustServerCertificate=True;
+    depends_on:
+      - vc-db
+      - es
+    entrypoint: ["/wait-for-it.sh", "vc-db:1433", "-t", "120", "--", "/wait-for-it.sh", "es:9200", "-t", "120", "--", "dotnet", "VirtoCommerce.Platform.Web.dll"]
+
+networks:
+  virto:

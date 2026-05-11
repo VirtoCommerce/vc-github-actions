@@ -63,6 +63,10 @@ inputs:
     description: 'Directory with environment files'
     required: false
     default: '.'
+  databaseProvider:
+    description: 'Database provider: sqlserver | mysql | postgres'
+    required: false
+    default: 'sqlserver'
 runs:
   using: "composite"
   steps:
@@ -161,6 +165,25 @@ runs:
         docker build -f ./nginx/Dockerfile -t "${{ inputs.frontendImage }}:${{ inputs.frontendDockerTag }}" .
         Write-Host "::endgroup::"
 
+    - name: Generate container secrets
+      shell: pwsh
+      run: |
+        function New-RandomPassword {
+          # 32 random alnum chars + 'Vc!' prefix to satisfy SQL Server complexity
+          # (upper/lower/digit/symbol) and stay free of connection-string delimiters.
+          $alphabet = [char[]]'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+          $bytes = New-Object byte[] 32
+          [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+          $chars = foreach ($b in $bytes) { $alphabet[$b % $alphabet.Length] }
+          return 'Vc!' + (-join $chars)
+        }
+        $dbPassword = New-RandomPassword
+        $esPassword = New-RandomPassword
+        Write-Host "::add-mask::$dbPassword"
+        Write-Host "::add-mask::$esPassword"
+        Add-Content -Path $env:GITHUB_ENV -Value "DB_PASSWORD=$dbPassword"
+        Add-Content -Path $env:GITHUB_ENV -Value "ELASTIC_PASSWORD=$esPassword"
+
     - name: Start database container only
       env:
         PLATFORM_IMAGE: ${{ inputs.platformImage }}
@@ -184,7 +207,7 @@ runs:
         }
         # Start only the database and elasticsearch containers first
         Write-Host "::group::Start Database and Elasticsearch containers"
-        docker compose --project-name virtocommerce up -d vc-db es
+        docker compose --project-name virtocommerce -f docker-compose.yml -f docker-compose.${{ inputs.databaseProvider }}.yml up -d vc-db es
         Write-Host "::endgroup::"
         Write-Host "`e[32mDatabase and Elasticsearch containers started."
 
@@ -203,7 +226,7 @@ runs:
         
         # Start the remaining containers (platform and frontend)
         Write-Host "::group::Start Remaining Containers"
-        docker compose --project-name virtocommerce up -d
+        docker compose --project-name virtocommerce -f docker-compose.yml -f docker-compose.${{ inputs.databaseProvider }}.yml up -d
         Write-Host "::endgroup::"
         InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 15 -WaitSeconds 0
         Write-Host "`e[32mAll containers started."
