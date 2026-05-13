@@ -138,9 +138,16 @@ runs:
     - name: Build frontend docker image
       working-directory: ${{ github.action_path }}
       shell: pwsh
+      env:
+        GH_TOKEN: ${{ github.token }}
       run: |
         if ( "${{ inputs.frontendZipUrl }}" -eq 'latest' ) {
-          $frontendReleaseInfo = Invoke-RestMethod -Uri "https://api.github.com/repos/VirtoCommerce/vc-frontend/releases/latest"
+          $headers = @{
+            Authorization          = "Bearer $env:GH_TOKEN"
+            Accept                 = 'application/vnd.github+json'
+            'X-GitHub-Api-Version' = '2022-11-28'
+          }
+          $frontendReleaseInfo = Invoke-RestMethod -Uri "https://api.github.com/repos/VirtoCommerce/vc-frontend/releases/latest" -Headers $headers
           $frontendZipUrl = $frontendReleaseInfo.assets.browser_download_url
           Write-Host "`e[32mDownload latest frontend zip and build image"
         }
