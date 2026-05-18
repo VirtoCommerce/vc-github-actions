@@ -13,20 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-services:
+# Base file. The vc-db service and vc-platform-web DB connection settings live
+# in docker-compose.<provider>.yml overlays. Always combine with one overlay:
+#   docker compose -f docker-compose.yml -f docker-compose.sqlserver.yml up -d
 
-  vc-db:
-    image: mcr.microsoft.com/mssql/server:2017-latest
-    ports:
-      - "${DOCKER_SQL_PORT:-1433}:1433"
-    expose:  
-      - 1433  
-    environment: 
-      - ACCEPT_EULA=Y
-      - MSSQL_PID=Express
-      - SA_PASSWORD=v!rto_Labs!
-    networks:
-      - virto
+services:
 
   es:
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION:-8.18.0}
@@ -40,7 +31,7 @@ services:
       - node.name=es
       - cluster.name=${CLUSTER_NAME:-elasticsearch}
       - cluster.initial_master_nodes=es
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-v!rto_Labs!}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - bootstrap.memory_lock=true
       - xpack.security.enabled=false
       - xpack.security.http.ssl.enabled=false
@@ -61,7 +52,7 @@ services:
       interval: 10s
       timeout: 10s
       retries: 120
-  
+
   nginx_frontend:
     depends_on:
       - vc-platform-web
@@ -79,13 +70,12 @@ services:
       - ASPNETCORE_URLS=http://+
       - VirtoCommerce:AllowInsecureHttp=true
       - VirtoCommerce:Hangfire:JobStorageType=Memory
-      - ConnectionStrings:VirtoCommerce=Data Source=vc-db;Initial Catalog=VirtoCommerce3docker;Persist Security Info=True;User ID=sa;Password=v!rto_Labs!;MultipleActiveResultSets=False;Connect Timeout=360;TrustServerCertificate=True;
       - Assets:FileSystem:PublicUrl=http://localhost:${DOCKER_PLATFORM_PORT:-8090}/assets/
       - Content:FileSystem:PublicUrl=http://localhost:${DOCKER_PLATFORM_PORT:-8090}/cms-content/
       - Search:Provider=ElasticSearch8
       - Search:ElasticSearch8:Server=http://es:${ES_PORT:-9200}
       - Search:ElasticSearch8:User=elastic
-      - Search:ElasticSearch8:Key=${ELASTIC_PASSWORD:-v!rto_Labs!}
+      - Search:ElasticSearch8:Key=${ELASTIC_PASSWORD}
       - Search:ElasticSearch8:EnableCompatibilityMode=true
       - Search:PickupLocationFullTextSearchEnabled=true
       - IdentityOptions:User:MaxPasswordAge=0
@@ -93,9 +83,7 @@ services:
       - Notifications:Gateway=SendGrid
       - Notifications:SendGrid:ApiKey=${SENDGRID_API_KEY}
     depends_on:
-      - vc-db
       - es
-    entrypoint: ["/wait-for-it.sh", "vc-db:1433", "-t", "120", "--", "dotnet", "VirtoCommerce.Platform.Web.dll"]
     volumes:
       - cms-content-volume:/opt/virtocommerce/platform/wwwroot/cms-content
       - modules-volume:/opt/virtocommerce/platform/modules

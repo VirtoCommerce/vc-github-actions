@@ -333,10 +333,21 @@ foreach ($key in $dependencyList.Keys) {
     if ($($dependencyList["$key"].split('.')[2]) -notmatch '[A-za-z-]' -and $packagesProcessed -notcontains $key) {
         # release version
         Write-Verbose "Processing dependent module '$key' ..."
-        $i = 0
+
+        # Always compare the platform version declared by this module, even if it has no dependencies.
+        # Previously this check was nested inside `if ($deps)` / `while ($i -lt $deps.Count)`, so any
+        # module with `Dependencies: null` (e.g. VirtoCommerce.Core) had its PlatformVersion silently
+        # ignored, causing a lower platform version from another module to win.
+        $platformVersionDep = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].PlatformVersion
+        if ($platformVersionDep) {
+            $prevPlatformVersion = $platformVersion
+            CompareVersions -currentVersion $platformVersion -requiredVersion $platformVersionDep -moduleId 'platform'
+            if ($platformVersion -ne $prevPlatformVersion) { $platformVersionSource = "dep:$key" }
+        }
+
         $deps = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].Dependencies
         if ($deps) {
-
+            $i = 0
             while ($i -lt $deps.Count) {
                 $id = $deps[$i].Id
                 $version = $deps[$i].Version
@@ -349,10 +360,6 @@ foreach ($key in $dependencyList.Keys) {
                     $packages["$id"] = "$($id)_$($version).zip"
                     if (-not $packageSources.ContainsKey($id)) { $packageSources["$id"] = "dep:$key" }
                 }
-                $platformVersionDep = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].PlatformVersion
-                $prevPlatformVersion = $platformVersion
-                CompareVersions -currentVersion $platformVersion -requiredVersion $platformVersionDep -moduleId platform
-                if ($platformVersion -ne $prevPlatformVersion) { $platformVersionSource = "dep:$key" }
                 $i += 1
             }
         }
@@ -377,10 +384,19 @@ while ($attempts -le 10) {
         if ($($packages["$key"].split('.')[2]) -notmatch '[A-za-z-]' -and $packagesProcessed -notcontains $key) {
             # release version
             Write-Verbose "Processing dependent module '$key' ..."
-            $i = 0
+
+            # Always compare the platform version declared by this module, even if it has no dependencies.
+            # See note in the first-level resolution block above for the rationale.
+            $depsPlatform = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].PlatformVersion
+            if ($depsPlatform) {
+                $prevPlatformVersion = $platformVersion
+                CompareVersions -currentVersion $platformVersion -requiredVersion $depsPlatform -moduleId 'platform'
+                if ($platformVersion -ne $prevPlatformVersion) { $platformVersionSource = "dep:$key" }
+            }
+
             $deps = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].Dependencies
             if ($deps) {
-    
+                $i = 0
                 while ($i -lt $deps.Count) {
                     $id = $deps[$i].Id
                     $version = $deps[$i].Version
@@ -396,11 +412,6 @@ while ($attempts -le 10) {
                         $packages["$id"] = "$($id)_$($version).zip"
                         if (-not $packageSources.ContainsKey($id)) { $packageSources["$id"] = "dep:$key" }
                     }
-                    # compare platform for every dep
-                    $depsPlatform = $($edgePackages | Where-Object { $_.Id -eq $key } | Select-Object -ExpandProperty Versions)[0].PlatformVersion
-                    $prevPlatformVersion = $platformVersion
-                    CompareVersions -currentVersion $platformVersion -requiredVersion $depsPlatform -moduleId 'platform'
-                    if ($platformVersion -ne $prevPlatformVersion) { $platformVersionSource = "dep:$key" }
                     $i += 1
                 }
             }

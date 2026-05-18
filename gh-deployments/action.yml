@@ -44,7 +44,7 @@ inputs:
     description: The deployment status. (For `finish` only)
   no_override:
     required: false
-    description: Whether to mark existing deployments of this environment as inactive
+    description: If 'true' (default), existing deployments of this environment are left active. Set to 'false' to mark previous deployments of this environment as inactive.
     default: 'true'
   log_args:
     required: false
