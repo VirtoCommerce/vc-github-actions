@@ -120,8 +120,10 @@ runs:
         echo "$load_output"
         # Prefer a Loaded image: line whose repo segment matches the target name,
         # so multi-tag tars don't have us retag an arbitrary unrelated ref.
+        # `|| true` swallows grep's exit 1 under pipefail when no ref matches —
+        # the next block handles the empty result.
         target_name="${TARGET%%:*}"
-        loaded=$(printf '%s\n' "$load_output" | sed -n 's/^Loaded image: //p' | grep -E "(^|/)${target_name}:" | head -n1)
+        loaded=$(printf '%s\n' "$load_output" | sed -n 's/^Loaded image: //p' | { grep -E "(^|/)${target_name}:" || true; } | head -n1)
         if [[ -z "$loaded" ]]; then
           loaded=$(printf '%s\n' "$load_output" | sed -n -e 's/^Loaded image: //p' -e 's/^Loaded image ID: //p' | head -n1)
         fi
