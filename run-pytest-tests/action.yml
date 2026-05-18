@@ -157,12 +157,13 @@ runs:
       working-directory: ${{ inputs.vctestingPath }}
       env:
         PYTEST_MARKERS: ${{ inputs.pytestMarkers }}
+        BROWSER: ${{ inputs.browser }}
       run: |
         echo "::group::E2E tests"
         MARKERS="not ignore"
         [ -n "$PYTEST_MARKERS" ] && MARKERS="($MARKERS) and ($PYTEST_MARKERS)"
-        echo "+ pytest tests/e2e -m '$MARKERS' --browser ${{ inputs.browser }} -v -s --color=yes --junitxml=report/e2e-junit.xml"
-        pytest tests/e2e -m "$MARKERS" --browser ${{ inputs.browser }} -v -s --color=yes \
+        echo "+ pytest tests/e2e -m '$MARKERS' --browser '$BROWSER' -v -s --color=yes --junitxml=report/e2e-junit.xml"
+        pytest tests/e2e -m "$MARKERS" --browser "$BROWSER" -v -s --color=yes \
           --junitxml=report/e2e-junit.xml
         echo "::endgroup::"
 
@@ -205,6 +206,9 @@ runs:
         PYTEST_MARKERS: ${{ inputs.pytestMarkers }}
       run: |
         echo "::group::REST API restart-platform test"
+        # Unlike the other suites, this step has no default marker expression
+        # (it targets a single test by node-id), so an empty -m must be omitted
+        # entirely — passing `-m ""` would deselect everything.
         MARKER_ARGS=()
         MARKER_ECHO=""
         if [ -n "$PYTEST_MARKERS" ]; then
