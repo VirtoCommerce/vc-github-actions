@@ -141,9 +141,14 @@ runs:
         echo "::group::GraphQL tests"
         MARKERS="not ignore"
         [ -n "$PYTEST_MARKERS" ] && MARKERS="($MARKERS) and ($PYTEST_MARKERS)"
-        echo "+ pytest tests/graphql -m '$MARKERS' -v -s --color=yes --junitxml=report/graphql-junit.xml"
-        pytest tests/graphql -m "$MARKERS" -v -s --color=yes \
+        # echo "+ pytest tests/graphql -m '$MARKERS' -v -s --color=yes --junitxml=report/graphql-junit.xml"
+        # pytest tests/graphql -m "$MARKERS" -v -s --color=yes \
+        #   --junitxml=report/graphql-junit.xml
+
+        echo "+ pytest tests/graphql -m 'not ignore and not optional' -v -s --color=yes --junitxml=report/graphql-junit.xml"
+        pytest tests/graphql -m "not ignore and not optional" -v -s --color=yes \
           --junitxml=report/graphql-junit.xml
+
         echo "::endgroup::"
 
     - name: Run E2E tests
