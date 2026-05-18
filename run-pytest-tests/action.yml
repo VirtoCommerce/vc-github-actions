@@ -145,9 +145,8 @@ runs:
         # pytest tests/graphql -m "$MARKERS" -v -s --color=yes \
         #   --junitxml=report/graphql-junit.xml
 
-        echo "+ pytest tests/graphql -m 'not ignore and not optional' -v -s --color=yes --junitxml=report/graphql-junit.xml"
-        pytest tests/graphql -m "not ignore and not optional" -v -s --color=yes \
-          --junitxml=report/graphql-junit.xml
+        echo "+ pytest tests/graphql -v -s --color=yes --junitxml=report/graphql-junit.xml -m 'not ignore and not optional'"
+        pytest tests/graphql -v -s --color=yes --junitxml=report/graphql-junit.xml -m 'not ignore and not optional'
 
         echo "::endgroup::"
 
