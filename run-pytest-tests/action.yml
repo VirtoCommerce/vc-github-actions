@@ -141,8 +141,8 @@ runs:
         echo "::group::GraphQL tests"
         MARKERS="not ignore"
         [ -n "$PYTEST_MARKERS" ] && MARKERS="($MARKERS) and ($PYTEST_MARKERS)"
-        pytest tests/graphql -m "$MARKERS" -v -s --color=yes \
-          --junitxml=report/graphql-junit.xml
+        ( set -x; pytest tests/graphql -m "$MARKERS" -v -s --color=yes \
+          --junitxml=report/graphql-junit.xml )
         echo "::endgroup::"
 
     - name: Run E2E tests
@@ -155,8 +155,8 @@ runs:
         echo "::group::E2E tests"
         MARKERS="not ignore"
         [ -n "$PYTEST_MARKERS" ] && MARKERS="($MARKERS) and ($PYTEST_MARKERS)"
-        pytest tests/e2e -m "$MARKERS" --browser ${{ inputs.browser }} -v -s --color=yes \
-          --junitxml=report/e2e-junit.xml
+        ( set -x; pytest tests/e2e -m "$MARKERS" --browser ${{ inputs.browser }} -v -s --color=yes \
+          --junitxml=report/e2e-junit.xml )
         echo "::endgroup::"
 
     - name: Run REST API tests (parallel-safe)
@@ -169,8 +169,8 @@ runs:
         echo "::group::REST API tests (parallel-safe)"
         MARKERS="restapi and not ignore and not serial"
         [ -n "$PYTEST_MARKERS" ] && MARKERS="($MARKERS) and ($PYTEST_MARKERS)"
-        pytest tests/restapi -m "$MARKERS" -v -s --color=yes \
-          --junitxml=report/restapi-junit.xml
+        ( set -x; pytest tests/restapi -m "$MARKERS" -v -s --color=yes \
+          --junitxml=report/restapi-junit.xml )
         echo "::endgroup::"
 
     - name: Run REST API tests (serial — global state mutators)
@@ -183,9 +183,9 @@ runs:
         echo "::group::REST API tests (serial)"
         MARKERS="restapi and serial and not ignore"
         [ -n "$PYTEST_MARKERS" ] && MARKERS="($MARKERS) and ($PYTEST_MARKERS)"
-        pytest tests/restapi -m "$MARKERS" -v -s --color=yes \
+        ( set -x; pytest tests/restapi -m "$MARKERS" -v -s --color=yes \
           --junitxml=report/restapi-serial-junit.xml \
-          --deselect tests/restapi/platform/test_misc.py::test_restart_platform
+          --deselect tests/restapi/platform/test_misc.py::test_restart_platform )
         echo "::endgroup::"
 
     - name: Run REST API test — restart platform (last)
@@ -198,8 +198,8 @@ runs:
         echo "::group::REST API restart-platform test"
         MARKER_ARGS=()
         [ -n "$PYTEST_MARKERS" ] && MARKER_ARGS=(-m "$PYTEST_MARKERS")
-        pytest tests/restapi/platform/test_misc.py::test_restart_platform "${MARKER_ARGS[@]}" -v -s --color=yes \
-          --junitxml=report/restapi-restart-junit.xml
+        ( set -x; pytest tests/restapi/platform/test_misc.py::test_restart_platform "${MARKER_ARGS[@]}" -v -s --color=yes \
+          --junitxml=report/restapi-restart-junit.xml )
         echo "::endgroup::"
 
     - name: Install Allure CLI
