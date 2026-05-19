@@ -28,46 +28,64 @@ function Get-AdminToken {
     throw "Platform did not accept auth within ${timeoutSeconds}s"
 }
 
+$script:reindexDocumentTypes = @('Member', 'Product', 'Category', 'CustomerOrder', 'PickupLocation')
+
 function Start-FullReindex {
     param([string]$token)
-    $body = @(
-        @{ DocumentType = 'Member';         DeleteExistingIndex = $true },
-        @{ DocumentType = 'Product';        DeleteExistingIndex = $true },
-        @{ DocumentType = 'Category';       DeleteExistingIndex = $true },
-        @{ DocumentType = 'CustomerOrder';  DeleteExistingIndex = $true },
-        @{ DocumentType = 'PickupLocation'; DeleteExistingIndex = $true }
-    )
+    $body = $script:reindexDocumentTypes | ForEach-Object {
+        @{ DocumentType = $_; DeleteExistingIndex = $true }
+    }
     $headers = @{
         'Content-Type'  = 'application/json-patch+json'
         'Authorization' = "Bearer $token"
     }
-    Write-Output "Triggering full reindex of $($body.Count) document types..."
-    $resp = Invoke-WebRequest -Uri "$platformUrl/api/search/indexes/index" `
-        -Body ($body | ConvertTo-Json) -Headers $headers -Method POST
-    return ($resp.Content | ConvertFrom-Json)
+    Write-Output "Triggering full reindex of $($body.Count) document types: $($script:reindexDocumentTypes -join ', ')..."
+    Invoke-WebRequest -Uri "$platformUrl/api/search/indexes/index" `
+        -Body ($body | ConvertTo-Json) -Headers $headers -Method POST | Out-Null
 }
 
-function Wait-JobComplete {
-    param([string]$token, [string]$jobId, [string]$label)
+# Polls /api/search/indexes and waits until LastIndexationDate for every requested
+# document type has advanced past $triggerTimeUtc. This is the authoritative signal
+# that indexing actually completed: SetLastIndexationDateAsync runs INSIDE the indexer
+# AFTER documents are committed, so the timestamp only advances on real success — unlike
+# the Hangfire job state, which reports Succeeded even when the indexer's inner exception
+# was swallowed by IndexProgressHandler.
+function Wait-IndexState {
+    param([string]$token, [string[]]$documentTypes, [datetime]$triggerTimeUtc)
     $headers = @{ 'Authorization' = "Bearer $token" }
     $deadline = (Get-Date).AddSeconds($timeoutSeconds)
     while ((Get-Date) -lt $deadline) {
         try {
-            $job = (Invoke-WebRequest -Uri "$platformUrl/api/platform/jobs/$jobId" -Headers $headers -Method GET -ErrorAction Stop).Content | ConvertFrom-Json
-            if ($job.completed) {
-                if ($job.exception) { throw "[$label] job $jobId failed: $($job.exception)" }
-                Write-Output "[$label] job $jobId completed."
+            $states = (Invoke-WebRequest -Uri "$platformUrl/api/search/indexes" -Headers $headers -Method GET -ErrorAction Stop).Content | ConvertFrom-Json
+            $stateByType = @{}
+            foreach ($s in @($states)) { $stateByType[$s.documentType] = $s }
+            $pending = @()
+            foreach ($docType in $documentTypes) {
+                $st = $stateByType[$docType]
+                if (-not $st) {
+                    $pending += "$docType (no IndexState yet)"
+                    continue
+                }
+                if (-not $st.lastIndexationDate) {
+                    $pending += "$docType (lastIndexationDate is null)"
+                    continue
+                }
+                $lid = ([datetime]$st.lastIndexationDate).ToUniversalTime()
+                if ($lid -lt $triggerTimeUtc) {
+                    $pending += "$docType (lastIndexationDate=$($lid.ToString('o')) < trigger=$($triggerTimeUtc.ToString('o')))"
+                }
+            }
+            if ($pending.Count -eq 0) {
+                Write-Output "All requested indexes caught up past trigger time: $($documentTypes -join ', ')."
                 return
             }
-            $desc = $job.description ?? $job.title ?? '<no description>'
-            Write-Output "[$label] job $jobId still running: $desc"
+            Write-Output "Indexing in progress; waiting on: $($pending -join '; ')"
         } catch {
-            # Tolerate transient 5xx / connection drops (e.g. platform restart mid-poll).
-            Write-Output "[$label] transient error polling $jobId; retrying: $($_.Exception.Message)"
+            Write-Output "Transient error reading index state; retrying: $($_.Exception.Message)"
         }
         Start-Sleep -Seconds $pollIntervalSec
     }
-    throw "[$label] job $jobId did not complete within ${timeoutSeconds}s"
+    throw "Indexing did not complete for all requested document types within ${timeoutSeconds}s (triggerTimeUtc=$($triggerTimeUtc.ToString('o')))"
 }
 
 function Test-IndexSmoke {
@@ -120,33 +138,11 @@ function Test-IndexSmoke {
 }
 
 $token       = Get-AdminToken
-$startResult = Start-FullReindex -token $token
+$triggerTime = [datetime]::UtcNow
+Start-FullReindex -token $token
 
-# Response may be a single object or an array — normalize.
-$jobs = @()
-if ($startResult -is [System.Array]) {
-    $jobs = $startResult
-} elseif ($startResult.PSObject.Properties.Name -contains 'JobId') {
-    $jobs = @($startResult)
-} else {
-    throw "Unexpected indexing response shape: $($startResult | ConvertTo-Json -Depth 5)"
-}
-
-$jobIds = $jobs | ForEach-Object {
-    [pscustomobject]@{
-        JobId = $_.JobId
-        Label = if ($_.DocumentType) { $_.DocumentType } else { 'index' }
-    }
-} | Where-Object { $_.JobId }
-
-if (-not $jobIds) {
-    throw "No JobId returned. Response: $($startResult | ConvertTo-Json -Depth 5)"
-}
-
-Write-Output "Waiting for $($jobIds.Count) indexing job(s) to complete..."
-foreach ($j in $jobIds) {
-    Wait-JobComplete -token $token -jobId $j.JobId -label $j.Label
-}
+Write-Output "Waiting for indexes to catch up past $($triggerTime.ToString('o'))..."
+Wait-IndexState -token $token -documentTypes $script:reindexDocumentTypes -triggerTimeUtc $triggerTime
 
 Test-IndexSmoke -token $token -productIds $smokeProductIds -storeId $storeId -cultureName $cultureName -currencyCode $currencyCode
 Write-Output "Indexing complete and verified — safe to start tests."
