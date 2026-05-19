@@ -126,9 +126,21 @@ function Test-RawIndexDocument {
     $headers = @{ 'Authorization' = "Bearer $token" }
     $uri = "$platformUrl/api/search/indexes/index/$documentType/$documentId"
     try {
-        $docs = (Invoke-WebRequest -Uri $uri -Headers $headers -Method GET -ErrorAction Stop).Content | ConvertFrom-Json
+        $raw  = (Invoke-WebRequest -Uri $uri -Headers $headers -Method GET -ErrorAction Stop).Content
+        $docs = $raw | ConvertFrom-Json
         if ($docs -and @($docs).Count -gt 0) {
-            Write-Output "Raw index HIT for $documentType/$documentId (doc id in index: $(@($docs)[0].id ?? '<no id field>'))."
+            $first = @($docs)[0]
+            $topLevelKeys = (($first | Get-Member -MemberType NoteProperty | ForEach-Object Name) -join ', ')
+            $idField    = $first.id     ?? '<null>'
+            $idFieldUC  = $first.Id     ?? '<null>'
+            $underscore = $first._id    ?? '<null>'
+            $kKey       = $first.__key  ?? '<null>'
+            Write-Output "Raw index HIT for $documentType/$documentId."
+            Write-Output "  Top-level keys: $topLevelKeys"
+            Write-Output "  .id=$idField  .Id=$idFieldUC  ._id=$underscore  .__key=$kKey"
+            # Dump the first 600 chars of the raw JSON for unambiguous inspection.
+            $snippet = if ($raw.Length -gt 600) { $raw.Substring(0, 600) + '...' } else { $raw }
+            Write-Output "  Raw JSON snippet: $snippet"
         } else {
             Write-Output "Raw index MISS for $documentType/$documentId — document is not in the search index even though the indexer reported success."
         }
