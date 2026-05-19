@@ -30,6 +30,9 @@ function Get-AdminToken {
 
 $script:reindexDocumentTypes = @('Member', 'Product', 'Category', 'CustomerOrder', 'PickupLocation')
 
+# Triggers a full rebuild (DeleteExistingIndex=$true) so every seeded record is re-emitted
+# into a clean index. Returns the IndexProgressPushNotification — its 'id' is what we poll
+# below to know when the indexer truly finished.
 function Start-FullReindex {
     param([string]$token)
     $body = $script:reindexDocumentTypes | ForEach-Object {
@@ -39,53 +42,62 @@ function Start-FullReindex {
         'Content-Type'  = 'application/json-patch+json'
         'Authorization' = "Bearer $token"
     }
-    Write-Output "Triggering full reindex of $($body.Count) document types: $($script:reindexDocumentTypes -join ', ')..."
-    Invoke-WebRequest -Uri "$platformUrl/api/search/indexes/index" `
-        -Body ($body | ConvertTo-Json) -Headers $headers -Method POST | Out-Null
+    Write-Output "Triggering full reindex (DeleteExistingIndex=true) of $($body.Count) document types: $($script:reindexDocumentTypes -join ', ')..."
+    $resp = Invoke-WebRequest -Uri "$platformUrl/api/search/indexes/index" `
+        -Body ($body | ConvertTo-Json) -Headers $headers -Method POST
+    return ($resp.Content | ConvertFrom-Json)
 }
 
-# Polls /api/search/indexes and waits until LastIndexationDate for every requested
-# document type has advanced past $triggerTimeUtc. This is the authoritative signal
-# that indexing actually completed: SetLastIndexationDateAsync runs INSIDE the indexer
-# AFTER documents are committed, so the timestamp only advances on real success — unlike
-# the Hangfire job state, which reports Succeeded even when the indexer's inner exception
-# was swallowed by IndexProgressHandler.
-function Wait-IndexState {
-    param([string]$token, [string[]]$documentTypes, [datetime]$triggerTimeUtc)
-    $headers = @{ 'Authorization' = "Bearer $token" }
+# Polls the IndexProgressPushNotification by id until $notification.finished is set.
+# This is the indexer's own end-of-work signal: IndexProgressHandler.Finish() is called
+# inside the Hangfire job's finally block and sets 'finished' regardless of success/failure.
+# 'errorCount' + 'errors' carry every per-document failure AND any wrapper-level exception
+# that IndexProgressHandler.Exception(...) recorded. So this is strictly more authoritative
+# than the Hangfire job state OR the IndexState.LastIndexationDate timestamps.
+function Wait-IndexerFinished {
+    param([string]$token, [string]$notificationId)
+    $headers = @{
+        'Content-Type'  = 'application/json'
+        'Authorization' = "Bearer $token"
+    }
+    $criteria = @{ Ids = @($notificationId) } | ConvertTo-Json
     $deadline = (Get-Date).AddSeconds($timeoutSeconds)
+    $lastDescription = ''
     while ((Get-Date) -lt $deadline) {
         try {
-            $states = (Invoke-WebRequest -Uri "$platformUrl/api/search/indexes" -Headers $headers -Method GET -ErrorAction Stop).Content | ConvertFrom-Json
-            $stateByType = @{}
-            foreach ($s in @($states)) { $stateByType[$s.documentType] = $s }
-            $pending = @()
-            foreach ($docType in $documentTypes) {
-                $st = $stateByType[$docType]
-                if (-not $st) {
-                    $pending += "$docType (no IndexState yet)"
-                    continue
+            $resp = (Invoke-WebRequest -Uri "$platformUrl/api/platform/pushnotifications" `
+                -Body $criteria -Headers $headers -Method POST -ErrorAction Stop).Content | ConvertFrom-Json
+            $notif = @($resp.notifyEvents)[0]
+            if (-not $notif) {
+                Write-Output "Notification $notificationId not yet visible; retrying in ${pollIntervalSec}s..."
+            } else {
+                $processed = [long]($notif.processedCount ?? 0)
+                $total     = [long]($notif.totalCount ?? 0)
+                $errors    = [long]($notif.errorCount ?? 0)
+                $docType   = $notif.documentType
+                $desc      = $notif.description
+                if ($notif.finished) {
+                    if ($errors -gt 0) {
+                        $errList = (@($notif.errors) | Select-Object -First 5) -join ' | '
+                        throw "Indexer finished with $errors error(s). First few: $errList"
+                    }
+                    Write-Output "Indexer finished: $processed/$total processed across all document types."
+                    return
                 }
-                if (-not $st.lastIndexationDate) {
-                    $pending += "$docType (lastIndexationDate is null)"
-                    continue
-                }
-                $lid = ([datetime]$st.lastIndexationDate).ToUniversalTime()
-                if ($lid -lt $triggerTimeUtc) {
-                    $pending += "$docType (lastIndexationDate=$($lid.ToString('o')) < trigger=$($triggerTimeUtc.ToString('o')))"
+                # Suppress repetitive identical progress lines.
+                $line = "Indexer running [$docType]: $processed/$total | $desc"
+                if ($line -ne $lastDescription) {
+                    Write-Output $line
+                    $lastDescription = $line
                 }
             }
-            if ($pending.Count -eq 0) {
-                Write-Output "All requested indexes caught up past trigger time: $($documentTypes -join ', ')."
-                return
-            }
-            Write-Output "Indexing in progress; waiting on: $($pending -join '; ')"
         } catch {
-            Write-Output "Transient error reading index state; retrying: $($_.Exception.Message)"
+            if ($_.Exception.Message -like 'Indexer finished with*') { throw }
+            Write-Output "Transient error polling notification; retrying: $($_.Exception.Message)"
         }
         Start-Sleep -Seconds $pollIntervalSec
     }
-    throw "Indexing did not complete for all requested document types within ${timeoutSeconds}s (triggerTimeUtc=$($triggerTimeUtc.ToString('o')))"
+    throw "Indexer did not finish within ${timeoutSeconds}s (notificationId=$notificationId)"
 }
 
 function Test-IndexSmoke {
@@ -137,12 +149,14 @@ function Test-IndexSmoke {
     }
 }
 
-$token       = Get-AdminToken
-$triggerTime = [datetime]::UtcNow
-Start-FullReindex -token $token
+$token = Get-AdminToken
+$notification = Start-FullReindex -token $token
+if (-not $notification.id) {
+    throw "Reindex POST returned no notification id. Response: $($notification | ConvertTo-Json -Depth 5)"
+}
+Write-Output "Reindex enqueued: notificationId=$($notification.id), jobId=$($notification.jobId)"
 
-Write-Output "Waiting for indexes to catch up past $($triggerTime.ToString('o'))..."
-Wait-IndexState -token $token -documentTypes $script:reindexDocumentTypes -triggerTimeUtc $triggerTime
+Wait-IndexerFinished -token $token -notificationId $notification.id
 
 Test-IndexSmoke -token $token -productIds $smokeProductIds -storeId $storeId -cultureName $cultureName -currencyCode $currencyCode
 Write-Output "Indexing complete and verified — safe to start tests."
