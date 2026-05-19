@@ -6,7 +6,8 @@ param(
     [int]   $pollIntervalSec   = 5,
     [string[]]$smokeProductIds = @('smartphone-apple-iphone-17-256gb-black'),
     [string]$storeId           = 'store-acme',
-    [string]$cultureName       = 'en-US'
+    [string]$cultureName       = 'en-US',
+    [string]$currencyCode      = 'USD'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -70,15 +71,15 @@ function Wait-JobComplete {
 }
 
 function Test-IndexSmoke {
-    param([string]$token, [string[]]$productIds, [string]$storeId, [string]$cultureName)
+    param([string]$token, [string[]]$productIds, [string]$storeId, [string]$cultureName, [string]$currencyCode)
     $headers = @{
         'Content-Type'  = 'application/json'
         'Authorization' = "Bearer $token"
     }
     foreach ($id in $productIds) {
         $query = @{
-            query     = 'query($id:String!,$storeId:String!,$cultureName:String){ product(id:$id,storeId:$storeId,cultureName:$cultureName){ id name } }'
-            variables = @{ id = $id; storeId = $storeId; cultureName = $cultureName }
+            query     = 'query($id:String!,$storeId:String!,$cultureName:String,$currencyCode:String){ product(id:$id,storeId:$storeId,cultureName:$cultureName,currencyCode:$currencyCode){ id name availabilityData { isAvailable isBuyable isInStock availableQuantity } } }'
+            variables = @{ id = $id; storeId = $storeId; cultureName = $cultureName; currencyCode = $currencyCode }
         } | ConvertTo-Json -Compress
         $deadline = (Get-Date).AddSeconds($timeoutSeconds)
         $passed = $false
@@ -87,15 +88,22 @@ function Test-IndexSmoke {
             try {
                 $resp = (Invoke-WebRequest -Uri "$platformUrl/graphql" -Body $query -Headers $headers -Method POST -ErrorAction Stop).Content | ConvertFrom-Json
                 if ($resp.errors) {
-                    # GraphQL server-side errors are not transient — surface and fail fast.
+                    # GraphQL server-side errors (schema/auth/store-config) are not transient — surface and fail fast.
                     $errMsg = ($resp.errors | ForEach-Object { $_.message }) -join '; '
                     throw "GraphQL error for product '$id': $errMsg"
                 }
-                if ($resp.data.product) {
+                $product = $resp.data.product
+                if (-not $product) {
+                    $lastReason = "product '$id' not yet in catalog index"
+                } elseif (-not $product.availabilityData) {
+                    $lastReason = "product '$id' present but availabilityData is null (pricing/inventory index not ready)"
+                } elseif (-not $product.availabilityData.isBuyable) {
+                    $a = $product.availabilityData
+                    $lastReason = "product '$id' not yet buyable (isAvailable=$($a.isAvailable), isInStock=$($a.isInStock), availableQuantity=$($a.availableQuantity)) — waiting for price/inventory indexes to settle"
+                } else {
                     $passed = $true
                     break
                 }
-                $lastReason = "product '$id' not present in catalog index yet (data.product is null, no GraphQL errors)"
             } catch {
                 # Re-throw GraphQL-error wrapping immediately; only retry transport-level failures.
                 if ($_.Exception.Message -like 'GraphQL error*') { throw }
@@ -107,7 +115,7 @@ function Test-IndexSmoke {
         if (-not $passed) {
             throw "Smoke check failed for product '$id' within ${timeoutSeconds}s: $lastReason"
         }
-        Write-Output "Smoke check passed for product '$id'."
+        Write-Output "Smoke check passed for product '$id' (buyable)."
     }
 }
 
@@ -140,5 +148,5 @@ foreach ($j in $jobIds) {
     Wait-JobComplete -token $token -jobId $j.JobId -label $j.Label
 }
 
-Test-IndexSmoke -token $token -productIds $smokeProductIds -storeId $storeId -cultureName $cultureName
+Test-IndexSmoke -token $token -productIds $smokeProductIds -storeId $storeId -cultureName $cultureName -currencyCode $currencyCode
 Write-Output "Indexing complete and verified — safe to start tests."
