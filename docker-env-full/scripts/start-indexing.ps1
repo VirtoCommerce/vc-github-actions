@@ -4,7 +4,9 @@ param(
     [string]$adminPassword     = 'store',
     [int]   $timeoutSeconds    = 900,
     [int]   $pollIntervalSec   = 5,
-    [string[]]$smokeProductIds = @('smartphone-apple-iphone-17-256gb-black')
+    [string[]]$smokeProductIds = @('smartphone-apple-iphone-17-256gb-black'),
+    [string]$storeId           = 'store-acme',
+    [string]$cultureName       = 'en-US'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -68,15 +70,15 @@ function Wait-JobComplete {
 }
 
 function Test-IndexSmoke {
-    param([string]$token, [string[]]$productIds)
+    param([string]$token, [string[]]$productIds, [string]$storeId, [string]$cultureName)
     $headers = @{
         'Content-Type'  = 'application/json'
         'Authorization' = "Bearer $token"
     }
     foreach ($id in $productIds) {
         $query = @{
-            query     = 'query($id:String!){ product(id:$id){ id name availabilityData { isAvailable isBuyable } } }'
-            variables = @{ id = $id }
+            query     = 'query($id:String!,$storeId:String!,$cultureName:String){ product(id:$id,storeId:$storeId,cultureName:$cultureName){ id name availabilityData { isAvailable isBuyable } } }'
+            variables = @{ id = $id; storeId = $storeId; cultureName = $cultureName }
         } | ConvertTo-Json -Compress
         $deadline = (Get-Date).AddSeconds($timeoutSeconds)
         $passed = $false
@@ -134,5 +136,5 @@ foreach ($j in $jobIds) {
     Wait-JobComplete -token $token -jobId $j.JobId -label $j.Label
 }
 
-Test-IndexSmoke -token $token -productIds $smokeProductIds
+Test-IndexSmoke -token $token -productIds $smokeProductIds -storeId $storeId -cultureName $cultureName
 Write-Output "Indexing complete and verified — safe to start tests."
