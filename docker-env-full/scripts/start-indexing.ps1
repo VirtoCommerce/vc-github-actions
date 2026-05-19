@@ -128,14 +128,12 @@ function Test-RawIndexDocument {
     try {
         $docs = (Invoke-WebRequest -Uri $uri -Headers $headers -Method GET -ErrorAction Stop).Content | ConvertFrom-Json
         if ($docs -and @($docs).Count -gt 0) {
-            Write-Output "Raw index HIT for $documentType/$documentId."
-            return $true
+            Write-Output "Raw index HIT for $documentType/$documentId (doc id in index: $(@($docs)[0].id ?? '<no id field>'))."
+        } else {
+            Write-Output "Raw index MISS for $documentType/$documentId — document is not in the search index even though the indexer reported success."
         }
-        Write-Output "Raw index MISS for $documentType/$documentId — document is not in the search index even though the indexer reported success."
-        return $false
     } catch {
         Write-Output "Raw index lookup for $documentType/$documentId failed: $($_.Exception.Message)"
-        return $false
     }
 }
 
@@ -199,7 +197,7 @@ Wait-IndexerFinished -token $token -notificationId $notification.id
 
 Write-IndexCounts -token $token
 foreach ($id in $smokeProductIds) {
-    [void](Test-RawIndexDocument -token $token -documentType 'Product' -documentId $id)
+    Test-RawIndexDocument -token $token -documentType 'Product' -documentId $id
 }
 
 Test-IndexSmoke -token $token -productIds $smokeProductIds -storeId $storeId -cultureName $cultureName -currencyCode $currencyCode
