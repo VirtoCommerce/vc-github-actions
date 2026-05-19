@@ -100,6 +100,45 @@ function Wait-IndexerFinished {
     throw "Indexer did not finish within ${timeoutSeconds}s (notificationId=$notificationId)"
 }
 
+# Lists per-document-type counts from /api/search/indexes. Useful sanity check after the
+# indexer reports "finished" — if Product is 0 we have a clear, fast diagnostic instead of
+# watching the XAPI smoke check loop spin until timeout.
+function Write-IndexCounts {
+    param([string]$token)
+    $headers = @{ 'Authorization' = "Bearer $token" }
+    try {
+        $states = (Invoke-WebRequest -Uri "$platformUrl/api/search/indexes" -Headers $headers -Method GET -ErrorAction Stop).Content | ConvertFrom-Json
+        Write-Output "Per-type index counts:"
+        foreach ($s in @($states)) {
+            Write-Output "  $($s.documentType): $($s.indexedDocumentsCount) docs (provider=$($s.provider), lastIndexationDate=$($s.lastIndexationDate))"
+        }
+    } catch {
+        Write-Output "Could not read /api/search/indexes: $($_.Exception.Message)"
+    }
+}
+
+# Direct raw-index read for a single document. Bypasses XAPI's resolver and store/catalog
+# filtering — answers the bare "is doc X in the {type} index?" question. If this finds the
+# product, XAPI failure is a resolver/filter issue. If it doesn't, the indexer skipped the
+# doc despite reporting overall success.
+function Test-RawIndexDocument {
+    param([string]$token, [string]$documentType, [string]$documentId)
+    $headers = @{ 'Authorization' = "Bearer $token" }
+    $uri = "$platformUrl/api/search/indexes/index/$documentType/$documentId"
+    try {
+        $docs = (Invoke-WebRequest -Uri $uri -Headers $headers -Method GET -ErrorAction Stop).Content | ConvertFrom-Json
+        if ($docs -and @($docs).Count -gt 0) {
+            Write-Output "Raw index HIT for $documentType/$documentId."
+            return $true
+        }
+        Write-Output "Raw index MISS for $documentType/$documentId — document is not in the search index even though the indexer reported success."
+        return $false
+    } catch {
+        Write-Output "Raw index lookup for $documentType/$documentId failed: $($_.Exception.Message)"
+        return $false
+    }
+}
+
 function Test-IndexSmoke {
     param([string]$token, [string[]]$productIds, [string]$storeId, [string]$cultureName, [string]$currencyCode)
     $headers = @{
@@ -157,6 +196,11 @@ if (-not $notification.id) {
 Write-Output "Reindex enqueued: notificationId=$($notification.id), jobId=$($notification.jobId)"
 
 Wait-IndexerFinished -token $token -notificationId $notification.id
+
+Write-IndexCounts -token $token
+foreach ($id in $smokeProductIds) {
+    [void](Test-RawIndexDocument -token $token -documentType 'Product' -documentId $id)
+}
 
 Test-IndexSmoke -token $token -productIds $smokeProductIds -storeId $storeId -cultureName $cultureName -currencyCode $currencyCode
 Write-Output "Indexing complete and verified — safe to start tests."
