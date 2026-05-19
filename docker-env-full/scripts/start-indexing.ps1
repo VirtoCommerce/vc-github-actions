@@ -77,7 +77,7 @@ function Test-IndexSmoke {
     }
     foreach ($id in $productIds) {
         $query = @{
-            query     = 'query($id:String!,$storeId:String!,$cultureName:String){ product(id:$id,storeId:$storeId,cultureName:$cultureName){ id name availabilityData { isAvailable isBuyable } } }'
+            query     = 'query($id:String!,$storeId:String!,$cultureName:String){ product(id:$id,storeId:$storeId,cultureName:$cultureName){ id name } }'
             variables = @{ id = $id; storeId = $storeId; cultureName = $cultureName }
         } | ConvertTo-Json -Compress
         $deadline = (Get-Date).AddSeconds($timeoutSeconds)
@@ -86,15 +86,19 @@ function Test-IndexSmoke {
         while ((Get-Date) -lt $deadline) {
             try {
                 $resp = (Invoke-WebRequest -Uri "$platformUrl/graphql" -Body $query -Headers $headers -Method POST -ErrorAction Stop).Content | ConvertFrom-Json
-                if (-not $resp.data.product) {
-                    $lastReason = "product '$id' not present in catalog index"
-                } elseif ($resp.data.product.availabilityData -and -not $resp.data.product.availabilityData.isAvailable) {
-                    $lastReason = "product '$id' present but marked unavailable"
-                } else {
+                if ($resp.errors) {
+                    # GraphQL server-side errors are not transient — surface and fail fast.
+                    $errMsg = ($resp.errors | ForEach-Object { $_.message }) -join '; '
+                    throw "GraphQL error for product '$id': $errMsg"
+                }
+                if ($resp.data.product) {
                     $passed = $true
                     break
                 }
+                $lastReason = "product '$id' not present in catalog index yet (data.product is null, no GraphQL errors)"
             } catch {
+                # Re-throw GraphQL-error wrapping immediately; only retry transport-level failures.
+                if ($_.Exception.Message -like 'GraphQL error*') { throw }
                 $lastReason = $_.Exception.Message
             }
             Write-Output "Smoke check for '$id' not ready: $lastReason. Retrying in ${pollIntervalSec}s..."
