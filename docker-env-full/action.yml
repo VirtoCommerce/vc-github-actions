@@ -67,9 +67,71 @@ inputs:
     description: 'Database provider: sqlserver | mysql | postgres'
     required: false
     default: 'sqlserver'
+  prebuiltImageArtifact:
+    description: |
+      Name of a workflow artifact containing a `docker save` tar of the platform image.
+      When set, the action downloads and `docker load`s it instead of building or pulling.
+
+      BREAKING CONTRACT — when this input is set, the following inputs MUST be at the listed values
+      (the action will fail-fast with an actionable error otherwise):
+        - installModules:        'false'  (a volume mount would otherwise shadow the baked-in modules)
+        - installCustomModule:   'false'  (the build step would overwrite the loaded image tag)
+        - customPackagesJsonUrl: ''       (the build step would overwrite the loaded image tag)
+    required: false
+    default: ''
 runs:
   using: "composite"
   steps:
+    - name: Validate prebuilt image configuration
+      if: ${{ inputs.prebuiltImageArtifact != '' }}
+      shell: bash
+      env:
+        INSTALL_MODULES: ${{ inputs.installModules }}
+        INSTALL_CUSTOM_MODULE: ${{ inputs.installCustomModule }}
+        CUSTOM_PACKAGES_JSON_URL: ${{ inputs.customPackagesJsonUrl }}
+      run: |
+        fail=0
+        err() { echo "::error::$1"; fail=1; }
+        [[ "$INSTALL_MODULES" == "true" ]]       && err "prebuiltImageArtifact requires installModules='false' — a volume mount would shadow baked-in modules. Set installModules: 'false' on the caller side."
+        [[ "$INSTALL_CUSTOM_MODULE" == "true" ]] && err "prebuiltImageArtifact requires installCustomModule='false' — the build step would overwrite the loaded image tag. Set installCustomModule: 'false' on the caller side."
+        [[ -n "$CUSTOM_PACKAGES_JSON_URL" ]]     && err "prebuiltImageArtifact requires customPackagesJsonUrl='' — the build step would overwrite the loaded image tag. Unset customPackagesJsonUrl on the caller side."
+        if [[ $fail -ne 0 ]]; then
+          echo "::error::Incompatible inputs combined with prebuiltImageArtifact. See the input description for the full contract."
+        fi
+        exit $fail
+
+    - name: Download prebuilt platform image artifact
+      if: ${{ inputs.prebuiltImageArtifact != '' }}
+      uses: actions/download-artifact@v8
+      with:
+        name: ${{ inputs.prebuiltImageArtifact }}
+        path: ${{ runner.temp }}/prebuilt-image
+
+    - name: Load prebuilt platform image
+      if: ${{ inputs.prebuiltImageArtifact != '' }}
+      shell: bash
+      env:
+        ARTIFACT_DIR: ${{ runner.temp }}/prebuilt-image
+        TARGET: ${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}
+      run: |
+        image_path=$(find "$ARTIFACT_DIR" -maxdepth 2 -type f -name '*.tar' | head -n1)
+        [[ -n "$image_path" ]] || { echo "::error::no *.tar found in artifact at $ARTIFACT_DIR"; exit 1; }
+        load_output=$(docker load -i "$image_path")
+        echo "$load_output"
+        # Prefer a Loaded image: line whose repo segment matches the target name,
+        # so multi-tag tars don't have us retag an arbitrary unrelated ref.
+        # `|| true` swallows grep's exit 1 under pipefail when no ref matches —
+        # the next block handles the empty result.
+        target_name="${TARGET%%:*}"
+        loaded=$(printf '%s\n' "$load_output" | sed -n 's/^Loaded image: //p' | { grep -E "(^|/)${target_name}:" || true; } | head -n1)
+        if [[ -z "$loaded" ]]; then
+          loaded=$(printf '%s\n' "$load_output" | sed -n -e 's/^Loaded image: //p' -e 's/^Loaded image ID: //p' | head -n1)
+        fi
+        [[ -n "$loaded" ]] || { echo "::error::docker load did not report an image ref"; exit 1; }
+        [[ "$loaded" == "$TARGET" ]] || docker tag "$loaded" "$TARGET"
+        docker image inspect "$TARGET" >/dev/null
+        echo "Loaded $loaded -> $TARGET"
+
     - name: Use custom packages.json and build platform docker image
       if: ${{ inputs.customPackagesJsonUrl != '' }}
       working-directory: ${{ github.action_path }}
@@ -191,30 +253,33 @@ runs:
         Add-Content -Path $env:GITHUB_ENV -Value "DB_PASSWORD=$dbPassword"
         Add-Content -Path $env:GITHUB_ENV -Value "ELASTIC_PASSWORD=$esPassword"
 
-    - name: Start database container only
+    - name: Start database and elasticsearch containers
       env:
         PLATFORM_IMAGE: ${{ inputs.platformImage }}
         PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
         ENV_DIR: ${{ inputs.envDir }}
+        SENDGRID_API_KEY: ${{ inputs.sendgridApiKey }}
+        INSTALL_MODULES: ${{ inputs.installModules }}
+        DB_PROVIDER: ${{ inputs.databaseProvider }}
       shell: pwsh
       working-directory: ${{ github.action_path }}
       run: |
-        Write-Host "`e[33mStart Database Container step started."
-        # for the case of install modules
-        echo "inputs.installModules is ${{ inputs.installModules }}"
-        if ( '${{ inputs.installModules }}' -eq 'true' ){
-          Write-host "Start modify docker-compose.yml"
+        Write-Host "`e[33mStart Containers step started."
+        $platformContainer = "virtocommerce-vc-platform-web-1"
+        . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
+
+        if ( $env:INSTALL_MODULES -eq 'true' ){
+          Write-Host "Modify docker-compose.yml to mount installed modules"
           Install-Module -Name powershell-yaml -Force -allowClobber
-          $parsedYaml = Get-Content -Path ./docker-compose.yml -Raw | ConvertFrom-Yaml 
+          $parsedYaml = Get-Content -Path ./docker-compose.yml -Raw | ConvertFrom-Yaml
           $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/modules:/opt/virtocommerce/platform/modules')
           $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/app_data:/opt/virtocommerce/platform/app_data')
           $parsedYaml | ConvertTo-Yaml | Set-Content ./docker-compose.yml
           cat ./docker-compose.yml
-          Write-Host "`e[32mDocker-compose.yml modified"
         }
         # Start only the database and elasticsearch containers first
         Write-Host "::group::Start Database and Elasticsearch containers"
-        docker compose --project-name virtocommerce -f docker-compose.yml -f docker-compose.${{ inputs.databaseProvider }}.yml up -d vc-db es
+        docker compose --project-name virtocommerce -f docker-compose.yml -f "docker-compose.$env:DB_PROVIDER.yml" up -d vc-db es
         Write-Host "::endgroup::"
         Write-Host "`e[32mDatabase and Elasticsearch containers started."
 
@@ -224,22 +289,23 @@ runs:
         PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
         ENV_DIR: ${{ inputs.envDir }}
         SENDGRID_API_KEY: ${{ inputs.sendgridApiKey }}
+        DB_PROVIDER: ${{ inputs.databaseProvider }}
       shell: pwsh
       working-directory: ${{ github.action_path }}
       run: |
         Write-Host "`e[33mStart Remaining Containers step started."
         $platformContainer = "virtocommerce-vc-platform-web-1"
         . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
-        
+
         # Start the remaining containers (platform and frontend)
         Write-Host "::group::Start Remaining Containers"
-        docker compose --project-name virtocommerce -f docker-compose.yml -f docker-compose.${{ inputs.databaseProvider }}.yml up -d
+        docker compose --project-name virtocommerce -f docker-compose.yml -f "docker-compose.$env:DB_PROVIDER.yml" up -d
         Write-Host "::endgroup::"
         InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 15 -WaitSeconds 0
         Write-Host "`e[32mAll containers started."
         
     - name: Check Installed Modules
-      if: ${{ inputs.installModules == 'true' || inputs.installCustomModule == 'true' || inputs.customPackagesJsonUrl != '' }}
+      if: ${{ inputs.installModules == 'true' || inputs.installCustomModule == 'true' || inputs.customPackagesJsonUrl != '' || inputs.prebuiltImageArtifact != '' }}
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |

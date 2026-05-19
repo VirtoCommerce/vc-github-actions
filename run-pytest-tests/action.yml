@@ -25,6 +25,11 @@ inputs:
     description: 'Browser'
     required: true
     type: string
+  pytestMarkers:
+    description: 'Additional pytest -m marker expression, AND-combined with each suite''s default markers. Leave empty to use defaults only.'
+    required: false
+    default: ''
+    type: string
   testSecretEnvFile:
     description: 'Test secret environment file content'
     required: true
@@ -135,9 +140,14 @@ runs:
       shell: bash
       if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'graphql')
       working-directory: ${{ inputs.vctestingPath }}
+      env:
+        PYTEST_MARKERS: ${{ inputs.pytestMarkers }}
       run: |
         echo "::group::GraphQL tests"
-        pytest tests/graphql -m "not ignore" -v -s --color=yes \
+        MARKERS="not ignore"
+        [ -n "$PYTEST_MARKERS" ] && MARKERS="($MARKERS) and ($PYTEST_MARKERS)"
+        echo "+ pytest tests/graphql -m '$MARKERS' -v -s --color=yes --junitxml=report/graphql-junit.xml"
+        pytest tests/graphql -m "$MARKERS" -v -s --color=yes \
           --junitxml=report/graphql-junit.xml
         echo "::endgroup::"
 
@@ -145,9 +155,15 @@ runs:
       shell: bash
       if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'e2e')
       working-directory: ${{ inputs.vctestingPath }}
+      env:
+        PYTEST_MARKERS: ${{ inputs.pytestMarkers }}
+        BROWSER: ${{ inputs.browser }}
       run: |
         echo "::group::E2E tests"
-        pytest tests/e2e -m "not ignore" --browser ${{ inputs.browser }} -v -s --color=yes \
+        MARKERS="not ignore"
+        [ -n "$PYTEST_MARKERS" ] && MARKERS="($MARKERS) and ($PYTEST_MARKERS)"
+        echo "+ pytest tests/e2e -m '$MARKERS' --browser '$BROWSER' -v -s --color=yes --junitxml=report/e2e-junit.xml"
+        pytest tests/e2e -m "$MARKERS" --browser "$BROWSER" -v -s --color=yes \
           --junitxml=report/e2e-junit.xml
         echo "::endgroup::"
 
@@ -155,9 +171,14 @@ runs:
       shell: bash
       if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'restapi')
       working-directory: ${{ inputs.vctestingPath }}
+      env:
+        PYTEST_MARKERS: ${{ inputs.pytestMarkers }}
       run: |
         echo "::group::REST API tests (parallel-safe)"
-        pytest tests/restapi -m "restapi and not ignore and not serial" -v -s --color=yes \
+        MARKERS="restapi and not ignore and not serial"
+        [ -n "$PYTEST_MARKERS" ] && MARKERS="($MARKERS) and ($PYTEST_MARKERS)"
+        echo "+ pytest tests/restapi -m '$MARKERS' -v -s --color=yes --junitxml=report/restapi-junit.xml"
+        pytest tests/restapi -m "$MARKERS" -v -s --color=yes \
           --junitxml=report/restapi-junit.xml
         echo "::endgroup::"
 
@@ -165,9 +186,14 @@ runs:
       shell: bash
       if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'restapi')
       working-directory: ${{ inputs.vctestingPath }}
+      env:
+        PYTEST_MARKERS: ${{ inputs.pytestMarkers }}
       run: |
         echo "::group::REST API tests (serial)"
-        pytest tests/restapi -m "restapi and serial and not ignore" -v -s --color=yes \
+        MARKERS="restapi and serial and not ignore"
+        [ -n "$PYTEST_MARKERS" ] && MARKERS="($MARKERS) and ($PYTEST_MARKERS)"
+        echo "+ pytest tests/restapi -m '$MARKERS' -v -s --color=yes --junitxml=report/restapi-serial-junit.xml --deselect tests/restapi/platform/test_misc.py::test_restart_platform"
+        pytest tests/restapi -m "$MARKERS" -v -s --color=yes \
           --junitxml=report/restapi-serial-junit.xml \
           --deselect tests/restapi/platform/test_misc.py::test_restart_platform
         echo "::endgroup::"
@@ -176,9 +202,21 @@ runs:
       shell: bash
       if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'restapi')
       working-directory: ${{ inputs.vctestingPath }}
+      env:
+        PYTEST_MARKERS: ${{ inputs.pytestMarkers }}
       run: |
         echo "::group::REST API restart-platform test"
-        pytest tests/restapi/platform/test_misc.py::test_restart_platform -v -s --color=yes \
+        # Unlike the other suites, this step has no default marker expression
+        # (it targets a single test by node-id), so an empty -m must be omitted
+        # entirely — passing `-m ""` would deselect everything.
+        MARKER_ARGS=()
+        MARKER_ECHO=""
+        if [ -n "$PYTEST_MARKERS" ]; then
+          MARKER_ARGS=(-m "$PYTEST_MARKERS")
+          MARKER_ECHO=" -m '$PYTEST_MARKERS'"
+        fi
+        echo "+ pytest tests/restapi/platform/test_misc.py::test_restart_platform${MARKER_ECHO} -v -s --color=yes --junitxml=report/restapi-restart-junit.xml"
+        pytest tests/restapi/platform/test_misc.py::test_restart_platform "${MARKER_ARGS[@]}" -v -s --color=yes \
           --junitxml=report/restapi-restart-junit.xml
         echo "::endgroup::"
 
