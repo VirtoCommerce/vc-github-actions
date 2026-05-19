@@ -9,7 +9,7 @@ jobs:
     steps:
 
       - name: Docker Login
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: docker.pkg.github.com
           username: $GITHUB_ACTOR
@@ -35,7 +35,7 @@ jobs:
           Write-Output "::set-output name=storefrontIP::$($storefrontIP)"
 
       - name: OWASP ZAP Full Scan
-        uses: zaproxy/action-baseline@v0.4.0
+        uses: zaproxy/action-baseline@acd8e997263688cb49cb5ff8247a4b2758c548ab # v0.4.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           docker_name: 'owasp/zap2docker-stable'

@@ -121,3 +121,31 @@ VirtoCommerce specific GitHub actions and actions common components lib.
 * [Swagger validation](/docker-env/README.md)
 * [Sync Modules Workflows](/sync-module-cicd/README.md)
 * [Actions components lib](/vc-actions-lib/README.md)
+
+## Supply-chain security: pinned third-party actions
+
+Every third-party `uses:` reference in this repo (anything not under `VirtoCommerce/*`) is pinned to a full 40-character commit SHA with a trailing `# tag` comment, per the [GitHub Actions hardening guide](https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions#using-third-party-actions). Tags are mutable; SHAs are not.
+
+```yaml
+# Correct
+uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+# Rejected by CI
+uses: actions/checkout@v6
+```
+
+**How updates happen**
+
+- **Dependabot** (`.github/dependabot.yml`) scans `.github/workflows/` and every `**/action.yml` weekly. When upstream cuts a new tag, it opens a grouped PR bumping the SHA + trailing comment.
+- **Pin-check CI** (`.github/workflows/pin-check.yml`) runs `pinact run -check` on every PR that touches workflows or `action.yml` files. PRs with unpinned third-party `uses:` lines fail.
+- **Scope** is configured in [`.pinact.yaml`](.pinact.yaml) — `VirtoCommerce/*` is intentionally ignored (internal, not third-party).
+
+**For contributors**
+
+- When adding a new third-party action, write the SHA, not the tag. Quick lookup:
+
+  ```sh
+  gh api repos/OWNER/REPO/commits/TAG --jq '.sha'
+  ```
+
+- `VirtoCommerce/vc-github-actions/<dir>@master` and other `VirtoCommerce/*` refs remain version-/branch-pinned as before.
