@@ -56,6 +56,14 @@ inputs:
     required: false
     default: ''
     type: string
+  appInsightsResourceId:
+    description: |
+      Azure resource ID of the Application Insights component, e.g.
+      `/subscriptions/<sub>/resourceGroups/<rg>/providers/microsoft.insights/components/<name>`.
+      When set, a Logs blade link pre-filtered by cloud_RoleName is appended to the role-name notice.
+    required: false
+    default: ''
+    type: string
 runs:
   using: "composite"
   steps:
@@ -331,6 +339,16 @@ runs:
     - name: Log Application Insights role name
       if: always()
       shell: bash
+      env:
+        APP_INSIGHTS_RESOURCE_ID: ${{ inputs.appInsightsResourceId }}
       run: |
-        role_name="vc-platform-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-        echo "::notice title=Application Insights role name::${role_name}"
+        role_name="vc-platform-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${GITHUB_JOB}"
+        msg="${role_name}"
+        if [ -n "$APP_INSIGHTS_RESOURCE_ID" ]; then
+          kql="union * | where cloud_RoleName == \"${role_name}\" | order by timestamp desc"
+          q=$(printf '%s' "$kql" | gzip -c | base64 -w0 | sed -e 's/+/%2B/g' -e 's|/|%2F|g' -e 's/=/%3D/g')
+          res_enc=$(printf '%s' "$APP_INSIGHTS_RESOURCE_ID" | sed 's|/|%2F|g')
+          url="https://portal.azure.com/#blade/Microsoft_Azure_Monitoring_Logs/LogsBlade/resourceId/${res_enc}/source/LogsBlade.AnalyticsShareLinkToQuery/q/${q}/timespan/PT24H"
+          msg="${role_name} — Logs: ${url}"
+        fi
+        echo "::notice title=Application Insights role name::${msg}"

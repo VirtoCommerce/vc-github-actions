@@ -67,7 +67,7 @@ services:
     ports:
       - "${DOCKER_PLATFORM_PORT:-8090}:80"
     environment:
-      - APPINSIGHTS:INSTRUMENTATIONKEY=${APPINSIGHTS_INSTRUMENTATIONKEY:-3ff578a1-596f-46b4-b730-87698dc75555}
+      - APPINSIGHTS:INSTRUMENTATIONKEY=${APPINSIGHTS_INSTRUMENTATIONKEY}
       - ASPNETCORE_URLS=http://+
       - VirtoCommerce:AllowInsecureHttp=true
       - VirtoCommerce:Hangfire:JobStorageType=Memory
