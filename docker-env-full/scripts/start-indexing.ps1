@@ -7,7 +7,17 @@ param(
     [string[]]$smokeProductIds = @('smartphone-apple-iphone-17-256gb-black'),
     [string]$storeId           = 'store-acme',
     [string]$cultureName       = 'en-US',
-    [string]$currencyCode      = 'USD'
+    [string]$currencyCode      = 'USD',
+    # Per-type minimum indexed-document count. Callers can pass
+    # stricter expectations, e.g.:
+    #   -minDocCounts @{ Product=166; Category=4; Member=38; CustomerOrder=20; PickupLocation=34 }
+    [hashtable]$minDocCounts   = @{
+        Member         = 38
+        Product        = 166
+        Category       = 4
+        CustomerOrder  = 20
+        PickupLocation = 34
+    }
 )
 
 $ErrorActionPreference = 'Stop'
@@ -114,7 +124,7 @@ function Wait-IndexerFinished {
 
 # Lists per-document-type counts from /api/search/indexes. Useful sanity check after the
 # indexer reports "finished" — if Product is 0 we have a clear, fast diagnostic instead of
-# watching the XAPI smoke check loop spin until timeout.
+# watching the smoke check loop spin until timeout.
 function Write-IndexCounts {
     param([string]$token)
     $headers = @{ 'Authorization' = "Bearer $token" }
@@ -129,10 +139,48 @@ function Write-IndexCounts {
     }
 }
 
-# Direct raw-index read for a single document. Bypasses XAPI's resolver and store/catalog
-# filtering — answers the bare "is doc X in the {type} index?" question. If this finds the
-# product, XAPI failure is a resolver/filter issue. If it doesn't, the indexer skipped the
-# doc despite reporting overall success.
+# Polls /api/search/indexes and asserts that each requested document type has at least
+# its declared minimum indexed-document count. Retries within $timeoutSeconds because
+# index counts can lag slightly behind the indexer's "finished" signal (ES refresh
+# interval). Throws on timeout with a per-type diagnostic.
+function Wait-AllIndexedCountsReady {
+    param([string]$token, [hashtable]$minDocCounts)
+    if (-not $minDocCounts -or $minDocCounts.Count -eq 0) {
+        Write-Output "Skipping per-type count gate (no minDocCounts configured)."
+        return
+    }
+    $headers   = @{ 'Authorization' = "Bearer $token" }
+    $deadline  = (Get-Date).AddSeconds($timeoutSeconds)
+    $lastReason = ''
+    while ((Get-Date) -lt $deadline) {
+        try {
+            $states = (Invoke-WebRequest -Uri "$platformUrl/api/search/indexes" -Headers $headers -Method GET -ErrorAction Stop).Content | ConvertFrom-Json
+            $byType = @{}
+            foreach ($s in @($states)) { $byType[$s.documentType] = $s }
+            $missing = @()
+            foreach ($key in $minDocCounts.Keys) {
+                $minimum = [long]$minDocCounts[$key]
+                $state   = $byType[$key]
+                $actual  = if ($state -and $null -ne $state.indexedDocumentsCount) { [long]$state.indexedDocumentsCount } else { 0L }
+                if ($actual -lt $minimum) {
+                    $missing += "$key (have $actual, need >= $minimum)"
+                }
+            }
+            if ($missing.Count -eq 0) {
+                Write-Output "All requested document types meet minimum count expectations: $(@($minDocCounts.Keys) -join ', ')."
+                return
+            }
+            $lastReason = $missing -join '; '
+            Write-Output "Index counts below expected: $lastReason. Retrying in ${pollIntervalSec}s..."
+        } catch {
+            $lastReason = $_.Exception.Message
+            Write-Output "Transient error reading index state; retrying: $lastReason"
+        }
+        Start-Sleep -Seconds $pollIntervalSec
+    }
+    throw "Index counts did not satisfy minimum expectations within ${timeoutSeconds}s: $lastReason"
+}
+
 # Polls the raw search index for a product and gates on:
 #   (1) document is present
 #   (2) status contains 'visible'
@@ -202,6 +250,8 @@ Write-Output "Reindex enqueued: notificationId=$($notification.id), jobId=$($not
 Wait-IndexerFinished -token $token -notificationId $notification.id
 
 Write-IndexCounts -token $token
+Wait-AllIndexedCountsReady -token $token -minDocCounts $minDocCounts
+
 foreach ($id in $smokeProductIds) {
     Wait-IndexedProductReady -token $token -documentType 'Product' -documentId $id -currencyCode $currencyCode
 }
