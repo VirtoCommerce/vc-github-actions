@@ -79,6 +79,10 @@ inputs:
         - customPackagesJsonUrl: ''       (the build step would overwrite the loaded image tag)
     required: false
     default: ''
+  appInsightsInstrumentationKey:
+    description: 'Application Insights instrumentation key. Passed to the platform container via APPINSIGHTS:INSTRUMENTATIONKEY.'
+    required: false
+    default: ''
 runs:
   using: "composite"
   steps:
@@ -236,6 +240,8 @@ runs:
 
     - name: Generate container secrets
       shell: pwsh
+      env:
+        APPINSIGHTS_INSTRUMENTATION_KEY_INPUT: ${{ inputs.appInsightsInstrumentationKey }}
       run: |
         function New-RandomPassword {
           # 32 random alnum chars + 'Vc!' prefix to satisfy SQL Server complexity
@@ -254,6 +260,11 @@ runs:
         Add-Content -Path $env:GITHUB_ENV -Value "ELASTIC_PASSWORD=$esPassword"
         $roleName = "vc-platform-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT-$env:GITHUB_JOB"
         Add-Content -Path $env:GITHUB_ENV -Value "ROLE_NAME=$roleName"
+        $iKey = $env:APPINSIGHTS_INSTRUMENTATION_KEY_INPUT
+        if ($iKey) {
+          Write-Host "::add-mask::$iKey"
+          Add-Content -Path $env:GITHUB_ENV -Value "APPINSIGHTS_INSTRUMENTATIONKEY=$iKey"
+        }
 
     - name: Start database and elasticsearch containers
       env:
