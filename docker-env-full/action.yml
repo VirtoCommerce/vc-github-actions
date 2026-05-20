@@ -79,8 +79,8 @@ inputs:
         - customPackagesJsonUrl: ''       (the build step would overwrite the loaded image tag)
     required: false
     default: ''
-  appInsightsConnectionString:
-    description: 'Application Insights connection string (format: `InstrumentationKey=<guid>;IngestionEndpoint=https://...;LiveEndpoint=https://...`). Passed to the platform container via APPLICATIONINSIGHTS_CONNECTION_STRING.'
+  appInsightsInstrumentationKey:
+    description: 'Application Insights instrumentation key (GUID). Passed to the platform container as `ApplicationInsights:InstrumentationKey`.'
     required: false
     default: ''
 runs:
@@ -241,7 +241,7 @@ runs:
     - name: Generate container secrets
       shell: pwsh
       env:
-        APP_INSIGHTS_CONNECTION_STRING_INPUT: ${{ inputs.appInsightsConnectionString }}
+        APP_INSIGHTS_IKEY_INPUT: ${{ inputs.appInsightsInstrumentationKey }}
       run: |
         function New-RandomPassword {
           # 32 random alnum chars + 'Vc!' prefix to satisfy SQL Server complexity
@@ -260,10 +260,10 @@ runs:
         Add-Content -Path $env:GITHUB_ENV -Value "ELASTIC_PASSWORD=$esPassword"
         $roleName = "vc-platform-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT-$env:GITHUB_JOB"
         Add-Content -Path $env:GITHUB_ENV -Value "ROLE_NAME=$roleName"
-        $aiConnString = $env:APP_INSIGHTS_CONNECTION_STRING_INPUT
-        if ($aiConnString) {
-          Write-Host "::add-mask::$aiConnString"
-          Add-Content -Path $env:GITHUB_ENV -Value "APPLICATIONINSIGHTS_CONNECTION_STRING=$aiConnString"
+        $aiKey = $env:APP_INSIGHTS_IKEY_INPUT
+        if ($aiKey) {
+          Write-Host "::add-mask::$aiKey"
+          Add-Content -Path $env:GITHUB_ENV -Value "APPLICATIONINSIGHTS_INSTRUMENTATIONKEY=$aiKey"
         }
 
     - name: Start database and elasticsearch containers
