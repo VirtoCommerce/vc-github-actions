@@ -21,7 +21,11 @@ function Get-AdminToken {
             $resp = Invoke-WebRequest -Uri "$platformUrl/connect/token" -Body $body -Headers $headers -Method POST -ErrorAction Stop
             return ($resp.Content | ConvertFrom-Json).access_token
         } catch {
-            Write-Output "Platform not ready yet: $($_.Exception.Message). Retrying in ${pollIntervalSec}s..."
+            # Write-Host (not Write-Output) — this function returns the JWT, and Write-Output
+            # inside a value-returning function pollutes the return value. Caller does
+            # `$token = Get-AdminToken`, which would otherwise capture every retry log line
+            # plus the JWT into an array, corrupting the Bearer header on subsequent requests.
+            Write-Host "Platform not ready yet: $($_.Exception.Message). Retrying in ${pollIntervalSec}s..."
             Start-Sleep -Seconds $pollIntervalSec
         }
     }
@@ -42,7 +46,8 @@ function Start-FullReindex {
         'Content-Type'  = 'application/json-patch+json'
         'Authorization' = "Bearer $token"
     }
-    Write-Output "Triggering full reindex (DeleteExistingIndex=true) of $($body.Count) document types: $($script:reindexDocumentTypes -join ', ')..."
+    # Write-Host: this function returns the notification object; Write-Output would pollute it.
+    Write-Host "Triggering full reindex (DeleteExistingIndex=true) of $($body.Count) document types: $($script:reindexDocumentTypes -join ', ')..."
     $resp = Invoke-WebRequest -Uri "$platformUrl/api/search/indexes/index" `
         -Body ($body | ConvertTo-Json) -Headers $headers -Method POST
     return ($resp.Content | ConvertFrom-Json)
@@ -71,9 +76,10 @@ function Wait-IndexerFinished {
             if (-not $notif) {
                 Write-Output "Notification $notificationId not yet visible; retrying in ${pollIntervalSec}s..."
             } else {
-                $processed = [long]($notif.processedCount ?? 0)
-                $total     = [long]($notif.totalCount ?? 0)
-                $errors    = [long]($notif.errorCount ?? 0)
+                # Avoid PS7-only ?? operator so this script parses on Windows PowerShell 5.1.
+                $processed = if ($null -ne $notif.processedCount) { [long]$notif.processedCount } else { 0L }
+                $total     = if ($null -ne $notif.totalCount)     { [long]$notif.totalCount }     else { 0L }
+                $errors    = if ($null -ne $notif.errorCount)     { [long]$notif.errorCount }     else { 0L }
                 $docType   = $notif.documentType
                 $desc      = $notif.description
                 if ($notif.finished) {
