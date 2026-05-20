@@ -158,16 +158,18 @@ function Wait-AllIndexedCountsReady {
             $byType = @{}
             foreach ($s in @($states)) { $byType[$s.documentType] = $s }
             $missing = @()
+            $observed = @()
             foreach ($key in $minDocCounts.Keys) {
                 $minimum = [long]$minDocCounts[$key]
                 $state   = $byType[$key]
                 $actual  = if ($state -and $null -ne $state.indexedDocumentsCount) { [long]$state.indexedDocumentsCount } else { 0L }
+                $observed += "$key($actual)"
                 if ($actual -lt $minimum) {
                     $missing += "$key (have $actual, need >= $minimum)"
                 }
             }
             if ($missing.Count -eq 0) {
-                Write-Output "All requested document types meet minimum count expectations: $(@($minDocCounts.Keys) -join ', ')."
+                Write-Output "All requested document types meet minimum count expectations: $($observed -join ', ')."
                 return
             }
             $lastReason = $missing -join '; '
