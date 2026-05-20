@@ -82,6 +82,13 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Compose Application Insights role name
+      shell: bash
+      run: |
+        role_name="vc-platform-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+        echo "ROLE_NAME=${role_name}" >> "$GITHUB_ENV"
+        echo "::notice title=Application Insights role name::${role_name}"
+
     - name: Validate prebuilt image configuration
       if: ${{ inputs.prebuiltImageArtifact != '' }}
       shell: bash

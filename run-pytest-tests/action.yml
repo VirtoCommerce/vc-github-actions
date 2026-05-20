@@ -327,3 +327,10 @@ runs:
         echo "::group::Elasticsearch logs"
         docker logs virtocommerce-es-1 --tail 50
         echo "::endgroup::"
+
+    - name: Log Application Insights role name
+      if: always()
+      shell: bash
+      run: |
+        role_name="vc-platform-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+        echo "::notice title=Application Insights role name::${role_name}"
