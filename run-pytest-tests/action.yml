@@ -341,14 +341,16 @@ runs:
       shell: bash
       env:
         APP_INSIGHTS_RESOURCE_ID: ${{ inputs.appInsightsResourceId }}
+        ARTIFACT_SUFFIX: ${{ inputs.artifactSuffix }}
       run: |
-        role_name="vc-platform-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${GITHUB_JOB}"
-        msg="${role_name}"
+        suffix="${ARTIFACT_SUFFIX#-}"
+        role_name="vc-platform-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}${suffix:+-${suffix}}"
         if [ -n "$APP_INSIGHTS_RESOURCE_ID" ]; then
           kql="union * | where cloud_RoleName == \"${role_name}\" | order by timestamp desc"
           q=$(printf '%s' "$kql" | gzip -c | base64 -w0 | sed -e 's/+/%2B/g' -e 's|/|%2F|g' -e 's/=/%3D/g')
           res_enc=$(printf '%s' "$APP_INSIGHTS_RESOURCE_ID" | sed 's|/|%2F|g')
           url="https://portal.azure.com/#blade/Microsoft_Azure_Monitoring_Logs/LogsBlade/resourceId/${res_enc}/source/LogsBlade.AnalyticsShareLinkToQuery/q/${q}/timespan/PT24H"
-          msg="${role_name} — Logs: ${url}"
+          echo "::notice title=Application Insights role name::${role_name} — Logs: ${url}"
+        else
+          echo "::warning title=Application Insights role name::${role_name} (no link — appInsightsResourceId secret is unset; ensure the calling workflow forwards it via 'secrets:' or 'secrets: inherit')"
         fi
-        echo "::notice title=Application Insights role name::${msg}"

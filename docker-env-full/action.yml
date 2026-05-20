@@ -242,6 +242,7 @@ runs:
       shell: pwsh
       env:
         APP_INSIGHTS_IKEY_INPUT: ${{ inputs.appInsightsInstrumentationKey }}
+        DB_PROVIDER_INPUT: ${{ inputs.databaseProvider }}
       run: |
         function New-RandomPassword {
           # 32 random alnum chars + 'Vc!' prefix to satisfy SQL Server complexity
@@ -258,7 +259,7 @@ runs:
         Write-Host "::add-mask::$esPassword"
         Add-Content -Path $env:GITHUB_ENV -Value "DB_PASSWORD=$dbPassword"
         Add-Content -Path $env:GITHUB_ENV -Value "ELASTIC_PASSWORD=$esPassword"
-        $roleName = "vc-platform-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT-$env:GITHUB_JOB"
+        $roleName = "vc-platform-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT-$env:DB_PROVIDER_INPUT"
         Add-Content -Path $env:GITHUB_ENV -Value "ROLE_NAME=$roleName"
         $aiKey = $env:APP_INSIGHTS_IKEY_INPUT
         if ($aiKey) {
