@@ -41,12 +41,12 @@ runs:
   using: "composite"
   steps:
     - name: Set up Python
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
       with:
         python-version: "3.11"
 
     - name: Getting tests
-      uses: actions/checkout@v6
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       with:
         repository: ${{ inputs.vctestingRepo }}
         ref: ${{ inputs.vctestingRepoBranch }}
@@ -103,7 +103,7 @@ runs:
 
     - name: Upload dataset_manager log
       if: always()
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
       with:
         name: e2e-dataset-manager-log-${{ inputs.browser }}-${{ github.run_number }}-${{ github.run_attempt }}
         path: ${{ inputs.vctestingPath }}/dataset/dataset_manager.log
@@ -126,7 +126,7 @@ runs:
 
     - name: Upload test results
       if: always()
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
       with:
         name: e2e-test-results-${{ inputs.browser }}-${{ github.run_number }}-${{ github.run_attempt }}
         path: |
