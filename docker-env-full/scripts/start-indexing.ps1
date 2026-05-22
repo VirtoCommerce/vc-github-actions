@@ -2,12 +2,14 @@ param(
     [string]$platformUrl     = 'http://localhost:8090',
     [string]$adminUsername   = 'admin',
     [string]$adminPassword   = 'store',
-    # Per-phase timeout (auth, single-type reindex, per-type count gate). 5 min is
-    # generous for the seeded dataset (each phase normally completes in seconds); the
-    # main purpose is to bound how long we wait on an upstream platform hang — e.g. the
-    # known IndexProgressHandler.Finish() NullReferenceException that leaves the
-    # notification stuck and the Hangfire job in an automatic-retry loop.
-    [int]   $timeoutSeconds  = 300,
+    # Per-phase timeout (auth, single-type reindex, per-type count gate). The flow
+    # now has up to ~6 phases that could each hit the timeout (5 serialized reindex
+    # phases + count gate); 150s × 6 ≈ 15 min total worst case, matching the legacy
+    # per-phase budget of 900s back when the flow was a single batched reindex.
+    # The main purpose is to bound how long we wait on an upstream platform hang —
+    # e.g. the known IndexProgressHandler.Finish() NullReferenceException that leaves
+    # the notification stuck and the Hangfire job in an automatic-retry loop.
+    [int]   $timeoutSeconds  = 150,
     [int]   $pollIntervalSec = 5,
     # Per-type minimum indexed-document count. Defaults track the current
     # vc-testing-module dataset. Callers can override per environment:
@@ -158,7 +160,7 @@ function Write-IndexCounts {
 function Wait-AllIndexedCountsReady {
     param([string]$token, [hashtable]$minDocCounts)
     if (-not $minDocCounts -or $minDocCounts.Count -eq 0) {
-        Write-Output "Skipping per-type count gate (no minDocCounts configured)."
+        Write-Host "Skipping per-type count gate (no minDocCounts configured)."
         return
     }
     $headers   = @{ 'Authorization' = "Bearer $token" }
@@ -181,14 +183,14 @@ function Wait-AllIndexedCountsReady {
                 }
             }
             if ($missing.Count -eq 0) {
-                Write-Output "All requested document types meet minimum count expectations: $($observed -join ', ')."
+                Write-Host "All requested document types meet minimum count expectations: $($observed -join ', ')."
                 return
             }
             $lastReason = $missing -join '; '
-            Write-Output "Index counts below expected: $lastReason. Retrying in ${pollIntervalSec}s..."
+            Write-Host "Index counts below expected: $lastReason. Retrying in ${pollIntervalSec}s..."
         } catch {
             $lastReason = $_.Exception.Message
-            Write-Output "Transient error reading index state; retrying: $lastReason"
+            Write-Host "Transient error reading index state; retrying: $lastReason"
         }
         Start-Sleep -Seconds $pollIntervalSec
     }

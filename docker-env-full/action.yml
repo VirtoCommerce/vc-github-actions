@@ -265,9 +265,7 @@ runs:
         Add-Content -Path $env:GITHUB_ENV -Value "ELASTIC_PASSWORD=$esPassword"
         # ROLE_NAME uniquely identifies this platform container instance in Application
         # Insights. It's anchored to the database provider because that's the matrix
-        # dimension that produces a distinct platform container. Caller-defined tags
-        # like artifactSuffix (browser/OS/etc.) live in the test action, NOT here — a
-        # single platform may serve many test bundles with the same ROLE_NAME.
+        # dimension that produces a distinct platform container.
         # Exported via $GITHUB_ENV so downstream actions (e.g. run-pytest-tests) can
         # surface the same value without recomputing it.
         $dbSuffix = if ($env:DB_PROVIDER_INPUT) { "-$env:DB_PROVIDER_INPUT" } else { '' }
@@ -323,8 +321,6 @@ runs:
         Write-Host "`e[33mStart Remaining Containers step started."
         $platformContainer = "virtocommerce-vc-platform-web-1"
         . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
-
-        # Start the remaining containers (platform and frontend)
         Write-Host "::group::Start Remaining Containers"
         docker compose --project-name virtocommerce -f docker-compose.yml -f "docker-compose.$env:DB_PROVIDER.yml" up -d
         Write-Host "::endgroup::"
