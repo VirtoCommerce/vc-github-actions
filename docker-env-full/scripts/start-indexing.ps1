@@ -2,7 +2,12 @@ param(
     [string]$platformUrl     = 'http://localhost:8090',
     [string]$adminUsername   = 'admin',
     [string]$adminPassword   = 'store',
-    [int]   $timeoutSeconds  = 900,
+    # Per-phase timeout (auth, single-type reindex, count gate, smoke check). 5 min is
+    # generous for the seeded dataset (each phase normally completes in seconds); the
+    # main purpose is to bound how long we wait on an upstream platform hang — e.g. the
+    # known IndexProgressHandler.Finish() NullReferenceException that leaves the
+    # notification stuck and the Hangfire job in an automatic-retry loop.
+    [int]   $timeoutSeconds  = 300,
     [int]   $pollIntervalSec = 5,
     [string]$storeId         = 'store-acme',
     [string]$cultureName     = 'en-US',
@@ -76,8 +81,13 @@ function Start-ReindexDocumentType {
     }
     # Write-Host: this function returns the notification object; Write-Output would pollute it.
     Write-Host "Triggering reindex for $documentType (DeleteExistingIndex=true)..."
+    # Use -InputObject (not pipeline): in PowerShell, `@($x) | ConvertTo-Json` unwraps a
+    # single-element array to its element and emits a JSON object instead of a one-element
+    # JSON array. The controller binds to IndexingOptions[]; an object yields options=null
+    # at the platform side and RunIndexJobAsync throws ArgumentNullException in .Select.
+    $bodyJson = ConvertTo-Json -InputObject $body -Depth 5
     $resp = Invoke-WebRequest -Uri "$platformUrl/api/search/indexes/index" `
-        -Body ($body | ConvertTo-Json) -Headers $headers -Method POST
+        -Body $bodyJson -Headers $headers -Method POST
     return ($resp.Content | ConvertFrom-Json)
 }
 
