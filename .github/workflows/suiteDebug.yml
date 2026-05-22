@@ -20,7 +20,7 @@ jobs:
 
 
       - name: Docker Login
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
         with:
           registry: docker.pkg.github.com
           username: $GITHUB_ACTOR
@@ -54,7 +54,7 @@ jobs:
 
       - name: Katalon Report Uploader
         if: always()
-        uses: katalon-studio/report-uploader@323ea44c0b05cf6aa9f0b9e74439a7a17428e11a # v0.0.8
+        uses: katalon-studio/report-uploader@9568d39562b12c62f3645201b45694bc4fadf160 # v0.0.12
         env:
           PASSWORD: ${{ secrets.KATALON_API_KEY }}
           PROJECT_ID: 263280
@@ -64,7 +64,7 @@ jobs:
 
       - name: 'Katalon Reports'
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: reports
           path: |
