@@ -56,20 +56,26 @@ function Get-AdminToken {
 
 $script:reindexDocumentTypes = @('Member', 'Product', 'Category', 'CustomerOrder', 'PickupLocation')
 
-# Triggers a full rebuild (DeleteExistingIndex=$true) so every seeded record is re-emitted
-# into a clean index. Returns the IndexProgressPushNotification — its 'id' is what we poll
-# below to know when the indexer truly finished.
-function Start-FullReindex {
-    param([string]$token)
-    $body = $script:reindexDocumentTypes | ForEach-Object {
-        @{ DocumentType = $_; DeleteExistingIndex = $true }
-    }
+# Triggers a reindex (DeleteExistingIndex=$true) for ONE document type and returns
+# the IndexProgressPushNotification — its 'id' is what we poll to know when the
+# indexer truly finished.
+#
+# Why per-type and not batched: VC's IndexingJobs.RunIndexJobAsync runs all submitted
+# options in Task.WhenAll, and the shared IndexProgressHandler holds non-concurrent
+# Dictionary<string,long>'s. Submitting >1 type per POST races the dictionary writes
+# and intermittently corrupts state mid-indexation — one type's task throws while
+# others may have not even started. Serializing here (1 type per POST, wait for
+# Finished between submissions) eliminates the race entirely; the platform's
+# distributed "IndexationJob" lock already enforces one-at-a-time anyway.
+function Start-ReindexDocumentType {
+    param([string]$token, [string]$documentType)
+    $body = @( @{ DocumentType = $documentType; DeleteExistingIndex = $true } )
     $headers = @{
         'Content-Type'  = 'application/json-patch+json'
         'Authorization' = "Bearer $token"
     }
     # Write-Host: this function returns the notification object; Write-Output would pollute it.
-    Write-Host "Triggering full reindex (DeleteExistingIndex=true) of $($body.Count) document types: $($script:reindexDocumentTypes -join ', ')..."
+    Write-Host "Triggering reindex for $documentType (DeleteExistingIndex=true)..."
     $resp = Invoke-WebRequest -Uri "$platformUrl/api/search/indexes/index" `
         -Body ($body | ConvertTo-Json) -Headers $headers -Method POST
     return ($resp.Content | ConvertFrom-Json)
@@ -261,13 +267,18 @@ function Wait-IndexedDocumentReady {
 }
 
 $token = Get-AdminToken
-$notification = Start-FullReindex -token $token
-if (-not $notification.id) {
-    throw "Reindex POST returned no notification id. Response: $($notification | ConvertTo-Json -Depth 5)"
-}
-Write-Output "Reindex enqueued: notificationId=$($notification.id), jobId=$($notification.jobId)"
 
-Wait-IndexerFinished -token $token -notificationId $notification.id
+# Reindex one document type at a time. See Start-ReindexDocumentType for the rationale —
+# batching all 5 types into one POST trips an upstream race condition in the indexer's
+# progress handler that intermittently corrupts the indexation of a random type.
+foreach ($docType in $script:reindexDocumentTypes) {
+    $notification = Start-ReindexDocumentType -token $token -documentType $docType
+    if (-not $notification.id) {
+        throw "Reindex POST for $docType returned no notification id. Response: $($notification | ConvertTo-Json -Depth 5)"
+    }
+    Write-Output "Reindex enqueued for ${docType}: notificationId=$($notification.id), jobId=$($notification.jobId)"
+    Wait-IndexerFinished -token $token -notificationId $notification.id
+}
 
 Write-IndexCounts -token $token
 Wait-AllIndexedCountsReady -token $token -minDocCounts $minDocCounts
