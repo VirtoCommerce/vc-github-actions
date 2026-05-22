@@ -74,7 +74,7 @@ jobs:
       uses: VirtoCommerce/vc-github-actions/setup-vcbuild@master
 
     - name: Getting tests
-      uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         repository: ${{ env.KATALON_REPO }}
         ref: ${{ env.KATALON_REPO_BRANCH }}
@@ -97,7 +97,7 @@ jobs:
         envDir: '${{ github.workspace }}'
         
     - name: Setup Java
-      uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
+      uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
       with:
         distribution: 'zulu'
         java-version: '8'
@@ -111,7 +111,7 @@ jobs:
 
     - name: Katalon Report Uploader
       if: always()
-      uses: katalon-studio/report-uploader@323ea44c0b05cf6aa9f0b9e74439a7a17428e11a # v0.0.8
+      uses: katalon-studio/report-uploader@9568d39562b12c62f3645201b45694bc4fadf160 # v0.0.12
       env:
         PASSWORD: ${{ secrets.KATALON_API_KEY }}
         PROJECT_ID: 171535
@@ -120,7 +120,7 @@ jobs:
 
     - name: Save Katalon Report as workflow artifact
       if: always()
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: reports
         path: |
