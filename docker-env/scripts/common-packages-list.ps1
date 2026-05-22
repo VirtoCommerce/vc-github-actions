@@ -310,6 +310,11 @@ if ($null -eq $packages["VirtoCommerce.XPickup"]) {
     $packages["VirtoCommerce.XPickup"] = "VirtoCommerce.XPickup_$($($edgePackages | Where-Object { $_.Id -eq 'VirtoCommerce.XPickup' } | Select-Object -ExpandProperty Versions)[0].Version).zip"
     $packageSources["VirtoCommerce.XPickup"] = "script:fixed"
 }
+# add VirtoCommerce.MarketingExperienceApi module required for some tests
+if ($null -eq $packages["VirtoCommerce.MarketingExperienceApi"]) {
+    $packages["VirtoCommerce.MarketingExperienceApi"] = "VirtoCommerce.MarketingExperienceApi_$($($edgePackages | Where-Object { $_.Id -eq 'VirtoCommerce.MarketingExperienceApi' } | Select-Object -ExpandProperty Versions)[0].Version).zip"
+    $packageSources["VirtoCommerce.MarketingExperienceApi"] = "script:fixed"
+}
 
 # process the initial first custom module
 ProcessCustomModule -CustomModuleId $customModuleId -CustomModuleUrl $customModuleUrl

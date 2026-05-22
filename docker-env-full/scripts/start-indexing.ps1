@@ -1,17 +1,29 @@
 param(
-    [string]$platformUrl       = 'http://localhost:8090',
-    [string]$adminUsername     = 'admin',
-    [string]$adminPassword     = 'store',
-    [int]   $timeoutSeconds    = 900,
-    [int]   $pollIntervalSec   = 5,
-    [string[]]$smokeProductIds = @('smartphone-apple-iphone-17-256gb-black'),
-    [string]$storeId           = 'store-acme',
-    [string]$cultureName       = 'en-US',
-    [string]$currencyCode      = 'USD',
+    [string]$platformUrl     = 'http://localhost:8090',
+    [string]$adminUsername   = 'admin',
+    [string]$adminPassword   = 'store',
+    [int]   $timeoutSeconds  = 900,
+    [int]   $pollIntervalSec = 5,
+    [string]$storeId         = 'store-acme',
+    [string]$cultureName     = 'en-US',
+    [string]$currencyCode    = 'USD',
+    # Per-type smoke IDs — one or more known seeded documents per index type.
+    # Defaults track the current vc-testing-module dataset. Product gets the
+    # full buyability check (status + price + stock); other types only need
+    # presence in the raw index. PickupLocation IDs are platform-generated
+    # (not derived from seed JSON), so it's empty by default and the count
+    # gate below covers that type; callers can opt in by passing IDs.
+    [hashtable]$smokeDocIds  = @{
+        Product        = @('smartphone-apple-iphone-17-256gb-black')
+        Category       = @('category-acme-electronics-smartphones')
+        Member         = @('contact-acme-store-administrator')
+        CustomerOrder  = @('10605003-8a51-44b0-a91c-90b14cdb4a9c')
+        PickupLocation = @()
+    },
     # Per-type minimum indexed-document count. Callers can pass
     # stricter expectations, e.g.:
     #   -minDocCounts @{ Product=166; Category=4; Member=38; CustomerOrder=20; PickupLocation=34 }
-    [hashtable]$minDocCounts   = @{
+    [hashtable]$minDocCounts = @{
         Member         = 38
         Product        = 166
         Category       = 4
@@ -99,7 +111,7 @@ function Wait-IndexerFinished {
                         # document types index in parallel. The exception fires in the
                         # progress callback AFTER documents have committed to ES, so the
                         # index state itself is fine. We log a warning instead of failing
-                        # — Wait-IndexedProductReady is the authoritative readiness gate.
+                        # — Wait-IndexedDocumentReady is the authoritative readiness gate.
                         $errList = (@($notif.errors) | Select-Object -First 3) -join ' | '
                         Write-Warning "Indexer reported $errors error(s) (data may still be indexed). First few: $errList"
                     } else {
@@ -183,15 +195,16 @@ function Wait-AllIndexedCountsReady {
     throw "Index counts did not satisfy minimum expectations within ${timeoutSeconds}s: $lastReason"
 }
 
-# Polls the raw search index for a product and gates on:
-#   (1) document is present
-#   (2) status contains 'visible'
-#   (3) instock_quantity > 0 (or instock = true)
-#   (4) price_<currency> > 0
-# Reads the same /api/search/indexes/index/{type}/{id} endpoint used for diagnostics —
-# does NOT depend on XAPI's __object reconstruction, so this works regardless of the
-# Catalog.Search.UseFullObjectIndexStoring platform setting.
-function Wait-IndexedProductReady {
+# Polls the raw search index for a document and asserts readiness:
+#   - For every documentType: the doc must be present.
+#   - For Product specifically: additionally gates on buyability —
+#       status contains 'visible'
+#       price_<currency> > 0
+#       instock_quantity > 0 (or instock = true)
+# Reads the /api/search/indexes/index/{type}/{id} endpoint directly, so this works
+# regardless of the Catalog.Search.UseFullObjectIndexStoring platform setting (which
+# only affects XAPI's __object reconstruction path).
+function Wait-IndexedDocumentReady {
     param([string]$token, [string]$documentType, [string]$documentId, [string]$currencyCode)
     $headers    = @{ 'Authorization' = "Bearer $token" }
     $uri        = "$platformUrl/api/search/indexes/index/$documentType/$documentId"
@@ -214,7 +227,8 @@ function Wait-IndexedProductReady {
             $docs = (Invoke-WebRequest -Uri $uri -Headers $headers -Method GET -ErrorAction Stop).Content | ConvertFrom-Json
             if (-not $docs -or @($docs).Count -eq 0) {
                 $lastReason = "no document for $documentType/$documentId in raw index"
-            } else {
+            } elseif ($documentType -eq 'Product') {
+                # Product requires the full buyability check (status + price + stock).
                 $doc       = @($docs)[0]
                 $statusOk  = Test-Contains $doc.status 'visible'
                 $price     = Get-ScalarNumber $doc.$priceField
@@ -232,6 +246,10 @@ function Wait-IndexedProductReady {
                 if (-not $priceOk)  { $missing += "$priceField=$price (need > 0)" }
                 if (-not $stockOk)  { $missing += "instock_quantity=$stockQty, instock=$stockFlag (need stock > 0)" }
                 $lastReason = "buyability incomplete: $($missing -join '; ')"
+            } else {
+                # Non-Product types: presence in the raw index is sufficient.
+                Write-Output "$documentType '$documentId' is present in the raw index."
+                return
             }
         } catch {
             $lastReason = $_.Exception.Message
@@ -239,7 +257,7 @@ function Wait-IndexedProductReady {
         Write-Output "Smoke check for '$documentId' not ready: $lastReason. Retrying in ${pollIntervalSec}s..."
         Start-Sleep -Seconds $pollIntervalSec
     }
-    throw "Product '$documentId' did not become buyable in the raw index within ${timeoutSeconds}s: $lastReason"
+    throw "$documentType '$documentId' did not become ready in the raw index within ${timeoutSeconds}s: $lastReason"
 }
 
 $token = Get-AdminToken
@@ -254,7 +272,9 @@ Wait-IndexerFinished -token $token -notificationId $notification.id
 Write-IndexCounts -token $token
 Wait-AllIndexedCountsReady -token $token -minDocCounts $minDocCounts
 
-foreach ($id in $smokeProductIds) {
-    Wait-IndexedProductReady -token $token -documentType 'Product' -documentId $id -currencyCode $currencyCode
+foreach ($docType in $smokeDocIds.Keys) {
+    foreach ($id in @($smokeDocIds[$docType])) {
+        Wait-IndexedDocumentReady -token $token -documentType $docType -documentId $id -currencyCode $currencyCode
+    }
 }
 Write-Output "Indexing complete and verified — safe to start tests."
