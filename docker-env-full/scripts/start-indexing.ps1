@@ -276,6 +276,55 @@ function Wait-IndexedDocumentReady {
     throw "$documentType '$documentId' did not become ready in the raw index within ${timeoutSeconds}s: $lastReason"
 }
 
+# Frontend-grade readiness gate. Queries XAPI products(query:) — the exact path the
+# test suite uses (see vc-testing-module/gql/operations/product_operations.py) — and
+# requires:
+#   (1) a matching item with item.code == $productId in the response
+#   (2) availabilityData.isBuyable = true on that item
+# Empirically confirmed to work on ElasticSearch8Provider despite the documented
+# `__object` limitation: separately-indexed fields (name, code, instock_quantity,
+# price_<currency>) populate ExpProduct independently of __object.
+# Failing this gate is the same failure the frontend tests would hit, surfaced
+# early so we don't waste a test run on a broken frontend pipeline.
+function Wait-FrontendProductReady {
+    param([string]$token, [string]$productId, [string]$storeId, [string]$cultureName, [string]$currencyCode)
+    $headers  = @{ Authorization = "Bearer $token"; 'Content-Type' = 'application/json' }
+    $body     = @{
+        query     = 'query($s:String!,$c:String,$cur:String,$q:String,$f:Int){ products(storeId:$s,cultureName:$c,currencyCode:$cur,query:$q,first:$f){ totalCount items { id name code availabilityData { isAvailable isBuyable isInStock availableQuantity } } } }'
+        variables = @{ s = $storeId; c = $cultureName; cur = $currencyCode; q = $productId; f = 10 }
+    } | ConvertTo-Json -Compress
+    $deadline = (Get-Date).AddSeconds($timeoutSeconds)
+    $lastReason = ''
+    while ((Get-Date) -lt $deadline) {
+        try {
+            $resp = (Invoke-WebRequest -Uri "$platformUrl/graphql" -Headers $headers -Method POST -Body $body -ErrorAction Stop).Content | ConvertFrom-Json
+            if ($resp.errors) {
+                # GraphQL server errors (schema/auth/storeId resolution) are not transient — surface and fail fast.
+                $errMsg = ($resp.errors | ForEach-Object { $_.message }) -join '; '
+                throw "GraphQL error for products(query='$productId'): $errMsg"
+            }
+            $items = @($resp.data.products.items)
+            $match = $items | Where-Object { $_.code -eq $productId } | Select-Object -First 1
+            if (-not $match) {
+                $lastReason = "products(query='$productId') returned $($items.Count) item(s); none had code=$productId"
+            } elseif (-not $match.availabilityData -or -not $match.availabilityData.isBuyable) {
+                $a = $match.availabilityData
+                $lastReason = "frontend found '$productId' but not buyable (isAvailable=$($a.isAvailable), isInStock=$($a.isInStock), availableQuantity=$($a.availableQuantity))"
+            } else {
+                Write-Output "Frontend XAPI gate passed for '$productId' via products(query:) (isBuyable=true, availableQuantity=$($match.availabilityData.availableQuantity))."
+                return
+            }
+        } catch {
+            # Re-throw GraphQL-error wrapping immediately; only retry transport-level failures.
+            if ($_.Exception.Message -like 'GraphQL error*') { throw }
+            $lastReason = $_.Exception.Message
+        }
+        Write-Output "Frontend gate for '$productId' not ready: $lastReason. Retrying in ${pollIntervalSec}s..."
+        Start-Sleep -Seconds $pollIntervalSec
+    }
+    throw "Frontend XAPI gate failed for '$productId' within ${timeoutSeconds}s: $lastReason"
+}
+
 $token = Get-AdminToken
 
 # Reindex one document type at a time. See Start-ReindexDocumentType for the rationale —
@@ -295,7 +344,14 @@ Wait-AllIndexedCountsReady -token $token -minDocCounts $minDocCounts
 
 foreach ($docType in $smokeDocIds.Keys) {
     foreach ($id in @($smokeDocIds[$docType])) {
+        # Raw-index gate first: fast, no auth/store dependency. If this fails the indexer
+        # didn't write the doc — Wait-FrontendProductReady below would be misleading.
         Wait-IndexedDocumentReady -token $token -documentType $docType -documentId $id -currencyCode $currencyCode
+        # Frontend gate: only meaningful for Product (XAPI products(query:) returns
+        # catalog items). Other types are validated by the raw-index check above.
+        if ($docType -eq 'Product') {
+            Wait-FrontendProductReady -token $token -productId $id -storeId $storeId -cultureName $cultureName -currencyCode $currencyCode
+        }
     }
 }
 Write-Output "Indexing complete and verified — safe to start tests."
