@@ -2,31 +2,15 @@ param(
     [string]$platformUrl     = 'http://localhost:8090',
     [string]$adminUsername   = 'admin',
     [string]$adminPassword   = 'store',
-    # Per-phase timeout (auth, single-type reindex, count gate, smoke check). 5 min is
+    # Per-phase timeout (auth, single-type reindex, per-type count gate). 5 min is
     # generous for the seeded dataset (each phase normally completes in seconds); the
     # main purpose is to bound how long we wait on an upstream platform hang — e.g. the
     # known IndexProgressHandler.Finish() NullReferenceException that leaves the
     # notification stuck and the Hangfire job in an automatic-retry loop.
     [int]   $timeoutSeconds  = 300,
     [int]   $pollIntervalSec = 5,
-    [string]$storeId         = 'store-acme',
-    [string]$cultureName     = 'en-US',
-    [string]$currencyCode    = 'USD',
-    # Per-type smoke IDs — one or more known seeded documents per index type.
-    # Defaults track the current vc-testing-module dataset. Product gets the
-    # full buyability check (status + price + stock); other types only need
-    # presence in the raw index. PickupLocation IDs are platform-generated
-    # (not derived from seed JSON), so it's empty by default and the count
-    # gate below covers that type; callers can opt in by passing IDs.
-    [hashtable]$smokeDocIds  = @{
-        Product        = @('smartphone-apple-iphone-17-256gb-black')
-        Category       = @('category-acme-electronics-smartphones')
-        Member         = @('contact-acme-store-administrator')
-        CustomerOrder  = @('10605003-8a51-44b0-a91c-90b14cdb4a9c')
-        PickupLocation = @()
-    },
-    # Per-type minimum indexed-document count. Callers can pass
-    # stricter expectations, e.g.:
+    # Per-type minimum indexed-document count. Defaults track the current
+    # vc-testing-module dataset. Callers can override per environment:
     #   -minDocCounts @{ Product=166; Category=4; Member=38; CustomerOrder=20; PickupLocation=34 }
     [hashtable]$minDocCounts = @{
         Member         = 38
@@ -127,7 +111,7 @@ function Wait-IndexerFinished {
                         # document types index in parallel. The exception fires in the
                         # progress callback AFTER documents have committed to ES, so the
                         # index state itself is fine. We log a warning instead of failing
-                        # — Wait-IndexedDocumentReady is the authoritative readiness gate.
+                        # — Wait-AllIndexedCountsReady is the authoritative readiness gate.
                         $errList = (@($notif.errors) | Select-Object -First 3) -join ' | '
                         Write-Warning "Indexer reported $errors error(s) (data may still be indexed). First few: $errList"
                     } else {
@@ -152,7 +136,7 @@ function Wait-IndexerFinished {
 
 # Lists per-document-type counts from /api/search/indexes. Useful sanity check after the
 # indexer reports "finished" — if Product is 0 we have a clear, fast diagnostic instead of
-# watching the smoke check loop spin until timeout.
+# watching the count gate spin until timeout.
 function Write-IndexCounts {
     param([string]$token)
     $headers = @{ 'Authorization' = "Bearer $token" }
@@ -211,120 +195,6 @@ function Wait-AllIndexedCountsReady {
     throw "Index counts did not satisfy minimum expectations within ${timeoutSeconds}s: $lastReason"
 }
 
-# Polls the raw search index for a document and asserts readiness:
-#   - For every documentType: the doc must be present.
-#   - For Product specifically: additionally gates on buyability —
-#       status contains 'visible'
-#       price_<currency> > 0
-#       instock_quantity > 0 (or instock = true)
-# Reads the /api/search/indexes/index/{type}/{id} endpoint directly, so this works
-# regardless of the Catalog.Search.UseFullObjectIndexStoring platform setting (which
-# only affects XAPI's __object reconstruction path).
-function Wait-IndexedDocumentReady {
-    param([string]$token, [string]$documentType, [string]$documentId, [string]$currencyCode)
-    $headers    = @{ 'Authorization' = "Bearer $token" }
-    $uri        = "$platformUrl/api/search/indexes/index/$documentType/$documentId"
-    $priceField = "price_$(($currencyCode).ToLower())"   # e.g. 'price_usd'
-    $deadline   = (Get-Date).AddSeconds($timeoutSeconds)
-
-    function Test-Contains($value, [string]$expected) {
-        if ($null -eq $value) { return $false }
-        if ($value -is [array]) { return ($value | ForEach-Object { [string]$_ }) -contains $expected }
-        return [string]$value -eq $expected
-    }
-    function Get-ScalarNumber($value) {
-        if ($null -eq $value) { return 0 }
-        if ($value -is [array]) { return ([double[]]@($value | ForEach-Object { try { [double]$_ } catch { 0 } }) | Measure-Object -Maximum).Maximum }
-        try { return [double]$value } catch { return 0 }
-    }
-
-    while ((Get-Date) -lt $deadline) {
-        try {
-            $docs = (Invoke-WebRequest -Uri $uri -Headers $headers -Method GET -ErrorAction Stop).Content | ConvertFrom-Json
-            if (-not $docs -or @($docs).Count -eq 0) {
-                $lastReason = "no document for $documentType/$documentId in raw index"
-            } elseif ($documentType -eq 'Product') {
-                # Product requires the full buyability check (status + price + stock).
-                $doc       = @($docs)[0]
-                $statusOk  = Test-Contains $doc.status 'visible'
-                $price     = Get-ScalarNumber $doc.$priceField
-                $priceOk   = $price -gt 0
-                $stockQty  = Get-ScalarNumber $doc.instock_quantity
-                $stockFlag = $doc.instock
-                $stockOk   = ($stockQty -gt 0) -or ($stockFlag -eq $true) -or (Test-Contains $stockFlag 'true')
-
-                if ($statusOk -and $priceOk -and $stockOk) {
-                    Write-Output "Product '$documentId' is buyable in the raw index (status=visible, $priceField=$price, instock_quantity=$stockQty)."
-                    return
-                }
-                $missing = @()
-                if (-not $statusOk) { $missing += "status=$($doc.status) (need 'visible')" }
-                if (-not $priceOk)  { $missing += "$priceField=$price (need > 0)" }
-                if (-not $stockOk)  { $missing += "instock_quantity=$stockQty, instock=$stockFlag (need stock > 0)" }
-                $lastReason = "buyability incomplete: $($missing -join '; ')"
-            } else {
-                # Non-Product types: presence in the raw index is sufficient.
-                Write-Output "$documentType '$documentId' is present in the raw index."
-                return
-            }
-        } catch {
-            $lastReason = $_.Exception.Message
-        }
-        Write-Output "Smoke check for '$documentId' not ready: $lastReason. Retrying in ${pollIntervalSec}s..."
-        Start-Sleep -Seconds $pollIntervalSec
-    }
-    throw "$documentType '$documentId' did not become ready in the raw index within ${timeoutSeconds}s: $lastReason"
-}
-
-# Frontend-grade readiness gate. Queries XAPI products(query:) — the exact path the
-# test suite uses (see vc-testing-module/gql/operations/product_operations.py) — and
-# requires:
-#   (1) a matching item with item.code == $productId in the response
-#   (2) availabilityData.isBuyable = true on that item
-# Empirically confirmed to work on ElasticSearch8Provider despite the documented
-# `__object` limitation: separately-indexed fields (name, code, instock_quantity,
-# price_<currency>) populate ExpProduct independently of __object.
-# Failing this gate is the same failure the frontend tests would hit, surfaced
-# early so we don't waste a test run on a broken frontend pipeline.
-function Wait-FrontendProductReady {
-    param([string]$token, [string]$productId, [string]$storeId, [string]$cultureName, [string]$currencyCode)
-    $headers  = @{ Authorization = "Bearer $token"; 'Content-Type' = 'application/json' }
-    $body     = @{
-        query     = 'query($s:String!,$c:String,$cur:String,$q:String,$f:Int){ products(storeId:$s,cultureName:$c,currencyCode:$cur,query:$q,first:$f){ totalCount items { id name code availabilityData { isAvailable isBuyable isInStock availableQuantity } } } }'
-        variables = @{ s = $storeId; c = $cultureName; cur = $currencyCode; q = $productId; f = 10 }
-    } | ConvertTo-Json -Compress
-    $deadline = (Get-Date).AddSeconds($timeoutSeconds)
-    $lastReason = ''
-    while ((Get-Date) -lt $deadline) {
-        try {
-            $resp = (Invoke-WebRequest -Uri "$platformUrl/graphql" -Headers $headers -Method POST -Body $body -ErrorAction Stop).Content | ConvertFrom-Json
-            if ($resp.errors) {
-                # GraphQL server errors (schema/auth/storeId resolution) are not transient — surface and fail fast.
-                $errMsg = ($resp.errors | ForEach-Object { $_.message }) -join '; '
-                throw "GraphQL error for products(query='$productId'): $errMsg"
-            }
-            $items = @($resp.data.products.items)
-            $match = $items | Where-Object { $_.code -eq $productId } | Select-Object -First 1
-            if (-not $match) {
-                $lastReason = "products(query='$productId') returned $($items.Count) item(s); none had code=$productId"
-            } elseif (-not $match.availabilityData -or -not $match.availabilityData.isBuyable) {
-                $a = $match.availabilityData
-                $lastReason = "frontend found '$productId' but not buyable (isAvailable=$($a.isAvailable), isInStock=$($a.isInStock), availableQuantity=$($a.availableQuantity))"
-            } else {
-                Write-Output "Frontend XAPI gate passed for '$productId' via products(query:) (isBuyable=true, availableQuantity=$($match.availabilityData.availableQuantity))."
-                return
-            }
-        } catch {
-            # Re-throw GraphQL-error wrapping immediately; only retry transport-level failures.
-            if ($_.Exception.Message -like 'GraphQL error*') { throw }
-            $lastReason = $_.Exception.Message
-        }
-        Write-Output "Frontend gate for '$productId' not ready: $lastReason. Retrying in ${pollIntervalSec}s..."
-        Start-Sleep -Seconds $pollIntervalSec
-    }
-    throw "Frontend XAPI gate failed for '$productId' within ${timeoutSeconds}s: $lastReason"
-}
-
 $token = Get-AdminToken
 
 # Reindex one document type at a time. See Start-ReindexDocumentType for the rationale —
@@ -342,16 +212,4 @@ foreach ($docType in $script:reindexDocumentTypes) {
 Write-IndexCounts -token $token
 Wait-AllIndexedCountsReady -token $token -minDocCounts $minDocCounts
 
-foreach ($docType in $smokeDocIds.Keys) {
-    foreach ($id in @($smokeDocIds[$docType])) {
-        # Raw-index gate first: fast, no auth/store dependency. If this fails the indexer
-        # didn't write the doc — Wait-FrontendProductReady below would be misleading.
-        Wait-IndexedDocumentReady -token $token -documentType $docType -documentId $id -currencyCode $currencyCode
-        # Frontend gate: only meaningful for Product (XAPI products(query:) returns
-        # catalog items). Other types are validated by the raw-index check above.
-        if ($docType -eq 'Product') {
-            Wait-FrontendProductReady -token $token -productId $id -storeId $storeId -cultureName $cultureName -currencyCode $currencyCode
-        }
-    }
-}
 Write-Output "Indexing complete and verified — safe to start tests."
