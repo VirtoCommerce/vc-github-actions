@@ -1,0 +1,157 @@
+name: "Update docs.virtocommerce.org (Versioned)"
+description: "Makes and updates versioned documentation for docs.virtocommerce.org using Mike"
+outputs:
+  docker-image-tag:
+    description: "Docker image tag that was used for the build"
+    value: ${{ steps.docker-tag.outputs.tag }}
+inputs:
+  githubToken:
+    description: "GitHub token with push permissions to gh-pages branch"
+    required: true
+  ref:
+    description: "Branch of vc-docs to deploy (main or release/X.0). VERSION file on that ref determines the deployed version."
+    required: false
+    default: "main"
+  setAsLatest:
+    description: "Set this version as 'latest' alias"
+    required: false
+    default: "true"
+  setAsDefault:
+    description: "Set this version as default version"
+    required: false
+    default: "true"
+  dockerRegistry:
+    description: "Docker Registry"
+    required: true
+  dockerUsr:
+    description: "Docker User"
+    required: true
+  dockerPwd:
+    description: "Docker Password"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout vc-docs repository
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      with:
+        repository: VirtoCommerce/vc-docs
+        ref: ${{ inputs.ref }}
+        path: vc-docs
+        fetch-depth: 0
+        token: ${{ inputs.githubToken }}
+        persist-credentials: true
+
+    - name: Setup Python
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+      with:
+        python-version: "3.x"
+
+    - name: Install MkDocs and Mike
+      shell: bash
+      run: |
+        pip install mkdocs-material mike
+        pip install mkdocs-awesome-pages-plugin mkdocs-git-revision-date-localized-plugin
+        pip install mkdocs-minify-plugin mkdocs-redirects mkdocs-monorepo-plugin
+        pip install mkdocs-include-markdown-plugin pymdown-extensions jinja2
+
+    - name: Configure Git
+      shell: bash
+      working-directory: ${{ github.workspace }}/vc-docs
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: Build and deploy versioned documentation
+      shell: bash
+      working-directory: ${{ github.workspace }}/vc-docs
+      run: |
+        VERSION=$(tr -d '[:space:]' < VERSION)
+        if [ -z "$VERSION" ]; then
+          echo "❌ VERSION file is empty or missing at vc-docs root"
+          exit 1
+        fi
+        echo "Deploying version $VERSION from ref ${{ inputs.ref }}"
+        echo "Set as latest: ${{ inputs.setAsLatest }}"
+        echo "Set as default: ${{ inputs.setAsDefault }}"
+
+        ARGS=(--version "$VERSION")
+        if [ "${{ inputs.setAsLatest }}" = "true" ]; then
+          ARGS+=(--set-as-latest)
+        fi
+        if [ "${{ inputs.setAsDefault }}" = "true" ]; then
+          ARGS+=(--set-as-default)
+        fi
+
+        python3 versioned-build-cicd.py "${ARGS[@]}"
+        echo "✓ Deployment completed"
+
+    - name: Verify build output
+      shell: bash
+      working-directory: ${{ github.workspace }}/vc-docs
+      run: |
+        echo "Verifying build output..."
+
+        # Check if site directory exists and has content
+        if [ -d "site" ]; then
+          echo "✓ Site directory created"
+          echo "Site contents:"
+          ls -la site/
+        else
+          echo "❌ Site directory not found"
+          exit 1
+        fi
+
+        # Check if build-info.json exists
+        if [ -f "build-info.json" ]; then
+          echo "✓ Build info file created"
+          cat build-info.json
+        else
+          echo "⚠️  Build info file not found"
+        fi
+
+    - name: Prepare Docker context
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      run: |
+        # Copy versioned site directory for Docker
+        cp -r vc-docs/site ./
+
+        # Copy Docker files
+        cp -r ${{ github.action_path }}/docker/* ./
+
+        echo "✓ Docker context prepared"
+        echo "=== DOCKER CONTEXT DEBUG ==="
+        echo "Site directory contents:"
+        ls -la site/ | head -20
+        echo "Docker files:"
+        ls -la Dockerfile nginx.versioned.conf
+        echo "============================="
+
+    - name: Determine Docker Image Tag
+      id: docker-tag
+      shell: bash
+      working-directory: ${{ github.workspace }}/vc-docs
+      run: |
+        VERSION=$(tr -d '[:space:]' < VERSION)
+        if [ -z "$VERSION" ]; then
+          echo "❌ VERSION file is empty or missing at vc-docs root"
+          exit 1
+        fi
+        TAG="versioned-${VERSION}-${{ github.run_number }}"
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        echo "Docker image tag: $TAG"
+
+    - name: Build and Push Docker image
+      shell: pwsh
+      working-directory: ${{ github.workspace }}
+      run: |
+        dotnet tool install --global VirtoCommerce.GlobalTool
+        vc-build BuildAndPush `
+          -DockerUsername ${{ inputs.dockerUsr }} `
+          -DockerPassword ${{ inputs.dockerPwd }} `
+          -DockerfilePath ./Dockerfile `
+          -DockerImageName ${{ inputs.dockerRegistry }}/vcpt/docs `
+          -DockerImageTag ${{ steps.docker-tag.outputs.tag }} `
+          -DockerRegistryUrl ${{ inputs.dockerRegistry }}

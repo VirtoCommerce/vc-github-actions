@@ -3,10 +3,11 @@ Param(
     $ApiUrl,
     $Username = "admin",
     $Password = "store",
-    $ContainerId = "virtocommerce-vc-platform-web-1"
+    $ContainerId = "virtocommerce-vc-platform-web-1",
+    $watchUrlScriptPath = "./scripts/watch-url-up.ps1"
 )
 
-. "./scripts/watch-url-up.ps1"
+. $watchUrlScriptPath
 
 $appAuthUrl = "$ApiUrl/connect/token"
 $checkModulesUrl = "$ApiUrl/api/platform/modules"
@@ -21,7 +22,7 @@ function Get-AuthToken {
     $grant_type = "password"
     $content_type = "application/x-www-form-urlencoded"
 
-    $body = @{username=$username; password=$password; grant_type=$grant_type}
+    $body = @{username = $username; password = $password; grant_type = $grant_type }
     $response = Invoke-WebRequest -Uri $appAuthUrl -Method Post -ContentType $content_type -Body $body -SkipCertificateCheck -MaximumRetryCount 5 -RetryIntervalSec 5
     $responseContent = $response.Content | ConvertFrom-Json
     return $responseContent.access_token
@@ -51,7 +52,7 @@ if ($platformIsUp) {
         }
     }
     Write-Output "Modules installed: $installedModules"
-    if($installedModules -lt 23){
+    if ($installedModules -lt 23) {
         exit 1
     }
 }

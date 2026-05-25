@@ -15,5 +15,5 @@ inputs:
     default: 'https://validator.swagger.io/validator/debug'
 
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.js' 

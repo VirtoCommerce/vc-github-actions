@@ -1,0 +1,105 @@
+# Copyright (C) 2018-2020 Virto Solutions. All Rights Reserved.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# Base file. The vc-db service and vc-platform-web DB connection settings live
+# in docker-compose.<provider>.yml overlays. Always combine with one overlay:
+#   docker compose -f docker-compose.yml -f docker-compose.sqlserver.yml up -d
+
+services:
+
+  es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION:-8.18.0}
+    volumes:
+      - esdata01:/usr/share/elasticsearch/data
+    ports:
+      - ${ES_PORT:-9200}:9200
+    networks:
+      - virto
+    environment:
+      - node.name=es
+      - cluster.name=${CLUSTER_NAME:-elasticsearch}
+      - cluster.initial_master_nodes=es
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - xpack.license.self_generated.type=${LICENSE:-basic}
+      - xpack.ml.use_auto_machine_memory_percent=true
+    mem_limit: ${MEM_LIMIT:-1g}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s http://localhost:${ES_PORT:-9200}",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+
+  nginx_frontend:
+    depends_on:
+      - vc-platform-web
+    image: nginx_frontend:local-latest
+    ports:
+      - "${DOCKER_FRONTEND_PORT:-80}:80"
+    networks:
+      - virto
+
+  vc-platform-web:
+    image: platform:local-latest
+    ports:
+      - "${DOCKER_PLATFORM_PORT:-8090}:80"
+    environment:
+      - ApplicationInsights:InstrumentationKey=${APPLICATIONINSIGHTS_INSTRUMENTATIONKEY}
+      - ASPNETCORE_URLS=http://+
+      - VirtoCommerce:AllowInsecureHttp=true
+      - VirtoCommerce:Hangfire:JobStorageType=Memory
+      - VirtoCommerce:ApplicationInsights:RoleName=${ROLE_NAME}
+      - Assets:FileSystem:PublicUrl=http://localhost:${DOCKER_PLATFORM_PORT:-8090}/assets/
+      - Content:FileSystem:PublicUrl=http://localhost:${DOCKER_PLATFORM_PORT:-8090}/cms-content/
+      - Search:Provider=ElasticSearch8
+      - Search:ElasticSearch8:Server=http://es:${ES_PORT:-9200}
+      - Search:ElasticSearch8:User=elastic
+      - Search:ElasticSearch8:Key=${ELASTIC_PASSWORD}
+      - Search:ElasticSearch8:EnableCompatibilityMode=true
+      - Search:PickupLocationFullTextSearchEnabled=true
+      - IdentityOptions:User:MaxPasswordAge=0
+      - Notifications:DefaultSender=virto.start@virtoway.com
+      - Notifications:Gateway=SendGrid
+      - Notifications:SendGrid:ApiKey=${SENDGRID_API_KEY}
+    depends_on:
+      - es
+    volumes:
+      - cms-content-volume:/opt/virtocommerce/platform/wwwroot/cms-content
+      - modules-volume:/opt/virtocommerce/platform/modules
+    networks:
+      - virto
+    restart: unless-stopped
+
+volumes:
+  cms-content-volume:
+    name: cms-content-data
+  modules-volume:
+    name: modules-data
+  esdata01:
+    driver: local
+
+networks:
+  virto:

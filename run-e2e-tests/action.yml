@@ -1,0 +1,136 @@
+name: 'GraphQL Tests'
+description: 'Runs GraphQL Tests'
+inputs:
+  adminPassword:
+    description: 'Admin Password'
+    required: true
+    type: string
+  adminUsername:
+    description: 'Admin Username'
+    required: true
+    type: string
+  backUrl:
+    description: 'Back URL'
+    required: true
+    type: string
+  baseUrl:
+    description: 'Base URL'
+    required: true
+    type: string
+  browser:
+    description: 'Browser'
+    required: true
+    type: string
+  testSecretEnvFile:
+    description: 'Test secret environment file content'
+    required: true
+    type: string
+  vctestingPath:
+    description: 'UI tests path'
+    required: true
+    type: string
+  vctestingRepo:
+    description: 'UI tests repository'
+    required: true
+    type: string
+  vctestingRepoBranch:
+    description: 'UI tests repository branch'
+    required: true
+    type: string
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+      with:
+        python-version: "3.11"
+
+    - name: Getting tests
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      with:
+        repository: ${{ inputs.vctestingRepo }}
+        ref: ${{ inputs.vctestingRepoBranch }}
+        path: ${{ inputs.vctestingPath }}
+
+    - name: Create .env file
+      shell: bash
+      working-directory: ${{ inputs.vctestingPath }}
+      env:
+        SECRET_ENV_FILE: ${{ inputs.testSecretEnvFile }}
+      run: |
+        echo "Creating .env file..."
+        echo "$SECRET_ENV_FILE" > .env
+        chmod 600 .env
+        echo "..Done."
+
+    - name: Update .env file with local URLs
+      shell: bash
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        echo "Updating .env file to use local backend URLs..."
+        # Replace any BACKEND_BASE_URL value with localhost URL
+        sed -i 's|^BACKEND_BASE_URL=.*|BACKEND_BASE_URL=http://localhost:8090|g' .env
+        # Replace any FRONTEND_BASE_URL value with localhost URL
+        sed -i 's|^FRONTEND_BASE_URL=.*|FRONTEND_BASE_URL=http://localhost|g' .env
+        echo "..Done."
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        echo "Installing Python dependencies for GraphQL tests..."
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest-html
+
+    - name: Seed test data
+      shell: pwsh
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        echo "Seeding test data and starting indexing..."
+        $envFile = get-content -path ./.env
+        if ( $envFile -match 'ADMIN_PASSWORD=\S+' ) {
+          $m = $envFile -match 'ADMIN_PASSWORD=\S+'
+          $adminPassword = $m[0].split('=')[1]
+          Write-Host "`e[32mSet password for admin user from env file"
+        } else {
+          $adminPassword = 'store'
+          Write-Host "`e[32mSet password for admin user from default value"
+        }
+        python -m dataset.dataset_manager --seed
+        wget https://raw.githubusercontent.com/VirtoCommerce/vc-github-actions/refs/heads/master/docker-env-full/scripts/start-indexing.ps1
+        ./start-indexing.ps1 -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $adminPassword
+
+    - name: Upload dataset_manager log
+      if: always()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      with:
+        name: e2e-dataset-manager-log-${{ inputs.browser }}-${{ github.run_number }}-${{ github.run_attempt }}
+        path: ${{ inputs.vctestingPath }}/dataset/dataset_manager.log
+        if-no-files-found: warn
+        retention-days: 30
+
+    - name: Install Playwright Browsers
+      shell: bash
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        echo "Installing Playwright browsers for ${{ inputs.browser }}..."
+        playwright install --with-deps ${{ inputs.browser }}
+            
+    - name: Run E2E Tests
+      shell: bash
+      working-directory: ${{ inputs.vctestingPath }}
+      run: |
+        echo "Running E2E tests against ${{ inputs.baseUrl }}"
+        pytest tests_e2e/tests/ -v -s -m "not ignore" --browser ${{ inputs.browser }} --html=e2e-report.html --self-contained-html --tracing=retain-on-failure
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      with:
+        name: e2e-test-results-${{ inputs.browser }}-${{ github.run_number }}-${{ github.run_attempt }}
+        path: |
+          ${{ inputs.vctestingPath }}/e2e-report.html
+          ${{ inputs.vctestingPath }}/playwright-report/
+          ${{ inputs.vctestingPath }}/test-results/
+        retention-days: 30

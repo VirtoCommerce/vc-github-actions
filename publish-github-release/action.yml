@@ -15,7 +15,7 @@ inputs:
     required: false
   skipString:
     description: "vc-build skip string"
-    default: "Clean+Restore+Compile+WebPackBuild+Test"
+    default: "Clean+Restore+Compile+WebPackBuild+Test+BuildCustomApp"
     required: false
   makeLatest:
     description: "make vc-build do NOT mark the release with Latest label"
@@ -27,5 +27,5 @@ outputs:
     description: "GitHub release download URL"
 
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.js'

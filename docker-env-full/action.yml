@@ -1,0 +1,356 @@
+name: 'Docker Environment'
+description: 'Runs Docker Environment'
+inputs:
+  customModuleId:
+    description: 'Custom Module id'
+    required: false
+    default: ''
+  customModuleUrl:
+    description: 'Custom module Module url'
+    required: false
+    default: ''
+  customPackagesJsonUrl:
+    description: 'Custom packages.json file Url'
+    required: false
+    default: ''
+  frontendDockerTag:
+    description: 'Frontend Docker Tag'
+    required: false
+    default: 'local-latest'
+  frontendImage:
+    description: 'Frontend Docker Image'
+    required: false
+    default: 'nginx_frontend'
+  frontendZipUrl:
+    description: 'Frontend Zip Url'
+    required: false
+  installCustomModule:
+    description: 'Enable or disable custom module ver. installation'
+    required: false
+    default: 'false'
+  installModules:
+    description: 'Enable or disable "Install Modules" step'
+    required: false
+    default: 'true'
+  installSampleData:
+    description: 'Enable or disable "Install Sample Data" step'
+    required: true
+    default: 'true'
+  platformDockerTag:
+    description: 'Platform Docker Tag'
+    required: false
+    default: 'local-latest'
+  platformImage:
+    description: 'Platform Docker Image'
+    required: false
+    default: 'platform'
+  requiredModulesListUrl:
+    description: 'The URL of the JSON file with the required modules list'
+    required: false
+    default: ''
+  testSecretEnvFile:
+    description: 'Test secret environment file content'
+    required: true
+    type: string
+  dockerFiles:
+    description: 'Docker files'
+    required: false
+    default: 'https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net10/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh'
+  sendgridApiKey:
+    description: 'SendGrid API Key'
+    required: true
+  envDir:
+    description: 'Directory with environment files'
+    required: false
+    default: '.'
+  databaseProvider:
+    description: 'Database provider: sqlserver | mysql | postgres'
+    required: false
+    default: 'sqlserver'
+  prebuiltImageArtifact:
+    description: |
+      Name of a workflow artifact containing a `docker save` tar of the platform image.
+      When set, the action downloads and `docker load`s it instead of building or pulling.
+
+      BREAKING CONTRACT — when this input is set, the following inputs MUST be at the listed values
+      (the action will fail-fast with an actionable error otherwise):
+        - installModules:        'false'  (a volume mount would otherwise shadow the baked-in modules)
+        - installCustomModule:   'false'  (the build step would overwrite the loaded image tag)
+        - customPackagesJsonUrl: ''       (the build step would overwrite the loaded image tag)
+    required: false
+    default: ''
+  appInsightsInstrumentationKey:
+    description: 'Application Insights instrumentation key (GUID). Passed to the platform container as `ApplicationInsights:InstrumentationKey`.'
+    required: false
+    default: ''
+runs:
+  using: "composite"
+  steps:
+    - name: Validate prebuilt image configuration
+      if: ${{ inputs.prebuiltImageArtifact != '' }}
+      shell: bash
+      env:
+        INSTALL_MODULES: ${{ inputs.installModules }}
+        INSTALL_CUSTOM_MODULE: ${{ inputs.installCustomModule }}
+        CUSTOM_PACKAGES_JSON_URL: ${{ inputs.customPackagesJsonUrl }}
+      run: |
+        fail=0
+        err() { echo "::error::$1"; fail=1; }
+        [[ "$INSTALL_MODULES" == "true" ]]       && err "prebuiltImageArtifact requires installModules='false' — a volume mount would shadow baked-in modules. Set installModules: 'false' on the caller side."
+        [[ "$INSTALL_CUSTOM_MODULE" == "true" ]] && err "prebuiltImageArtifact requires installCustomModule='false' — the build step would overwrite the loaded image tag. Set installCustomModule: 'false' on the caller side."
+        [[ -n "$CUSTOM_PACKAGES_JSON_URL" ]]     && err "prebuiltImageArtifact requires customPackagesJsonUrl='' — the build step would overwrite the loaded image tag. Unset customPackagesJsonUrl on the caller side."
+        if [[ $fail -ne 0 ]]; then
+          echo "::error::Incompatible inputs combined with prebuiltImageArtifact. See the input description for the full contract."
+        fi
+        exit $fail
+
+    - name: Download prebuilt platform image artifact
+      if: ${{ inputs.prebuiltImageArtifact != '' }}
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+      with:
+        name: ${{ inputs.prebuiltImageArtifact }}
+        path: ${{ runner.temp }}/prebuilt-image
+
+    - name: Load prebuilt platform image
+      if: ${{ inputs.prebuiltImageArtifact != '' }}
+      shell: bash
+      env:
+        ARTIFACT_DIR: ${{ runner.temp }}/prebuilt-image
+        TARGET: ${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}
+      run: |
+        image_path=$(find "$ARTIFACT_DIR" -maxdepth 2 -type f -name '*.tar' | head -n1)
+        [[ -n "$image_path" ]] || { echo "::error::no *.tar found in artifact at $ARTIFACT_DIR"; exit 1; }
+        load_output=$(docker load -i "$image_path")
+        echo "$load_output"
+        # Prefer a Loaded image: line whose repo segment matches the target name,
+        # so multi-tag tars don't have us retag an arbitrary unrelated ref.
+        # `|| true` swallows grep's exit 1 under pipefail when no ref matches —
+        # the next block handles the empty result.
+        target_name="${TARGET%%:*}"
+        loaded=$(printf '%s\n' "$load_output" | sed -n 's/^Loaded image: //p' | { grep -E "(^|/)${target_name}:" || true; } | head -n1)
+        if [[ -z "$loaded" ]]; then
+          loaded=$(printf '%s\n' "$load_output" | sed -n -e 's/^Loaded image: //p' -e 's/^Loaded image ID: //p' | head -n1)
+        fi
+        [[ -n "$loaded" ]] || { echo "::error::docker load did not report an image ref"; exit 1; }
+        [[ "$loaded" == "$TARGET" ]] || docker tag "$loaded" "$TARGET"
+        docker image inspect "$TARGET" >/dev/null
+        echo "Loaded $loaded -> $TARGET"
+
+    - name: Use custom packages.json and build platform docker image
+      if: ${{ inputs.customPackagesJsonUrl != '' }}
+      working-directory: ${{ github.action_path }}
+      shell: pwsh
+      run: |
+        Invoke-WebRequest -Uri ${{ inputs.customPackagesJsonUrl }} -OutFile packages.json
+        Write-Host "`e[32mDownloaded custom packages.json from ${{ inputs.customPackagesJsonUrl }} file successfully. Build backend..."
+        vc-build install --package-manifest-path ./packages.json --root ./publish --skip-dependency-solving
+        Write-Host "`e[32mDownload platform Dockerfile and build image"
+        $dockerFilesArray = "${{ inputs.dockerFiles }}".Split(';')
+        foreach($file in $dockerFilesArray){
+            try {
+                $fileName = Split-Path $file -Leaf
+                Invoke-WebRequest -Uri $file -OutFile $fileName -UseBasicParsing -OperationTimeoutSeconds 15 -RetryIntervalSec 1 -MaximumRetryCount 3
+                Write-Host "Downloaded '$fileName' successfully"
+            }
+            catch {
+                Write-Error "Failed to download $file. Error: $_"
+                exit 1
+            }
+        }
+        Write-Host "::group::Build platform docker image"
+        docker build -f ./Dockerfile -t "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}" .
+        Write-Host "::endgroup::"
+
+    - name: Install Commerce Bundle Modules
+      if: ${{ inputs.installModules  == 'true' }}
+      working-directory: ${{ github.action_path }}
+      env: 
+        INSTALL_FOLDER: 'modules'
+      shell: pwsh
+      run: |
+        Write-Host "`e[33mInstall Modules step started."
+        # Pre-create the inner `modules/modules` directory so vc-build's default
+        # DiscoveryPath (`./modules` relative to its cwd) already exists on the
+        # first invocation — otherwise vc-build emits a "Discovery path not found"
+        # warning per call, which GH Actions surfaces as a workflow annotation.
+        New-Item -Path "./${{ env.INSTALL_FOLDER}}/modules" -ItemType "directory" -Force | Out-Null
+        Push-Location ./${{ env.INSTALL_FOLDER}}
+        vc-build install -Edge -skip InstallPlatform
+        vc-build install -module VirtoCommerce.Quote VirtoCommerce.XPickup VirtoCommerce.MarketingExperienceApi
+        Write-Host "`e[32mPull platform docker image to local storage"
+        docker pull ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }}
+        docker tag ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} "${{ inputs.platformImage }}:local-latest"
+        Write-Host "`e[32mPlatform docker image ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} tagged as ${{ inputs.platformImage }}:local-latest"
+
+    - name: Build platform docker image
+      if: ${{ inputs.installCustomModule == 'true' }}
+      working-directory: ${{ github.action_path }}
+      shell: pwsh
+      run: |
+        ../docker-env/scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }} -requiredModulesListUrl "${{ inputs.requiredModulesListUrl }}"
+        Write-Host "`e[32mDownload platform Dockerfile and build image"
+        $dockerFilesArray = "${{ inputs.dockerFiles }}".Split(';')
+        foreach($file in $dockerFilesArray){
+            try {
+                $fileName = Split-Path $file -Leaf
+                Invoke-WebRequest -Uri $file -OutFile $fileName -UseBasicParsing -OperationTimeoutSeconds 15 -RetryIntervalSec 1 -MaximumRetryCount 3
+                Write-Host "Downloaded '$fileName' successfully"
+            }
+            catch {
+                Write-Error "Failed to download $file. Error: $_"
+                exit 1
+            }
+        }
+        Write-Host "::group::Build platform docker image"
+        docker build -f ./Dockerfile -t "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}" .
+        Write-Host "::endgroup::"
+
+    - name: Build frontend docker image
+      working-directory: ${{ github.action_path }}
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        if ( "${{ inputs.frontendZipUrl }}" -eq 'latest' ) {
+          $headers = @{
+            Authorization          = "Bearer $env:GH_TOKEN"
+            Accept                 = 'application/vnd.github+json'
+            'X-GitHub-Api-Version' = '2022-11-28'
+          }
+          $frontendReleaseInfo = Invoke-RestMethod -Uri "https://api.github.com/repos/VirtoCommerce/vc-frontend/releases/latest" -Headers $headers
+          $frontendZipUrl = $frontendReleaseInfo.assets.browser_download_url
+          Write-Host "`e[32mDownload latest frontend zip and build image"
+        }
+        else {
+          $frontendZipUrl = "${{ inputs.frontendZipUrl }}"
+          Write-Host "`e[32mDownload frontend zip from $frontendZipUrl and build image"
+        }
+        try {
+                $fileName = Split-Path $frontendZipUrl -Leaf
+                Invoke-WebRequest -Uri $frontendZipUrl -OutFile $fileName -UseBasicParsing -OperationTimeoutSeconds 15 -RetryIntervalSec 1 -MaximumRetryCount 3
+                Write-Host "Downloaded '$fileName' successfully"
+            }
+            catch {
+                Write-Error "Failed to download $file. Error: $_"
+                exit 1
+            }
+        mkdir -p ./frontend
+        Write-Host "::group::Unzip frontend zip"
+        unzip -o $fileName -d ./frontend
+        Write-Host "::endgroup::"
+        Write-Host "::group::Build frontend docker image"
+        docker build -f ./nginx/Dockerfile -t "${{ inputs.frontendImage }}:${{ inputs.frontendDockerTag }}" .
+        Write-Host "::endgroup::"
+
+    - name: Generate container secrets
+      shell: pwsh
+      env:
+        APP_INSIGHTS_IKEY_INPUT: ${{ inputs.appInsightsInstrumentationKey }}
+        DB_PROVIDER_INPUT: ${{ inputs.databaseProvider }}
+      run: |
+        function New-RandomPassword {
+          # 32 random alnum chars + 'Vc!' prefix to satisfy SQL Server complexity
+          # (upper/lower/digit/symbol) and stay free of connection-string delimiters.
+          $alphabet = [char[]]'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+          $bytes = New-Object byte[] 32
+          [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+          $chars = foreach ($b in $bytes) { $alphabet[$b % $alphabet.Length] }
+          return 'Vc!' + (-join $chars)
+        }
+        $dbPassword = New-RandomPassword
+        $esPassword = New-RandomPassword
+        Write-Host "::add-mask::$dbPassword"
+        Write-Host "::add-mask::$esPassword"
+        Add-Content -Path $env:GITHUB_ENV -Value "DB_PASSWORD=$dbPassword"
+        Add-Content -Path $env:GITHUB_ENV -Value "ELASTIC_PASSWORD=$esPassword"
+        # ROLE_NAME uniquely identifies this platform container instance in Application
+        # Insights. It's anchored to the database provider because that's the matrix
+        # dimension that produces a distinct platform container.
+        # Exported via $GITHUB_ENV so downstream actions (e.g. run-pytest-tests) can
+        # surface the same value without recomputing it.
+        $dbSuffix = if ($env:DB_PROVIDER_INPUT) { "-$env:DB_PROVIDER_INPUT" } else { '' }
+        $roleName = "vc-platform-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT$dbSuffix"
+        Add-Content -Path $env:GITHUB_ENV -Value "ROLE_NAME=$roleName"
+        Write-Host "Application Insights role name: $roleName"
+        $aiKey = $env:APP_INSIGHTS_IKEY_INPUT
+        if ($aiKey) {
+          Write-Host "::add-mask::$aiKey"
+          Add-Content -Path $env:GITHUB_ENV -Value "APPLICATIONINSIGHTS_INSTRUMENTATIONKEY=$aiKey"
+        }
+
+    - name: Start database and elasticsearch containers
+      env:
+        PLATFORM_IMAGE: ${{ inputs.platformImage }}
+        PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
+        ENV_DIR: ${{ inputs.envDir }}
+        SENDGRID_API_KEY: ${{ inputs.sendgridApiKey }}
+        INSTALL_MODULES: ${{ inputs.installModules }}
+        DB_PROVIDER: ${{ inputs.databaseProvider }}
+      shell: pwsh
+      working-directory: ${{ github.action_path }}
+      run: |
+        Write-Host "`e[33mStart Containers step started."
+        $platformContainer = "virtocommerce-vc-platform-web-1"
+        . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
+
+        if ( $env:INSTALL_MODULES -eq 'true' ){
+          Write-Host "Modify docker-compose.yml to mount installed modules"
+          Install-Module -Name powershell-yaml -Force -allowClobber
+          $parsedYaml = Get-Content -Path ./docker-compose.yml -Raw | ConvertFrom-Yaml
+          $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/modules:/opt/virtocommerce/platform/modules')
+          $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/app_data:/opt/virtocommerce/platform/app_data')
+          $parsedYaml | ConvertTo-Yaml | Set-Content ./docker-compose.yml
+          cat ./docker-compose.yml
+        }
+        # Start only the database and elasticsearch containers first
+        Write-Host "::group::Start Database and Elasticsearch containers"
+        docker compose --project-name virtocommerce -f docker-compose.yml -f "docker-compose.$env:DB_PROVIDER.yml" up -d vc-db es
+        Write-Host "::endgroup::"
+        Write-Host "`e[32mDatabase and Elasticsearch containers started."
+
+    - name: Start remaining containers
+      env:
+        PLATFORM_IMAGE: ${{ inputs.platformImage }}
+        PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
+        ENV_DIR: ${{ inputs.envDir }}
+        SENDGRID_API_KEY: ${{ inputs.sendgridApiKey }}
+        DB_PROVIDER: ${{ inputs.databaseProvider }}
+      shell: pwsh
+      working-directory: ${{ github.action_path }}
+      run: |
+        Write-Host "`e[33mStart Remaining Containers step started."
+        $platformContainer = "virtocommerce-vc-platform-web-1"
+        . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
+        Write-Host "::group::Start Remaining Containers"
+        docker compose --project-name virtocommerce -f docker-compose.yml -f "docker-compose.$env:DB_PROVIDER.yml" up -d
+        Write-Host "::endgroup::"
+        InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 15 -WaitSeconds 0
+        Write-Host "`e[32mAll containers started."
+        
+    - name: Check Installed Modules
+      if: ${{ inputs.installModules == 'true' || inputs.installCustomModule == 'true' || inputs.customPackagesJsonUrl != '' || inputs.prebuiltImageArtifact != '' }}
+      working-directory: ${{ github.action_path }}
+      shell: pwsh
+      run: |
+        Write-Host "`e[33mCheck Installed Modules step started."
+        $platformContainer = "virtocommerce-vc-platform-web-1"
+        ../docker-env/scripts/check-installed-modules.ps1 -ApiUrl http://localhost:8090 -ContainerId $platformContainer -watchUrlScriptPath ../docker-env/scripts/watch-url-up.ps1 -Password store
+        Write-Host "`e[32mInstalled Modules checked."
+
+    - name: Prepare data for tests
+      if: ${{ inputs.installSampleData == 'true' }}
+      working-directory: ${{ github.action_path }}
+      shell: pwsh
+      env:
+        SECRET_ENV_FILE: ${{ inputs.testSecretEnvFile }}
+      run: |
+        if ( $env:SECRET_ENV_FILE -match 'ADMIN_PASSWORD=\S+' ) {
+          $testAdminPassword = $matches[0].split('=')[1]
+          Write-Host "`e[32mSet password for admin user from env variable"
+        }
+        else {
+          $testAdminPassword = 'store'
+          Write-Host "`e[32mSet password for admin user from default value"
+        }
+        Write-Host "`e[33mPrepare data for tests step started."
+        ./scripts/prepare4Tests.ps1 -newAdminPassword $testAdminPassword

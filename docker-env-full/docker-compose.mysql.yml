@@ -1,0 +1,29 @@
+services:
+
+  vc-db:
+    image: mysql:${MYSQL_VERSION:-9.3}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    environment:
+      - MYSQL_DATABASE=VirtoCommerce3docker
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - virto
+
+  vc-platform-web:
+    environment:
+      - DatabaseProvider=MySql
+      - ConnectionStrings:VirtoCommerce=Server=vc-db;Port=3306;Database=VirtoCommerce3docker;User=root;Password=${DB_PASSWORD}
+    depends_on:
+      - vc-db
+      - es
+    entrypoint: ["/wait-for-it.sh", "vc-db:3306", "-t", "120", "--", "/wait-for-it.sh", "es:9200", "-t", "120", "--", "dotnet", "VirtoCommerce.Platform.Web.dll"]
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  virto:

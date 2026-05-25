@@ -1,0 +1,30 @@
+services:
+
+  vc-db:
+    image: postgres:${PGSQL_VERSION:-18.3}
+    ports:
+      - "${PGSQL_PORT:-5432}:5432"
+    environment:
+      - POSTGRES_DB=VirtoCommerce3docker
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    networks:
+      - virto
+
+  vc-platform-web:
+    environment:
+      - DatabaseProvider=PostgreSql
+      - ConnectionStrings:VirtoCommerce=User ID=postgres;Password=${DB_PASSWORD};Host=vc-db;Port=5432;Database=VirtoCommerce3docker
+    depends_on:
+      - vc-db
+      - es
+    entrypoint: ["/wait-for-it.sh", "vc-db:5432", "-t", "120", "--", "/wait-for-it.sh", "es:9200", "-t", "120", "--", "dotnet", "VirtoCommerce.Platform.Web.dll"]
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  virto:
