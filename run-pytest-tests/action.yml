@@ -327,3 +327,18 @@ runs:
         echo "::group::Elasticsearch logs"
         docker logs virtocommerce-es-1 --tail 50
         echo "::endgroup::"
+
+    - name: Log Application Insights role name
+      if: always()
+      shell: bash
+      run: |
+        # ROLE_NAME is produced by docker-env-full's 'Generate container secrets'
+        # step (the same value passed to the platform container as
+        # VirtoCommerce:ApplicationInsights:RoleName). We read it from $GITHUB_ENV
+        # rather than recomputing — recomputing risks divergence from what was
+        # actually sent to Application Insights.
+        if [ -n "$ROLE_NAME" ]; then
+          echo "::notice title=Application Insights role name::${ROLE_NAME}"
+        else
+          echo "::warning title=Application Insights role name::ROLE_NAME is unset — docker-env-full did not run in this job, or did not export ROLE_NAME"
+        fi

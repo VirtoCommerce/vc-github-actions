@@ -1,13 +1,26 @@
 param(
-    [string]$platformUrl       = 'http://localhost:8090',
-    [string]$adminUsername     = 'admin',
-    [string]$adminPassword     = 'store',
-    [int]   $timeoutSeconds    = 900,
-    [int]   $pollIntervalSec   = 5,
-    [string[]]$smokeProductIds = @('smartphone-apple-iphone-17-256gb-black'),
-    [string]$storeId           = 'store-acme',
-    [string]$cultureName       = 'en-US',
-    [string]$currencyCode      = 'USD'
+    [string]$platformUrl     = 'http://localhost:8090',
+    [string]$adminUsername   = 'admin',
+    [string]$adminPassword   = 'store',
+    # Per-phase timeout (auth, single-type reindex, per-type count gate). The flow
+    # now has up to ~6 phases that could each hit the timeout (5 serialized reindex
+    # phases + count gate); 150s × 6 ≈ 15 min total worst case, matching the legacy
+    # per-phase budget of 900s back when the flow was a single batched reindex.
+    # The main purpose is to bound how long we wait on an upstream platform hang —
+    # e.g. the known IndexProgressHandler.Finish() NullReferenceException that leaves
+    # the notification stuck and the Hangfire job in an automatic-retry loop.
+    [int]   $timeoutSeconds  = 150,
+    [int]   $pollIntervalSec = 5,
+    # Per-type minimum indexed-document count. Defaults track the current
+    # vc-testing-module dataset. Callers can override per environment:
+    #   -minDocCounts @{ Product=166; Category=4; Member=38; CustomerOrder=20; PickupLocation=34 }
+    [hashtable]$minDocCounts = @{
+        Member         = 38
+        Product        = 166
+        Category       = 4
+        CustomerOrder  = 20
+        PickupLocation = 34
+    }
 )
 
 $ErrorActionPreference = 'Stop'
@@ -34,22 +47,33 @@ function Get-AdminToken {
 
 $script:reindexDocumentTypes = @('Member', 'Product', 'Category', 'CustomerOrder', 'PickupLocation')
 
-# Triggers a full rebuild (DeleteExistingIndex=$true) so every seeded record is re-emitted
-# into a clean index. Returns the IndexProgressPushNotification — its 'id' is what we poll
-# below to know when the indexer truly finished.
-function Start-FullReindex {
-    param([string]$token)
-    $body = $script:reindexDocumentTypes | ForEach-Object {
-        @{ DocumentType = $_; DeleteExistingIndex = $true }
-    }
+# Triggers a reindex (DeleteExistingIndex=$true) for ONE document type and returns
+# the IndexProgressPushNotification — its 'id' is what we poll to know when the
+# indexer truly finished.
+#
+# Why per-type and not batched: VC's IndexingJobs.RunIndexJobAsync runs all submitted
+# options in Task.WhenAll, and the shared IndexProgressHandler holds non-concurrent
+# Dictionary<string,long>'s. Submitting >1 type per POST races the dictionary writes
+# and intermittently corrupts state mid-indexation — one type's task throws while
+# others may have not even started. Serializing here (1 type per POST, wait for
+# Finished between submissions) eliminates the race entirely; the platform's
+# distributed "IndexationJob" lock already enforces one-at-a-time anyway.
+function Start-ReindexDocumentType {
+    param([string]$token, [string]$documentType)
+    $body = @( @{ DocumentType = $documentType; DeleteExistingIndex = $true } )
     $headers = @{
         'Content-Type'  = 'application/json-patch+json'
         'Authorization' = "Bearer $token"
     }
     # Write-Host: this function returns the notification object; Write-Output would pollute it.
-    Write-Host "Triggering full reindex (DeleteExistingIndex=true) of $($body.Count) document types: $($script:reindexDocumentTypes -join ', ')..."
+    Write-Host "Triggering reindex for $documentType (DeleteExistingIndex=true)..."
+    # Use -InputObject (not pipeline): in PowerShell, `@($x) | ConvertTo-Json` unwraps a
+    # single-element array to its element and emits a JSON object instead of a one-element
+    # JSON array. The controller binds to IndexingOptions[]; an object yields options=null
+    # at the platform side and RunIndexJobAsync throws ArgumentNullException in .Select.
+    $bodyJson = ConvertTo-Json -InputObject $body -Depth 5
     $resp = Invoke-WebRequest -Uri "$platformUrl/api/search/indexes/index" `
-        -Body ($body | ConvertTo-Json) -Headers $headers -Method POST
+        -Body $bodyJson -Headers $headers -Method POST
     return ($resp.Content | ConvertFrom-Json)
 }
 
@@ -89,7 +113,7 @@ function Wait-IndexerFinished {
                         # document types index in parallel. The exception fires in the
                         # progress callback AFTER documents have committed to ES, so the
                         # index state itself is fine. We log a warning instead of failing
-                        # — Wait-IndexedProductReady is the authoritative readiness gate.
+                        # — Wait-AllIndexedCountsReady is the authoritative readiness gate.
                         $errList = (@($notif.errors) | Select-Object -First 3) -join ' | '
                         Write-Warning "Indexer reported $errors error(s) (data may still be indexed). First few: $errList"
                     } else {
@@ -114,7 +138,7 @@ function Wait-IndexerFinished {
 
 # Lists per-document-type counts from /api/search/indexes. Useful sanity check after the
 # indexer reports "finished" — if Product is 0 we have a clear, fast diagnostic instead of
-# watching the XAPI smoke check loop spin until timeout.
+# watching the count gate spin until timeout.
 function Write-IndexCounts {
     param([string]$token)
     $headers = @{ 'Authorization' = "Bearer $token" }
@@ -129,80 +153,65 @@ function Write-IndexCounts {
     }
 }
 
-# Direct raw-index read for a single document. Bypasses XAPI's resolver and store/catalog
-# filtering — answers the bare "is doc X in the {type} index?" question. If this finds the
-# product, XAPI failure is a resolver/filter issue. If it doesn't, the indexer skipped the
-# doc despite reporting overall success.
-# Polls the raw search index for a product and gates on:
-#   (1) document is present
-#   (2) status contains 'visible'
-#   (3) instock_quantity > 0 (or instock = true)
-#   (4) price_<currency> > 0
-# Reads the same /api/search/indexes/index/{type}/{id} endpoint used for diagnostics —
-# does NOT depend on XAPI's __object reconstruction, so this works regardless of the
-# Catalog.Search.UseFullObjectIndexStoring platform setting.
-function Wait-IndexedProductReady {
-    param([string]$token, [string]$documentType, [string]$documentId, [string]$currencyCode)
-    $headers    = @{ 'Authorization' = "Bearer $token" }
-    $uri        = "$platformUrl/api/search/indexes/index/$documentType/$documentId"
-    $priceField = "price_$(($currencyCode).ToLower())"   # e.g. 'price_usd'
-    $deadline   = (Get-Date).AddSeconds($timeoutSeconds)
-
-    function Test-Contains($value, [string]$expected) {
-        if ($null -eq $value) { return $false }
-        if ($value -is [array]) { return ($value | ForEach-Object { [string]$_ }) -contains $expected }
-        return [string]$value -eq $expected
+# Polls /api/search/indexes and asserts that each requested document type has at least
+# its declared minimum indexed-document count. Retries within $timeoutSeconds because
+# index counts can lag slightly behind the indexer's "finished" signal (ES refresh
+# interval). Throws on timeout with a per-type diagnostic.
+function Wait-AllIndexedCountsReady {
+    param([string]$token, [hashtable]$minDocCounts)
+    if (-not $minDocCounts -or $minDocCounts.Count -eq 0) {
+        Write-Host "Skipping per-type count gate (no minDocCounts configured)."
+        return
     }
-    function Get-ScalarNumber($value) {
-        if ($null -eq $value) { return 0 }
-        if ($value -is [array]) { return ([double[]]@($value | ForEach-Object { try { [double]$_ } catch { 0 } }) | Measure-Object -Maximum).Maximum }
-        try { return [double]$value } catch { return 0 }
-    }
-
+    $headers   = @{ 'Authorization' = "Bearer $token" }
+    $deadline  = (Get-Date).AddSeconds($timeoutSeconds)
+    $lastReason = ''
     while ((Get-Date) -lt $deadline) {
         try {
-            $docs = (Invoke-WebRequest -Uri $uri -Headers $headers -Method GET -ErrorAction Stop).Content | ConvertFrom-Json
-            if (-not $docs -or @($docs).Count -eq 0) {
-                $lastReason = "no document for $documentType/$documentId in raw index"
-            } else {
-                $doc       = @($docs)[0]
-                $statusOk  = Test-Contains $doc.status 'visible'
-                $price     = Get-ScalarNumber $doc.$priceField
-                $priceOk   = $price -gt 0
-                $stockQty  = Get-ScalarNumber $doc.instock_quantity
-                $stockFlag = $doc.instock
-                $stockOk   = ($stockQty -gt 0) -or ($stockFlag -eq $true) -or (Test-Contains $stockFlag 'true')
-
-                if ($statusOk -and $priceOk -and $stockOk) {
-                    Write-Output "Product '$documentId' is buyable in the raw index (status=visible, $priceField=$price, instock_quantity=$stockQty)."
-                    return
+            $states = (Invoke-WebRequest -Uri "$platformUrl/api/search/indexes" -Headers $headers -Method GET -ErrorAction Stop).Content | ConvertFrom-Json
+            $byType = @{}
+            foreach ($s in @($states)) { $byType[$s.documentType] = $s }
+            $missing = @()
+            $observed = @()
+            foreach ($key in $minDocCounts.Keys) {
+                $minimum = [long]$minDocCounts[$key]
+                $state   = $byType[$key]
+                $actual  = if ($state -and $null -ne $state.indexedDocumentsCount) { [long]$state.indexedDocumentsCount } else { 0L }
+                $observed += "$key($actual)"
+                if ($actual -lt $minimum) {
+                    $missing += "$key (have $actual, need >= $minimum)"
                 }
-                $missing = @()
-                if (-not $statusOk) { $missing += "status=$($doc.status) (need 'visible')" }
-                if (-not $priceOk)  { $missing += "$priceField=$price (need > 0)" }
-                if (-not $stockOk)  { $missing += "instock_quantity=$stockQty, instock=$stockFlag (need stock > 0)" }
-                $lastReason = "buyability incomplete: $($missing -join '; ')"
             }
+            if ($missing.Count -eq 0) {
+                Write-Host "All requested document types meet minimum count expectations: $($observed -join ', ')."
+                return
+            }
+            $lastReason = $missing -join '; '
+            Write-Host "Index counts below expected: $lastReason. Retrying in ${pollIntervalSec}s..."
         } catch {
             $lastReason = $_.Exception.Message
+            Write-Host "Transient error reading index state; retrying: $lastReason"
         }
-        Write-Output "Smoke check for '$documentId' not ready: $lastReason. Retrying in ${pollIntervalSec}s..."
         Start-Sleep -Seconds $pollIntervalSec
     }
-    throw "Product '$documentId' did not become buyable in the raw index within ${timeoutSeconds}s: $lastReason"
+    throw "Index counts did not satisfy minimum expectations within ${timeoutSeconds}s: $lastReason"
 }
 
 $token = Get-AdminToken
-$notification = Start-FullReindex -token $token
-if (-not $notification.id) {
-    throw "Reindex POST returned no notification id. Response: $($notification | ConvertTo-Json -Depth 5)"
-}
-Write-Output "Reindex enqueued: notificationId=$($notification.id), jobId=$($notification.jobId)"
 
-Wait-IndexerFinished -token $token -notificationId $notification.id
+# Reindex one document type at a time. See Start-ReindexDocumentType for the rationale —
+# batching all 5 types into one POST trips an upstream race condition in the indexer's
+# progress handler that intermittently corrupts the indexation of a random type.
+foreach ($docType in $script:reindexDocumentTypes) {
+    $notification = Start-ReindexDocumentType -token $token -documentType $docType
+    if (-not $notification.id) {
+        throw "Reindex POST for $docType returned no notification id. Response: $($notification | ConvertTo-Json -Depth 5)"
+    }
+    Write-Output "Reindex enqueued for ${docType}: notificationId=$($notification.id), jobId=$($notification.jobId)"
+    Wait-IndexerFinished -token $token -notificationId $notification.id
+}
 
 Write-IndexCounts -token $token
-foreach ($id in $smokeProductIds) {
-    Wait-IndexedProductReady -token $token -documentType 'Product' -documentId $id -currencyCode $currencyCode
-}
+Wait-AllIndexedCountsReady -token $token -minDocCounts $minDocCounts
+
 Write-Output "Indexing complete and verified — safe to start tests."
