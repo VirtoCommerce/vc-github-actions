@@ -20,7 +20,7 @@
 services:
 
   es:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION:-8.18.0}
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION:-9.3.4}
     volumes:
       - esdata01:/usr/share/elasticsearch/data
     ports:
@@ -74,11 +74,11 @@ services:
       - VirtoCommerce:ApplicationInsights:RoleName=${ROLE_NAME}
       - Assets:FileSystem:PublicUrl=http://localhost:${DOCKER_PLATFORM_PORT:-8090}/assets/
       - Content:FileSystem:PublicUrl=http://localhost:${DOCKER_PLATFORM_PORT:-8090}/cms-content/
-      - Search:Provider=ElasticSearch8
-      - Search:ElasticSearch8:Server=http://es:${ES_PORT:-9200}
-      - Search:ElasticSearch8:User=elastic
-      - Search:ElasticSearch8:Key=${ELASTIC_PASSWORD}
-      - Search:ElasticSearch8:EnableCompatibilityMode=true
+      - Search:Provider=ElasticSearch9
+      - Search:ElasticSearch9:Server=http://es:${ES_PORT:-9200}
+      - Search:ElasticSearch9:User=elastic
+      - Search:ElasticSearch9:Key=${ELASTIC_PASSWORD}
+      - Search:ElasticSearch9:EnableCompatibilityMode=true
       - Search:PickupLocationFullTextSearchEnabled=true
       - IdentityOptions:User:MaxPasswordAge=0
       - Notifications:DefaultSender=virto.start@virtoway.com
