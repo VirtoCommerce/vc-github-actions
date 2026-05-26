@@ -1,0 +1,4 @@
+# Bundled action distributions: emitted by ncc as LF on every platform.
+# Forcing LF here prevents Windows checkouts from producing phantom diffs
+# against the committed bundles and keeps the check-dist guard reliable.
+**/dist/** text eol=lf

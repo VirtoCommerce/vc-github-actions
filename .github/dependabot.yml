@@ -8,3 +8,20 @@ updates:
       actions:
         patterns:
           - "*"
+
+  # Bundled Node actions: every directory with a package.json gets its own
+  # weekly PR. Minor + patch updates are grouped per action; majors arrive
+  # as individual PRs so each can be canary-tested separately.
+  - package-ecosystem: npm
+    directories:
+      - "/*"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"

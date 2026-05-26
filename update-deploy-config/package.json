@@ -1,6 +1,7 @@
 {
   "devDependencies": {
     "@types/node": "^16.10.2",
+    "@vercel/ncc": "^0.38.0",
     "typescript": "^4.4.3"
   },
   "name": "update-deploy-config",
@@ -8,6 +9,7 @@
   "description": "Creates/updates argoDeplo.json from action templlate in repository",
   "main": "index.js",
   "scripts": {
+    "build": "ncc build src/index.ts -o dist --source-map --license licenses.txt",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Maksim Kopnov",

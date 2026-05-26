@@ -1,0 +1,76 @@
+name: dependabot-rebuild
+
+# When Dependabot opens an npm PR, rebuild dist/ for the affected action
+# and push the result back to the PR branch. Without this, every Dependabot
+# npm PR fails check-dist (the bundle is stale by construction), forcing a
+# maintainer to rebuild locally before merge.
+
+on:
+  pull_request_target:
+    types: [opened, synchronize]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  rebuild:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - id: changed
+        name: List action directories with package.json/lock changes
+        run: |
+          dirs=$(git diff --name-only \
+            "origin/${{ github.event.pull_request.base.ref }}...HEAD" \
+            -- '*/package.json' '*/package-lock.json' \
+            | awk -F/ '$1 != "" && $1 != ".github" {print $1}' \
+            | sort -u)
+          {
+            echo "actions<<EOF"
+            echo "$dirs"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "Detected: $dirs"
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        if: steps.changed.outputs.actions != ''
+        with:
+          node-version: 24
+
+      - name: Rebuild dist/ for each changed action
+        if: steps.changed.outputs.actions != ''
+        run: |
+          while IFS= read -r action; do
+            [ -z "$action" ] && continue
+            if [ ! -f "$action/package.json" ]; then
+              echo "::notice::Skipping $action (no package.json)"
+              continue
+            fi
+            if ! jq -e '.scripts.build' "$action/package.json" >/dev/null; then
+              echo "::notice::Skipping $action (no build script)"
+              continue
+            fi
+            echo "::group::Rebuilding $action"
+            (cd "$action" && npm ci --no-audit --no-fund && npm run build)
+            git add "$action/dist/"
+            echo "::endgroup::"
+          done <<< "${{ steps.changed.outputs.actions }}"
+
+      - name: Commit rebuilt dist/ if changed
+        run: |
+          if git diff --cached --quiet; then
+            echo "No dist/ changes to commit."
+            exit 0
+          fi
+          git config user.name  "dependabot[bot]"
+          git config user.email "49699333+dependabot[bot]@users.noreply.github.com"
+          git commit -m "chore: rebuild dist/ after dependency update"
+          git push
