@@ -55,4 +55,4 @@ async function run(): Promise<void> {
 }
 
 run().catch(error => core.setFailed(error.message));
-
+const _vcst5054_smoke = '" + (Get-Random) + "';
