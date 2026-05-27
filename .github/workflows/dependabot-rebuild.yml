@@ -20,7 +20,14 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          # Pin to the immutable head SHA, not the mutable branch ref,
+          # to close the TOCTOU window where someone with push access
+          # could race a malicious commit onto the Dependabot branch
+          # between event dispatch and checkout. The actor guard above
+          # checks the *event*-time actor (dependabot[bot]), but the
+          # branch tip could have moved since then. Pinning to head.sha
+          # ensures we build the exact commit the event fired for.
+          ref: ${{ github.event.pull_request.head.sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           # REPO_TOKEN (org-level PAT) is required so the dist/ rebuild
           # push re-triggers check-dist on the PR. The default
@@ -82,6 +89,13 @@ jobs:
           done <<< "$ACTIONS"
 
       - name: Commit rebuilt dist/ if changed
+        # head.ref is mutable, but we only consult it AFTER the build
+        # has run against the pinned head.sha; using it as the push
+        # destination (not as a build input) is safe. Routed via env
+        # for the same reason every other dynamic value in this file
+        # is: it never reaches the shell as code.
+        env:
+          BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
         run: |
           if git diff --cached --quiet; then
             echo "No dist/ changes to commit."
@@ -90,4 +104,10 @@ jobs:
           git config user.name  "dependabot[bot]"
           git config user.email "49699333+dependabot[bot]@users.noreply.github.com"
           git commit -m "chore: rebuild dist/ after dependency update"
-          git push
+          # We checked out a detached HEAD at head.sha. Push the new
+          # commit back to the branch by name. If the branch has moved
+          # since checkout (concurrent Dependabot rebase, or the TOCTOU
+          # attacker scenario the SHA pin guards against), the push is
+          # rejected non-fast-forward and the step fails -- correct: we
+          # don't want to overwrite work we never validated.
+          git push origin "HEAD:$BRANCH_NAME"
