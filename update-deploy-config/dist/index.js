@@ -8369,7 +8369,11 @@ function wrappy (fn, cb) {
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -8379,13 +8383,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8396,12 +8410,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -8471,7 +8485,7 @@ function run() {
                     gitUserEmail = core.getInput("gitUserEmail");
                     deployType = core.getInput("deployType");
                     if (deployTypes.indexOf(deployType) === -1) {
-                        core.setFailed("Invalid releaseSource. Input parameter releaseSource should contain: \u001B[0;32m" + deployTypes.join(', ') + "\u001B[0m. Actual value: \u001Bs[0;31m" + deployType + "\u001B[0m.");
+                        core.setFailed("Invalid releaseSource. Input parameter releaseSource should contain: \u001B[0;32m".concat(deployTypes.join(', '), "\u001B[0m. Actual value: \u001Bs[0;31m").concat(deployType, "\u001B[0m."));
                         return [2];
                     }
                     octokit = github.getOctokit(githubToken);
@@ -8491,7 +8505,7 @@ function run() {
                     _a.label = 2;
                 case 2:
                     _a.trys.push([2, 4, , 5]);
-                    console.log("Try to get argoDeploy config content from " + repoName + "/" + branchName + "/" + configPath);
+                    console.log("Try to get argoDeploy config content from ".concat(repoName, "/").concat(branchName, "/").concat(configPath));
                     return [4, octokit.rest.repos.getContent({
                             repo: repoName,
                             owner: github.context.repo.owner,
@@ -8508,11 +8522,11 @@ function run() {
                         core.setFailed(error_1.message);
                         return [2];
                     }
-                    console.log("File " + configPath + " not found in " + repoName + "/" + branchName + " repository branch.");
+                    console.log("File ".concat(configPath, " not found in ").concat(repoName, "/").concat(branchName, " repository branch."));
                     console.log("Trying to create a new one.");
                     return [3, 5];
                 case 5:
-                    console.log("Push deploy config content to " + repoName + "/" + branchName + "/" + configPath);
+                    console.log("Push deploy config content to ".concat(repoName, "/").concat(branchName, "/").concat(configPath));
                     return [4, octokit.rest.repos.createOrUpdateFileContents({
                             repo: repoName,
                             owner: github.context.repo.owner,
@@ -8520,7 +8534,7 @@ function run() {
                             branch: branchName,
                             content: Buffer.from(deployConfStr).toString("base64"),
                             sha: deployConfSha,
-                            message: "ci: Updating " + configPath + " deployment config",
+                            message: "ci: Updating ".concat(configPath, " deployment config"),
                             committer: {
                                 name: gitUserName,
                                 email: gitUserEmail
@@ -8532,7 +8546,7 @@ function run() {
                         })];
                 case 6:
                     data = (_a.sent()).data;
-                    console.log(deployType + " config successfully deployed to " + repoName + "/" + branchName + "/" + configPath);
+                    console.log("".concat(deployType, " config successfully deployed to ").concat(repoName, "/").concat(branchName, "/").concat(configPath));
                     return [3, 8];
                 case 7:
                     error_2 = _a.sent();

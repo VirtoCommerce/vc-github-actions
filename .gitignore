@@ -203,6 +203,12 @@ ClientBin/
 *.jfm
 # *.pfx
 *.publishsettings
+
+# Local environment overrides for docker-compose stacks (e.g. docker-env-full).
+# Compose auto-loads .env from the cwd; these files may contain image tags or
+# credentials and should never be committed.
+.env
+
 node_modules/
 
 # Legacy pre-bundling actions: they have no ncc dist/ and ship their

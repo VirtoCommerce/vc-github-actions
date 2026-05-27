@@ -21,7 +21,9 @@
     "@actions/github": "5.0.0",
     "@types/node": "^16",
     "@vercel/ncc": "^0.38.0",
-    "prettier": "2.5.1",
-    "typescript": "^4.5.4"
+    "prettier": "2.5.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
   }
 }

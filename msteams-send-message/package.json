@@ -10,7 +10,8 @@
   },
   "devDependencies": {
     "@types/request": "^2.48.6",
-    "@vercel/ncc": "^0.38.0"
+    "@vercel/ncc": "^0.38.0",
+    "typescript": "^5.8.3"
   },
   "scripts": {
     "build": "ncc build src/index.ts -o dist --source-map --license licenses.txt",

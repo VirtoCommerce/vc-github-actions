@@ -22,7 +22,13 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # REPO_TOKEN (org-level PAT) is required so the dist/ rebuild
+          # push re-triggers check-dist on the PR. The default
+          # GITHUB_TOKEN is suppressed from triggering workflows to
+          # prevent recursion (see GitHub docs on
+          # GITHUB_TOKEN-triggered events), which would leave the PR
+          # stuck with a stale check-dist failure.
+          token: ${{ secrets.REPO_TOKEN }}
           fetch-depth: 0
 
       - id: changed

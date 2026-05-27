@@ -16,6 +16,7 @@
     "@virtocommerce/vc-actions-lib": "^1.1.0"
   },
   "devDependencies": {
-    "@vercel/ncc": "^0.38.0"
+    "@vercel/ncc": "^0.38.0",
+    "typescript": "^5.8.3"
   }
 }

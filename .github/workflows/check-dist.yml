@@ -79,18 +79,54 @@ jobs:
         if: steps.gate.outputs.skip != 'true'
         working-directory: ${{ matrix.action }}
         run: |
+          # node --check only parses. require() runs module init, so a
+          # structurally broken bundle (missing internal require,
+          # undefined identifier, malformed export) surfaces here.
+          #
+          # Discriminate by error class:
+          #   - SyntaxError / ReferenceError / "Cannot find module"
+          #     => bundle is broken, exit 2 (step fails).
+          #   - Anything else (TypeError from missing env, action's own
+          #     thrown Error on missing GITHUB_TOKEN / event payload, etc.)
+          #     => bundle loaded fine, the action just can't run without
+          #     a real GHA runtime. Tolerate.
+          # process.exit(0) at the end so process.exitCode set by the
+          # bundle's run().catch(core.setFailed) doesn't fail the step.
           node --check dist/index.js
-          # require() runs the entry point. Most actions immediately call
-          # core.getInput / fail-fast on missing env. We tolerate that exit
-          # path; we only want to catch ReferenceError / module-not-found.
-          node -e "require('./dist/index.js')" || true
+          node -e "
+            try { require('./dist/index.js'); }
+            catch (e) {
+              const broken =
+                e instanceof SyntaxError ||
+                e instanceof ReferenceError ||
+                (e && e.code === 'MODULE_NOT_FOUND') ||
+                /Cannot find module/i.test(e && e.message || '');
+              if (broken) {
+                console.error('Bundle load failure:', e && e.stack || e);
+                process.exit(2);
+              }
+              // Otherwise: the action threw on a runtime precondition
+              // (missing env / token / payload). Bundle is fine.
+            }
+            process.exit(0);
+          "
 
       - name: Verify committed dist/ matches rebuild
         if: steps.gate.outputs.skip != 'true'
         working-directory: ${{ matrix.action }}
         run: |
-          if ! git diff --quiet -- dist/; then
+          # Only the runtime bundle (dist/index.js) and the licenses file
+          # are gated — those must be reproducible across platforms. The
+          # sourcemap (dist/index.js.map) and the sourcemap-register shim
+          # are intentionally excluded: ncc inlines upstream source files
+          # whose CRLF/LF endings differ between Windows-committed and
+          # Linux-CI-rebuilt copies, producing a benign byte diff that
+          # doesn't affect runtime behaviour.
+          paths=(dist/index.js)
+          [ -f dist/licenses.txt ] && paths+=(dist/licenses.txt)
+          [ -f dist/LICENSES ]     && paths+=(dist/LICENSES)
+          if ! git diff --quiet -- "${paths[@]}"; then
             echo "::error::dist/ in ${{ matrix.action }} is stale. Run 'npm ci && npm run build' inside that directory and commit the result."
-            git --no-pager diff --stat -- dist/
+            git --no-pager diff --stat -- "${paths[@]}"
             exit 1
           fi
