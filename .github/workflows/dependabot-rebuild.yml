@@ -15,7 +15,14 @@ permissions:
 
 jobs:
   rebuild:
-    if: github.actor == 'dependabot[bot]'
+    # Gate on the immutable PR author, not `github.actor` (which reflects
+    # the current event triggerer and is spoofable: a `@dependabot
+    # recreate` style command on an attacker's PR can cause
+    # github.actor to surface as dependabot[bot] on the resulting
+    # synchronize event, even though the PR itself was authored by
+    # someone else (CWE-290). pull_request.user.login is set when the
+    # PR is created and cannot change.
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
