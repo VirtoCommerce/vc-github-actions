@@ -67,6 +67,10 @@ jobs:
               echo "::notice::Skipping $action (no package.json)"
               continue
             fi
+            if [ ! -f "$action/package-lock.json" ]; then
+              echo "::notice::Skipping $action (no package-lock.json)"
+              continue
+            fi
             if ! jq -e '.scripts.build' "$action/package.json" >/dev/null; then
               echo "::notice::Skipping $action (no build script)"
               continue

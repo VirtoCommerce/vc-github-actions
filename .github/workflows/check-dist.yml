@@ -55,22 +55,38 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: ${{ matrix.action }}/package-lock.json
-
-      - name: Skip actions without a build script
+      # Gate runs before setup-node so legacy / partial actions (no
+      # package.json, no lockfile, or no build script) short-circuit
+      # cleanly. setup-node with cache-dependency-path pointing at a
+      # missing lockfile would fail before the gate could fire.
+      - name: Skip actions that aren't bundled with npm
         id: gate
         working-directory: ${{ matrix.action }}
         env:
           ACTION: ${{ matrix.action }}
         run: |
-          if [ ! -f package.json ] || ! jq -e '.scripts.build' package.json >/dev/null; then
-            echo "No build script in $ACTION; skipping."
+          if [ ! -f package.json ]; then
+            echo "::notice::$ACTION has no package.json; skipping."
             echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+          if [ ! -f package-lock.json ]; then
+            echo "::notice::$ACTION has no package-lock.json; skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if ! jq -e '.scripts.build' package.json >/dev/null; then
+            echo "::notice::$ACTION has no build script; skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        if: steps.gate.outputs.skip != 'true'
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: ${{ matrix.action }}/package-lock.json
 
       - name: Install dependencies
         if: steps.gate.outputs.skip != 'true'
@@ -131,11 +147,17 @@ jobs:
           # whose CRLF/LF endings differ between Windows-committed and
           # Linux-CI-rebuilt copies, producing a benign byte diff that
           # doesn't affect runtime behaviour.
+          #
+          # Stage with `git add` before diffing --cached so a brand-new
+          # untracked dist/index.js (e.g. a PR adding an action without
+          # committing the bundle) is caught -- plain `git diff` is blind
+          # to untracked files. Same pattern as dependabot-rebuild.yml.
           paths=(dist/index.js)
           [ -f dist/licenses.txt ] && paths+=(dist/licenses.txt)
           [ -f dist/LICENSES ]     && paths+=(dist/LICENSES)
-          if ! git diff --quiet -- "${paths[@]}"; then
-            echo "::error::dist/ in $ACTION is stale. Run 'npm ci && npm run build' inside that directory and commit the result."
-            git --no-pager diff --stat -- "${paths[@]}"
+          git add -- "${paths[@]}"
+          if ! git diff --cached --quiet -- "${paths[@]}"; then
+            echo "::error::dist/ in $ACTION is missing or stale. Run 'npm ci && npm run build' inside that directory and commit the result."
+            git --no-pager diff --cached --stat -- "${paths[@]}"
             exit 1
           fi
