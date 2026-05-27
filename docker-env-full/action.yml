@@ -79,6 +79,10 @@ inputs:
         - customPackagesJsonUrl: ''       (the build step would overwrite the loaded image tag)
     required: false
     default: ''
+  appInsightsInstrumentationKey:
+    description: 'Application Insights instrumentation key (GUID). Passed to the platform container as `ApplicationInsights:InstrumentationKey`.'
+    required: false
+    default: ''
 runs:
   using: "composite"
   steps:
@@ -165,10 +169,14 @@ runs:
       shell: pwsh
       run: |
         Write-Host "`e[33mInstall Modules step started."
-        New-Item -Path "./" -Name "${{ env.INSTALL_FOLDER}}" -ItemType "directory"
+        # Pre-create the inner `modules/modules` directory so vc-build's default
+        # DiscoveryPath (`./modules` relative to its cwd) already exists on the
+        # first invocation — otherwise vc-build emits a "Discovery path not found"
+        # warning per call, which GH Actions surfaces as a workflow annotation.
+        New-Item -Path "./${{ env.INSTALL_FOLDER}}/modules" -ItemType "directory" -Force | Out-Null
         Push-Location ./${{ env.INSTALL_FOLDER}}
         vc-build install -Edge -skip InstallPlatform
-        vc-build install -module VirtoCommerce.Quote VirtoCommerce.XPickup
+        vc-build install -module VirtoCommerce.Quote VirtoCommerce.XPickup VirtoCommerce.MarketingExperienceApi
         Write-Host "`e[32mPull platform docker image to local storage"
         docker pull ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }}
         docker tag ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} "${{ inputs.platformImage }}:local-latest"
@@ -236,6 +244,9 @@ runs:
 
     - name: Generate container secrets
       shell: pwsh
+      env:
+        APP_INSIGHTS_IKEY_INPUT: ${{ inputs.appInsightsInstrumentationKey }}
+        DB_PROVIDER_INPUT: ${{ inputs.databaseProvider }}
       run: |
         function New-RandomPassword {
           # 32 random alnum chars + 'Vc!' prefix to satisfy SQL Server complexity
@@ -252,6 +263,20 @@ runs:
         Write-Host "::add-mask::$esPassword"
         Add-Content -Path $env:GITHUB_ENV -Value "DB_PASSWORD=$dbPassword"
         Add-Content -Path $env:GITHUB_ENV -Value "ELASTIC_PASSWORD=$esPassword"
+        # ROLE_NAME uniquely identifies this platform container instance in Application
+        # Insights. It's anchored to the database provider because that's the matrix
+        # dimension that produces a distinct platform container.
+        # Exported via $GITHUB_ENV so downstream actions (e.g. run-pytest-tests) can
+        # surface the same value without recomputing it.
+        $dbSuffix = if ($env:DB_PROVIDER_INPUT) { "-$env:DB_PROVIDER_INPUT" } else { '' }
+        $roleName = "vc-platform-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT$dbSuffix"
+        Add-Content -Path $env:GITHUB_ENV -Value "ROLE_NAME=$roleName"
+        Write-Host "Application Insights role name: $roleName"
+        $aiKey = $env:APP_INSIGHTS_IKEY_INPUT
+        if ($aiKey) {
+          Write-Host "::add-mask::$aiKey"
+          Add-Content -Path $env:GITHUB_ENV -Value "APPLICATIONINSIGHTS_INSTRUMENTATIONKEY=$aiKey"
+        }
 
     - name: Start database and elasticsearch containers
       env:
@@ -296,8 +321,6 @@ runs:
         Write-Host "`e[33mStart Remaining Containers step started."
         $platformContainer = "virtocommerce-vc-platform-web-1"
         . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
-
-        # Start the remaining containers (platform and frontend)
         Write-Host "::group::Start Remaining Containers"
         docker compose --project-name virtocommerce -f docker-compose.yml -f "docker-compose.$env:DB_PROVIDER.yml" up -d
         Write-Host "::endgroup::"
