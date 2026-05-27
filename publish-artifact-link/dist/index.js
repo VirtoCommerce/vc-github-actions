@@ -5899,7 +5899,6 @@ function run() {
     });
 }
 run().catch(function (error) { return core.setFailed(error.message); });
-var _vcst5054_smoke = '" + (Get-Random) + "';
 
 
 /***/ }),
