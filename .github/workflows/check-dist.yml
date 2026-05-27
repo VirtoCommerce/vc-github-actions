@@ -8,6 +8,7 @@ on:
   pull_request:
     paths:
       - "*/src/**"
+      - "*/index.js"        # actions like changelog-generator that bundle a root index.js
       - "*/package.json"
       - "*/package-lock.json"
       - "*/tsconfig.json"
@@ -31,7 +32,7 @@ jobs:
         run: |
           dirs=$(git diff --name-only \
             "origin/${{ github.base_ref }}...HEAD" \
-            -- '*/src/**' '*/package.json' '*/package-lock.json' '*/tsconfig.json' \
+            -- '*/src/**' '*/index.js' '*/package.json' '*/package-lock.json' '*/tsconfig.json' \
             | awk -F/ '$1 != "" && $1 != ".github" {print $1}' \
             | sort -u \
             | jq -R . | jq -sc .)
