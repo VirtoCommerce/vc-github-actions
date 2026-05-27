@@ -33,9 +33,14 @@ jobs:
 
       - id: changed
         name: List action directories with package.json/lock changes
+        # Route GHA-context values through env: so they cannot be expanded
+        # into shell as code (defense-in-depth for pull_request_target
+        # workflows; see GitHub Actions hardening guide).
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
           dirs=$(git diff --name-only \
-            "origin/${{ github.event.pull_request.base.ref }}...HEAD" \
+            "origin/${BASE_REF}...HEAD" \
             -- '*/package.json' '*/package-lock.json' \
             | awk -F/ '$1 != "" && $1 != ".github" {print $1}' \
             | sort -u)
@@ -53,6 +58,8 @@ jobs:
 
       - name: Rebuild dist/ for each changed action
         if: steps.changed.outputs.actions != ''
+        env:
+          ACTIONS: ${{ steps.changed.outputs.actions }}
         run: |
           while IFS= read -r action; do
             [ -z "$action" ] && continue
@@ -68,7 +75,7 @@ jobs:
             (cd "$action" && npm ci --no-audit --no-fund && npm run build)
             git add "$action/dist/"
             echo "::endgroup::"
-          done <<< "${{ steps.changed.outputs.actions }}"
+          done <<< "$ACTIONS"
 
       - name: Commit rebuilt dist/ if changed
         run: |

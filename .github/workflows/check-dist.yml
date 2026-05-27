@@ -29,9 +29,14 @@ jobs:
 
       - id: changed
         name: List action directories with relevant changes
+        # Route GHA-context values through env: so they cannot be expanded
+        # into shell as code (defense-in-depth; see GitHub Actions
+        # hardening guide on script-injection risks).
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
           dirs=$(git diff --name-only \
-            "origin/${{ github.base_ref }}...HEAD" \
+            "origin/${BASE_REF}...HEAD" \
             -- '*/src/**' '*/index.js' '*/package.json' '*/package-lock.json' '*/tsconfig.json' \
             | awk -F/ '$1 != "" && $1 != ".github" {print $1}' \
             | sort -u \
@@ -59,9 +64,11 @@ jobs:
       - name: Skip actions without a build script
         id: gate
         working-directory: ${{ matrix.action }}
+        env:
+          ACTION: ${{ matrix.action }}
         run: |
           if [ ! -f package.json ] || ! jq -e '.scripts.build' package.json >/dev/null; then
-            echo "No build script in ${{ matrix.action }}; skipping."
+            echo "No build script in $ACTION; skipping."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
 
@@ -114,6 +121,8 @@ jobs:
       - name: Verify committed dist/ matches rebuild
         if: steps.gate.outputs.skip != 'true'
         working-directory: ${{ matrix.action }}
+        env:
+          ACTION: ${{ matrix.action }}
         run: |
           # Only the runtime bundle (dist/index.js) and the licenses file
           # are gated — those must be reproducible across platforms. The
@@ -126,7 +135,7 @@ jobs:
           [ -f dist/licenses.txt ] && paths+=(dist/licenses.txt)
           [ -f dist/LICENSES ]     && paths+=(dist/LICENSES)
           if ! git diff --quiet -- "${paths[@]}"; then
-            echo "::error::dist/ in ${{ matrix.action }} is stale. Run 'npm ci && npm run build' inside that directory and commit the result."
+            echo "::error::dist/ in $ACTION is stale. Run 'npm ci && npm run build' inside that directory and commit the result."
             git --no-pager diff --stat -- "${paths[@]}"
             exit 1
           fi
