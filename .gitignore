@@ -215,6 +215,11 @@ node_modules/
 # node_modules/ tree as the deployment artifact (action.yml points runs.main
 # at the root index.js, which require()s deps at runtime). Migrate to ncc
 # and remove the exception when revisiting one of these actions.
+#
+# Ordering invariant: these un-ignores MUST stay below the `node_modules/`
+# rule above. Adding a new node_modules-related pattern after this block
+# would re-shadow these directories. Keep new rules above the block, or
+# update the un-ignores accordingly.
 !add-version-suffix/node_modules/
 !build-theme/node_modules/
 !build-vue-theme/node_modules/

@@ -4,6 +4,7 @@
   "description": "This action grabs Version and Version suffix from Directory.Build.Props. If Version suffix not present calculate it as a branch commits count",
   "main": "index.js",
   "scripts": {
+    "build": "ncc build index.js -o dist --source-map --license licenses.txt",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -14,5 +15,9 @@
     "@actions/exec": "^1.1.0",
     "@actions/github": "^5.0.0",
     "@virtocommerce/vc-actions-lib": "^1.2.14"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.0",
+    "typescript": "^5.8.3"
   }
 }

@@ -185,7 +185,7 @@ git add dist/ package.json package-lock.json
 **How updates happen**
 
 - **Dependabot npm** (`.github/dependabot.yml`) opens one weekly PR per action grouping minor + patch updates, and individual PRs for majors. The 10-PR-at-a-time limit keeps the queue manageable.
-- **`dependabot-rebuild` workflow** (`.github/workflows/dependabot-rebuild.yml`) reacts to Dependabot npm PRs by running `npm ci && npm run build` in each affected action and pushing the rebuilt `dist/` back to the PR branch. Without this, every Dependabot PR would fail `check-dist` because the bundle would be stale by construction.
+- **`dependabot-rebuild` workflow** (`.github/workflows/dependabot-rebuild.yml`) reacts to every Dependabot PR by running `npm ci && npm run build` in each affected action and pushing the rebuilt `dist/` back to the PR branch. Non-npm Dependabot PRs (e.g. github-actions ecosystem bumps) no-op cleanly because the per-action change detector finds no `package.json` / `package-lock.json` deltas to act on. Without this workflow, every Dependabot npm PR would fail `check-dist` because the bundle would be stale by construction.
 - **`check-dist` workflow** (`.github/workflows/check-dist.yml`) runs on every PR that touches `*/src/**`, `*/package.json`, `*/package-lock.json`, or `*/tsconfig.json`. It rebuilds the affected `dist/` and fails the PR if the result differs from what's committed. This catches both human "edited `src/` but forgot to rebuild" mistakes and silent dependency drift.
 
 **Adding a new bundled Node action**
@@ -197,7 +197,7 @@ git add dist/ package.json package-lock.json
    },
    "devDependencies": {
      "@vercel/ncc": "^0.38.0",
-     "typescript": "^5.4.3"
+     "typescript": "^5.8.3"
    }
    ```
 2. `npm install` to generate `package-lock.json`, then `npm run build` to produce `dist/`.
