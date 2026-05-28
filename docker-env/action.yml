@@ -63,7 +63,11 @@ runs:
       shell: pwsh
       run: |
         Write-Host "`e[33mInstall Modules step started."
-        New-Item -Path "./" -Name "${{ env.INSTALL_FOLDER}}" -ItemType "directory"
+        # Pre-create the inner `modules/modules` directory so vc-build's default
+        # DiscoveryPath (`./modules` relative to its cwd) already exists on the
+        # first invocation — otherwise vc-build emits a "Discovery path not found"
+        # warning per call, which GH Actions surfaces as a workflow annotation.
+        New-Item -Path "./${{ env.INSTALL_FOLDER}}/modules" -ItemType "directory" -Force | Out-Null
         Push-Location ./${{ env.INSTALL_FOLDER}}
         vc-build install -Edge -skip InstallPlatform
 
