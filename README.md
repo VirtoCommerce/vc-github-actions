@@ -156,17 +156,30 @@ Most actions in this repo are TypeScript sources bundled into a single `dist/ind
 
 **Per-action layout**
 
+Two source shapes are in use. Both bundle to the same `dist/` and use the same workflows.
+
 ```
+# TypeScript source (most common — publish-artifact-link, get-jira-keys, ...)
 <action>/
 ├── action.yml              # runs.main: dist/index.js
 ├── package.json            # has "scripts": { "build": "ncc build src/index.ts ..." }
 ├── package-lock.json       # pinned, committed
+├── tsconfig.json
 ├── src/index.ts            # TypeScript source
 └── dist/                   # committed build output (LF, enforced via .gitattributes)
     ├── index.js
     ├── index.js.map
     ├── sourcemap-register.js
     └── licenses.txt
+
+# Root-JS source (changelog-generator, build-docker-image,
+#                 get-image-version, publish-nuget, sonar-scanner-end)
+<action>/
+├── action.yml              # runs.main: dist/index.js
+├── package.json            # "scripts": { "build": "ncc build index.js ..." }
+├── package-lock.json
+├── index.js                # CommonJS source at the action root
+└── dist/                   # same shape as above
 ```
 
 `node_modules/` is gitignored repo-wide; never commit it.
@@ -190,18 +203,30 @@ git add dist/ package.json package-lock.json
 
 **Adding a new bundled Node action**
 
-1. Create the directory with `src/index.ts`, `tsconfig.json`, `action.yml` (with `runs.main: dist/index.js`), and a `package.json` modelled on [publish-artifact-link/package.json](publish-artifact-link/package.json) — specifically:
-   ```json
-   "scripts": {
-     "build": "ncc build src/index.ts -o dist --source-map --license licenses.txt"
-   },
-   "devDependencies": {
-     "@vercel/ncc": "^0.38.0",
-     "typescript": "^5.8.3"
-   }
-   ```
+1. Create the directory with `action.yml` (`runs.main: dist/index.js`) and a `package.json` modelled on one of:
+   - **TypeScript** ([publish-artifact-link/package.json](publish-artifact-link/package.json)) — also add `tsconfig.json` and `src/index.ts`:
+     ```json
+     "scripts": {
+       "build": "ncc build src/index.ts -o dist --source-map --license licenses.txt"
+     },
+     "devDependencies": {
+       "@vercel/ncc": "^0.38.0",
+       "typescript": "^5.8.3"
+     }
+     ```
+   - **JavaScript** ([build-docker-image/package.json](build-docker-image/package.json)) — source lives at the action root as `index.js`:
+     ```json
+     "scripts": {
+       "build": "ncc build index.js -o dist --source-map --license licenses.txt"
+     },
+     "devDependencies": {
+       "@vercel/ncc": "^0.38.0",
+       "typescript": "^5.8.3"
+     }
+     ```
+   For runtime dependencies, prefer `@actions/github@^5.0.0` (or newer). v4 ships a transitive `@actions/http-client@1.x` that uses the deprecated Node `url.parse()` API and emits `DEP0169` warnings under Node 24+.
 2. `npm install` to generate `package-lock.json`, then `npm run build` to produce `dist/`.
-3. Commit `package.json`, `package-lock.json`, `src/`, `tsconfig.json`, `action.yml`, and the whole `dist/` directory.
+3. Commit `package.json`, `package-lock.json`, the source file(s), `action.yml`, and the whole `dist/` directory.
 
 Dependabot picks up the new directory automatically on the next scheduled run; `check-dist` enforces the bundle on every subsequent PR.
 
