@@ -20,7 +20,11 @@ param(
         Category       = 4
         CustomerOrder  = 20
         PickupLocation = 34
-    }
+    },
+    # Document types whose count gate should be skipped (reindex still runs).
+    # Use when the dataset legitimately has 0 source records for a type — e.g.
+    #   -skipDocCountVerification PickupLocation,ContentFile
+    [string[]]$skipDocCountVerification = @()
 )
 
 $ErrorActionPreference = 'Stop'
@@ -212,6 +216,24 @@ foreach ($docType in $script:reindexDocumentTypes) {
 }
 
 Write-IndexCounts -token $token
-Wait-AllIndexedCountsReady -token $token -minDocCounts $minDocCounts
+
+# Fail loud on typos: a value in -skipDocCountVerification that doesn't match a
+# key in -minDocCounts would silently no-op, and the user would only notice 15min
+# later when the count gate they thought they'd bypassed times out.
+$unknownSkips = @($skipDocCountVerification | Where-Object { $_ -and ($minDocCounts.Keys -notcontains $_) })
+if ($unknownSkips.Count -gt 0) {
+    throw "skipDocCountVerification contains unknown document type(s): $($unknownSkips -join ', '). Valid types: $(($minDocCounts.Keys | Sort-Object) -join ', ')."
+}
+
+$effectiveMinDocCounts = @{}
+foreach ($key in $minDocCounts.Keys) {
+    if ($skipDocCountVerification -notcontains $key) {
+        $effectiveMinDocCounts[$key] = $minDocCounts[$key]
+    }
+}
+if ($skipDocCountVerification.Count -gt 0) {
+    Write-Host "Skipping count verification for: $($skipDocCountVerification -join ', ')"
+}
+Wait-AllIndexedCountsReady -token $token -minDocCounts $effectiveMinDocCounts
 
 Write-Output "Indexing complete and verified — safe to start tests."
