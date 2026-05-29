@@ -201,6 +201,15 @@ function Wait-AllIndexedCountsReady {
     throw "Index counts did not satisfy minimum expectations within ${timeoutSeconds}s: $lastReason"
 }
 
+# Fail loud on typos before the (~15min) reindex loop: a value in
+# -skipDocCountVerification that doesn't match a key in -minDocCounts would
+# silently no-op, and the user would only notice 15min later when the count
+# gate they thought they'd bypassed times out.
+$unknownSkips = @($skipDocCountVerification | Where-Object { $_ -and ($minDocCounts.Keys -notcontains $_) })
+if ($unknownSkips.Count -gt 0) {
+    throw "skipDocCountVerification contains unknown document type(s): $($unknownSkips -join ', '). Valid types: $(($minDocCounts.Keys | Sort-Object) -join ', ')."
+}
+
 $token = Get-AdminToken
 
 # Reindex one document type at a time. See Start-ReindexDocumentType for the rationale —
@@ -216,14 +225,6 @@ foreach ($docType in $script:reindexDocumentTypes) {
 }
 
 Write-IndexCounts -token $token
-
-# Fail loud on typos: a value in -skipDocCountVerification that doesn't match a
-# key in -minDocCounts would silently no-op, and the user would only notice 15min
-# later when the count gate they thought they'd bypassed times out.
-$unknownSkips = @($skipDocCountVerification | Where-Object { $_ -and ($minDocCounts.Keys -notcontains $_) })
-if ($unknownSkips.Count -gt 0) {
-    throw "skipDocCountVerification contains unknown document type(s): $($unknownSkips -join ', '). Valid types: $(($minDocCounts.Keys | Sort-Object) -join ', ')."
-}
 
 $effectiveMinDocCounts = @{}
 foreach ($key in $minDocCounts.Keys) {
