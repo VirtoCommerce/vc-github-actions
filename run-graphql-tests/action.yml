@@ -37,6 +37,11 @@ inputs:
     description: 'UI tests repository branch'
     required: true
     type: string
+  skipDocCountVerification:
+    description: 'Comma-separated document types whose post-reindex count check should be skipped (reindex still runs). Use when the seed dataset has 0 records for a type. Example: ''PickupLocation'' or ''PickupLocation,ContentFile''.'
+    required: false
+    default: ''
+    type: string
 runs:
   using: "composite"
   steps:
@@ -99,7 +104,16 @@ runs:
         }
         python -m dataset.dataset_manager --seed
         wget https://raw.githubusercontent.com/VirtoCommerce/vc-github-actions/refs/heads/master/docker-env-full/scripts/start-indexing.ps1
-        ./start-indexing.ps1 -platformUrl http://localhost:8090 -adminUsername admin -adminPassword $adminPassword
+        $startArgs = @{
+          platformUrl   = 'http://localhost:8090'
+          adminUsername = 'admin'
+          adminPassword = $adminPassword
+        }
+        $skipRaw = '${{ inputs.skipDocCountVerification }}'
+        if ($skipRaw) {
+          $startArgs.skipDocCountVerification = $skipRaw -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+        }
+        ./start-indexing.ps1 @startArgs
 
     - name: Upload dataset_manager log
       if: always()
