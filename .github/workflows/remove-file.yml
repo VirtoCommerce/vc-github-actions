@@ -16,6 +16,7 @@ on:
 jobs:
 
   remove-file:  
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     continue-on-error: true
     env:

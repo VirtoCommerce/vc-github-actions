@@ -1,0 +1,11 @@
+# Bundled action distributions: emitted by ncc as LF on every platform.
+# Forcing LF here prevents Windows checkouts from producing phantom diffs
+# against the committed bundles and keeps the check-dist guard reliable.
+#
+# Scope is intentionally narrow: `*/dist/**` matches only `<action>/dist/**`
+# (single path segment + /dist/), not nested `<action>/node_modules/<pkg>/dist/**`.
+# The wider `**/dist/**` would reach into committed node_modules trees of
+# the 9 legacy unbundled actions, where the explicit `text` attribute
+# would override git's binary auto-detection and risk corrupting any
+# binary content (e.g. .node native modules) shipped in upstream dist dirs.
+*/dist/** text eol=lf

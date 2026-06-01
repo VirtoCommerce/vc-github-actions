@@ -149,3 +149,104 @@ uses: actions/checkout@v6
   ```
 
 - `VirtoCommerce/vc-github-actions/<dir>@master` and other `VirtoCommerce/*` refs remain version-/branch-pinned as before.
+
+## Bundled Node actions: build and dependency hygiene
+
+Most actions in this repo are TypeScript sources bundled into a single `dist/index.js` via [`@vercel/ncc`](https://github.com/vercel/ncc) and committed alongside the source. GitHub Actions loads the committed bundle directly; consumers reference `VirtoCommerce/vc-github-actions/<action>@master` and never run `npm install` themselves.
+
+**Per-action layout**
+
+Two source shapes are in use. Both bundle to the same `dist/` and use the same workflows.
+
+```
+# TypeScript source (most common — publish-artifact-link, get-jira-keys, ...)
+<action>/
+├── action.yml              # runs.main: dist/index.js
+├── package.json            # has "scripts": { "build": "ncc build src/index.ts ..." }
+├── package-lock.json       # pinned, committed
+├── tsconfig.json
+├── src/index.ts            # TypeScript source
+└── dist/                   # committed build output (LF, enforced via .gitattributes)
+    ├── index.js
+    ├── index.js.map
+    ├── sourcemap-register.js
+    └── licenses.txt
+
+# Root-JS source (changelog-generator, build-docker-image,
+#                 get-image-version, publish-nuget, sonar-scanner-end)
+<action>/
+├── action.yml              # runs.main: dist/index.js
+├── package.json            # "scripts": { "build": "ncc build index.js ..." }
+├── package-lock.json
+├── index.js                # CommonJS source at the action root
+└── dist/                   # same shape as above
+```
+
+`node_modules/` is gitignored repo-wide; never commit it.
+
+**Local rebuild after a source change**
+
+```sh
+cd <action>
+npm ci          # reproducible install from package-lock.json
+npm run build   # ncc bundles src/index.ts → dist/
+git add dist/ package.json package-lock.json
+```
+
+`npm ci` (not `npm install`) is mandatory so everyone — contributors and CI — uses the exact `@vercel/ncc` version locked in `package-lock.json`. A mismatched ncc version reorders bundle output and produces churn.
+
+**How updates happen**
+
+- **Dependabot npm** (`.github/dependabot.yml`) opens one weekly PR per action grouping minor + patch updates, and individual PRs for majors. The 10-PR-at-a-time limit keeps the queue manageable.
+- **`dependabot-rebuild` workflow** (`.github/workflows/dependabot-rebuild.yml`) reacts to every Dependabot PR by running `npm ci && npm run build` in each affected action and pushing the rebuilt `dist/` back to the PR branch. Non-npm Dependabot PRs (e.g. github-actions ecosystem bumps) no-op cleanly because the per-action change detector finds no `package.json` / `package-lock.json` deltas to act on. Without this workflow, every Dependabot npm PR would fail `check-dist` because the bundle would be stale by construction.
+- **`check-dist` workflow** (`.github/workflows/check-dist.yml`) runs on every PR that touches `*/src/**`, `*/package.json`, `*/package-lock.json`, or `*/tsconfig.json`. It rebuilds the affected `dist/` and fails the PR if the result differs from what's committed. This catches both human "edited `src/` but forgot to rebuild" mistakes and silent dependency drift.
+
+**Adding a new bundled Node action**
+
+1. Create the directory with `action.yml` (`runs.main: dist/index.js`) and a `package.json` modelled on one of:
+   - **TypeScript** ([publish-artifact-link/package.json](publish-artifact-link/package.json)) — also add `tsconfig.json` and `src/index.ts`:
+     ```json
+     "scripts": {
+       "build": "ncc build src/index.ts -o dist --source-map --license licenses.txt"
+     },
+     "devDependencies": {
+       "@vercel/ncc": "^0.38.0",
+       "typescript": "^5.8.3"
+     }
+     ```
+   - **JavaScript** ([build-docker-image/package.json](build-docker-image/package.json)) — source lives at the action root as `index.js`:
+     ```json
+     "scripts": {
+       "build": "ncc build index.js -o dist --source-map --license licenses.txt"
+     },
+     "devDependencies": {
+       "@vercel/ncc": "^0.38.0",
+       "typescript": "^5.8.3"
+     }
+     ```
+   For runtime dependencies, prefer `@actions/github@^5.0.0` (or newer). v4 ships a transitive `@actions/http-client@1.x` that uses the deprecated Node `url.parse()` API and emits `DEP0169` warnings under Node 24+.
+2. `npm install` to generate `package-lock.json`, then `npm run build` to produce `dist/`.
+3. Commit `package.json`, `package-lock.json`, the source file(s), `action.yml`, and the whole `dist/` directory.
+
+Dependabot picks up the new directory automatically on the next scheduled run; `check-dist` enforces the bundle on every subsequent PR.
+
+**Legacy unbundled actions**
+
+A handful of older actions predate the ncc convention and ship a different way: `action.yml` points `runs.main` at a hand-written `index.js` at the action root (not `dist/index.js`), and the action's entire `node_modules/` tree is committed to git as the deployment artifact. At runtime, `require()`s in the root `index.js` resolve through that tree.
+
+These actions are:
+
+```
+add-version-suffix, build-theme, build-vue-theme,
+katalon-studio-github-action, publish-docker-image, publish-theme,
+setup-vcbuild, sonar-scanner-begin, sonar-theme
+```
+
+Repo-wide [`.gitignore`](.gitignore) excludes `node_modules/` by default but un-ignores these nine directories so their committed trees keep tracking. They are **not** covered by `check-dist` (no `build` script) and Dependabot npm PRs land without an automatic rebuild — a maintainer must `npm install` locally and commit the updated `node_modules/`.
+
+Each is a candidate for migration to the ncc pattern: add `src/index.ts` (port the JS), a `tsconfig.json`, a `build` script, switch `action.yml` to `main: dist/index.js`, and remove the gitignore exception. Untracked until that migration happens.
+
+**Limitations**
+
+- `docker-install-theme` predates this convention from a different direction — it has `main: dist/index.js` but no `package.json`. Its existing `dist/` works in production, but it's invisible to Dependabot and `check-dist` until reconstructed.
+- This pipeline catches build-time breakage (TS compile errors, missing modules, stale bundle). It does **not** validate that the action still works against its real consumers — that's a separate canary-tier concern, deferred until consumers move off `@master` onto a moving major-version tag.

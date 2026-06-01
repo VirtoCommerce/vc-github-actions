@@ -4,6 +4,7 @@
   "description": "Find issue keys inside event",
   "main": "index.js",
   "scripts": {
+    "build": "ncc build src/index.ts -o dist --source-map --license licenses.txt",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Maksim Kopnov",
@@ -13,6 +14,8 @@
     "@actions/github": "^5.0.0"
   },
   "devDependencies": {
-    "@types/node": "^16.10.1"
+    "@types/node": "^16.10.1",
+    "@vercel/ncc": "^0.38.0",
+    "typescript": "^5.8.3"
   }
 }

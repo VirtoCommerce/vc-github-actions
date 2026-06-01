@@ -1,0 +1,120 @@
+name: dependabot-rebuild
+
+# When Dependabot opens an npm PR, rebuild dist/ for the affected action
+# and push the result back to the PR branch. Without this, every Dependabot
+# npm PR fails check-dist (the bundle is stale by construction), forcing a
+# maintainer to rebuild locally before merge.
+
+on:
+  pull_request_target:
+    types: [opened, synchronize]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  rebuild:
+    # Gate on the immutable PR author, not `github.actor` (which reflects
+    # the current event triggerer and is spoofable: a `@dependabot
+    # recreate` style command on an attacker's PR can cause
+    # github.actor to surface as dependabot[bot] on the resulting
+    # synchronize event, even though the PR itself was authored by
+    # someone else (CWE-290). pull_request.user.login is set when the
+    # PR is created and cannot change.
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          # Pin to the immutable head SHA, not the mutable branch ref,
+          # to close the TOCTOU window where someone with push access
+          # could race a malicious commit onto the Dependabot branch
+          # between event dispatch and checkout. The actor guard above
+          # checks the *event*-time actor (dependabot[bot]), but the
+          # branch tip could have moved since then. Pinning to head.sha
+          # ensures we build the exact commit the event fired for.
+          ref: ${{ github.event.pull_request.head.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          # REPO_TOKEN (org-level PAT) is required so the dist/ rebuild
+          # push re-triggers check-dist on the PR. The default
+          # GITHUB_TOKEN is suppressed from triggering workflows to
+          # prevent recursion (see GitHub docs on
+          # GITHUB_TOKEN-triggered events), which would leave the PR
+          # stuck with a stale check-dist failure.
+          token: ${{ secrets.REPO_TOKEN }}
+          fetch-depth: 0
+
+      - id: changed
+        name: List action directories with package.json/lock changes
+        # Route GHA-context values through env: so they cannot be expanded
+        # into shell as code (defense-in-depth for pull_request_target
+        # workflows; see GitHub Actions hardening guide).
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          dirs=$(git diff --name-only \
+            "origin/${BASE_REF}...HEAD" \
+            -- '*/package.json' '*/package-lock.json' \
+            | awk -F/ '$1 != "" && $1 != ".github" {print $1}' \
+            | sort -u)
+          {
+            echo "actions<<EOF"
+            echo "$dirs"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "Detected: $dirs"
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        if: steps.changed.outputs.actions != ''
+        with:
+          node-version: 24
+
+      - name: Rebuild dist/ for each changed action
+        if: steps.changed.outputs.actions != ''
+        env:
+          ACTIONS: ${{ steps.changed.outputs.actions }}
+        run: |
+          while IFS= read -r action; do
+            [ -z "$action" ] && continue
+            if [ ! -f "$action/package.json" ]; then
+              echo "::notice::Skipping $action (no package.json)"
+              continue
+            fi
+            if [ ! -f "$action/package-lock.json" ]; then
+              echo "::notice::Skipping $action (no package-lock.json)"
+              continue
+            fi
+            if ! jq -e '.scripts.build' "$action/package.json" >/dev/null; then
+              echo "::notice::Skipping $action (no build script)"
+              continue
+            fi
+            echo "::group::Rebuilding $action"
+            (cd "$action" && npm ci --no-audit --no-fund && npm run build)
+            git add "$action/dist/"
+            echo "::endgroup::"
+          done <<< "$ACTIONS"
+
+      - name: Commit rebuilt dist/ if changed
+        # head.ref is mutable, but we only consult it AFTER the build
+        # has run against the pinned head.sha; using it as the push
+        # destination (not as a build input) is safe. Routed via env
+        # for the same reason every other dynamic value in this file
+        # is: it never reaches the shell as code.
+        env:
+          BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
+        run: |
+          if git diff --cached --quiet; then
+            echo "No dist/ changes to commit."
+            exit 0
+          fi
+          git config user.name  "dependabot[bot]"
+          git config user.email "49699333+dependabot[bot]@users.noreply.github.com"
+          git commit -m "chore: rebuild dist/ after dependency update"
+          # We checked out a detached HEAD at head.sha. Push the new
+          # commit back to the branch by name. If the branch has moved
+          # since checkout (concurrent Dependabot rebase, or the TOCTOU
+          # attacker scenario the SHA pin guards against), the push is
+          # rejected non-fast-forward and the step fails -- correct: we
+          # don't want to overwrite work we never validated.
+          git push origin "HEAD:$BRANCH_NAME"
