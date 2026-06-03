@@ -50,11 +50,11 @@ runs:
 
     - name: Install MkDocs and Mike
       shell: bash
+      working-directory: ${{ github.workspace }}/vc-docs
       run: |
-        pip install mkdocs-material mike
-        pip install mkdocs-awesome-pages-plugin mkdocs-git-revision-date-localized-plugin
-        pip install mkdocs-minify-plugin mkdocs-redirects mkdocs-monorepo-plugin
-        pip install mkdocs-include-markdown-plugin pymdown-extensions jinja2
+        # Install the exact dependency set pinned by vc-docs so the CI build
+        # never drifts from local builds and the Build check workflow.
+        pip install -r requirements-docs.txt
 
     - name: Configure Git
       shell: bash
