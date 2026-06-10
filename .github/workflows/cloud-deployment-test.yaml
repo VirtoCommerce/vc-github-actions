@@ -15,7 +15,7 @@ jobs:
     #   envPAT: ${{ secrets.REPO_TOKEN }}
     #   argoLogin: ${{ secrets.ARGOCD_LOGIN }}
     #   argoPassword: ${{ secrets.ARGOCD_PASSWORD }}    
-    uses: VirtoCommerce/.github/.github/workflows/deploy-cloud.yml@v3.800.34
+    uses: VirtoCommerce/.github/.github/workflows/deploy-cloud.yml@v3.800.37
     with:
       releaseSource: module
       moduleId: VirtoCommerce.Catalog
