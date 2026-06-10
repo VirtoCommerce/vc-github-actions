@@ -25,7 +25,7 @@ jobs:
       fail-fast: false
       matrix:
 # Module workflows
-        # repoName: [vc-module-assets
+        repoName: [vc-module-assets]
         #           ,vc-module-Authorize.Net
         #           ,vc-module-avatax
         #           ,vc-module-azureblob-assets
@@ -84,13 +84,13 @@ jobs:
         ref: '${{ github.event.inputs.branchName }}'
         # token: '${{ env.GITHUB_TOKEN }}'
 
-    - name: Setup Git Credentials
-      uses: VirtoCommerce/vc-github-actions/setup-git-credentials-github@master
-      with:
-        githubToken: ${{ secrets.REPO_TOKEN }}
+    # - name: Setup Git Credentials
+    #   uses: VirtoCommerce/vc-github-actions/setup-git-credentials-github@master
+    #   with:
+    #     githubToken: ${{ secrets.REPO_TOKEN }}
 
-    - name: Remove ${{ github.event.inputs.filePath }} from ${{ matrix.repoName }} repo 
-      run: |
-        git rm ${{ github.event.inputs.filePath }}
-        git commit -m "ci: Remove ${{ github.event.inputs.filePath }} from repo"
-        git push
+    # - name: Remove ${{ github.event.inputs.filePath }} from ${{ matrix.repoName }} repo 
+    #   run: |
+    #     git rm ${{ github.event.inputs.filePath }}
+    #     git commit -m "ci: Remove ${{ github.event.inputs.filePath }} from repo"
+    #     git push
