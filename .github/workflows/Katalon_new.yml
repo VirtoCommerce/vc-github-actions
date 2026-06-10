@@ -13,7 +13,7 @@ on:
 
 jobs:
  module-katalon-tests:
-    uses: VirtoCommerce/.github/.github/workflows/e2e.yml@v3.200.19
+    uses: VirtoCommerce/.github/.github/workflows/e2e.yml@v3.800.34
     with:
       katalonRepo: 'VirtoCommerce/vc-quality-gate-katalon'
       katalonRepoBranch: 'dev'

@@ -9,9 +9,12 @@
     "request": "^2.88.2"
   },
   "devDependencies": {
-    "@types/request": "^2.48.6"
+    "@types/request": "^2.48.6",
+    "@vercel/ncc": "^0.38.0",
+    "typescript": "^5.8.3"
   },
   "scripts": {
+    "build": "ncc build src/index.ts -o dist --source-map --license licenses.txt",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

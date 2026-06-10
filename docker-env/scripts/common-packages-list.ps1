@@ -496,6 +496,11 @@ Write-Verbose (Get-Content ./new-packages.json -Raw)
 
 # build VC solution
 Write-Host "`e[32mPlatform and modules installation started"
+# Pre-create the probing and discovery paths so vc-build doesn't emit
+# "Discovery path not found" / "Probing path not found" warnings on the first
+# invocation — GH Actions surfaces those as workflow annotations.
+New-Item -Path ./publish/app_data/modules -ItemType Directory -Force | Out-Null
+New-Item -Path ./publish/modules -ItemType Directory -Force | Out-Null
 vc-build install --package-manifest-path ./new-packages.json `
     --probing-path ./publish/app_data/modules `
     --discovery-path ./publish/modules `

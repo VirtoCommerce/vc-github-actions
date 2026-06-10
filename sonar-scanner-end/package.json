@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "ncc build index.js -o dist --source-map --license licenses.txt",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -12,7 +13,11 @@
   "dependencies": {
     "@actions/core": "^1.10.0",
     "@actions/exec": "^1.0.4",
-    "@actions/github": "^4.0.0",
+    "@actions/github": "^5.0.0",
     "@virtocommerce/vc-actions-lib": "^1.2.6"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.0",
+    "typescript": "^5.8.3"
   }
 }

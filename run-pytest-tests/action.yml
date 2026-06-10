@@ -30,6 +30,11 @@ inputs:
     required: false
     default: ''
     type: string
+  skipDocCountVerification:
+    description: 'Comma-separated document types whose post-reindex count check should be skipped (reindex still runs). Use when the seed dataset has 0 records for a type. Example: ''PickupLocation'' or ''PickupLocation,ContentFile''.'
+    required: false
+    default: ''
+    type: string
   testSecretEnvFile:
     description: 'Test secret environment file content'
     required: true
@@ -134,7 +139,16 @@ runs:
         Write-Host "::group::Seed dataset"
         python -m dataset.dataset_manager --seed --mode ci
         Write-Host "::endgroup::"
-        & "${{ github.action_path }}/../docker-env-full/scripts/start-indexing.ps1" -platformUrl "${{ inputs.backUrl }}" -adminUsername "${{ inputs.adminUsername }}" -adminPassword $env:ADMIN_PASSWORD
+        $startArgs = @{
+          platformUrl   = '${{ inputs.backUrl }}'
+          adminUsername = '${{ inputs.adminUsername }}'
+          adminPassword = $env:ADMIN_PASSWORD
+        }
+        $skipRaw = '${{ inputs.skipDocCountVerification }}'
+        if ($skipRaw) {
+          $startArgs.skipDocCountVerification = $skipRaw -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+        }
+        & "${{ github.action_path }}/../docker-env-full/scripts/start-indexing.ps1" @startArgs
 
     - name: Run GraphQL tests
       shell: bash
