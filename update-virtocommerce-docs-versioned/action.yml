@@ -34,7 +34,7 @@ runs:
   using: "composite"
   steps:
     - name: Checkout vc-docs repository
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       with:
         repository: VirtoCommerce/vc-docs
         ref: ${{ inputs.ref }}
@@ -50,11 +50,11 @@ runs:
 
     - name: Install MkDocs and Mike
       shell: bash
+      working-directory: ${{ github.workspace }}/vc-docs
       run: |
-        pip install mkdocs-material mike
-        pip install mkdocs-awesome-pages-plugin mkdocs-git-revision-date-localized-plugin
-        pip install mkdocs-minify-plugin mkdocs-redirects mkdocs-monorepo-plugin
-        pip install mkdocs-include-markdown-plugin pymdown-extensions jinja2
+        # Install the exact dependency set pinned by vc-docs so the CI build
+        # never drifts from local builds and the Build check workflow.
+        pip install -r requirements-docs.txt
 
     - name: Configure Git
       shell: bash
