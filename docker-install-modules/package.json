@@ -15,7 +15,7 @@
     "@actions/exec": "^1.0.4",
     "@actions/github": "^4.0.0",
     "@virtocommerce/vc-actions-lib": "^1.2.1",
-    "axios": "^0.21.1",
+    "axios": "^0.32.0",
     "install": "^0.13.0",
     "js-yaml": "^4.0.0",
     "npm": "^11.16.0",
