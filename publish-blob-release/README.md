@@ -1,14 +1,14 @@
 # publish-blob-release
 
-Publishes release artifact to Azure Blob
+Publishes release to Azure Blob
 
 ## inputs:
 
 ### blobUrl:
 
     description: "Url to Azure Blob"
-    default: "https://vc3prerelease.blob.core.windows.net/packages"
     required: false
+    default: "https://vc3prerelease.blob.core.windows.net/packages"
 
 ### blobSAS:
 
@@ -27,7 +27,7 @@ Publishes release artifact to Azure Blob
 
 ## Example of usage
 
-```
+```yaml
 - name: Publish to Blob
   if: ${{ github.ref == 'refs/heads/dev' }}
   id: blobRelease

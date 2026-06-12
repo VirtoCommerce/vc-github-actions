@@ -1,4 +1,4 @@
-# publish-munifest
+# publish-manifest
 
 Publishes modules.json
 
@@ -7,20 +7,20 @@ Publishes modules.json
 ### modulesJsonUrl:
 
     description: "Url to modules.json"
-    default: "https://raw.githubusercontent.com/VirtoCommerce/vc-modules/master/modules_v3.json"
     required: false
+    default: "https://raw.githubusercontent.com/VirtoCommerce/vc-modules/master/modules_v3.json"
 
 ### packageUrl:
 
     description: "Package Url for modules.json"
-    default: ""
     required: false
+    default: ""
 
-### pushChanges: 
+### pushChanges:
 
     description: "push changed modules.json to github"
-    default: "true"
     required: false
+    default: "true"
 
 ### modulesJsonName:
 
@@ -42,7 +42,7 @@ Publishes modules.json
 
 ## Example of usage
 
-```
+```yaml
 - name: Publish Manifest
   if: ${{ github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/master'}}
   uses: VirtoCommerce/vc-github-actions/publish-manifest@master
@@ -65,4 +65,3 @@ npm i -g @vercel/ncc
 ```bash
 ncc build ./src/index.ts --license licenses.txt
 ```
-

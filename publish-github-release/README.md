@@ -7,26 +7,32 @@ Publish github release or prerelease dependant to github.ref
 ### changelog:
 
     description: "Commit's messages since the latest release"
-    default: ""
     required: false
+    default: ""
 
 ### prerelease:
 
     description: ""
-    default: "false"
     required: false
+    default: "false"
 
 ### organization:
 
     description: "Organization name"
-    default: "VirtoCommerce"
     required: false
+    default: "VirtoCommerce"
 
 ### skipString:
 
     description: "vc-build skip string"
-    default: "Clean+Restore+Compile+WebPackBuild+Test"
     required: false
+    default: "Clean+Restore+Compile+WebPackBuild+Test+BuildCustomApp"
+
+### makeLatest:
+
+    description: "make vc-build do NOT mark the release with Latest label"
+    required: false
+    default: "true"
 
 ## outputs:
 
@@ -36,12 +42,11 @@ Publish github release or prerelease dependant to github.ref
 
 ## Example of usage
 
-```yml
+```yaml
 - name: Publish Github Release
+  uses: VirtoCommerce/vc-github-actions/publish-github-release@master
   with:
     changelog: ${{ steps.changelog.outputs.changelog }}
-    version: ${{ steps.artifact_ver.outputs.shortVersion }}
-  uses: VirtoCommerce/vc-github-actions/publish-github-release@master
 ```
 
 ## Compile action

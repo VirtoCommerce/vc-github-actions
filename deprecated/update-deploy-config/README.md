@@ -1,87 +1,112 @@
-# Update Deploy Config action
+# update-deploy-config
 
-This action grabs issue keys inside event commits.
+Creates or updates deployment config in a repository
 
-## Inputs
+## inputs:
 
-### `gitUserEmail`
+### gitUserEmail:
 
-Git config user.email. Default value: `ci@virtocommerce.com`
+    description: 'git config user.email'
+    required: false
+    default: 'ci@virtocommerce.com'
 
-### `gitUserName`
+### gitUserName:
 
-Git config user.name. Default value: `vc-ci`.
+    description: 'git config user.name'
+    required: false
+    default: 'vc-ci'
 
-### `repoName`
+### repoName:
 
-Repository where deployment config file should be created/updated.
+    description: 'Repository where deployment config file should be created/updated'
+    required: true
 
-### `branchName`
+### branchName:
 
-Repository branch where deployment config file should be created/updated. Default value: `dev`.
+    description: 'Repository branch where deployment config file should be created/updated'
+    required: true
+    default: 'dev'
 
-### `configPath`
+### configPath:
 
-Path where deployment config file placed in a `repoName` repository. Deployment file will be place to the reposytory root by default. The argoDeploy.json deployment config file will be placed to the repository root by default. If you want to place the deployment file in a special folder, you can specify the full path to the file. For example `configPath: '.deployment/argoDeploy.json'` argoDeploy.json deployment config file will be placed in the `.deployment/` folder. Also, you can specify your own deployment config filename `configPath: 'yourDeploy.json'`
+    description: 'Path where config file placed in a `repoName` repository'
+    required: true
+    default: 'argoDeploy.json'
 
-### `artifactKey`
+### artifactKey:
 
-artifactKey config file value. For example   "artifactKey": "VirtoCommerce.Catalog".
+    description: 'artifactKey config file value. For example "artifactKey": "VirtoCommerce.Catalog" (Artifact key in the deployment config map)'
+    required: true
 
-### `deployRepo`
+### deployRepo:
 
-deployRepo config file value. For example "deployRepo": "vc-deploy-dev" (Repository name where application deployment config placed). Default value: `vc-deploy-dev`.
+    description: 'deployRepo config file value. For example "deployRepo": "vc-deploy-dev" (Repository name where application deployment config placed)'
+    required: true
+    default: 'vc-deploy-dev'
 
-### `cmPath`
+### cmPath:
 
-cmPath config file value. For example  "cmPath": "platform-dev/resources/deployment-cm.yaml" (Path to the config map in the deployment repository). Default value: `platform-dev/resources/deployment-cm.yaml`. 
+    description: 'cmPath config file value. For example  "cmPath": "platform-dev/resources/deployment-cm.yaml" (Path to the config map in the deployment repository)'
+    required: true
+    default: 'platform-dev/resources/deployment-cm.yaml'
 
-### `deployAppNameDev`
+### deployAppNameDev:
 
-dev.deployAppName config file value. For example "dev": {"deployAppName": "vcplatform-dev"} (ArgoCD application name in the dev environment).Default value: `vcplatform-dev`.
-  
-### `deployBranchDev`
+    description: 'dev.deployAppName config file value. For example "dev": {"deployAppName": "vcplatform-dev"} (ArgoCD application name in the dev environment)'
+    required: true
+    default: 'vcplatform-dev'
 
-dev.deployBranch config file value. For example "dev": {"deployBranch": "dev"} (Branch name in the deployment repository for the dev environment). Default value: `dev`.
-  
-### `deployAppNameQa`
+### deployBranchDev:
 
-qa.deployAppName config file value. For example "qa": {"deployAppName": "vcplatform-qa"} (ArgoCD application name in the qa environment). Default value: `vcplatform-qa`.
+    description: 'dev.deployBranch config file value. For example "dev": {"deployBranch": "dev"} (Branch name in the deployment repository for the dev environment)'
+    required: true
+    default: 'dev'
 
-### `deployBranchQa`
+### deployAppNameQa:
 
-qa.deployBranch config file value. For example "qa": {"deployBranch": "qa"} (Branch name in the deployment repository for the qa environment). Default value: `qa`.
+    description: 'qa.deployAppName config file value. For example "qa": {"deployAppName": "vcplatform-qa"} (ArgoCD application name in the qa environment)'
+    required: true
+    default: 'vcplatform-qa'
 
-### `deployAppNameProd`
+### deployBranchQa:
 
-prod.deployAppName config file value. For example "qa": {"deployAppName": "vcplatform-qa"} (ArgoCD application name in the qa environment)
+    description: 'qa.deployBranch config file value. For example "qa": {"deployBranch": "qa"} (Branch name in the deployment repository for the qa environment)'
+    required: true
+    default: 'qa'
 
-### `deployBranchProd`
+### deployAppNameProd:
 
-prod.deployBranch config file value. For example "qa": {"deployBranch": "qa"} (Branch name in the deployment repository for the qa environment)
+    description: 'prod.deployAppName config file value. For example "qa": {"deployAppName": "vcplatform-qa"} (ArgoCD application name in the qa environment)'
+    required: true
+    default: 'vcplatform-demo'
 
-### `deployType`
+### deployBranchProd:
 
-Acceptable values: "argo", "cloud"
+    description: 'prod.deployBranch config file value. For example "qa": {"deployBranch": "qa"} (Branch name in the deployment repository for the qa environment)'
+    required: true
+    default: 'demo'
+
+### deployType:
+
+    description: 'Acceptable values: "argoCD", "cloud"'
+    required: true
+    default: 'argoCD'
 
 ## Example of usage
 
-> Note! GITHUB_TOKEN environment variable should be defined.
-
-```yml
-- name: Update Deploy Config 
+```yaml
+- name: Update Deploy Config
   uses: VirtoCommerce/vc-github-actions/update-deploy-config@master
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   with:
     repoName: 'vc-module-catalog'
+    branchName: 'dev'
     artifactKey: 'VirtoCommerce.Catalog'
     configPath: '.deployments/argoDeploy.json'
 ```
 
 ## Compile action
-
-Action should compiled in case if *argoDeploy.json* or *index.ts* files changed.
 
 Use @vercel/ncc tool to compile your code and modules into one file used for distribution.
 

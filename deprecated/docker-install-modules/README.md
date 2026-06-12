@@ -3,40 +3,58 @@
 Installs modules to a docker container
 
 ## inputs:
- ### manifestUrl:
+
+### manifestUrl:
+
     description: 'Url to modules manifest '
     required: true
- ### manifestFormat:
+
+### manifestFormat:
+
     description: 'yml or json'
     required: true
- ### modulesGroup:
+
+### modulesGroup:
+
     description: 'Group of modules (commerce for example)'
     required: false
- ### containerName:
+
+### containerName:
+
     description: 'Name of docker container'
     required: true
- ### containerDestination:
+
+### containerDestination:
+
     description: 'Theme destination path inside the docker container'
     required: true
- ### restartContainer:
+
+### restartContainer:
+
     description: 'true(by default) to restart'
     required: false
     default: 'true'
- ### sleepAfterRestart:
+
+### sleepAfterRestart:
+
     description: 'Time in ms to wait for container restarts'
     required: false
     default: '30000'
- ### githubToken:
+
+### githubToken:
+
     description: 'Github Token'
     required: true
- ### githubUser:
+
+### githubUser:
+
     description: 'Github User or Organization'
     required: false
     default: 'VirtoCommerce'
 
 ## Example of usage
 
-```
+```yaml
 - name: Install Modules
   uses: VirtoCommerce/vc-github-actions/docker-install-modules@master
   with:
@@ -45,4 +63,20 @@ Installs modules to a docker container
     manifestFormat: 'yml'
     containerName: 'virtocommerce-vc-platform-web-1'
     containerDestination: '/opt/virtocommerce/platform/modules'
+```
+
+## Compile action
+
+Use @vercel/ncc tool to compile your code and modules into one file used for distribution.
+
+- Install vercel/ncc by running this command in your terminal.
+
+```bash
+npm i -g @vercel/ncc
+```
+
+- Compile your index.ts file.
+
+```bash
+ncc build ./src/index.ts --license licenses.txt
 ```

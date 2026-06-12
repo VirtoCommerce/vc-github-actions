@@ -1,6 +1,6 @@
-# Publish Jira link action
+# publish-jira-link
 
-This action publish link on Jira task in PR description.
+Publish links on the Jira tasks in PR description
 
 ## inputs:
 
@@ -34,27 +34,27 @@ This action publish link on Jira task in PR description.
 
 ## Example of usage
 
-```yml
+```yaml
 - name: Publish Jira link
   if: github.event_name == 'pull_request'
   uses: VirtoCommerce/vc-github-actions/publish-jira-link@master
   with:
-      branchName: ${{ steps.extract_branch.outputs.branch }}
+    branchName: ${{ steps.extract_branch.outputs.branch }}
   env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ## Compile action
 
 Use @vercel/ncc tool to compile your code and modules into one file used for distribution.
 
--   Install vercel/ncc by running this command in your terminal.
+- Install vercel/ncc by running this command in your terminal.
 
 ```bash
 npm i -g @vercel/ncc
 ```
 
--   Compile your index.ts file.
+- Compile your index.ts file.
 
 ```bash
 ncc build ./src/index.ts --license licenses.txt

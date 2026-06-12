@@ -1,45 +1,53 @@
-# get-artifact-link
+# pr-body-get-link
 
-Gets artifact link and task numbers from PR body
+Get jira keys, link to the artifact from PR body
 
 ## inputs:
 
 ### githubToken:
 
     description: "GitHub token"
+    required: false
 
 ### repoOrg:
 
-    description: "repo org"
+    description: "Repo org"
+    required: false
     default: "VirtoCommerce"
 
 ### downloadComment:
 
     description: "Comment template"
+    required: false
     default: "Download artifact URL:"
+
+### skipArtifactUrl:
+
+    description: "Get only jira keys, skip artifact url"
+    required: false
+    default: "false"
 
 ## outputs:
 
 ### artifactUrl:
 
-    description: "Link to artifact"
+    description: "Link to the deployment artifact"
 
-###  qaTaskNumber:
+### qaTaskNumber:
 
     description: "Jira task number to create deploy PR in QA environment"
 
-####  demoTaskNumber:
+### demoTaskNumber:
 
     description: "Jira task number to create deploy PR in Demo environment"
 
 ## Example of usage
 
-```
-- name: Gets artifact link
+```yaml
+- name: Get link from PR body
   if: ${{ github.event_name == 'pull_request' }}
   id: artifactLink
-  uses: VirtoCommerce/vc-github-actions/get-artifact-link@master
-
+  uses: VirtoCommerce/vc-github-actions/pr-body-get-link@master
 ```
 
 ## Compile action

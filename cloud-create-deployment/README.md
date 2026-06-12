@@ -1,12 +1,13 @@
-# create-deploy-pr
+# cloud-create-deployment
 
- creates deploy PR for artifact in PR comment
+Create deployment commit or PR
 
 ## inputs:
 
 ### githubToken:
 
     description: "GitHub token"
+    required: false
 
 ### gitUserEmail:
 
@@ -17,35 +18,42 @@
 ### gitUserName:
 
     description: "git config user.name"
-    default: "vc-ci"
     required: false
+    default: "vc-ci"
 
 ### repoOrg:
 
     description: "Repo org"
+    required: false
     default: "VirtoCommerce"
 
 ### deployRepo:
 
     description: "Deployment repository name"
     required: true
-    default: "vc-webstore-deploy"
+    default: "vc-deploy-dev"
 
 ### deployBranch:
 
-    description: "Base branch for new deployment PR"
+    description: "Base branch for new deployment"
     required: true
-    default: "qa"
+    default: "vcpt"
 
 ### releaseSource:
 
-    description: "Release source. Allowed values: platform, module"
+    description: "Release source. Allowed values: platform, module, customApp"
     required: true
 
 ### releaseType:
 
-    description: "Release type. Allowed values: release, alpha"
+    description: "Release type. Allowed values: 'GithubReleases', 'AzureBlob'"
     required: true
+
+### artifactKey:
+
+    description: "CustomApp artifact key"
+    required: false
+    default: "Tag"
 
 ### platformVer:
 
@@ -67,44 +75,41 @@
     description: "Deploying Module version"
     required: false
 
-### moduleLink:
+### moduleBlob:
 
-    description: "Deploying Module link"
+    description: "Deploying Module blob name"
     required: false
 
 ### taskNumber:
 
-    description: "Jira task number to create deploy PR in QA or Demo environment"
-    required: true
+    description: "Jira task number to create deploy commit or PR in QA or Demo environment"
+    required: false
 
 ### configPath:
 
-    description: "Path to config map in repository"
+    description: "Path to config in repository"
     required: true
-    default: "webstore-app/resources/deployment-cm.yaml"
 
 ### forceCommit:
 
     description: "Flag to create deploy commit without PR. If true - create commit into deployBranch and don`t create PR"
     required: true
-    default: "false"
+    default: "true"
 
 ## Example of usage
 
-```
-
-- name: Create deploy step
-    if: ${{ github.event_name == 'pull_request' }}
-    uses: VirtoCommerce/vc-github-actions/create-deploy-pr@master
-    with:
-        deployRepo: "vc-deploy-dev"
-        deployBranch: "vcpt"
-        releaseSource: "platform"
-        releaseType: "GithubReleases"
-        platformVer: "1.0.0"
-        platformTag: "1.0.0-master-1234abcd"
-        taskNumber: "${{ steps.artifactLink.outputs.demoTaskNumber }}"
-    
+```yaml
+- name: Create deployment
+  uses: VirtoCommerce/vc-github-actions/cloud-create-deployment@master
+  with:
+    githubToken: ${{ secrets.GITHUB_TOKEN }}
+    deployRepo: "vc-deploy-dev"
+    deployBranch: "vcpt"
+    releaseSource: "platform"
+    releaseType: "GithubReleases"
+    platformVer: "1.0.0"
+    platformTag: "1.0.0-master-1234abcd"
+    configPath: "argoDeploy.json"
 ```
 
 ## Compile action

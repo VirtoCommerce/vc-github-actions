@@ -1,26 +1,30 @@
-# Get Jira keys action
+# get-jira-keys
 
-This action grabs issue keys inside event commits.
+Find issue keys inside event commits
 
-## Inputs
+## inputs:
 
-### `release`
+### release:
 
-Release branch Jira keys search
+    description: 'Release branch Jira keys search'
+    required: true
+    default: 'false'
 
-### `searchDepth`
+### searchDepth:
 
-Release branch commits search history depth in days
+    description: 'Release branch commits search history depth in days'
+    required: true
+    default: '21'
 
-## Outputs
+## outputs:
 
-### `jira-keys`
+### jira-keys:
 
-Jira keys that were found in push/pull request in comma delimited format
+    description: 'Jira keys that were found in push/pull request in comma delimited format'
 
 ## Example of usage
 
-```yml
+```yaml
 - name: Parse Jira Keys from All Commits
   uses: VirtoCommerce/vc-github-actions/get-jira-keys@master
   if: always()

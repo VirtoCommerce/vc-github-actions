@@ -7,31 +7,33 @@ Updates a webhook configured in a repository.
 ### githubToken:
 
     description: "GitHub token"
+    required: false
 
 ### repoOwner:
 
     description: "The account owner of the repository."
+    required: false
     default: "VirtoCommerce"
 
 ### repoName:
 
     description: "The name of the repository."
+    required: false
 
 ### webhookUrl:
 
     description: "The URL to which the payloads will be delivered."
-
-
+    required: false
 
 ## Example of usage
 
-```
+```yaml
 - name: Update or create webhook
   uses: VirtoCommerce/vc-github-actions/update-webhook-configuration@master
   with:
+    githubToken: ${{ secrets.GITHUB_TOKEN }}
     repoName: "vc-github-actions"
-    webhookUrl: "https:\\your-hook.url"
-
+    webhookUrl: "https://your-hook.url"
 ```
 
 ## Compile action
