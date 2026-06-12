@@ -2,6 +2,8 @@ version: 2
 updates:
   - package-ecosystem: github-actions
     directories: ["/**"]
+    # deprecated/ holds retired actions + disabled workflows — not maintained.
+    exclude-paths: ["deprecated/**"]
     schedule:
       interval: weekly
     groups:
@@ -15,6 +17,9 @@ updates:
   - package-ecosystem: npm
     directories:
       - "/*"
+    # deprecated/ node actions are not maintained.
+    exclude-paths:
+      - "deprecated/**"
     schedule:
       interval: weekly
     open-pull-requests-limit: 10

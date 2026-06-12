@@ -1,74 +1,101 @@
-# Get Image version action
+# get-image-version
 
-This action grabs Version and Version suffix from Directory.Build.Props (for Platform and Storefront) or from module.manifest (for modules). If Version suffix does not present calculate it as a branch commits count.
+This action grabs Version and Version suffix from module.manifest, package.json or Directory.Build.props file. If Version suffix not present calculate it as a branch commits count
 
-## Inputs
+## inputs:
 
-### `path`
+### path:
 
-Path to directory that contains module.manifest, package.json or Directory.Build.Props
+    description: 'Path to directory that contains module.manifest, package.json or Directory.Build.props'
+    required: false
+    default: '.'
 
-### 'projectType'
+### releaseBranch:
 
-Type of project. Allowed values "module", "theme", "platform", "storefront". If value, not specified project type will be determined automatically.
+    description: 'Branch support preparation of a new production release'
+    required: false
+    default: 'master'
 
-## Outputs
+### projectType:
 
-### `branchName`
+    description: 'Type of project. Allowed values "module", "theme", "platform", "storefront". If value, not specified project type will be determined automatically.'
+    required: false
+    default: 'auto'
 
-Triggered branch name
+## outputs:
 
-### `prefix`
+### branchName:
 
-Version prefix value
+    description: 'Triggered branch name'
 
-### `suffix`
+### prefix:
 
-Version suffix value
+    description: 'Version prefix value'
 
-### `sha`
+### suffix:
 
-Version SHA value
+    description: 'Version suffix value'
 
-### `shortVersion`
+### fullSuffix:
 
-Version value formatted as prefix-suffix
+    description: 'Version suffix value formatted as suffix-branch-name'
 
-### `fullVersion`
+### moduleId:
 
-Version value formatted as branchName-prefix-suffix
+    description: 'Module Id value'
 
-### `tag`
+### sha:
 
-Version value formatted as branchName-prefix-sha
+    description: 'Version SHA value'
 
-### `moduleId`
+### shortVersion:
 
-Module Id value.
+    description: 'Version value formatted as prefix-suffix'
 
-### `taggedVersion`
+### tag:
 
-Version value formatted as branchName-prefix-suffix-sha
+    description: 'Version value formatted as prefix-branchName-sha'
 
+### fullVersion:
+
+    description: 'Version value formatted as prefix-fullSuffix'
+
+### taggedVersion:
+
+    description: 'Version value formatted as prefix-fullSuffix-sha'
+
+### moduleDescription:
+
+    description: 'Module description from module.manifest'
+
+### projectUrl:
+
+    description: 'Module repo url'
+
+### iconUrl:
+
+    description: 'Url to a module icon'
 
 ## Example of usage
 
-```
+```yaml
 - name: Get Image version
-  uses: VirtoCommerce/vc-github-actions/get-image-version@v3.0.1
+  uses: VirtoCommerce/vc-github-actions/get-image-version@master
   id: image
 ```
 
-Get the outputs:
+## Compile action
 
+Use @vercel/ncc tool to compile your code and modules into one file used for distribution.
+
+- Install vercel/ncc by running this command in your terminal.
+
+```bash
+npm i -g @vercel/ncc
 ```
-${{ steps.image.branchName }}
-${{ steps.image.prefix }}
-${{ steps.image.suffix }}
-${{ steps.image.sha }}
-${{ steps.image.shortVersion }}
-${{ steps.image.fullVersion }}
-${{ steps.image.outputs.tag }}
-${{ steps.image.outputs.moduleId }}
-${{ steps.image.outputs.taggedVersion }}
+
+- Compile your index.ts file.
+
+```bash
+ncc build ./src/index.ts --license licenses.txt
 ```

@@ -1,12 +1,13 @@
 # create-deploy-pr
 
- creates deploy PR for artifact in PR comment
+Create deployment PR
 
 ## inputs:
 
 ### githubToken:
 
     description: "GitHub token"
+    required: false
 
 ### gitUserEmail:
 
@@ -17,12 +18,13 @@
 ### gitUserName:
 
     description: "git config user.name"
-    default: "vc-ci"
     required: false
+    default: "vc-ci"
 
 ### repoOrg:
 
     description: "Repo org"
+    required: false
     default: "VirtoCommerce"
 
 ### deployRepo:
@@ -44,8 +46,8 @@
 
 ### artifactUrl:
 
-      description: "Link to changed artifact"
-      required: true
+    description: "Link to changed artifact"
+    required: true
 
 ### taskNumber:
 
@@ -66,18 +68,16 @@
 
 ## Example of usage
 
-```
-
+```yaml
 - name: Create deploy step
-    if: ${{ github.event_name == 'pull_request' }}
-    uses: VirtoCommerce/vc-github-actions/create-deploy-pr@master
-    with:
-        deployRepo: "vc-webstore-deploy"
-        deployBranch: "demo"
-        artifactKey: "B2B_THEME_URL"
-        artifactUrl: "${{ steps.artifactLink.outputs.artifactUrl }}"
-        taskNumber: "${{ steps.artifactLink.outputs.demoTaskNumber }}"
-    
+  if: ${{ github.event_name == 'pull_request' }}
+  uses: VirtoCommerce/vc-github-actions/create-deploy-pr@master
+  with:
+    deployRepo: "vc-webstore-deploy"
+    deployBranch: "demo"
+    artifactKey: "B2B_THEME_URL"
+    artifactUrl: "${{ steps.artifactLink.outputs.artifactUrl }}"
+    taskNumber: "${{ steps.artifactLink.outputs.demoTaskNumber }}"
 ```
 
 ## Compile action
