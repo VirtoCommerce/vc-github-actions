@@ -15,15 +15,15 @@
     "@actions/exec": "^1.0.4",
     "@actions/github": "^4.0.0",
     "@actions/tool-cache": "^1.6.0",
-    "@virtocommerce/vc-actions-lib": "^1.2.14",
-    "axios": "^1.16.0",
+    "@virtocommerce/vc-actions-lib": "^1.2.16",
+    "axios": "^1.18.0",
     "glob": "^7.1.6",
     "path": "^0.12.7",
-    "xml2js": "^0.4.23"
+    "xml2js": "^0.6.2"
   },
   "devDependencies": {
     "@types/node": "^20.12.7",
-    "@vercel/ncc": "^0.38.0",
+    "@vercel/ncc": "^0.44.0",
     "typescript": "^5.8.3"
   }
 }

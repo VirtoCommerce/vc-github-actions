@@ -4,7 +4,7 @@
   "description": "Load docker image from tar",
   "devDependencies": {
     "@types/node": "^16.10.1",
-    "@vercel/ncc": "^0.38.0",
+    "@vercel/ncc": "^0.44.0",
     "typescript": "^5.8.3"
   },
   "dependencies": {

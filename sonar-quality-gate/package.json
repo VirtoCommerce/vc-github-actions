@@ -14,11 +14,11 @@
     "@actions/core": "^1.2.6",
     "@actions/exec": "^1.0.4",
     "@actions/github": "^4.0.0",
-    "@virtocommerce/vc-actions-lib": "^1.0.1",
-    "debug": "^4.2.0"
+    "@virtocommerce/vc-actions-lib": "^1.2.16",
+    "debug": "^4.4.3"
   },
   "devDependencies": {
-    "@vercel/ncc": "^0.38.0",
+    "@vercel/ncc": "^0.44.0",
     "typescript": "^5.8.3"
   }
 }

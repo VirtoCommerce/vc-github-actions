@@ -16,7 +16,7 @@
     "@types/node": "^18.0.6"
   },
   "devDependencies": {
-    "@vercel/ncc": "^0.38.0",
+    "@vercel/ncc": "^0.44.0",
     "typescript": "^5.8.3"
   }
 }
