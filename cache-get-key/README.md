@@ -1,62 +1,56 @@
-# cache-get-key'
+# cache-get-key
 
 Calculate unique key for artifact caching
-
-## How to build
-
-* Install vercel/ncc by running this command in your terminal. `npm i -g @vercel/ncc`
-* Compile your index.ts file. `ncc build ./src/index.ts --license licenses.txt`
 
 ## inputs:
 
 ### runnerOs:
 
-description: 'OS runner'
-default: 'Linux'
-required: false
+    description: 'OS runner'
+    required: false
+    default: 'Linux'
 
 ### artifactName:
 
-description: 'Artifact name'
-default: 'platform_image'
-required: false
+    description: 'Artifact name'
+    required: false
+    default: 'platform_image'
 
 ## outputs:
 
-## shortKey:
+### shortKey:
 
-description: 'Short cache key'
+    description: 'Short cache key'
 
 ### fullKey:
 
-description: 'Full cache key'
+    description: 'Full cache key'
 
-## dockerShortKey:
+### dockerShortKey:
 
-description: 'Short cache key for docker image cache'
+    description: 'Short cache key for docker image cache'
 
 ### dockerFullKey:
 
-description: 'Full cache key for docker image cache'
+    description: 'Full cache key for docker image cache'
 
-## packageShortKey:
+### packageShortKey:
 
-description: 'Short cache key for zip package cache'
+    description: 'Short cache key for zip package cache'
 
 ### packageFullKey:
 
-description: 'Full cache key for zip package cache'
-
+    description: 'Full cache key for zip package cache'
 
 ## Example of usage
 
-```
-    - name: Calculate cache key
-      uses: VirtoCommerce/vc-github-actions/docker-load-image@master
-      id: cache-key
-      with:
-        runnerOs: ${{ runner.os  }}
-        artifactName: 'platform'
+```yaml
+- name: Calculate cache key
+  uses: VirtoCommerce/vc-github-actions/cache-get-key@master
+  id: cache-key
+  with:
+    runnerOs: ${{ runner.os }}
+    artifactName: 'platform'
 ```
 
 ## Compile action

@@ -6,33 +6,57 @@ Checks PR contain label for regression
 
 ### githubToken:
 
-GitHub token
+    description: "GitHub token"
+    required: false
 
 ### label:
 
-PR label for regression
+    description: "PR label for regression"
+    required: true
+    default: "regression"
 
 ### commitMessage:
 
-Latest squash commit message which should contain PR number looks like (#123)
+    description: "Latest squash commit message which should contain PR number looks like (#123)"
+    required: true
 
 ## outputs:
 
 ### isLabeled:
 
-Flag describes that PR contain label
+    description: "True if base PR contain label"
 
 ### pullNumber:
 
-PR number labeled for regression
+    description: "PR number labeled for regression "
+
+### pullUrl:
+
+    description: "PR link"
 
 ## Example of usage
 
-```
+```yaml
 - name: Check regression label
   id: regressLabel
   uses: VirtoCommerce/vc-github-actions/check-pr-regression-label@master
   with:
     label: regression
     commitMessage: ${{ github.event.head_commit.message }}
+```
+
+## Compile action
+
+Use @vercel/ncc tool to compile your code and modules into one file used for distribution.
+
+- Install vercel/ncc by running this command in your terminal.
+
+```bash
+npm i -g @vercel/ncc
+```
+
+- Compile your index.ts file.
+
+```bash
+ncc build ./src/index.ts --license licenses.txt
 ```

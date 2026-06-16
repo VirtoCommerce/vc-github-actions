@@ -1,31 +1,31 @@
 # cloud-create-deploy-matrix
 
-description: 'Create a matrix of deployment environments'
+Create a matrix of deployment environments
 
-## inputs
-  
-### deployConfigPath
+## inputs:
+
+### deployConfigPath:
 
     description: 'Path to the deployment configuration file'
     default: '.deployment/module/cloudDeploy.json'
 
-### releaseBranch
+### releaseBranch:
 
     description: 'The release branch'
     default: 'master'
 
-## outputs
+## outputs:
 
 ### matrix:
+
     description: 'Matrix of deployment environments'
 
 ## Example of usage
 
-```
+```yaml
 - name: Create deployment matrix
   uses: VirtoCommerce/vc-github-actions/cloud-create-deploy-matrix@master
   id: deployMatrix
-
 ```
 
 ## Compile action

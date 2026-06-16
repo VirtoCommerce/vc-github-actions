@@ -1,6 +1,6 @@
 # get-deploy-param
 
-description: 'Get deployment parameters for ArgoCD deployments'
+Get deployment parameters for ArgoCD deployments
 
 ## inputs:
 
@@ -27,9 +27,13 @@ description: 'Get deployment parameters for ArgoCD deployments'
 
     description: 'artifactKey value'
 
-### deployRepo: 
+### deployRepo:
 
     description: 'deployRepo value'
+
+### cmPath:
+
+    description: 'Path to config map'
 
 ### deployAppName:
 
@@ -39,24 +43,17 @@ description: 'Get deployment parameters for ArgoCD deployments'
 
     description: 'Required environment deployBranch value'
 
-### cmPath:
-
-    description: 'Path to config map'
-
 ### environmentId:
 
     description: 'Environment Id'
-Used for Jira integration
 
 ### environmentName:
 
     description: 'Environment name'
-Used for Jira integration
 
 ### environmentType:
 
-    description: 'Environment type (Development/Staging/Production)'
-Used for Jira integration
+    description: 'Environment type Allowed values are: [production, staging, testing, development, unmapped]'
 
 ### environmentUrl:
 
@@ -68,12 +65,10 @@ Used for Jira integration
 
 ## Example of usage
 
-```
-
+```yaml
 - name: Read deployment config
   uses: VirtoCommerce/vc-github-actions/get-deploy-param@master
   id: deployConfig
-
 ```
 
 ## Compile action

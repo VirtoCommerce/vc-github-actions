@@ -1,30 +1,28 @@
 # msteams-send-message
 
-Publishes artifact link to PR comment
+Send message to MS TEams
 
-## inputs
+## inputs:
 
-### webhook_uri
+### webhook_uri:
 
-description: "Microsoft Teams webhook URI"
+    description: "Microsoft Teams webhook URI"
+    required: true
 
-required: true
+### body:
 
-### body
-
-description: "Microsoft Teams formatted message"
-
-required: true
+    description: "Microsoft Teams formatted message"
+    required: true
 
 Read more about Microsoft Teams message card [format](https://docs.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/connectors-using?tabs=cURL)
 
 ## Example of usage
 
 ```yaml
-    - name: Send a message to Microsoft Teams
-      uses: VirtoCommerce/vc-github-actions/msteams-send-message@master
-      with:
-        body: '{
+- name: Send a message to Microsoft Teams
+  uses: VirtoCommerce/vc-github-actions/msteams-send-message@master
+  with:
+    body: '{
     "@type": "MessageCard",
     "@context": "http://schema.org/extensions",
     "themeColor": "0076D7",
@@ -56,6 +54,21 @@ Read more about Microsoft Teams message card [format](https://docs.microsoft.com
     }]
 
 }'  # the body of the message
-        webhook_uri: ${{ secrets.TEAMS_WEBHOOK }} 
+    webhook_uri: ${{ secrets.TEAMS_WEBHOOK }}
+```
 
+## Compile action
+
+Use @vercel/ncc tool to compile your code and modules into one file used for distribution.
+
+- Install vercel/ncc by running this command in your terminal.
+
+```bash
+npm i -g @vercel/ncc
+```
+
+- Compile your index.ts file.
+
+```bash
+ncc build ./src/index.ts --license licenses.txt
 ```
