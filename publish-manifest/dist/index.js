@@ -3574,7 +3574,7 @@ async function getLatestRelease(repo)
     const repoUrl = `/repos/${repo}/releases`;
     const result = await request(`GET ${repoUrl}`, {
         headers: {
-            authorization: process.env.GITHUB_TOKEN
+            authorization: 'token ' + process.env.GITHUB_TOKEN
         }
     });
    
