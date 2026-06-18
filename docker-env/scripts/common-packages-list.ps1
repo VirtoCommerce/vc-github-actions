@@ -18,6 +18,12 @@
     The file must be a JSON array of objects with 'Id' and 'Version' fields.
     'VirtoCommerce.Platform' is a special Id that sets the platform version.
     Example: [{"Id":"VirtoCommerce.Platform","Version":"3.x.x"},{"Id":"VirtoCommerce.SomeModule","Version":"3.x.x"}]
+.PARAMETER useLatestPlatform
+    When $true and the resolved platform version is a stable (non-prerelease) release, the platform
+    version is bumped to the latest published VirtoCommerce/vc-platform release. Modules declare only a
+    minimum platform (typically <minor>.0); installing the latest stable release satisfies all of them
+    and matches what a real deployment runs. The override is skipped when any module pinned a prerelease
+    platform version, so the existing behavior is preserved by default ($false).
 #>
 [CmdletBinding()]
 param (
@@ -25,7 +31,8 @@ param (
     [string]$customModuleId,
     [Parameter(Mandatory = $true)]
     [string]$customModuleUrl,
-    [string]$requiredModulesListUrl = ''
+    [string]$requiredModulesListUrl = '',
+    [bool]$useLatestPlatform = $false
 )
 
 function IsAlfa {
@@ -58,7 +65,7 @@ function CompareVersions {
     $requiredVerSplitted = $requiredVersion.split('.')
     Write-Verbose "Comparing versions for $moduleId : $currentVersion vs $requiredVersion"
     if ($currentVerSplitted.Length -eq $requiredVerSplitted.Length) {
-        if (IsAlfa $requiredVerSplitted[2] -or IsAlfa $currentVerSplitted[2]) {
+        if ((IsAlfa $requiredVerSplitted[2]) -or (IsAlfa $currentVerSplitted[2])) {
             $currentPatchVersion = $requiredPatchVersion = $currentBaseVersion = $requiredBaseVersion = ''
             if ($currentVersion -match $patchVersionRegex) {
                 # current version is alfa
@@ -431,6 +438,33 @@ while ($attempts -le 10) {
         }
     }
     $attempts += 1
+}
+
+# Optionally pin a stable platform to the latest published vc-platform release.
+# Resolved value is the highest of module minimums (<minor>.0), not an actual release.
+if ($useLatestPlatform) {
+    if ($platformVersion -match '[A-Za-z-]') {
+        Write-Host "useLatestPlatform: resolved platform '$platformVersion' is a prerelease; keeping it."
+    }
+    else {
+        try {
+            $latestPlatformVersion = ($(Invoke-WebRequestWithRetry -Uri 'https://api.github.com/repos/VirtoCommerce/vc-platform/releases/latest').Content | ConvertFrom-Json).tag_name -replace '^v', ''
+            if ([string]::IsNullOrWhiteSpace($latestPlatformVersion)) {
+                Write-Warning "useLatestPlatform: could not determine the latest platform release; keeping '$platformVersion'."
+            }
+            elseif ([System.Version]$latestPlatformVersion -gt [System.Version]$platformVersion) {
+                Write-Host "`e[33museLatestPlatform: upgrading platform $platformVersion -> $latestPlatformVersion (latest release)"
+                $platformVersion = $latestPlatformVersion
+                $platformVersionSource = 'latest-release'
+            }
+            else {
+                Write-Host "useLatestPlatform: latest release $latestPlatformVersion is not newer than resolved $platformVersion; keeping it."
+            }
+        }
+        catch {
+            Write-Warning "useLatestPlatform: failed to query the latest platform release: $_. Keeping '$platformVersion'."
+        }
+    }
 }
 
 # compose a packages.json file

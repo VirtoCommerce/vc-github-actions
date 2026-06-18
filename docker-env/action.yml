@@ -37,6 +37,10 @@ inputs:
     description: 'The URL of the JSON file with the required modules list'
     required: false
     default: ''
+  useLatestPlatform:
+    description: 'When true, pin a resolved stable platform version to the latest published vc-platform release'
+    required: false
+    default: 'false'
   installModules:
     description: 'Enable or disable "Install Modules" step'
     required: false
@@ -77,7 +81,7 @@ runs:
       shell: pwsh
       run: |
         Write-Host "::group::Start Custom Module step started."
-        ./scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }} -requiredModulesListUrl "${{ inputs.requiredModulesListUrl }}"
+        ./scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }} -requiredModulesListUrl "${{ inputs.requiredModulesListUrl }}" -useLatestPlatform ([System.Convert]::ToBoolean('${{ inputs.useLatestPlatform }}'))
         Write-Host "::endgroup::"
         $dockerFiles = "https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net10/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh"
         Write-Host "`e[32mDownload Dockerfile and build image"

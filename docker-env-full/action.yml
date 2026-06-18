@@ -48,6 +48,10 @@ inputs:
     description: 'The URL of the JSON file with the required modules list'
     required: false
     default: ''
+  useLatestPlatform:
+    description: 'When true, pin a resolved stable platform version to the latest published vc-platform release'
+    required: false
+    default: 'false'
   testSecretEnvFile:
     description: 'Test secret environment file content'
     required: true
@@ -187,7 +191,7 @@ runs:
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
-        ../docker-env/scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }} -requiredModulesListUrl "${{ inputs.requiredModulesListUrl }}"
+        ../docker-env/scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }} -requiredModulesListUrl "${{ inputs.requiredModulesListUrl }}" -useLatestPlatform ([System.Convert]::ToBoolean('${{ inputs.useLatestPlatform }}'))
         Write-Host "`e[32mDownload platform Dockerfile and build image"
         $dockerFilesArray = "${{ inputs.dockerFiles }}".Split(';')
         foreach($file in $dockerFilesArray){
