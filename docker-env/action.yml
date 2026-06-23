@@ -118,11 +118,11 @@ runs:
       env:
         APP_INSIGHTS_IKEY_INPUT: ${{ inputs.appInsightsInstrumentationKey }}
       run: |
-        # ROLE_NAME identifies this platform container instance in Application Insights.
-        # Prefixed with the repo name so it's recognizable in the AI interface, and
-        # exported via $GITHUB_ENV for downstream actions (e.g. run-pytest-tests).
+        # ROLE_NAME identifies this platform container in Application Insights:
+        # <repo>-<run>-<attempt>-<job>. Exported via $GITHUB_ENV for downstream actions.
         $repoName = "$env:GITHUB_REPOSITORY".Split('/')[-1]
-        $roleName = "$repoName-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+        $jobSuffix = if ($env:GITHUB_JOB) { "-$env:GITHUB_JOB" } else { '' }
+        $roleName = "$repoName-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT$jobSuffix"
         Add-Content -Path $env:GITHUB_ENV -Value "ROLE_NAME=$roleName"
         # Surface the role name on the run summary page (annotations section).
         Write-Host "::notice title=Application Insights role name::$roleName"
