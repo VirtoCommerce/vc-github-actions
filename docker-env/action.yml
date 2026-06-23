@@ -231,13 +231,15 @@ runs:
         }
         Write-Host "`e[32mSwagger Schema validated."
 
-    - name: Flush telemetry (graceful platform shutdown)
-      # The container is short-lived, so it's killed before the AI SDK flushes its
-      # batched telemetry. `docker stop` (SIGTERM + grace) lets the platform shut down
-      # gracefully and flush on dispose. Runs even on failure; only when AI is configured.
+    - name: Flush Application Insights telemetry
+      # The platform serves for only a few seconds before the job ends, so the AI SDK
+      # (ServerTelemetryChannel, ~30s batch interval) is killed before it transmits.
+      # Keep it alive one batch interval so the timer fires while still running. The
+      # proper fix is a Flush()+sleep on shutdown in vc-module-app-insights (tracked
+      # separately). Runs even on failure; only when AI is configured.
       if: ${{ always() && inputs.appInsightsInstrumentationKey != '' }}
       shell: pwsh
       run: |
-        $platformContainer = "virtocommerce-vc-platform-web-1"
-        Write-Host "`e[33mGracefully stopping $platformContainer to flush Application Insights telemetry."
-        docker stop -t 30 $platformContainer
+        $flushSeconds = 40
+        Write-Host "`e[33mWaiting ${flushSeconds}s for the platform to flush Application Insights telemetry."
+        Start-Sleep -Seconds $flushSeconds
