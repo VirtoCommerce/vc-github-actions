@@ -198,23 +198,46 @@ runs:
           # warm up while the platform booted. Poll it briefly instead of sleeping a
           # fixed 30s. -SkipHttpErrorCheck means only a refused connection retries;
           # any HTTP response (even an error) proves the server is listening.
+          Write-Host "`e[33mWait for swagger validator on http://localhost:85 to respond."
           $validatorReady = $false
           foreach ($i in 1..20) {
             try {
               Invoke-WebRequest -Uri "http://localhost:85/" -Method Get -TimeoutSec 5 -SkipHttpErrorCheck | Out-Null
               $validatorReady = $true
+              Write-Host "`e[32mSwagger validator is up (attempt $i)."
               break
             } catch {
+              Write-Host "Swagger validator not ready yet (attempt $i of 20); retrying in 2s..."
               Start-Sleep -Seconds 2
             }
           }
           if (-not $validatorReady) {
             Write-Host "`e[33mSwagger validator did not respond in time; attempting validation anyway."
           }
-          ${{ github.action_path }}/scripts/get-swagger.ps1 -ApiUrl http://localhost:8090 -OutFile ${{ github.action_path }}/swaggerSchema.json -Verbose -Debug
-          Get-ChildItem
-          Get-ChildItem ${{ github.action_path }}
+          # Fetch quietly: -Verbose/-Debug would echo the full HTTP response body and
+          # dump the entire swagger schema (tens of thousands of lines) into the log.
+          # The full schema is published below only when validation fails.
+          ${{ github.action_path }}/scripts/get-swagger.ps1 -ApiUrl http://localhost:8090 -OutFile ${{ github.action_path }}/swaggerSchema.json
           Get-Content -Path ${{ github.action_path }}/swaggerSchema.json -TotalCount 10
           vc-build ValidateSwaggerSchema -SwaggerSchemaPath ${{ github.action_path }}/swaggerSchema.json -SwaggerValidatorUri http://localhost:85/validator/debug
+          $validateExitCode = $LASTEXITCODE
+          if ($validateExitCode -ne 0) {
+            # Validation failed — surface the full schema (collapsed) for diagnosis.
+            Write-Host "::group::Swagger schema (full) — published because validation failed"
+            Get-Content -Path ${{ github.action_path }}/swaggerSchema.json
+            Write-Host "::endgroup::"
+            exit $validateExitCode
+          }
         }
         Write-Host "`e[32mSwagger Schema validated."
+
+    - name: Flush telemetry (graceful platform shutdown)
+      # The container is short-lived, so it's killed before the AI SDK flushes its
+      # batched telemetry. `docker stop` (SIGTERM + grace) lets the platform shut down
+      # gracefully and flush on dispose. Runs even on failure; only when AI is configured.
+      if: ${{ always() && inputs.appInsightsInstrumentationKey != '' }}
+      shell: pwsh
+      run: |
+        $platformContainer = "virtocommerce-vc-platform-web-1"
+        Write-Host "`e[33mGracefully stopping $platformContainer to flush Application Insights telemetry."
+        docker stop -t 30 $platformContainer
