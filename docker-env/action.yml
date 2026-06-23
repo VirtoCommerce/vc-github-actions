@@ -49,6 +49,10 @@ inputs:
     description: 'Directory with environment files'
     required: true
     default: '.'
+  appInsightsInstrumentationKey:
+    description: 'Application Insights instrumentation key (GUID). Passed to the platform container as `ApplicationInsights:InstrumentationKey`.'
+    required: false
+    default: ''
 
 
 runs:
@@ -108,6 +112,23 @@ runs:
         touch ${{ inputs.envDir }}/.docker/platform.env
         echo -e 'Platform environment variables:'
         cat ${{ inputs.envDir }}/.docker/platform.env
+
+    - name: Generate Application Insights configuration
+      shell: pwsh
+      env:
+        APP_INSIGHTS_IKEY_INPUT: ${{ inputs.appInsightsInstrumentationKey }}
+      run: |
+        # ROLE_NAME uniquely identifies this platform container instance in Application
+        # Insights. Exported via $GITHUB_ENV so downstream actions (e.g. run-pytest-tests)
+        # can surface the same value without recomputing it.
+        $roleName = "vc-platform-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
+        Add-Content -Path $env:GITHUB_ENV -Value "ROLE_NAME=$roleName"
+        Write-Host "Application Insights role name: $roleName"
+        $aiKey = $env:APP_INSIGHTS_IKEY_INPUT
+        if ($aiKey) {
+          Write-Host "::add-mask::$aiKey"
+          Add-Content -Path $env:GITHUB_ENV -Value "APPLICATIONINSIGHTS_INSTRUMENTATIONKEY=$aiKey"
+        }
 
     - name: Start containers
       env:

@@ -78,6 +78,12 @@ Runs Docker Environment
     required: true
     default: '.'
 
+### appInsightsInstrumentationKey:
+
+    description: 'Application Insights instrumentation key (GUID). Passed to the platform container as `ApplicationInsights:InstrumentationKey`.'
+    required: false
+    default: ''
+
 ## Example of usage
 
 ```yaml
