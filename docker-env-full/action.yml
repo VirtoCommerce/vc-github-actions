@@ -263,13 +263,13 @@ runs:
         Write-Host "::add-mask::$esPassword"
         Add-Content -Path $env:GITHUB_ENV -Value "DB_PASSWORD=$dbPassword"
         Add-Content -Path $env:GITHUB_ENV -Value "ELASTIC_PASSWORD=$esPassword"
-        # ROLE_NAME uniquely identifies this platform container instance in Application
-        # Insights. It's anchored to the database provider because that's the matrix
-        # dimension that produces a distinct platform container.
-        # Exported via $GITHUB_ENV so downstream actions (e.g. run-pytest-tests) can
-        # surface the same value without recomputing it.
+        # ROLE_NAME identifies this platform container in Application Insights. Prefixed
+        # with the repo name so it's recognizable in the AI interface, suffixed with the
+        # db provider (the matrix dimension), and exported via $GITHUB_ENV for downstream
+        # actions (e.g. run-pytest-tests).
+        $repoName = "$env:GITHUB_REPOSITORY".Split('/')[-1]
         $dbSuffix = if ($env:DB_PROVIDER_INPUT) { "-$env:DB_PROVIDER_INPUT" } else { '' }
-        $roleName = "vc-platform-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT$dbSuffix"
+        $roleName = "$repoName-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT$dbSuffix"
         Add-Content -Path $env:GITHUB_ENV -Value "ROLE_NAME=$roleName"
         Write-Host "Application Insights role name: $roleName"
         $aiKey = $env:APP_INSIGHTS_IKEY_INPUT
