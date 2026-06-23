@@ -143,20 +143,26 @@ runs:
         Write-Host "`e[33mStart Containers step started."
         $platformContainer = "virtocommerce-vc-platform-web-1"
         . ./scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
-        # for the case of install modules
+        # Mount installed modules via a static overlay file instead of installing the
+        # powershell-yaml module from PSGallery and reserializing docker-compose.yml
+        # on every run.
+        $composeFiles = @('-f', 'docker-compose.yml')
         echo "inputs.installModules is ${{ inputs.installModules }}"
         if ( '${{ inputs.installModules }}' -eq 'true' ){
-          Write-host "Start modify docker-compose.yml"
-          Install-Module -Name powershell-yaml -Force -allowClobber
-          $parsedYaml = Get-Content -Path ./docker-compose.yml -Raw | ConvertFrom-Yaml 
-          $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/modules:/opt/virtocommerce/platform/modules')
-          $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/app_data:/opt/virtocommerce/platform/app_data')
-          $parsedYaml | ConvertTo-Yaml | Set-Content ./docker-compose.yml
+          Write-Host "Mount installed modules via docker-compose.modules.yml overlay"
+          $composeFiles += @('-f', 'docker-compose.modules.yml')
+        }
+        # Start the swagger validator now so it warms up while the platform boots,
+        # instead of pulling/starting it and sleeping on the critical path later.
+        if ( '${{ inputs.validateSwagger }}' -eq 'true' ){
+          Write-Host "::group::Start swagger validator"
+          docker run -d -p 85:8080 swaggerapi/swagger-validator-v2
+          Write-Host "::endgroup::"
         }
         Write-Host "::group::Start containers"
-        docker compose --project-name virtocommerce up -d
+        docker compose --project-name virtocommerce $composeFiles up -d
         Write-Host "::endgroup::"
-        InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 15 -WaitSeconds 0
+        InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 5 -WaitSeconds 0
         Write-Host "`e[32mContainers started."
         
     - name: Check Installed Modules
@@ -183,16 +189,28 @@ runs:
       if: ${{ inputs.validateSwagger == 'true' }}
       shell: pwsh
       run: |
-        $waitForSwaggerSec = 30
         Write-Host "`e[33mSwagger Schema Validation step started."
         $platformContainer = "virtocommerce-vc-platform-web-1"
         . "${{ github.action_path }}/scripts/watch-url-up.ps1"
-        $platformIsUp = (Watch-Url-Up -ApiUrl http://localhost:8090 -TimeoutMinutes 15 -RetrySeconds 15 -WaitSeconds 0 -ContainerId $platformContainer)
+        $platformIsUp = (Watch-Url-Up -ApiUrl http://localhost:8090 -TimeoutMinutes 15 -RetrySeconds 5 -WaitSeconds 0 -ContainerId $platformContainer)
         if ($platformIsUp) {
-          docker pull swaggerapi/swagger-validator-v2
-          docker run -d -p 85:8080 swaggerapi/swagger-validator-v2
-          Write-Host "`e[33mWait before swagger-validator-v2 start for $waitForSwaggerSec seconds."
-          Start-Sleep -Seconds $waitForSwaggerSec
+          # The validator container was started during "Start containers" so it could
+          # warm up while the platform booted. Poll it briefly instead of sleeping a
+          # fixed 30s. -SkipHttpErrorCheck means only a refused connection retries;
+          # any HTTP response (even an error) proves the server is listening.
+          $validatorReady = $false
+          foreach ($i in 1..20) {
+            try {
+              Invoke-WebRequest -Uri "http://localhost:85/" -Method Get -TimeoutSec 5 -SkipHttpErrorCheck | Out-Null
+              $validatorReady = $true
+              break
+            } catch {
+              Start-Sleep -Seconds 2
+            }
+          }
+          if (-not $validatorReady) {
+            Write-Host "`e[33mSwagger validator did not respond in time; attempting validation anyway."
+          }
           ${{ github.action_path }}/scripts/get-swagger.ps1 -ApiUrl http://localhost:8090 -OutFile ${{ github.action_path }}/swaggerSchema.json -Verbose -Debug
           Get-ChildItem
           Get-ChildItem ${{ github.action_path }}

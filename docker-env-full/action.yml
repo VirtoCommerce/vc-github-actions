@@ -278,7 +278,7 @@ runs:
           Add-Content -Path $env:GITHUB_ENV -Value "APPLICATIONINSIGHTS_INSTRUMENTATIONKEY=$aiKey"
         }
 
-    - name: Start database and elasticsearch containers
+    - name: Start containers
       env:
         PLATFORM_IMAGE: ${{ inputs.platformImage }}
         PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
@@ -293,38 +293,19 @@ runs:
         $platformContainer = "virtocommerce-vc-platform-web-1"
         . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
 
+        # Mount installed modules via a static overlay file instead of installing the
+        # powershell-yaml module from PSGallery and reserializing docker-compose.yml.
+        $composeFiles = @('-f', 'docker-compose.yml', '-f', "docker-compose.$env:DB_PROVIDER.yml")
         if ( $env:INSTALL_MODULES -eq 'true' ){
-          Write-Host "Modify docker-compose.yml to mount installed modules"
-          Install-Module -Name powershell-yaml -Force -allowClobber
-          $parsedYaml = Get-Content -Path ./docker-compose.yml -Raw | ConvertFrom-Yaml
-          $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/modules:/opt/virtocommerce/platform/modules')
-          $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/app_data:/opt/virtocommerce/platform/app_data')
-          $parsedYaml | ConvertTo-Yaml | Set-Content ./docker-compose.yml
-          cat ./docker-compose.yml
+          Write-Host "Mount installed modules via docker-compose.modules.yml overlay"
+          $composeFiles += @('-f', 'docker-compose.modules.yml')
         }
-        # Start only the database and elasticsearch containers first
-        Write-Host "::group::Start Database and Elasticsearch containers"
-        docker compose --project-name virtocommerce -f docker-compose.yml -f "docker-compose.$env:DB_PROVIDER.yml" up -d vc-db es
+        # Start everything in one pass — the platform's wait-for-it entrypoint already
+        # gates on vc-db:1433 and es:9200, so there's no need to stage db/es separately.
+        Write-Host "::group::Start containers"
+        docker compose --project-name virtocommerce $composeFiles up -d
         Write-Host "::endgroup::"
-        Write-Host "`e[32mDatabase and Elasticsearch containers started."
-
-    - name: Start remaining containers
-      env:
-        PLATFORM_IMAGE: ${{ inputs.platformImage }}
-        PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
-        ENV_DIR: ${{ inputs.envDir }}
-        SENDGRID_API_KEY: ${{ inputs.sendgridApiKey }}
-        DB_PROVIDER: ${{ inputs.databaseProvider }}
-      shell: pwsh
-      working-directory: ${{ github.action_path }}
-      run: |
-        Write-Host "`e[33mStart Remaining Containers step started."
-        $platformContainer = "virtocommerce-vc-platform-web-1"
-        . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
-        Write-Host "::group::Start Remaining Containers"
-        docker compose --project-name virtocommerce -f docker-compose.yml -f "docker-compose.$env:DB_PROVIDER.yml" up -d
-        Write-Host "::endgroup::"
-        InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 15 -WaitSeconds 0
+        InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 5 -WaitSeconds 0
         Write-Host "`e[32mAll containers started."
         
     - name: Check Installed Modules
