@@ -122,10 +122,8 @@ runs:
         [[ -n "$image_path" ]] || { echo "::error::no *.tar found in artifact at $ARTIFACT_DIR"; exit 1; }
         load_output=$(docker load -i "$image_path")
         echo "$load_output"
-        # Prefer a Loaded image: line whose repo segment matches the target name,
-        # so multi-tag tars don't have us retag an arbitrary unrelated ref.
-        # `|| true` swallows grep's exit 1 under pipefail when no ref matches —
-        # the next block handles the empty result.
+        # Match the Loaded image line for the target repo so multi-tag tars don't retag
+        # an unrelated ref; `|| true` swallows grep's no-match exit under pipefail.
         target_name="${TARGET%%:*}"
         loaded=$(printf '%s\n' "$load_output" | sed -n 's/^Loaded image: //p' | { grep -E "(^|/)${target_name}:" || true; } | head -n1)
         if [[ -z "$loaded" ]]; then
@@ -169,10 +167,8 @@ runs:
       shell: pwsh
       run: |
         Write-Host "`e[33mInstall Modules step started."
-        # Pre-create the inner `modules/modules` directory so vc-build's default
-        # DiscoveryPath (`./modules` relative to its cwd) already exists on the
-        # first invocation — otherwise vc-build emits a "Discovery path not found"
-        # warning per call, which GH Actions surfaces as a workflow annotation.
+        # Pre-create modules/modules so vc-build's default DiscoveryPath exists on first
+        # run; otherwise it emits a "Discovery path not found" workflow annotation.
         New-Item -Path "./${{ env.INSTALL_FOLDER}}/modules" -ItemType "directory" -Force | Out-Null
         Push-Location ./${{ env.INSTALL_FOLDER}}
         vc-build install -Edge -skip InstallPlatform
@@ -249,8 +245,7 @@ runs:
         DB_PROVIDER_INPUT: ${{ inputs.databaseProvider }}
       run: |
         function New-RandomPassword {
-          # 32 random alnum chars + 'Vc!' prefix to satisfy SQL Server complexity
-          # (upper/lower/digit/symbol) and stay free of connection-string delimiters.
+          # 'Vc!' + 32 alnum chars: meets SQL Server complexity, no conn-string delimiters.
           $alphabet = [char[]]'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
           $bytes = New-Object byte[] 32
           [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
@@ -263,13 +258,11 @@ runs:
         Write-Host "::add-mask::$esPassword"
         Add-Content -Path $env:GITHUB_ENV -Value "DB_PASSWORD=$dbPassword"
         Add-Content -Path $env:GITHUB_ENV -Value "ELASTIC_PASSWORD=$esPassword"
-        # ROLE_NAME uniquely identifies this platform container instance in Application
-        # Insights. It's anchored to the database provider because that's the matrix
-        # dimension that produces a distinct platform container.
-        # Exported via $GITHUB_ENV so downstream actions (e.g. run-pytest-tests) can
-        # surface the same value without recomputing it.
+        # ROLE_NAME identifies the container in App Insights: <repo>-<run>-<attempt>-<db>.
+        # Exported via $GITHUB_ENV for downstream actions.
+        $repoName = "$env:GITHUB_REPOSITORY".Split('/')[-1]
         $dbSuffix = if ($env:DB_PROVIDER_INPUT) { "-$env:DB_PROVIDER_INPUT" } else { '' }
-        $roleName = "vc-platform-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT$dbSuffix"
+        $roleName = "$repoName-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT$dbSuffix"
         Add-Content -Path $env:GITHUB_ENV -Value "ROLE_NAME=$roleName"
         Write-Host "Application Insights role name: $roleName"
         $aiKey = $env:APP_INSIGHTS_IKEY_INPUT
@@ -278,7 +271,7 @@ runs:
           Add-Content -Path $env:GITHUB_ENV -Value "APPLICATIONINSIGHTS_INSTRUMENTATIONKEY=$aiKey"
         }
 
-    - name: Start database and elasticsearch containers
+    - name: Start containers
       env:
         PLATFORM_IMAGE: ${{ inputs.platformImage }}
         PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
@@ -293,38 +286,17 @@ runs:
         $platformContainer = "virtocommerce-vc-platform-web-1"
         . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
 
+        # Mount installed modules via a static overlay file (no PSGallery powershell-yaml).
+        $composeFiles = @('-f', 'docker-compose.yml', '-f', "docker-compose.$env:DB_PROVIDER.yml")
         if ( $env:INSTALL_MODULES -eq 'true' ){
-          Write-Host "Modify docker-compose.yml to mount installed modules"
-          Install-Module -Name powershell-yaml -Force -allowClobber
-          $parsedYaml = Get-Content -Path ./docker-compose.yml -Raw | ConvertFrom-Yaml
-          $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/modules:/opt/virtocommerce/platform/modules')
-          $parsedYaml.services.'vc-platform-web'.volumes.Add('./modules/app_data:/opt/virtocommerce/platform/app_data')
-          $parsedYaml | ConvertTo-Yaml | Set-Content ./docker-compose.yml
-          cat ./docker-compose.yml
+          Write-Host "Mount installed modules via docker-compose.modules.yml overlay"
+          $composeFiles += @('-f', 'docker-compose.modules.yml')
         }
-        # Start only the database and elasticsearch containers first
-        Write-Host "::group::Start Database and Elasticsearch containers"
-        docker compose --project-name virtocommerce -f docker-compose.yml -f "docker-compose.$env:DB_PROVIDER.yml" up -d vc-db es
+        # One pass: the platform's wait-for-it entrypoint already gates on vc-db/es.
+        Write-Host "::group::Start containers"
+        docker compose --project-name virtocommerce $composeFiles up -d
         Write-Host "::endgroup::"
-        Write-Host "`e[32mDatabase and Elasticsearch containers started."
-
-    - name: Start remaining containers
-      env:
-        PLATFORM_IMAGE: ${{ inputs.platformImage }}
-        PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
-        ENV_DIR: ${{ inputs.envDir }}
-        SENDGRID_API_KEY: ${{ inputs.sendgridApiKey }}
-        DB_PROVIDER: ${{ inputs.databaseProvider }}
-      shell: pwsh
-      working-directory: ${{ github.action_path }}
-      run: |
-        Write-Host "`e[33mStart Remaining Containers step started."
-        $platformContainer = "virtocommerce-vc-platform-web-1"
-        . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
-        Write-Host "::group::Start Remaining Containers"
-        docker compose --project-name virtocommerce -f docker-compose.yml -f "docker-compose.$env:DB_PROVIDER.yml" up -d
-        Write-Host "::endgroup::"
-        InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 15 -WaitSeconds 0
+        InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 5 -WaitSeconds 0
         Write-Host "`e[32mAll containers started."
         
     - name: Check Installed Modules

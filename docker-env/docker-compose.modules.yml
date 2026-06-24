@@ -1,0 +1,13 @@
+# Overlay applied (via `-f`) only when installModules == 'true'.
+# Mounts the modules installed by `vc-build install` into the platform container.
+# Compose appends these to the base service's `volumes` list, so the base
+# cms-content mount is preserved.
+#
+# Named `*.modules.yml` rather than `docker-compose.override.yml` on purpose:
+# Compose auto-loads an `override` file even when unwanted (installModules=false),
+# which would mount non-existent ./modules paths.
+services:
+  vc-platform-web:
+    volumes:
+      - ./modules/modules:/opt/virtocommerce/platform/modules
+      - ./modules/app_data:/opt/virtocommerce/platform/app_data

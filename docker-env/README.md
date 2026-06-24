@@ -78,6 +78,12 @@ Runs Docker Environment
     required: true
     default: '.'
 
+### appInsightsInstrumentationKey:
+
+    description: 'Application Insights instrumentation key (GUID). Passed to the platform container as `ApplicationInsights:InstrumentationKey`. When set, the run waits ~40s at the end so the short-lived container flushes its telemetry.'
+    required: false
+    default: ''
+
 ## Example of usage
 
 ```yaml

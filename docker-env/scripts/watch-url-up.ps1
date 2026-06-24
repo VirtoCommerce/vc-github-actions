@@ -4,14 +4,20 @@ function Watch-Url-Up {
     (
         [string]$ApiUrl = "http://localhost:8090", # Host URL
         [int]$TimeoutMinutes = 15, # Max period of time for retry attempts in minutes
-        [int]$RetrySeconds = 15, # Period of time between retry attempts in seconds
+        [int]$RetrySeconds = 5, # Period of time between retry attempts in seconds
         [int]$WaitSeconds = 60, # Period of time before start retry attempts in seconds
         [string]$ContainerId = "virtocommerce-vc-platform-web-1" # $ContainerId to write host container log on each 3 unsuccess attempt
     )
 
 
-    $printLogAttempt = 3
-    $restartContainerAttempt = 9
+    # Express the log-dump / force-restart cadence in seconds and derive the attempt
+    # counts from $RetrySeconds, so changing the poll interval doesn't change *when*
+    # (wall-clock) we dump logs or force a restart. Originally 3rd/9th attempt at a
+    # 15s interval => every 45s / 135s.
+    $printLogEverySeconds = 45
+    $restartContainerEverySeconds = 135
+    $printLogAttempt = [math]::Max(1, [int]($printLogEverySeconds / $RetrySeconds))
+    $restartContainerAttempt = [math]::Max(1, [int]($restartContainerEverySeconds / $RetrySeconds))
 
     $responseStatus = 0
     [int]$maxRepeat = $TimeoutMinutes * 60 / $RetrySeconds
