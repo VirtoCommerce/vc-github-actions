@@ -12,7 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "@actions/core": "^1.10.0",
-    "@actions/exec": "^1.0.4",
+    "@actions/exec": "^3.0.0",
     "@actions/github": "^4.0.0",
     "@virtocommerce/vc-actions-lib": "^1.0.1"
   },
