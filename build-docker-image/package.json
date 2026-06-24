@@ -15,10 +15,10 @@
     "@actions/exec": "^1.1.0",
     "@actions/github": "^5.0.0",
     "@virtocommerce/vc-actions-lib": "^1.0.1",
-    "axios": "^0.32.0"
+    "axios": "^1.18.0"
   },
   "devDependencies": {
     "@vercel/ncc": "^0.38.0",
-    "typescript": "^5.8.3"
+    "typescript": "^6.0.3"
   }
 }

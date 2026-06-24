@@ -12,13 +12,13 @@
   "license": "ISC",
   "dependencies": {
     "@actions/core": "^1.2.6",
-    "@actions/exec": "^1.0.4",
+    "@actions/exec": "^3.0.0",
     "@actions/github": "^4.0.0",
     "@virtocommerce/vc-actions-lib": "^1.0.1",
     "debug": "^4.2.0"
   },
   "devDependencies": {
     "@vercel/ncc": "^0.38.0",
-    "typescript": "^5.8.3"
+    "typescript": "^6.0.3"
   }
 }
