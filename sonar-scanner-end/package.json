@@ -13,7 +13,7 @@
   "dependencies": {
     "@actions/core": "^1.10.0",
     "@actions/exec": "^1.0.4",
-    "@actions/github": "^5.0.0",
+    "@actions/github": "^9.1.1",
     "@virtocommerce/vc-actions-lib": "^1.2.6"
   },
   "devDependencies": {
