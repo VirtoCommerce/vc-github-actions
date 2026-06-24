@@ -1,5 +1,7 @@
 version: 2
 updates:
+  # GitHub Actions referenced from workflows (.github/workflows) and from every
+  # composite action.yml in the repo.
   - package-ecosystem: github-actions
     directories: ["/**"]
     # deprecated/ holds retired actions + disabled workflows — not maintained.
@@ -8,12 +10,17 @@ updates:
       interval: weekly
     groups:
       actions:
+        # group-by dependency-name collapses the same action bump across every
+        # directory it appears in into ONE pull request, instead of Dependabot's
+        # default of one grouped PR per directory.
+        group-by: dependency-name
         patterns:
           - "*"
 
-  # Bundled Node actions: every directory with a package.json gets its own
-  # weekly PR. Minor + patch updates are grouped per action; majors arrive
-  # as individual PRs so each can be canary-tested separately.
+  # Bundled Node actions: every directory with a package.json. group-by
+  # dependency-name consolidates a given package bump across all action folders
+  # into a single PR. Minor + patch are grouped; majors still arrive separately
+  # (one PR per package) so each can be canary-tested.
   - package-ecosystem: npm
     directories:
       - "/*"
@@ -25,8 +32,15 @@ updates:
     open-pull-requests-limit: 10
     groups:
       minor-and-patch:
+        group-by: dependency-name
         patterns:
           - "*"
         update-types:
           - "minor"
           - "patch"
+      major:
+        group-by: dependency-name
+        patterns:
+          - "*"
+        update-types:
+          - "major"
