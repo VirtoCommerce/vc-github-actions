@@ -240,6 +240,6 @@ runs:
       if: ${{ always() && inputs.appInsightsInstrumentationKey != '' }}
       shell: pwsh
       run: |
-        $flushSeconds = 20
+        $flushSeconds = 30
         Write-Host "`e[33mWaiting ${flushSeconds}s for the platform to flush Application Insights telemetry."
         Start-Sleep -Seconds $flushSeconds
