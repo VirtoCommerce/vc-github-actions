@@ -50,7 +50,7 @@ inputs:
     required: true
     default: '.'
   appInsightsInstrumentationKey:
-    description: 'Application Insights instrumentation key (GUID). Passed to the platform container as `ApplicationInsights:InstrumentationKey`.'
+    description: 'Application Insights instrumentation key (GUID). Passed to the platform container as `ApplicationInsights:InstrumentationKey`. When set, the run waits ~40s at the end so the short-lived container flushes its telemetry.'
     required: false
     default: ''
 
@@ -67,10 +67,8 @@ runs:
       shell: pwsh
       run: |
         Write-Host "`e[33mInstall Modules step started."
-        # Pre-create the inner `modules/modules` directory so vc-build's default
-        # DiscoveryPath (`./modules` relative to its cwd) already exists on the
-        # first invocation — otherwise vc-build emits a "Discovery path not found"
-        # warning per call, which GH Actions surfaces as a workflow annotation.
+        # Pre-create modules/modules so vc-build's default DiscoveryPath exists on first
+        # run; otherwise it emits a "Discovery path not found" workflow annotation.
         New-Item -Path "./${{ env.INSTALL_FOLDER}}/modules" -ItemType "directory" -Force | Out-Null
         Push-Location ./${{ env.INSTALL_FOLDER}}
         vc-build install -Edge -skip InstallPlatform
@@ -143,17 +141,14 @@ runs:
         Write-Host "`e[33mStart Containers step started."
         $platformContainer = "virtocommerce-vc-platform-web-1"
         . ./scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
-        # Mount installed modules via a static overlay file instead of installing the
-        # powershell-yaml module from PSGallery and reserializing docker-compose.yml
-        # on every run.
+        # Mount installed modules via a static overlay file (no PSGallery powershell-yaml).
         $composeFiles = @('-f', 'docker-compose.yml')
         echo "inputs.installModules is ${{ inputs.installModules }}"
         if ( '${{ inputs.installModules }}' -eq 'true' ){
           Write-Host "Mount installed modules via docker-compose.modules.yml overlay"
           $composeFiles += @('-f', 'docker-compose.modules.yml')
         }
-        # Start the swagger validator now so it warms up while the platform boots,
-        # instead of pulling/starting it and sleeping on the critical path later.
+        # Start the validator now so it warms up during platform boot (no sleep later).
         if ( '${{ inputs.validateSwagger }}' -eq 'true' ){
           Write-Host "::group::Start swagger validator"
           docker run -d -p 85:8080 swaggerapi/swagger-validator-v2
@@ -194,10 +189,8 @@ runs:
         . "${{ github.action_path }}/scripts/watch-url-up.ps1"
         $platformIsUp = (Watch-Url-Up -ApiUrl http://localhost:8090 -TimeoutMinutes 15 -RetrySeconds 5 -WaitSeconds 0 -ContainerId $platformContainer)
         if ($platformIsUp) {
-          # The validator container was started during "Start containers" so it could
-          # warm up while the platform booted. Poll it briefly instead of sleeping a
-          # fixed 30s. -SkipHttpErrorCheck means only a refused connection retries;
-          # any HTTP response (even an error) proves the server is listening.
+          # Validator was started during "Start containers"; poll briefly instead of a
+          # fixed sleep. -SkipHttpErrorCheck: any HTTP response (even an error) = listening.
           Write-Host "`e[33mWait for swagger validator on http://localhost:85 to respond."
           $validatorReady = $false
           foreach ($i in 1..20) {
@@ -214,9 +207,8 @@ runs:
           if (-not $validatorReady) {
             Write-Host "`e[33mSwagger validator did not respond in time; attempting validation anyway."
           }
-          # Fetch quietly: -Verbose/-Debug would echo the full HTTP response body and
-          # dump the entire swagger schema (tens of thousands of lines) into the log.
-          # The full schema is published below only when validation fails.
+          # Fetch quietly: -Verbose/-Debug dumps the whole schema into the log. The full
+          # schema is published below only on validation failure.
           ${{ github.action_path }}/scripts/get-swagger.ps1 -ApiUrl http://localhost:8090 -OutFile ${{ github.action_path }}/swaggerSchema.json
           Get-Content -Path ${{ github.action_path }}/swaggerSchema.json -TotalCount 10
           vc-build ValidateSwaggerSchema -SwaggerSchemaPath ${{ github.action_path }}/swaggerSchema.json -SwaggerValidatorUri http://localhost:85/validator/debug
@@ -232,14 +224,12 @@ runs:
         Write-Host "`e[32mSwagger Schema validated."
 
     - name: Flush Application Insights telemetry
-      # The platform serves for only a few seconds before the job ends, so the AI SDK
-      # (ServerTelemetryChannel, ~30s batch interval) is killed before it transmits.
-      # Keep it alive one batch interval so the timer fires while still running. The
-      # proper fix is a Flush()+sleep on shutdown in vc-module-app-insights (tracked
-      # separately). Runs even on failure; only when AI is configured.
+      # The platform is killed within seconds of the job ending — before the AI SDK's
+      # ~30s batch flushes. Keep it alive one batch interval so telemetry transmits.
+      # Proper fix: Flush()+sleep on shutdown in vc-module-app-insights. Runs on failure too.
       if: ${{ always() && inputs.appInsightsInstrumentationKey != '' }}
       shell: pwsh
       run: |
-        $flushSeconds = 30
+        $flushSeconds = 40
         Write-Host "`e[33mWaiting ${flushSeconds}s for the platform to flush Application Insights telemetry."
         Start-Sleep -Seconds $flushSeconds
