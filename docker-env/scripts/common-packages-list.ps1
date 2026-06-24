@@ -330,6 +330,10 @@ foreach ($key in $dependencyList.Keys) {
             Write-Warning "Unable to parse version from packages list. Tried '$($packages[$key])' -match '\w._(.*).zip'"
         }
     }
+    elseif ($packages["$key"] -match "") {
+        Write-Warning "The module $key was not found in the commerceModules list. Adding it to the packages list."
+        $packages["$key"] = "$($key)_$($dependencyList["$key"]).zip"
+    }
     else {
         $packages["$key"] = "$($key)_$($dependencyList[$key]).zip"
         if (-not $packageSources.ContainsKey($key)) { $packageSources["$key"] = "dep:$customModuleId" }
