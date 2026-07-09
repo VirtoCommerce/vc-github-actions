@@ -7,7 +7,7 @@ async function run()
     
     await exec.exec("dotnet --list-sdks");
     await exec.exec('dotnet',
-        ['tool', 'install', '--global', 'VirtoCommerce.GlobalTool', '--version', '3.1000.0',
+        ['tool', 'install', '--global', 'VirtoCommerce.GlobalTool', '--version', '3.1001.0-alpha.296',
          '--add-source', 'https://api.nuget.org/v3/index.json', '--ignore-failed-sources'],
         { cwd });
     core.addPath('/home/runner/.dotnet/tools/');
