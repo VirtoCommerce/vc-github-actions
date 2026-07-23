@@ -1,65 +1,65 @@
-name: 'Auto Tests'
-description: 'Runs Auto Tests'
+name: "Auto Tests"
+description: "Runs Auto Tests"
 inputs:
   adminPassword:
-    description: 'Admin Password'
+    description: "Admin Password"
     required: true
     type: string
   adminUsername:
-    description: 'Admin Username'
+    description: "Admin Username"
     required: true
     type: string
   apiKey:
-    description: 'API Key'
+    description: "API Key"
     required: true
     type: string
   backUrl:
-    description: 'Back URL'
+    description: "Back URL"
     required: true
     type: string
   baseUrl:
-    description: 'Base URL'
+    description: "Base URL"
     required: true
     type: string
   browser:
-    description: 'Browser'
+    description: "Browser"
     required: true
     type: string
   pytestMarkers:
-    description: 'Additional pytest -m marker expression, AND-combined with each suite''s default markers. Leave empty to use defaults only.'
+    description: "Additional pytest -m marker expression, AND-combined with each suite's default markers. Leave empty to use defaults only."
     required: false
-    default: ''
+    default: ""
     type: string
   skipDocCountVerification:
-    description: 'Comma-separated document types whose post-reindex count check should be skipped (reindex still runs). Use when the seed dataset has 0 records for a type. Example: ''PickupLocation'' or ''PickupLocation,ContentFile''.'
+    description: "Comma-separated document types whose post-reindex count check should be skipped (reindex still runs). Use when the seed dataset has 0 records for a type. Example: 'PickupLocation' or 'PickupLocation,ContentFile'."
     required: false
-    default: ''
+    default: ""
     type: string
   testSecretEnvFile:
-    description: 'Test secret environment file content'
+    description: "Test secret environment file content"
     required: true
     type: string
   testSuites:
-    description: 'Comma-separated list of suites to run. Any subset of: graphql, restapi, e2e'
+    description: "Comma-separated list of suites to run. Any subset of: graphql, restapi, e2e"
     required: false
-    default: 'graphql,restapi,e2e'
+    default: "graphql,restapi,e2e"
     type: string
   vctestingPath:
-    description: 'UI tests path'
+    description: "UI tests path"
     required: true
     type: string
   vctestingRepo:
-    description: 'UI tests repository'
+    description: "UI tests repository"
     required: true
     type: string
   vctestingRepoBranch:
-    description: 'UI tests repository branch'
+    description: "UI tests repository branch"
     required: true
     type: string
   artifactSuffix:
-    description: 'Suffix appended to the uploaded artifact name (e.g., a matrix dimension)'
+    description: "Suffix appended to the uploaded artifact name (e.g., a matrix dimension)"
     required: false
-    default: ''
+    default: ""
     type: string
 runs:
   using: "composite"
@@ -138,6 +138,10 @@ runs:
       run: |
         Write-Host "::group::Seed dataset"
         python -m dataset.dataset_manager --seed --mode ci
+        if (Test-Path dataset/scripts/set_builder_page_status.py) {
+          python -m dataset.scripts.set_builder_page_status --page-id acme-store-grouped-page-about-store --status Published --mode ci
+          python -m dataset.scripts.set_builder_page_status --page-id acme-store-grouped-page-legacy-catalog --status --mode ci
+        }
         Write-Host "::endgroup::"
         $startArgs = @{
           platformUrl   = '${{ inputs.backUrl }}'
@@ -259,7 +263,7 @@ runs:
         else
           echo "::warning::allure-results is empty — skipping Allure report"
         fi
-    
+
     - name: Publish failed tests summary
       if: failure()
       shell: bash
