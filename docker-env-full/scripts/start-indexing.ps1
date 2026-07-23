@@ -20,6 +20,7 @@ param(
         Category       = 4
         CustomerOrder  = 20
         PickupLocation = 34
+        Pages          = 3
     },
     # Document types whose count gate should be skipped (reindex still runs).
     # Use when the dataset legitimately has 0 source records for a type — e.g.
