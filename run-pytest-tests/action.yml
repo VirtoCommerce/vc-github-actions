@@ -138,8 +138,10 @@ runs:
       run: |
         Write-Host "::group::Seed dataset"
         python -m dataset.dataset_manager --seed --mode ci
-        python -m dataset.scripts.set_builder_page_status --page-id acme-store-grouped-page-about-store --status Published
-        python -m dataset.scripts.set_builder_page_status --page-id acme-store-grouped-page-legacy-catalog --status
+        if (Test-Path dataset/scripts/set_builder_page_status.py) {
+          python -m dataset.scripts.set_builder_page_status --page-id acme-store-grouped-page-about-store --status Published --mode ci
+          python -m dataset.scripts.set_builder_page_status --page-id acme-store-grouped-page-legacy-catalog --status --mode ci
+        }
         Write-Host "::endgroup::"
         $startArgs = @{
           platformUrl   = '${{ inputs.backUrl }}'
