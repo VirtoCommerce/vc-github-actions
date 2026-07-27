@@ -15,7 +15,7 @@
     "@actions/exec": "^3.0.0",
     "@actions/github": "^4.0.0",
     "@types/node": "^25.9.3",
-    "js-yaml": "^4.1.0"
+    "js-yaml": "^4.3.0"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
