@@ -25,7 +25,11 @@ param (
     [string]$customModuleId,
     [Parameter(Mandatory = $true)]
     [string]$customModuleUrl,
-    [string]$requiredModulesListUrl = ''
+    [string]$requiredModulesListUrl = '',
+    # Resolve versions and write ./new-packages.json as usual, but skip the vc-build install
+    # call and the manifest cleanup below — lets a caller cache ./publish keyed on the
+    # resolved manifest's content and only pay for the install on an actual cache miss.
+    [switch]$SkipInstall
 )
 
 function IsAlfa {
@@ -493,6 +497,11 @@ Write-Host "::endgroup::"
 # Full JSON available in verbose mode: pass -Verbose to the script to enable
 Write-Verbose "Generated packages.json:"
 Write-Verbose (Get-Content ./new-packages.json -Raw)
+
+if ($SkipInstall) {
+    Write-Host "`e[33m-SkipInstall set: leaving ./new-packages.json in place, not running vc-build install."
+    return
+}
 
 # build VC solution
 Write-Host "`e[32mPlatform and modules installation started"
