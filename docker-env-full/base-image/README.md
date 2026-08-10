@@ -38,4 +38,4 @@ Requires push access to the `VirtoCommerce` GitHub Container Registry namespace.
 manual/occasional step for now, not wired into any CI workflow — automating it (e.g. a
 scheduled or manually-triggered `workflow_dispatch` in this repo) is a reasonable follow-up
 once this approach is confirmed to actually help on a real run.
-Local push from developer's machine can use gh token: `echo $(gh auth token) | docker login ghcr.io -u <your-github-username> --password-stdin`
+Local push from developer's machine can use gh token: `echo $(gh auth token) | docker login ghcr.io -u <your-github-username> --password-stdin`, then change package visibility to `public` at https://github.com/orgs/VirtoCommerce/packages/container/package/platform-base.
