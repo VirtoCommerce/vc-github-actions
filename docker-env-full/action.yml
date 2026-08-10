@@ -183,14 +183,7 @@ runs:
         docker image inspect "$TARGET" >/dev/null
         echo "Loaded $loaded -> $TARGET"
 
-    # Only needed by the two Dockerfile-build branches below; docker/build-push-action
-    # requires an explicit builder to use cache-from/cache-to (the default `docker build`
-    # driver doesn't support GHA cache export/import).
-    - name: Set up Docker Buildx
-      if: ${{ inputs.customPackagesJsonUrl != '' || inputs.installCustomModule == 'true' }}
-      uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4
-
-    - name: Use custom packages.json and prepare platform image build
+    - name: Use custom packages.json and build platform docker image
       if: ${{ inputs.customPackagesJsonUrl != '' }}
       working-directory: ${{ github.action_path }}
       shell: pwsh
@@ -198,7 +191,7 @@ runs:
         Invoke-WebRequest -Uri ${{ inputs.customPackagesJsonUrl }} -OutFile packages.json
         Write-Host "`e[32mDownloaded custom packages.json from ${{ inputs.customPackagesJsonUrl }} file successfully. Build backend..."
         vc-build install --package-manifest-path ./packages.json --root ./publish --skip-dependency-solving
-        Write-Host "`e[32mDownload platform Dockerfile"
+        Write-Host "`e[32mDownload platform Dockerfile and build image"
         $dockerFilesArray = "${{ inputs.dockerFiles }}".Split(';')
         foreach($file in $dockerFilesArray){
             try {
@@ -211,20 +204,9 @@ runs:
                 exit 1
             }
         }
-
-    # GHA layer cache: the Dockerfile's apt-get/wkhtmltopdf layer (and the base image
-    # pull) are now static and ordered before the volatile `COPY publish` layer, so
-    # repeat builds skip both instead of re-running them every time.
-    - name: Build platform docker image (custom packages.json)
-      if: ${{ inputs.customPackagesJsonUrl != '' }}
-      uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
-      with:
-        context: ${{ github.action_path }}
-        file: ${{ github.action_path }}/Dockerfile
-        tags: ${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}
-        load: true
-        cache-from: type=gha,scope=platform-image-base
-        cache-to: type=gha,mode=max,scope=platform-image-base
+        Write-Host "::group::Build platform docker image"
+        docker build -f ./Dockerfile -t "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}" .
+        Write-Host "::endgroup::"
 
     - name: Install Commerce Bundle Modules
       if: ${{ inputs.installModules  == 'true' }}
@@ -245,13 +227,13 @@ runs:
         docker tag ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} "${{ inputs.platformImage }}:local-latest"
         Write-Host "`e[32mPlatform docker image ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} tagged as ${{ inputs.platformImage }}:local-latest"
 
-    - name: Prepare platform image build (custom module)
+    - name: Build platform docker image
       if: ${{ inputs.installCustomModule == 'true' }}
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
         ../docker-env/scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }} -requiredModulesListUrl "${{ inputs.requiredModulesListUrl }}"
-        Write-Host "`e[32mDownload platform Dockerfile"
+        Write-Host "`e[32mDownload platform Dockerfile and build image"
         $dockerFilesArray = "${{ inputs.dockerFiles }}".Split(';')
         foreach($file in $dockerFilesArray){
             try {
@@ -264,19 +246,9 @@ runs:
                 exit 1
             }
         }
-
-    # Same GHA layer cache as the customPackagesJsonUrl branch above — mutually
-    # exclusive at runtime, so sharing the cache scope is safe (never both hit at once).
-    - name: Build platform docker image (custom module)
-      if: ${{ inputs.installCustomModule == 'true' }}
-      uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
-      with:
-        context: ${{ github.action_path }}
-        file: ${{ github.action_path }}/Dockerfile
-        tags: ${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}
-        load: true
-        cache-from: type=gha,scope=platform-image-base
-        cache-to: type=gha,mode=max,scope=platform-image-base
+        Write-Host "::group::Build platform docker image"
+        docker build -f ./Dockerfile -t "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}" .
+        Write-Host "::endgroup::"
 
     - name: Build frontend docker image
       working-directory: ${{ github.action_path }}
