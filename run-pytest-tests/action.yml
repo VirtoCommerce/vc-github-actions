@@ -73,7 +73,7 @@ runs:
       uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       with:
         repository: ${{ inputs.vctestingRepo }}
-        ref: ${{ inputs.vctestingRepoBranch }}
+        ref: 'VCST-5510' #${{ inputs.vctestingRepoBranch }}
         path: ${{ inputs.vctestingPath }}
 
     - name: Prepare .env file
@@ -207,8 +207,13 @@ runs:
         echo "::group::E2E tests"
         MARKERS="not ignore"
         [ -n "$PYTEST_MARKERS" ] && MARKERS="($MARKERS) and ($PYTEST_MARKERS)"
-        echo "+ pytest tests/e2e -m '$MARKERS' --browser '$BROWSER' -v -s --color=yes --junitxml=report/e2e-junit.xml"
-        pytest tests/e2e -m "$MARKERS" --browser "$BROWSER" -v -s --color=yes \
+        # -n auto --dist loadgroup: parallelize across CPU-count workers, but keep every
+        # xdist_group (tests/conftest.py assigns one per with_user() username — they share
+        # real backend state: cart/wishlist/addresses) pinned to a single worker so grouped
+        # tests never race each other. Ungrouped (anonymous, per-test-UUID) tests load-balance
+        # freely across all workers.
+        echo "+ pytest tests/e2e -m '$MARKERS' --browser '$BROWSER' -n auto --dist loadgroup -v -s --color=yes --junitxml=report/e2e-junit.xml"
+        pytest tests/e2e -m "$MARKERS" --browser "$BROWSER" -n auto --dist loadgroup -v -s --color=yes \
           --junitxml=report/e2e-junit.xml
         echo "::endgroup::"
 
