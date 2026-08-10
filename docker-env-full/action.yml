@@ -55,8 +55,7 @@ inputs:
   dockerFiles:
     description: 'Docker files'
     required: false
-    # default: 'https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net10/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh'
-    default: 'https://raw.githubusercontent.com/VirtoCommerce/vc-docker/VCST-5510/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/VCST-5510/linux/platform/wait-for-it.sh'
+    default: 'https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net10/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh'
   sendgridApiKey:
     description: 'SendGrid API Key'
     required: true
@@ -125,15 +124,25 @@ runs:
     # the image build/install steps below. vc-platform-web's entrypoint already
     # blocks on wait-for-it against vc-db then es regardless of when they
     # started, so starting them earlier only ever helps, never races anything.
+    # `docker compose up -d` itself takes ~20s (image pull/create/start), so it's
+    # launched detached here instead of awaited — the step returns immediately
+    # and the build steps below start right away. The later "Start containers"
+    # step's own `up -d` acts as the natural sync point on es/vc-db via depends_on.
     - name: Start database and search engine containers early
       env:
         DB_PROVIDER: ${{ inputs.databaseProvider }}
       shell: pwsh
       working-directory: ${{ github.action_path }}
       run: |
-        Write-Host "`e[33mStarting vc-db/es early so their cold start overlaps with the platform/frontend image build."
+        Write-Host "`e[33mStarting vc-db/es early (detached) so their cold start overlaps with the platform/frontend image build."
+        Remove-Item -Path 'early-up.exitcode', 'early-up.log' -ErrorAction SilentlyContinue
         $composeFiles = @('-f', 'docker-compose.yml', '-f', "docker-compose.$env:DB_PROVIDER.yml")
-        docker compose --project-name virtocommerce $composeFiles up -d es vc-db
+        $composeArgs = @('compose', '--project-name', 'virtocommerce') + $composeFiles + @('up', '-d', 'es', 'vc-db')
+        # Wrapped in a nested pwsh so the exit code can be dropped to a sentinel file for the
+        # cross-step check below (the Process object itself doesn't survive past this step,
+        # and cmd's %ERRORLEVEL% expands at parse time, before the command it's meant to check).
+        $inner = "docker $($composeArgs -join ' ') *> 'early-up.log'; `$LASTEXITCODE | Out-File -Encoding ascii 'early-up.exitcode'"
+        Start-Process -FilePath 'pwsh' -ArgumentList '-NoProfile', '-Command', $inner -NoNewWindow -WorkingDirectory $PWD.Path
 
     - name: Validate prebuilt image configuration
       if: ${{ inputs.prebuiltImageArtifact != '' }}
@@ -216,14 +225,21 @@ runs:
       shell: pwsh
       run: |
         Write-Host "`e[33mInstall Modules step started."
+        # docker pull doesn't depend on the vc-build install calls below, so kick it off
+        # as a background job now (Start-Job survives fine here since it's awaited later
+        # in this same step/session) and let it download concurrently with module install.
+        $pullJob = Start-Job -ScriptBlock { docker pull ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} }
         # Pre-create modules/modules so vc-build's default DiscoveryPath exists on first
         # run; otherwise it emits a "Discovery path not found" workflow annotation.
         New-Item -Path "./${{ env.INSTALL_FOLDER}}/modules" -ItemType "directory" -Force | Out-Null
         Push-Location ./${{ env.INSTALL_FOLDER}}
         vc-build install -Edge -skip InstallPlatform
         vc-build install -module VirtoCommerce.Quote VirtoCommerce.XPickup VirtoCommerce.MarketingExperienceApi VirtoCommerce.Pages
-        Write-Host "`e[32mPull platform docker image to local storage"
-        docker pull ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }}
+        Write-Host "`e[32mWaiting for platform docker image pull (started earlier, in the background)"
+        Receive-Job -Job $pullJob -Wait | Write-Host
+        if ($pullJob.State -ne 'Completed') {
+          throw "docker pull ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} failed (job state: $($pullJob.State))"
+        }
         docker tag ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} "${{ inputs.platformImage }}:local-latest"
         Write-Host "`e[32mPlatform docker image ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} tagged as ${{ inputs.platformImage }}:local-latest"
 
@@ -299,6 +315,30 @@ runs:
       working-directory: ${{ github.action_path }}
       run: |
         Write-Host "`e[33mStart Containers step started."
+
+        # Lightweight check on the detached "Start database and search engine containers
+        # early" step: that step doesn't wait for `docker compose up` to finish, so surface
+        # its result here instead of letting a silent failure resurface confusingly below.
+        Write-Host "Waiting for the early vc-db/es startup (detached above) to finish..."
+        $earlyUpTimeoutSeconds = 180
+        $earlyUpWaited = 0
+        while (-not (Test-Path 'early-up.exitcode') -and $earlyUpWaited -lt $earlyUpTimeoutSeconds) {
+          Start-Sleep -Seconds 2
+          $earlyUpWaited += 2
+        }
+        if (-not (Test-Path 'early-up.exitcode')) {
+          Write-Warning "early-up.exitcode never appeared after ${earlyUpTimeoutSeconds}s; the detached 'docker compose up' for es/vc-db may have hung. Proceeding anyway — the compose command below will surface any real problem."
+        }
+        else {
+          $earlyUpExitCode = (Get-Content 'early-up.exitcode' -Raw).Trim()
+          if ($earlyUpExitCode -ne '0') {
+            Write-Host "::error::Early vc-db/es startup failed (exit code $earlyUpExitCode). Log:"
+            Get-Content 'early-up.log' -ErrorAction SilentlyContinue | Write-Host
+            exit 1
+          }
+          Write-Host "`e[32mEarly vc-db/es startup finished successfully after ~${earlyUpWaited}s wait."
+        }
+
         $platformContainer = "virtocommerce-vc-platform-web-1"
         . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
 
