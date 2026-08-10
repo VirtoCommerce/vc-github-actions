@@ -196,7 +196,7 @@ runs:
           --junitxml=report/graphql-junit.xml
         echo "::endgroup::"
 
-    - name: Run E2E tests
+    - name: Run E2E tests (parallel-safe)
       shell: bash
       if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'e2e')
       working-directory: ${{ inputs.vctestingPath }}
@@ -204,17 +204,33 @@ runs:
         PYTEST_MARKERS: ${{ inputs.pytestMarkers }}
         BROWSER: ${{ inputs.browser }}
       run: |
-        echo "::group::E2E tests"
-        MARKERS="not ignore"
+        echo "::group::E2E tests (parallel-safe)"
+        # with_user tests sign in as a real, shared backend account and mutate its actual
+        # cart/wishlist/addresses — excluded here regardless of xdist scheduling (an earlier
+        # attempt using xdist_group + --dist loadgroup did not reliably keep them on one
+        # worker) and run sequentially below instead. Tests without with_user() get a fresh
+        # random user_id per test (see tests/context.py), so they have no shared state to race.
+        MARKERS="not ignore and not with_user"
         [ -n "$PYTEST_MARKERS" ] && MARKERS="($MARKERS) and ($PYTEST_MARKERS)"
-        # -n auto --dist loadgroup: parallelize across CPU-count workers, but keep every
-        # xdist_group (tests/conftest.py assigns one per with_user() username — they share
-        # real backend state: cart/wishlist/addresses) pinned to a single worker so grouped
-        # tests never race each other. Ungrouped (anonymous, per-test-UUID) tests load-balance
-        # freely across all workers.
-        echo "+ pytest tests/e2e -m '$MARKERS' --browser '$BROWSER' -n auto --dist loadgroup -v -s --color=yes --junitxml=report/e2e-junit.xml"
-        pytest tests/e2e -m "$MARKERS" --browser "$BROWSER" -n auto --dist loadgroup -v -s --color=yes \
+        echo "+ pytest tests/e2e -m '$MARKERS' --browser '$BROWSER' -n auto -v -s --color=yes --junitxml=report/e2e-junit.xml"
+        pytest tests/e2e -m "$MARKERS" --browser "$BROWSER" -n auto -v -s --color=yes \
           --junitxml=report/e2e-junit.xml
+        echo "::endgroup::"
+
+    - name: Run E2E tests (serial — shared backend user)
+      shell: bash
+      if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'e2e')
+      working-directory: ${{ inputs.vctestingPath }}
+      env:
+        PYTEST_MARKERS: ${{ inputs.pytestMarkers }}
+        BROWSER: ${{ inputs.browser }}
+      run: |
+        echo "::group::E2E tests (serial)"
+        MARKERS="not ignore and with_user"
+        [ -n "$PYTEST_MARKERS" ] && MARKERS="($MARKERS) and ($PYTEST_MARKERS)"
+        echo "+ pytest tests/e2e -m '$MARKERS' --browser '$BROWSER' -v -s --color=yes --junitxml=report/e2e-serial-junit.xml"
+        pytest tests/e2e -m "$MARKERS" --browser "$BROWSER" -v -s --color=yes \
+          --junitxml=report/e2e-serial-junit.xml
         echo "::endgroup::"
 
     - name: Run REST API tests (parallel-safe)
