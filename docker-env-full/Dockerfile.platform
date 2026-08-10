@@ -1,0 +1,18 @@
+# Layered on top of base-image/ (which already has wait-for-it.sh and wkhtmltopdf baked
+# in — see base-image/README.md). Everything below is static, generic boilerplate that
+# doesn't depend on which module/version is being built, so it's owned here directly
+# instead of being downloaded from vc-docker's platform Dockerfile and patched: the only
+# part that actually varies per build is the ./publish content itself.
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+
+COPY publish /opt/virtocommerce/platform
+
+RUN find /opt/virtocommerce/platform/modules -path "*/bin/runtimes/linux-x64/**/*" -type f \
+    -exec cp "{}" /opt/virtocommerce/platform/app_data/modules/ \; || true
+
+WORKDIR /opt/virtocommerce/platform
+EXPOSE 80
+ENV ASPNETCORE_HTTP_PORTS=80
+
+ENTRYPOINT ["dotnet", "VirtoCommerce.Platform.Web.dll"]
