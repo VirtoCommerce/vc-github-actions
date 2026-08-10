@@ -117,15 +117,42 @@ runs:
         echo "::add-mask::$pw"
         echo "ADMIN_PASSWORD=$pw" >> "$GITHUB_ENV"
 
+    # Key: OS, Python, browser, test repo/branch, and dependency-manifest hash — any change invalidates the cache.
+    - name: Cache Python venv and Playwright browsers
+      id: venv-cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          ${{ inputs.vctestingPath }}/.venv
+          ~/.cache/ms-playwright
+        key: pytest-tests-venv-${{ runner.os }}-py3.13-${{ inputs.browser }}-${{ inputs.vctestingRepo }}-${{ inputs.vctestingRepoBranch }}-${{ hashFiles(format('{0}/pyproject.toml', inputs.vctestingPath), format('{0}/setup.py', inputs.vctestingPath), format('{0}/setup.cfg', inputs.vctestingPath), format('{0}/requirements*.txt', inputs.vctestingPath), format('{0}/poetry.lock', inputs.vctestingPath)) }}
+
     - name: Install dependencies
       shell: bash
       working-directory: ${{ inputs.vctestingPath }}
+      env:
+        CACHE_HIT: ${{ steps.venv-cache.outputs.cache-hit }}
       run: |
         echo "::group::Install Python dependencies"
-        python -m venv .venv
-        source .venv/bin/activate
-        python -m pip install --upgrade pip
-        pip install -e .
+        reuse_cache=false
+        if [ "$CACHE_HIT" = "true" ] && [ -x .venv/bin/python ]; then
+          source .venv/bin/activate
+          # Verify the cached venv still resolves the current spec before trusting it (guards a stale/corrupt cache).
+          if pip install -e . --no-deps --dry-run >/dev/null 2>&1; then
+            reuse_cache=true
+          else
+            echo "Cached venv failed sanity check — falling back to a full install."
+          fi
+        fi
+        if [ "$reuse_cache" = true ]; then
+          echo "Cache hit: reusing venv and Playwright browsers, skipping full reinstall."
+        else
+          python -m venv .venv
+          source .venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install -e .
+        fi
+        # Always run: cheap no-op when browsers/OS deps already exist, but ensures OS deps on fresh runners.
         playwright install --with-deps ${{ inputs.browser }}
         echo "::endgroup::"
         echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
