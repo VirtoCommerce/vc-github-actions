@@ -251,30 +251,33 @@ runs:
       working-directory: ${{ github.action_path }}
       env:
         INSTALL_FOLDER: 'modules'
+        PLATFORM_IMAGE: ${{ inputs.platformImage }}
+        PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
       shell: pwsh
       run: |
         Write-Host "`e[33mInstall Modules step started."
         # docker pull doesn't depend on vc-build install below, so run it as a background
-        # job concurrently with the module install.
+        # job concurrently with the module install. Start-Job spawns a child process, which
+        # inherits $env: vars, so PLATFORM_DOCKER_TAG is available inside the script block.
         $pullJob = Start-Job -ScriptBlock {
-          docker pull ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }}
+          docker pull "ghcr.io/virtocommerce/platform:$env:PLATFORM_DOCKER_TAG"
           if ($LASTEXITCODE -ne 0) {
             throw "docker pull exited with code $LASTEXITCODE"
           }
         }
         # Pre-create modules/modules so vc-build's default DiscoveryPath exists, avoiding
         # a "Discovery path not found" annotation on first run.
-        New-Item -Path "./${{ env.INSTALL_FOLDER}}/modules" -ItemType "directory" -Force | Out-Null
-        Push-Location ./${{ env.INSTALL_FOLDER}}
+        New-Item -Path "./$env:INSTALL_FOLDER/modules" -ItemType "directory" -Force | Out-Null
+        Push-Location ./$env:INSTALL_FOLDER
         vc-build install -Edge -skip InstallPlatform
         vc-build install -module VirtoCommerce.Quote VirtoCommerce.XPickup VirtoCommerce.MarketingExperienceApi VirtoCommerce.Pages
         Write-Host "`e[32mWaiting for platform docker image pull (started earlier, in the background)"
         Receive-Job -Job $pullJob -Wait | Write-Host
         if ($pullJob.State -ne 'Completed') {
-          throw "docker pull ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} failed (job state: $($pullJob.State))"
+          throw "docker pull ghcr.io/virtocommerce/platform:$env:PLATFORM_DOCKER_TAG failed (job state: $($pullJob.State))"
         }
-        docker tag ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} "${{ inputs.platformImage }}:local-latest"
-        Write-Host "`e[32mPlatform docker image ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} tagged as ${{ inputs.platformImage }}:local-latest"
+        docker tag "ghcr.io/virtocommerce/platform:$env:PLATFORM_DOCKER_TAG" "$($env:PLATFORM_IMAGE):local-latest"
+        Write-Host "`e[32mPlatform docker image ghcr.io/virtocommerce/platform:$env:PLATFORM_DOCKER_TAG tagged as $($env:PLATFORM_IMAGE):local-latest"
 
     - name: Resolve package manifest for custom module
       if: ${{ inputs.installCustomModule == 'true' }}
