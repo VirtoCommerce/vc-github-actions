@@ -28,7 +28,11 @@ function Get-AuthToken {
     return $responseContent.access_token
 }
 
-$platformIsUp = (Watch-Url-Up -ApiUrl $ApiUrl -TimeoutMinutes 15 -RetrySeconds 5 -WaitSeconds 5 -ContainerId $ContainerId)
+# WaitSeconds 0: the caller (docker-env-full's "Start containers" step) already confirmed
+# vc-platform-web is running via InspectContainerStatus before this script runs, so there's
+# no reason to blind-sleep before the first HTTP check — a not-yet-ready app just fails the
+# first attempt and falls into the normal RetrySeconds retry loop below, at no extra cost.
+$platformIsUp = (Watch-Url-Up -ApiUrl $ApiUrl -TimeoutMinutes 15 -RetrySeconds 5 -WaitSeconds 0 -ContainerId $ContainerId)
 
 if ($platformIsUp) {
     $authToken = (Get-AuthToken $appAuthUrl $Username $Password)[1]
