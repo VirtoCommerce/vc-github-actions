@@ -27,11 +27,15 @@ changes the boilerplate part (the `find`/`cp` logic, `WORKDIR`, etc.), update
 
 ## Build and publish
 
+`wait-for-it.sh` in this directory is checked into this repo — it's the file that actually
+gets baked into the image, so if `vc-docker`'s copy has changed, update this tracked copy
+deliberately (and re-review it) rather than re-fetching it at build time.
+
 ```sh
 cd docker-env-full/base-image
-curl -fsSL -o wait-for-it.sh https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh
 docker build -t ghcr.io/virtocommerce/platform-base:10.0-wkhtmltopdf .
 docker push ghcr.io/virtocommerce/platform-base:10.0-wkhtmltopdf
+docker inspect --format='{{index .RepoDigests 0}}' ghcr.io/virtocommerce/platform-base:10.0-wkhtmltopdf
 ```
 
 Requires push access to the `VirtoCommerce` GitHub Container Registry namespace. This is a
@@ -39,3 +43,8 @@ manual/occasional step for now, not wired into any CI workflow — automating it
 scheduled or manually-triggered `workflow_dispatch` in this repo) is a reasonable follow-up
 once this approach is confirmed to actually help on a real run.
 Local push from developer's machine can use gh token: `echo $(gh auth token) | docker login ghcr.io -u <your-github-username> --password-stdin`, then change package visibility to `public` at https://github.com/orgs/VirtoCommerce/packages/container/package/platform-base.
+
+After pushing, update every `platformBaseImage` default/usage to the digest printed above
+(`ghcr.io/virtocommerce/platform-base@sha256:...`), not the floating `10.0-wkhtmltopdf` tag —
+the tag can be overwritten by a later push, so consumers should pin to the digest for a
+reproducible build.

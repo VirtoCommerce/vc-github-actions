@@ -6,12 +6,12 @@
 #
 # Rebuild only when the .NET base image version or the wkhtmltopdf version changes (rare) —
 # see README.md in this directory for the build+push command.
-FROM mcr.microsoft.com/dotnet/aspnet:10.0
+FROM mcr.microsoft.com/dotnet/aspnet:10.0@sha256:f1126d438ccc359f51cc6d4701a8deae513856cf10f5fe645d29ea6403dcac6b
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends wkhtmltopdf=0.12.6-2build2 && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    wkhtmltopdf --version
 
 COPY wait-for-it.sh /wait-for-it.sh
 RUN chmod +x /wait-for-it.sh
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends wkhtmltopdf && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* && \
-    wkhtmltopdf --version

@@ -239,6 +239,9 @@ runs:
       shell: pwsh
       env:
         CACHE_HIT: ${{ steps.publish-cache-packagesjson.outputs.cache-hit }}
+        PLATFORM_BASE_IMAGE: ${{ inputs.platformBaseImage }}
+        PLATFORM_IMAGE: ${{ inputs.platformImage }}
+        PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
       run: |
         if ($env:CACHE_HIT -eq 'true' -and (Test-Path ./publish/VirtoCommerce.Platform.Web.dll)) {
           Write-Host "`e[32mCache hit: reusing ./publish, skipping vc-build install."
@@ -249,7 +252,7 @@ runs:
           vc-build install --package-manifest-path ./packages.json --root ./publish --skip-dependency-solving
         }
         Write-Host "::group::Build platform docker image"
-        docker build -f ./Dockerfile.platform --build-arg BASE_IMAGE="${{ inputs.platformBaseImage }}" -t "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}" .
+        docker build -f ./Dockerfile.platform --build-arg "BASE_IMAGE=$env:PLATFORM_BASE_IMAGE" -t "$($env:PLATFORM_IMAGE):$($env:PLATFORM_DOCKER_TAG)" .
         Write-Host "::endgroup::"
 
     - name: Install Commerce Bundle Modules
@@ -263,7 +266,12 @@ runs:
         # docker pull doesn't depend on the vc-build install calls below, so kick it off
         # as a background job now (Start-Job survives fine here since it's awaited later
         # in this same step/session) and let it download concurrently with module install.
-        $pullJob = Start-Job -ScriptBlock { docker pull ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} }
+        $pullJob = Start-Job -ScriptBlock {
+          docker pull ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }}
+          if ($LASTEXITCODE -ne 0) {
+            throw "docker pull exited with code $LASTEXITCODE"
+          }
+        }
         # Pre-create modules/modules so vc-build's default DiscoveryPath exists on first
         # run; otherwise it emits a "Discovery path not found" workflow annotation.
         New-Item -Path "./${{ env.INSTALL_FOLDER}}/modules" -ItemType "directory" -Force | Out-Null
@@ -316,6 +324,9 @@ runs:
       shell: pwsh
       env:
         CACHE_HIT: ${{ steps.publish-cache-custommodule.outputs.cache-hit }}
+        PLATFORM_BASE_IMAGE: ${{ inputs.platformBaseImage }}
+        PLATFORM_IMAGE: ${{ inputs.platformImage }}
+        PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
       run: |
         if ($env:CACHE_HIT -eq 'true' -and (Test-Path ./publish/VirtoCommerce.Platform.Web.dll)) {
           Write-Host "`e[32mCache hit: reusing ./publish, skipping vc-build install."
@@ -329,7 +340,7 @@ runs:
         }
         Remove-Item -Path ./new-packages.json -ErrorAction SilentlyContinue
         Write-Host "::group::Build platform docker image"
-        docker build -f ./Dockerfile.platform --build-arg BASE_IMAGE="${{ inputs.platformBaseImage }}" -t "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}" .
+        docker build -f ./Dockerfile.platform --build-arg "BASE_IMAGE=$env:PLATFORM_BASE_IMAGE" -t "$($env:PLATFORM_IMAGE):$($env:PLATFORM_DOCKER_TAG)" .
         Write-Host "::endgroup::"
 
     - name: Build frontend docker image
