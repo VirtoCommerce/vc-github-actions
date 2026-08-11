@@ -26,9 +26,8 @@ param (
     [Parameter(Mandatory = $true)]
     [string]$customModuleUrl,
     [string]$requiredModulesListUrl = '',
-    # Resolve versions and write ./new-packages.json as usual, but skip the vc-build install
-    # call and the manifest cleanup below — lets a caller cache ./publish keyed on the
-    # resolved manifest's content and only pay for the install on an actual cache miss.
+    # Resolve versions and write ./new-packages.json, but skip vc-build install and cleanup —
+    # lets a caller cache ./publish keyed on the resolved manifest and skip on cache hit.
     [switch]$SkipInstall
 )
 

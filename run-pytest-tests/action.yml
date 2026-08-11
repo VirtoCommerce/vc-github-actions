@@ -117,7 +117,7 @@ runs:
         echo "::add-mask::$pw"
         echo "ADMIN_PASSWORD=$pw" >> "$GITHUB_ENV"
 
-    # Key: OS, Python, browser, test repo/branch, and dependency-manifest hash — any change invalidates the cache.
+    # Key covers OS, Python, browser, test repo/branch, and dependency-manifest hash.
     - name: Cache Python venv and Playwright browsers
       id: venv-cache
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -137,7 +137,7 @@ runs:
         reuse_cache=false
         if [ "$CACHE_HIT" = "true" ] && [ -x .venv/bin/python ]; then
           source .venv/bin/activate
-          # Verify the cached venv still resolves the current spec before trusting it (guards a stale/corrupt cache).
+          # Sanity-check the cached venv before trusting it (guards a stale/corrupt cache).
           if pip install -e . --no-deps --dry-run >/dev/null 2>&1; then
             reuse_cache=true
           else
@@ -152,7 +152,7 @@ runs:
           python -m pip install --upgrade pip
           pip install -e .
         fi
-        # Always run: cheap no-op when browsers/OS deps already exist, but ensures OS deps on fresh runners.
+        # Cheap no-op if already installed; ensures OS deps on fresh runners.
         playwright install --with-deps ${{ inputs.browser }}
         echo "::endgroup::"
         echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
@@ -205,11 +205,9 @@ runs:
         BROWSER: ${{ inputs.browser }}
       run: |
         echo "::group::E2E tests (parallel-safe)"
-        # with_user tests sign in as a real, shared backend account and mutate its actual
-        # cart/wishlist/addresses — excluded here regardless of xdist scheduling (an earlier
-        # attempt using xdist_group + --dist loadgroup did not reliably keep them on one
-        # worker) and run sequentially below instead. Tests without with_user() get a fresh
-        # random user_id per test (see tests/context.py), so they have no shared state to race.
+        # with_user tests share one real backend account and mutate its cart/wishlist/etc,
+        # so they're excluded here and run sequentially below instead (xdist_group didn't
+        # reliably keep them on one worker). Other tests get a fresh user_id per test.
         MARKERS="not ignore and not with_user"
         [ -n "$PYTEST_MARKERS" ] && MARKERS="($MARKERS) and ($PYTEST_MARKERS)"
         echo "+ pytest tests/e2e -m '$MARKERS' --browser '$BROWSER' -n auto -v -s --color=yes --junitxml=report/e2e-junit.xml"

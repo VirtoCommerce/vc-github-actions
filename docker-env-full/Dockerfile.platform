@@ -1,8 +1,6 @@
-# Layered on top of base-image/ (which already has wait-for-it.sh and wkhtmltopdf baked
-# in — see base-image/README.md). Everything below is static, generic boilerplate that
-# doesn't depend on which module/version is being built, so it's owned here directly
-# instead of being downloaded from vc-docker's platform Dockerfile and patched: the only
-# part that actually varies per build is the ./publish content itself.
+# Layered on base-image/ (wait-for-it.sh + wkhtmltopdf baked in — see its README). Owned
+# here directly, not downloaded/patched from vc-docker's Dockerfile: only ./publish varies
+# per build, everything else is static boilerplate.
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 

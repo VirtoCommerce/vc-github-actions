@@ -94,7 +94,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    # Runs first (only needs the DB/ES passwords) so the next step can start vc-db/es while the image builds below.
+    # Runs first so the next step can start vc-db/es early.
     - name: Generate container secrets
       shell: pwsh
       env:
@@ -102,7 +102,7 @@ runs:
         DB_PROVIDER_INPUT: ${{ inputs.databaseProvider }}
       run: |
         function New-RandomPassword {
-          # 'Vc!' + 32 alnum chars: meets SQL Server complexity, no conn-string delimiters.
+          # 'Vc!' + 32 alnum chars: complexity-compliant, delimiter-free.
           $alphabet = [char[]]'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
           $bytes = New-Object byte[] 32
           [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
@@ -115,7 +115,7 @@ runs:
         Write-Host "::add-mask::$esPassword"
         Add-Content -Path $env:GITHUB_ENV -Value "DB_PASSWORD=$dbPassword"
         Add-Content -Path $env:GITHUB_ENV -Value "ELASTIC_PASSWORD=$esPassword"
-        # ROLE_NAME (App Insights container id): <repo>-<run>-<attempt>-<db>.
+        # ROLE_NAME: <repo>-<run>-<attempt>-<db>.
         $repoName = "$env:GITHUB_REPOSITORY".Split('/')[-1]
         $dbSuffix = if ($env:DB_PROVIDER_INPUT) { "-$env:DB_PROVIDER_INPUT" } else { '' }
         $roleName = "$repoName-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT$dbSuffix"
@@ -127,15 +127,11 @@ runs:
           Add-Content -Path $env:GITHUB_ENV -Value "APPLICATIONINSIGHTS_INSTRUMENTATIONKEY=$aiKey"
         }
 
-    # Starts only vc-db/es (not vc-platform-web/nginx_frontend) so their cold
-    # start (SQL Server/MySQL/Postgres init, ES bootstrap) runs concurrently with
-    # the image build/install steps below. vc-platform-web's entrypoint already
-    # blocks on wait-for-it against vc-db then es regardless of when they
-    # started, so starting them earlier only ever helps, never races anything.
-    # `docker compose up -d` itself takes ~20s (image pull/create/start), so it's
-    # launched detached here instead of awaited — the step returns immediately
-    # and the build steps below start right away. The later "Start containers"
-    # step's own `up -d` acts as the natural sync point on es/vc-db via depends_on.
+    # Starts only vc-db/es early so their cold start overlaps with the image
+    # build/install steps below (vc-platform-web waits on wait-for-it regardless
+    # of start order, so this only helps). Launched detached (`up -d` takes ~20s)
+    # so this step returns immediately; the later "Start containers" step's own
+    # `up -d` is the natural sync point via depends_on.
     - name: Start database and search engine containers early
       env:
         DB_PROVIDER: ${{ inputs.databaseProvider }}
@@ -146,9 +142,8 @@ runs:
         Remove-Item -Path 'early-up.exitcode', 'early-up.log' -ErrorAction SilentlyContinue
         $composeFiles = @('-f', 'docker-compose.yml', '-f', "docker-compose.$env:DB_PROVIDER.yml")
         $composeArgs = @('compose', '--project-name', 'virtocommerce') + $composeFiles + @('up', '-d', 'es', 'vc-db')
-        # Wrapped in a nested pwsh so the exit code can be dropped to a sentinel file for the
-        # cross-step check below (the Process object itself doesn't survive past this step,
-        # and cmd's %ERRORLEVEL% expands at parse time, before the command it's meant to check).
+        # Nested pwsh drops the exit code to a sentinel file for the cross-step check below,
+        # since the Process object doesn't survive past this step.
         $inner = "docker $($composeArgs -join ' ') *> 'early-up.log'; `$LASTEXITCODE | Out-File -Encoding ascii 'early-up.exitcode'"
         Start-Process -FilePath 'pwsh' -ArgumentList '-NoProfile', '-Command', $inner -NoNewWindow -WorkingDirectory $PWD.Path
 
@@ -189,7 +184,7 @@ runs:
         load_output=$(docker load -i "$image_path")
         echo "$load_output"
         # Match the Loaded image line for the target repo so multi-tag tars don't retag
-        # an unrelated ref; `|| true` swallows grep's no-match exit under pipefail.
+        # an unrelated ref; `|| true` swallows grep's no-match exit.
         target_name="${TARGET%%:*}"
         loaded=$(printf '%s\n' "$load_output" | sed -n 's/^Loaded image: //p' | { grep -E "(^|/)${target_name}:" || true; } | head -n1)
         if [[ -z "$loaded" ]]; then
@@ -215,10 +210,8 @@ runs:
       working-directory: ${{ github.action_path }}
       run: echo "hash=$(sha256sum packages.json | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
 
-    # vc-build install downloads ~50 module zips from GitHub Releases every run, even though
-    # most versions are unchanged run-to-run; ./publish is restored whenever the downloaded
-    # packages.json is byte-identical to a previous run's, so only a real content change
-    # (new module/platform version) pays for a fresh install.
+    # vc-build install re-downloads ~50 module zips every run even when unchanged;
+    # ./publish is restored whenever packages.json matches a previous run's byte-for-byte.
     - name: Cache platform publish output (custom packages.json)
       if: ${{ inputs.customPackagesJsonUrl != '' }}
       id: publish-cache-packagesjson
@@ -226,10 +219,8 @@ runs:
       with:
         path: ${{ github.action_path }}/publish
         key: platform-publish-packagesjson-${{ runner.os }}-${{ steps.packagesjson-hash.outputs.hash }}
-        # Prefix fallback: a stale ./publish (one manifest behind) still warm-starts the
-        # install below — vc-build install itself skips any module already present at the
-        # manifest's exact version (Build.PackageManager.cs), so only the actually-changed
-        # module(s) get re-downloaded instead of all ~50.
+        # Prefix fallback: a one-manifest-behind ./publish still warm-starts the install
+        # below — vc-build skips modules already at the manifest's exact version.
         restore-keys: |
           platform-publish-packagesjson-${{ runner.os }}-
 
@@ -263,17 +254,16 @@ runs:
       shell: pwsh
       run: |
         Write-Host "`e[33mInstall Modules step started."
-        # docker pull doesn't depend on the vc-build install calls below, so kick it off
-        # as a background job now (Start-Job survives fine here since it's awaited later
-        # in this same step/session) and let it download concurrently with module install.
+        # docker pull doesn't depend on vc-build install below, so run it as a background
+        # job concurrently with the module install.
         $pullJob = Start-Job -ScriptBlock {
           docker pull ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }}
           if ($LASTEXITCODE -ne 0) {
             throw "docker pull exited with code $LASTEXITCODE"
           }
         }
-        # Pre-create modules/modules so vc-build's default DiscoveryPath exists on first
-        # run; otherwise it emits a "Discovery path not found" workflow annotation.
+        # Pre-create modules/modules so vc-build's default DiscoveryPath exists, avoiding
+        # a "Discovery path not found" annotation on first run.
         New-Item -Path "./${{ env.INSTALL_FOLDER}}/modules" -ItemType "directory" -Force | Out-Null
         Push-Location ./${{ env.INSTALL_FOLDER}}
         vc-build install -Edge -skip InstallPlatform
@@ -300,10 +290,8 @@ runs:
       working-directory: ${{ github.action_path }}
       run: echo "hash=$(sha256sum new-packages.json | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
 
-    # vc-build install downloads ~50 module zips from GitHub Releases every run, even though
-    # most are pinned "edge" versions unchanged run-to-run; ./publish is restored whenever the
-    # resolved manifest (concrete versions, post edge-feed resolution — so a genuine upstream
-    # version bump still invalidates the key) is byte-identical to a previous run's.
+    # As above, but keyed on the resolved manifest (post edge-feed resolution), so a real
+    # upstream version bump still invalidates the cache.
     - name: Cache platform publish output (custom module)
       if: ${{ inputs.installCustomModule == 'true' }}
       id: publish-cache-custommodule
@@ -311,10 +299,8 @@ runs:
       with:
         path: ${{ github.action_path }}/publish
         key: platform-publish-custommodule-${{ runner.os }}-${{ steps.custommodule-manifest-hash.outputs.hash }}
-        # Prefix fallback: a stale ./publish (one manifest behind) still warm-starts the
-        # install below — vc-build install itself skips any module already present at the
-        # manifest's exact version (Build.PackageManager.cs), so only the actually-changed
-        # module(s) get re-downloaded instead of all ~50.
+        # Prefix fallback: a one-manifest-behind ./publish still warm-starts the install
+        # below — vc-build skips modules already at the manifest's exact version.
         restore-keys: |
           platform-publish-custommodule-${{ runner.os }}-
 
@@ -393,9 +379,8 @@ runs:
       run: |
         Write-Host "`e[33mStart Containers step started."
 
-        # Lightweight check on the detached "Start database and search engine containers
-        # early" step: that step doesn't wait for `docker compose up` to finish, so surface
-        # its result here instead of letting a silent failure resurface confusingly below.
+        # Surfaces the result of the detached early es/vc-db startup, which didn't wait
+        # for `docker compose up` to finish.
         Write-Host "Waiting for the early vc-db/es startup (detached above) to finish..."
         $earlyUpTimeoutSeconds = 180
         $earlyUpWaited = 0

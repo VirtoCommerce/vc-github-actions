@@ -1,11 +1,8 @@
-# Pre-baked base for the platform image built by docker-env-full's two Dockerfile-build
-# branches (customPackagesJsonUrl / installCustomModule). Mirrors the static prefix of
-# vc-docker's platform Dockerfile — the FROM image, wait-for-it.sh, and the wkhtmltopdf
-# apt-get install — so every per-run build only has to do `COPY publish` + the runtimes
-# find/cp, instead of re-running apt-get (~20s) on every single build.
+# Pre-baked base for docker-env-full's Dockerfile-build branches. Mirrors vc-docker's
+# platform Dockerfile static prefix (FROM image, wait-for-it.sh, wkhtmltopdf apt-get) so
+# per-run builds only do `COPY publish` + find/cp, skipping the ~20s apt-get every time.
 #
-# Rebuild only when the .NET base image version or the wkhtmltopdf version changes (rare) —
-# see README.md in this directory for the build+push command.
+# Rebuild only when the .NET base image or wkhtmltopdf version changes — see README.md.
 FROM mcr.microsoft.com/dotnet/aspnet:10.0@sha256:f1126d438ccc359f51cc6d4701a8deae513856cf10f5fe645d29ea6403dcac6b
 
 RUN apt-get update && \
