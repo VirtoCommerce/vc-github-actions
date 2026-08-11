@@ -226,6 +226,12 @@ runs:
       with:
         path: ${{ github.action_path }}/publish
         key: platform-publish-packagesjson-${{ runner.os }}-${{ steps.packagesjson-hash.outputs.hash }}
+        # Prefix fallback: a stale ./publish (one manifest behind) still warm-starts the
+        # install below — vc-build install itself skips any module already present at the
+        # manifest's exact version (Build.PackageManager.cs), so only the actually-changed
+        # module(s) get re-downloaded instead of all ~50.
+        restore-keys: |
+          platform-publish-packagesjson-${{ runner.os }}-
 
     - name: Use custom packages.json and build platform docker image
       if: ${{ inputs.customPackagesJsonUrl != '' }}
@@ -297,6 +303,12 @@ runs:
       with:
         path: ${{ github.action_path }}/publish
         key: platform-publish-custommodule-${{ runner.os }}-${{ steps.custommodule-manifest-hash.outputs.hash }}
+        # Prefix fallback: a stale ./publish (one manifest behind) still warm-starts the
+        # install below — vc-build install itself skips any module already present at the
+        # manifest's exact version (Build.PackageManager.cs), so only the actually-changed
+        # module(s) get re-downloaded instead of all ~50.
+        restore-keys: |
+          platform-publish-custommodule-${{ runner.os }}-
 
     - name: Build platform docker image
       if: ${{ inputs.installCustomModule == 'true' }}
