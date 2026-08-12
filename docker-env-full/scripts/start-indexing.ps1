@@ -49,7 +49,7 @@ function Get-AdminToken {
     throw "Platform did not accept auth within ${timeoutSeconds}s"
 }
 
-$script:reindexDocumentTypes = @('Member', 'Product', 'Category', 'CustomerOrder', 'PickupLocation')
+$script:reindexDocumentTypes = @('Member', 'Product', 'Category', 'CustomerOrder', 'PickupLocation', 'Pages')
 
 # Triggers a reindex (DeleteExistingIndex=$true) for ONE document type and returns
 # the IndexProgressPushNotification — its 'id' is what we poll to know when the
