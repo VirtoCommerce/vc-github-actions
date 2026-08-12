@@ -44,13 +44,18 @@ Extract `package`, `from`, `to`, `path` per PR:
 
 ## 3. Classify
 
-For each parsed bump, compare versions when both sides are valid semver — **the breaking boundary is the minor version, not the major, when major is `0`**. Semver gives `0.y.z` no stability guarantee at all; by convention (and how npm itself treats it) a `0.y` bump is the breaking-change slot a `1.y`+ package would use its major for. `@vercel/ncc` (`^0.38.0`, the build tool several of this repo's actions depend on) is exactly this shape — a `0.38.0` → `0.39.0` bump is a potentially-breaking jump, not a safe patch, even though the leading digit stayed `0`:
+For each parsed bump, determine the safe-vs-needs-verification split like this, in order:
 
-- **Same major, major ≥ 1** → safe candidate, no spot-check needed. A same-major bump has no documented-breaking-change surface by definition of semver; don't second-guess it further.
-- **Major is `0` on either side** → treat the **minor** as the breaking boundary instead: same major *and* same minor (a `0.y.z` patch bump) is the safe case; a `0.y` → `0.y'` change needs verification like a major jump would.
-- **Major version jump, non-semver, or can't tell** → needs verification. Group all PRs bumping the *same package to the same target version* — verify the group once, apply the verdict to every PR in it (that's what made 25 `@actions/core` PRs a five-minute check instead of 25).
+1. Both sides valid semver **and** `major` differs between them → real major jump. Needs verification (see grouping note below).
+2. Both sides valid semver **and** `major` is the same **and** that shared major is `0` → this is the `0.y.z` case, where semver gives no stability guarantee at all and, by convention (and how npm itself treats it), the **minor** is the breaking-change slot a `1.y`+ package would use its major for:
+   - Same minor too (a `0.y.z` patch-only bump) → safe candidate, no spot-check needed.
+   - Different minor (`0.y` → `0.y'`) → needs verification, exactly like a major jump (see grouping note below). `@vercel/ncc` (`^0.38.0`, the build tool several of this repo's actions depend on) is exactly this shape — `0.38.0` → `0.39.0` is a potentially-breaking jump, not a safe patch, even though the leading digit never changed.
+3. Both sides valid semver **and** `major` is the same **and** that shared major is `≥ 1` → safe candidate, no spot-check needed. A same-major bump (above `0.x`) has no documented-breaking-change surface by definition of semver; don't second-guess it further.
+4. Anything not covered above (non-semver on either side, can't parse, or any combination that doesn't cleanly match 1–3) → needs verification. Don't force it into "safe" by default — an unparseable version is a "can't tell," not a "probably fine."
 
-### Verifying a major-jump group
+**Grouping applies to every "needs verification" case above, not just literal major jumps** — steps 1, 2's second bullet, and 4 all group by *same package bumped to the same target version* and get verified once, with the verdict applied to every PR in that group (that's what made 25 `@actions/core` PRs a five-minute check instead of 25, and the same applies to a `0.y` bump like `@vercel/ncc` landing in multiple directories).
+
+### Verifying a needs-verification group (major jump, or a `0.y` minor jump)
 
 Never trust a cached "this package/major is known-bad" list from memory or a prior run — re-derive it fresh, because the repo's own code (a tsconfig, a build step) can change out from under a stale verdict just as easily as upstream can fix the thing that broke it last time.
 
