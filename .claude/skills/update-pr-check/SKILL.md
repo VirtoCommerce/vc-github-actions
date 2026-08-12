@@ -26,8 +26,8 @@ Confirm it really is a mechanical dependency bump (only version strings / lockfi
 ### 2. Verify the pins are authentic (don't trust the comment)
 For **GitHub Actions pinned by SHA** (`uses: owner/action@<sha> # vX.Y.Z`), verify each new SHA actually is that tag upstream:
 - `gh api repos/<owner>/<action>/git/ref/tags/<vX.Y.Z> --jq '.object.sha,.object.type'`
-- The returned SHA must equal the pinned SHA in the diff. A mismatch is a **red flag** (possible tampering / wrong pin) — call it out loudly.
-- If it resolves to an annotated tag (`type: tag`), dereference with `gh api repos/<owner>/<action>/git/tags/<sha> --jq '.object.sha'` to get the commit.
+- If `.object.type` is `tag` (an **annotated** tag — common for official Actions repos), that SHA is the tag *object*, not the commit. Dereference it first: `gh api repos/<owner>/<action>/git/tags/<that sha> --jq '.object.sha'` — that result is the actual commit SHA. If `.object.type` was already `commit` (lightweight tag), skip this step; you already have the commit SHA.
+- Only now compare: the resolved commit SHA must equal the pinned SHA in the diff. A mismatch **at this point** is a real red flag (possible tampering / wrong pin) — call it out loudly. Comparing against the *tag object's* SHA instead (skipping the dereference above) will falsely flag every legitimate annotated-tag pin as tampering — don't do that.
 
 For package bumps (npm/nuget/etc.), confirm the version exists on the registry if anything looks off; lockfile hash integrity is generally enough.
 
