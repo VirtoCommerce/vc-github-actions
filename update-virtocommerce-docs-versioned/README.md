@@ -11,7 +11,7 @@ Makes and updates versioned documentation for docs.virtocommerce.org using Mike
 
 ### ref:
 
-    description: "Branch of vc-docs to deploy (main or release/X.0). VERSION file on that ref determines the deployed version."
+    description: "Branch of vc-docs to deploy (main or release/stableNN). VERSION file on that ref determines the deployed version, not the branch name."
     required: false
     default: "main"
 
