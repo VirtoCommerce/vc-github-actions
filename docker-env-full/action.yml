@@ -52,10 +52,18 @@ inputs:
     description: 'Test secret environment file content'
     required: true
     type: string
-  dockerFiles:
-    description: 'Docker files'
+  platformBaseImage:
+    description: |
+      Pre-baked base image (see docker-env-full/base-image/) with wait-for-it.sh and
+      wkhtmltopdf already installed. Dockerfile.platform (in this action's own directory —
+      not downloaded from vc-docker) builds FROM this instead of the plain .NET runtime
+      image, so every build skips the ~20s apt-get install — that layer never changes, but
+      sat after the always-different `COPY publish` layer in vc-docker's own Dockerfile, so
+      it could never be a Docker layer-cache hit there. Only used by the two Dockerfile-build
+      branches below (customPackagesJsonUrl / installCustomModule); the installModules
+      branch pulls a fully-published image and never touches a Dockerfile at all.
     required: false
-    default: 'https://raw.githubusercontent.com/VirtoCommerce/vc-docker/feat/net10/linux/platform/Dockerfile;https://raw.githubusercontent.com/VirtoCommerce/vc-docker/master/linux/platform/wait-for-it.sh'
+    default: 'ghcr.io/virtocommerce/platform-base:10.0-wkhtmltopdf'
   sendgridApiKey:
     description: 'SendGrid API Key'
     required: true
@@ -86,6 +94,59 @@ inputs:
 runs:
   using: "composite"
   steps:
+    # Runs first so the next step can start vc-db/es early.
+    - name: Generate container secrets
+      shell: pwsh
+      env:
+        APP_INSIGHTS_IKEY_INPUT: ${{ inputs.appInsightsInstrumentationKey }}
+        DB_PROVIDER_INPUT: ${{ inputs.databaseProvider }}
+      run: |
+        function New-RandomPassword {
+          # 'Vc!' + 32 alnum chars: complexity-compliant, delimiter-free.
+          $alphabet = [char[]]'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+          $bytes = New-Object byte[] 32
+          [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+          $chars = foreach ($b in $bytes) { $alphabet[$b % $alphabet.Length] }
+          return 'Vc!' + (-join $chars)
+        }
+        $dbPassword = New-RandomPassword
+        $esPassword = New-RandomPassword
+        Write-Host "::add-mask::$dbPassword"
+        Write-Host "::add-mask::$esPassword"
+        Add-Content -Path $env:GITHUB_ENV -Value "DB_PASSWORD=$dbPassword"
+        Add-Content -Path $env:GITHUB_ENV -Value "ELASTIC_PASSWORD=$esPassword"
+        # ROLE_NAME: <repo>-<run>-<attempt>-<db>.
+        $repoName = "$env:GITHUB_REPOSITORY".Split('/')[-1]
+        $dbSuffix = if ($env:DB_PROVIDER_INPUT) { "-$env:DB_PROVIDER_INPUT" } else { '' }
+        $roleName = "$repoName-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT$dbSuffix"
+        Add-Content -Path $env:GITHUB_ENV -Value "ROLE_NAME=$roleName"
+        Write-Host "Application Insights role name: $roleName"
+        $aiKey = $env:APP_INSIGHTS_IKEY_INPUT
+        if ($aiKey) {
+          Write-Host "::add-mask::$aiKey"
+          Add-Content -Path $env:GITHUB_ENV -Value "APPLICATIONINSIGHTS_INSTRUMENTATIONKEY=$aiKey"
+        }
+
+    # Starts only vc-db/es early so their cold start overlaps with the image
+    # build/install steps below (vc-platform-web waits on wait-for-it regardless
+    # of start order, so this only helps). Launched detached (`up -d` takes ~20s)
+    # so this step returns immediately; the later "Start containers" step's own
+    # `up -d` is the natural sync point via depends_on.
+    - name: Start database and search engine containers early
+      env:
+        DB_PROVIDER: ${{ inputs.databaseProvider }}
+      shell: pwsh
+      working-directory: ${{ github.action_path }}
+      run: |
+        Write-Host "`e[33mStarting vc-db/es early (detached) so their cold start overlaps with the platform/frontend image build."
+        Remove-Item -Path 'early-up.exitcode', 'early-up.log' -ErrorAction SilentlyContinue
+        $composeFiles = @('-f', 'docker-compose.yml', '-f', "docker-compose.$env:DB_PROVIDER.yml")
+        $composeArgs = @('compose', '--project-name', 'virtocommerce') + $composeFiles + @('up', '-d', 'es', 'vc-db')
+        # Nested pwsh drops the exit code to a sentinel file for the cross-step check below,
+        # since the Process object doesn't survive past this step.
+        $inner = "docker $($composeArgs -join ' ') *> 'early-up.log'; `$LASTEXITCODE | Out-File -Encoding ascii 'early-up.exitcode'"
+        Start-Process -FilePath 'pwsh' -ArgumentList '-NoProfile', '-Command', $inner -NoNewWindow -WorkingDirectory $PWD.Path
+
     - name: Validate prebuilt image configuration
       if: ${{ inputs.prebuiltImageArtifact != '' }}
       shell: bash
@@ -123,7 +184,7 @@ runs:
         load_output=$(docker load -i "$image_path")
         echo "$load_output"
         # Match the Loaded image line for the target repo so multi-tag tars don't retag
-        # an unrelated ref; `|| true` swallows grep's no-match exit under pipefail.
+        # an unrelated ref; `|| true` swallows grep's no-match exit.
         target_name="${TARGET%%:*}"
         loaded=$(printf '%s\n' "$load_output" | sed -n 's/^Loaded image: //p' | { grep -E "(^|/)${target_name}:" || true; } | head -n1)
         if [[ -z "$loaded" ]]; then
@@ -134,71 +195,141 @@ runs:
         docker image inspect "$TARGET" >/dev/null
         echo "Loaded $loaded -> $TARGET"
 
-    - name: Use custom packages.json and build platform docker image
+    - name: Download custom packages.json
       if: ${{ inputs.customPackagesJsonUrl != '' }}
       working-directory: ${{ github.action_path }}
       shell: pwsh
       run: |
         Invoke-WebRequest -Uri ${{ inputs.customPackagesJsonUrl }} -OutFile packages.json
-        Write-Host "`e[32mDownloaded custom packages.json from ${{ inputs.customPackagesJsonUrl }} file successfully. Build backend..."
-        vc-build install --package-manifest-path ./packages.json --root ./publish --skip-dependency-solving
-        Write-Host "`e[32mDownload platform Dockerfile and build image"
-        $dockerFilesArray = "${{ inputs.dockerFiles }}".Split(';')
-        foreach($file in $dockerFilesArray){
-            try {
-                $fileName = Split-Path $file -Leaf
-                Invoke-WebRequest -Uri $file -OutFile $fileName -UseBasicParsing -OperationTimeoutSeconds 15 -RetryIntervalSec 1 -MaximumRetryCount 3
-                Write-Host "Downloaded '$fileName' successfully"
-            }
-            catch {
-                Write-Error "Failed to download $file. Error: $_"
-                exit 1
-            }
+        Write-Host "`e[32mDownloaded custom packages.json from ${{ inputs.customPackagesJsonUrl }}"
+
+    - name: Hash custom packages.json
+      if: ${{ inputs.customPackagesJsonUrl != '' }}
+      id: packagesjson-hash
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: echo "hash=$(sha256sum packages.json | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+    # vc-build install re-downloads ~50 module zips every run even when unchanged;
+    # ./publish is restored whenever packages.json matches a previous run's byte-for-byte.
+    - name: Cache platform publish output (custom packages.json)
+      if: ${{ inputs.customPackagesJsonUrl != '' }}
+      id: publish-cache-packagesjson
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ github.action_path }}/publish
+        key: platform-publish-packagesjson-${{ runner.os }}-${{ steps.packagesjson-hash.outputs.hash }}
+        # Prefix fallback: a one-manifest-behind ./publish still warm-starts the install
+        # below — vc-build skips modules already at the manifest's exact version.
+        restore-keys: |
+          platform-publish-packagesjson-${{ runner.os }}-
+
+    - name: Use custom packages.json and build platform docker image
+      if: ${{ inputs.customPackagesJsonUrl != '' }}
+      working-directory: ${{ github.action_path }}
+      shell: pwsh
+      env:
+        CACHE_HIT: ${{ steps.publish-cache-packagesjson.outputs.cache-hit }}
+        PLATFORM_BASE_IMAGE: ${{ inputs.platformBaseImage }}
+        PLATFORM_IMAGE: ${{ inputs.platformImage }}
+        PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
+      run: |
+        if ($env:CACHE_HIT -eq 'true' -and (Test-Path ./publish/VirtoCommerce.Platform.Web.dll)) {
+          Write-Host "`e[32mCache hit: reusing ./publish, skipping vc-build install."
+        } else {
+          if ($env:CACHE_HIT -eq 'true') {
+            Write-Host "Cached ./publish failed sanity check — falling back to a full install."
+          }
+          vc-build install --package-manifest-path ./packages.json --root ./publish --skip-dependency-solving
         }
         Write-Host "::group::Build platform docker image"
-        docker build -f ./Dockerfile -t "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}" .
+        docker build -f ./Dockerfile.platform --build-arg "BASE_IMAGE=$env:PLATFORM_BASE_IMAGE" -t "$($env:PLATFORM_IMAGE):$($env:PLATFORM_DOCKER_TAG)" .
         Write-Host "::endgroup::"
 
     - name: Install Commerce Bundle Modules
       if: ${{ inputs.installModules  == 'true' }}
       working-directory: ${{ github.action_path }}
-      env: 
+      env:
         INSTALL_FOLDER: 'modules'
+        PLATFORM_IMAGE: ${{ inputs.platformImage }}
+        PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
       shell: pwsh
       run: |
         Write-Host "`e[33mInstall Modules step started."
-        # Pre-create modules/modules so vc-build's default DiscoveryPath exists on first
-        # run; otherwise it emits a "Discovery path not found" workflow annotation.
-        New-Item -Path "./${{ env.INSTALL_FOLDER}}/modules" -ItemType "directory" -Force | Out-Null
-        Push-Location ./${{ env.INSTALL_FOLDER}}
+        # docker pull doesn't depend on vc-build install below, so run it as a background
+        # job concurrently with the module install. Start-Job spawns a child process, which
+        # inherits $env: vars, so PLATFORM_DOCKER_TAG is available inside the script block.
+        $pullJob = Start-Job -ScriptBlock {
+          docker pull "ghcr.io/virtocommerce/platform:$env:PLATFORM_DOCKER_TAG"
+          if ($LASTEXITCODE -ne 0) {
+            throw "docker pull exited with code $LASTEXITCODE"
+          }
+        }
+        # Pre-create modules/modules so vc-build's default DiscoveryPath exists, avoiding
+        # a "Discovery path not found" annotation on first run.
+        New-Item -Path "./$env:INSTALL_FOLDER/modules" -ItemType "directory" -Force | Out-Null
+        Push-Location ./$env:INSTALL_FOLDER
         vc-build install -Edge -skip InstallPlatform
         vc-build install -module VirtoCommerce.Quote VirtoCommerce.XPickup VirtoCommerce.MarketingExperienceApi VirtoCommerce.Pages
-        Write-Host "`e[32mPull platform docker image to local storage"
-        docker pull ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }}
-        docker tag ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} "${{ inputs.platformImage }}:local-latest"
-        Write-Host "`e[32mPlatform docker image ghcr.io/virtocommerce/platform:${{ inputs.platformDockerTag }} tagged as ${{ inputs.platformImage }}:local-latest"
+        Write-Host "`e[32mWaiting for platform docker image pull (started earlier, in the background)"
+        Receive-Job -Job $pullJob -Wait | Write-Host
+        if ($pullJob.State -ne 'Completed') {
+          throw "docker pull ghcr.io/virtocommerce/platform:$env:PLATFORM_DOCKER_TAG failed (job state: $($pullJob.State))"
+        }
+        docker tag "ghcr.io/virtocommerce/platform:$env:PLATFORM_DOCKER_TAG" "$($env:PLATFORM_IMAGE):local-latest"
+        Write-Host "`e[32mPlatform docker image ghcr.io/virtocommerce/platform:$env:PLATFORM_DOCKER_TAG tagged as $($env:PLATFORM_IMAGE):local-latest"
+
+    - name: Resolve package manifest for custom module
+      if: ${{ inputs.installCustomModule == 'true' }}
+      working-directory: ${{ github.action_path }}
+      shell: pwsh
+      run: |
+        ../docker-env/scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }} -requiredModulesListUrl "${{ inputs.requiredModulesListUrl }}" -SkipInstall
+
+    - name: Hash resolved package manifest
+      if: ${{ inputs.installCustomModule == 'true' }}
+      id: custommodule-manifest-hash
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: echo "hash=$(sha256sum new-packages.json | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+    # As above, but keyed on the resolved manifest (post edge-feed resolution), so a real
+    # upstream version bump still invalidates the cache.
+    - name: Cache platform publish output (custom module)
+      if: ${{ inputs.installCustomModule == 'true' }}
+      id: publish-cache-custommodule
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ github.action_path }}/publish
+        key: platform-publish-custommodule-${{ runner.os }}-${{ steps.custommodule-manifest-hash.outputs.hash }}
+        # Prefix fallback: a one-manifest-behind ./publish still warm-starts the install
+        # below — vc-build skips modules already at the manifest's exact version.
+        restore-keys: |
+          platform-publish-custommodule-${{ runner.os }}-
 
     - name: Build platform docker image
       if: ${{ inputs.installCustomModule == 'true' }}
       working-directory: ${{ github.action_path }}
       shell: pwsh
+      env:
+        CACHE_HIT: ${{ steps.publish-cache-custommodule.outputs.cache-hit }}
+        PLATFORM_BASE_IMAGE: ${{ inputs.platformBaseImage }}
+        PLATFORM_IMAGE: ${{ inputs.platformImage }}
+        PLATFORM_DOCKER_TAG: ${{ inputs.platformDockerTag }}
       run: |
-        ../docker-env/scripts/common-packages-list.ps1 -customModuleId ${{ inputs.customModuleId }} -customModuleUrl ${{ inputs.customModuleUrl }} -requiredModulesListUrl "${{ inputs.requiredModulesListUrl }}"
-        Write-Host "`e[32mDownload platform Dockerfile and build image"
-        $dockerFilesArray = "${{ inputs.dockerFiles }}".Split(';')
-        foreach($file in $dockerFilesArray){
-            try {
-                $fileName = Split-Path $file -Leaf
-                Invoke-WebRequest -Uri $file -OutFile $fileName -UseBasicParsing -OperationTimeoutSeconds 15 -RetryIntervalSec 1 -MaximumRetryCount 3
-                Write-Host "Downloaded '$fileName' successfully"
-            }
-            catch {
-                Write-Error "Failed to download $file. Error: $_"
-                exit 1
-            }
+        if ($env:CACHE_HIT -eq 'true' -and (Test-Path ./publish/VirtoCommerce.Platform.Web.dll)) {
+          Write-Host "`e[32mCache hit: reusing ./publish, skipping vc-build install."
+        } else {
+          if ($env:CACHE_HIT -eq 'true') {
+            Write-Host "Cached ./publish failed sanity check — falling back to a full install."
+          }
+          New-Item -Path ./publish/app_data/modules -ItemType Directory -Force | Out-Null
+          New-Item -Path ./publish/modules -ItemType Directory -Force | Out-Null
+          vc-build install --package-manifest-path ./new-packages.json --probing-path ./publish/app_data/modules --discovery-path ./publish/modules --root ./publish --skip-dependency-solving
         }
+        Remove-Item -Path ./new-packages.json -ErrorAction SilentlyContinue
         Write-Host "::group::Build platform docker image"
-        docker build -f ./Dockerfile -t "${{ inputs.platformImage }}:${{ inputs.platformDockerTag }}" .
+        docker build -f ./Dockerfile.platform --build-arg "BASE_IMAGE=$env:PLATFORM_BASE_IMAGE" -t "$($env:PLATFORM_IMAGE):$($env:PLATFORM_DOCKER_TAG)" .
         Write-Host "::endgroup::"
 
     - name: Build frontend docker image
@@ -238,39 +369,6 @@ runs:
         docker build -f ./nginx/Dockerfile -t "${{ inputs.frontendImage }}:${{ inputs.frontendDockerTag }}" .
         Write-Host "::endgroup::"
 
-    - name: Generate container secrets
-      shell: pwsh
-      env:
-        APP_INSIGHTS_IKEY_INPUT: ${{ inputs.appInsightsInstrumentationKey }}
-        DB_PROVIDER_INPUT: ${{ inputs.databaseProvider }}
-      run: |
-        function New-RandomPassword {
-          # 'Vc!' + 32 alnum chars: meets SQL Server complexity, no conn-string delimiters.
-          $alphabet = [char[]]'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-          $bytes = New-Object byte[] 32
-          [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
-          $chars = foreach ($b in $bytes) { $alphabet[$b % $alphabet.Length] }
-          return 'Vc!' + (-join $chars)
-        }
-        $dbPassword = New-RandomPassword
-        $esPassword = New-RandomPassword
-        Write-Host "::add-mask::$dbPassword"
-        Write-Host "::add-mask::$esPassword"
-        Add-Content -Path $env:GITHUB_ENV -Value "DB_PASSWORD=$dbPassword"
-        Add-Content -Path $env:GITHUB_ENV -Value "ELASTIC_PASSWORD=$esPassword"
-        # ROLE_NAME identifies the container in App Insights: <repo>-<run>-<attempt>-<db>.
-        # Exported via $GITHUB_ENV for downstream actions.
-        $repoName = "$env:GITHUB_REPOSITORY".Split('/')[-1]
-        $dbSuffix = if ($env:DB_PROVIDER_INPUT) { "-$env:DB_PROVIDER_INPUT" } else { '' }
-        $roleName = "$repoName-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT$dbSuffix"
-        Add-Content -Path $env:GITHUB_ENV -Value "ROLE_NAME=$roleName"
-        Write-Host "Application Insights role name: $roleName"
-        $aiKey = $env:APP_INSIGHTS_IKEY_INPUT
-        if ($aiKey) {
-          Write-Host "::add-mask::$aiKey"
-          Add-Content -Path $env:GITHUB_ENV -Value "APPLICATIONINSIGHTS_INSTRUMENTATIONKEY=$aiKey"
-        }
-
     - name: Start containers
       env:
         PLATFORM_IMAGE: ${{ inputs.platformImage }}
@@ -283,6 +381,29 @@ runs:
       working-directory: ${{ github.action_path }}
       run: |
         Write-Host "`e[33mStart Containers step started."
+
+        # Surfaces the result of the detached early es/vc-db startup, which didn't wait
+        # for `docker compose up` to finish.
+        Write-Host "Waiting for the early vc-db/es startup (detached above) to finish..."
+        $earlyUpTimeoutSeconds = 180
+        $earlyUpWaited = 0
+        while (-not (Test-Path 'early-up.exitcode') -and $earlyUpWaited -lt $earlyUpTimeoutSeconds) {
+          Start-Sleep -Seconds 2
+          $earlyUpWaited += 2
+        }
+        if (-not (Test-Path 'early-up.exitcode')) {
+          Write-Warning "early-up.exitcode never appeared after ${earlyUpTimeoutSeconds}s; the detached 'docker compose up' for es/vc-db may have hung. Proceeding anyway — the compose command below will surface any real problem."
+        }
+        else {
+          $earlyUpExitCode = (Get-Content 'early-up.exitcode' -Raw).Trim()
+          if ($earlyUpExitCode -ne '0') {
+            Write-Host "::error::Early vc-db/es startup failed (exit code $earlyUpExitCode). Log:"
+            Get-Content 'early-up.log' -ErrorAction SilentlyContinue | Write-Host
+            exit 1
+          }
+          Write-Host "`e[32mEarly vc-db/es startup finished successfully after ~${earlyUpWaited}s wait."
+        }
+
         $platformContainer = "virtocommerce-vc-platform-web-1"
         . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
 
@@ -292,13 +413,13 @@ runs:
           Write-Host "Mount installed modules via docker-compose.modules.yml overlay"
           $composeFiles += @('-f', 'docker-compose.modules.yml')
         }
-        # One pass: the platform's wait-for-it entrypoint already gates on vc-db/es.
+        # es/vc-db are already up (started early, above); only bring up the rest.
         Write-Host "::group::Start containers"
-        docker compose --project-name virtocommerce $composeFiles up -d
+        docker compose --project-name virtocommerce $composeFiles up -d vc-platform-web nginx_frontend
         Write-Host "::endgroup::"
-        InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 5 -WaitSeconds 0
+        InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 3 -WaitSeconds 0
         Write-Host "`e[32mAll containers started."
-        
+
     - name: Check Installed Modules
       if: ${{ inputs.installModules == 'true' || inputs.installCustomModule == 'true' || inputs.customPackagesJsonUrl != '' || inputs.prebuiltImageArtifact != '' }}
       working-directory: ${{ github.action_path }}
