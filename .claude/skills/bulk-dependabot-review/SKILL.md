@@ -44,10 +44,11 @@ Extract `package`, `from`, `to`, `path` per PR:
 
 ## 3. Classify
 
-For each parsed bump, compare major versions when both sides are valid semver:
+For each parsed bump, compare versions when both sides are valid semver — **the breaking boundary is the minor version, not the major, when major is `0`**. Semver gives `0.y.z` no stability guarantee at all; by convention (and how npm itself treats it) a `0.y` bump is the breaking-change slot a `1.y`+ package would use its major for. `@vercel/ncc` (`^0.38.0`, the build tool several of this repo's actions depend on) is exactly this shape — a `0.38.0` → `0.39.0` bump is a potentially-breaking jump, not a safe patch, even though the leading digit stayed `0`:
 
-- **Same major (patch/minor)** → safe candidate, no spot-check needed. A same-major bump has no documented-breaking-change surface by definition of semver; don't second-guess it further.
-- **Major version jump, or non-semver / can't tell** → needs verification. Group all PRs bumping the *same package to the same target version* — verify the group once, apply the verdict to every PR in it (that's what made 25 `@actions/core` PRs a five-minute check instead of 25).
+- **Same major, major ≥ 1** → safe candidate, no spot-check needed. A same-major bump has no documented-breaking-change surface by definition of semver; don't second-guess it further.
+- **Major is `0` on either side** → treat the **minor** as the breaking boundary instead: same major *and* same minor (a `0.y.z` patch bump) is the safe case; a `0.y` → `0.y'` change needs verification like a major jump would.
+- **Major version jump, non-semver, or can't tell** → needs verification. Group all PRs bumping the *same package to the same target version* — verify the group once, apply the verdict to every PR in it (that's what made 25 `@actions/core` PRs a five-minute check instead of 25).
 
 ### Verifying a major-jump group
 
@@ -55,8 +56,8 @@ Never trust a cached "this package/major is known-bad" list from memory or a pri
 
 1. Pick a small sample — **up to 3 directories** from the group, preferring ones that look structurally different (different `tsconfig.json` target, different build script, different existing dependency set) over 3 near-identical copies. If the group only has 1–2 PRs, sample all of them.
 2. In each sampled directory: install the target version — `npm install <pkg>@<version> --no-audit --no-fund` (no `--save`/`--save-dev` flag needed or wanted: the package is already declared in `package.json`, in whichever of `dependencies`/`devDependencies` it's currently in, and plain `npm install <pkg>@<version>` updates that existing entry in place without moving it between the two) — then run the real check:
-   - If the package is a type-only/dev dependency (`@types/*`, or anything only referenced in `devDependencies` with no runtime import), `npx tsc --noEmit` is sufficient.
-   - Otherwise run the action's actual build (`npm run build`, typically `ncc build ...`) since a runtime dependency bump can break bundling in ways a type-check alone won't catch.
+   - `npx tsc --noEmit` is sufficient **only** for packages that are genuinely type-declaration-only — `@types/*`, or a linter/formatter config package with no build-time role. It is **not** sufficient for a build tool itself (`@vercel/ncc`, `typescript` the compiler, `webpack`, etc.) just because it also lives in `devDependencies` with no `src/` import — those are exercised by running the build, not by type-checking against them, and a `tsc`-only check would report a broken bundler as clean.
+   - For everything else — runtime dependencies, and any `devDependencies` entry that's actually invoked by the build/tooling pipeline (check `package.json`'s `scripts.build` and related scripts for the package's CLI name) — run the action's actual build (`npm run build`, typically `ncc build ...`) since a runtime or build-tool dependency bump can break bundling in ways a type-check alone won't catch.
    - Capture the real output (error text, or clean exit) — the verdict must cite it, not just say "checked."
    - **Don't shortcut this with `grep` for a direct import of the package in `src/`.** A directory can show zero direct imports and still break, because a shared internal wrapper lib (e.g. an org-internal `@scope/actions-lib` that several actions depend on) pulls the real dependency in transitively — `ncc`'s bundler traces the whole require graph, not just the entry file's own imports. "Not directly imported" is not evidence of safety; only the actual build/install result is. (Caught exactly this: a package looked unused by grep in 7 of 12 directories in one run, but the real build failed in all of them once actually tried — the grep signal would have wrongly cleared 7 PRs as safe.)
 3. **Always revert** afterward regardless of outcome — `npm run build` rewrites `dist/` too, not just the manifest, so restore that as well: `git checkout -- package.json package-lock.json dist/ && npm install`. Confirm with `git status --short` that nothing is left dirty before moving to the next sample or to the merge step.
