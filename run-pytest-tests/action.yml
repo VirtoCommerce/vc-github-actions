@@ -135,18 +135,19 @@ runs:
       run: |
         echo "::group::Install Python dependencies"
         reuse_cache=false
-        if [ "$CACHE_HIT" = "true" ] && [ -x .venv/bin/python ]; then
-          source .venv/bin/activate
-          # Sanity-check the cached venv before trusting it (guards a stale/corrupt cache).
-          if pip install -e . --no-deps --dry-run >/dev/null 2>&1; then
-            reuse_cache=true
-          else
-            echo "Cached venv failed sanity check — falling back to a full install."
-          fi
+        # Probe via .venv/bin/pip directly — activating first could poison PATH with a
+        # broken venv before the fallback below gets to rebuild it.
+        if [ "$CACHE_HIT" = "true" ] && [ -x .venv/bin/python ] && .venv/bin/pip install -e . --no-deps --dry-run >/dev/null 2>&1; then
+          reuse_cache=true
+        elif [ "$CACHE_HIT" = "true" ]; then
+          echo "Cached venv failed sanity check — falling back to a full install."
         fi
         if [ "$reuse_cache" = true ]; then
           echo "Cache hit: reusing venv and Playwright browsers, skipping full reinstall."
+          source .venv/bin/activate
         else
+          # Remove first — recreating in place doesn't reliably fix a corrupt/partial venv.
+          rm -rf .venv
           python -m venv .venv
           source .venv/bin/activate
           python -m pip install --upgrade pip
@@ -205,9 +206,8 @@ runs:
         BROWSER: ${{ inputs.browser }}
       run: |
         echo "::group::E2E tests (parallel-safe)"
-        # with_user tests share one real backend account and mutate its cart/wishlist/etc,
-        # so they're excluded here and run sequentially below instead (xdist_group didn't
-        # reliably keep them on one worker). Other tests get a fresh user_id per test.
+        # with_user tests share one real account and mutate its cart/etc, so they run serially
+        # below instead (xdist_group didn't reliably isolate them); others get a fresh user_id.
         MARKERS="not ignore and not with_user"
         [ -n "$PYTEST_MARKERS" ] && MARKERS="($MARKERS) and ($PYTEST_MARKERS)"
         echo "+ pytest tests/e2e -m '$MARKERS' --browser '$BROWSER' -n auto -v -s --color=yes --junitxml=report/e2e-junit.xml"
@@ -270,9 +270,8 @@ runs:
         PYTEST_MARKERS: ${{ inputs.pytestMarkers }}
       run: |
         echo "::group::REST API restart-platform test"
-        # Unlike the other suites, this step has no default marker expression
-        # (it targets a single test by node-id), so an empty -m must be omitted
-        # entirely — passing `-m ""` would deselect everything.
+        # No default marker (targets one test by node-id) — omit -m entirely when empty,
+        # since `-m ""` would deselect everything.
         MARKER_ARGS=()
         MARKER_ECHO=""
         if [ -n "$PYTEST_MARKERS" ]; then
@@ -396,11 +395,9 @@ runs:
       if: always()
       shell: bash
       run: |
-        # ROLE_NAME is produced by docker-env-full's 'Generate container secrets'
-        # step (the same value passed to the platform container as
-        # VirtoCommerce:ApplicationInsights:RoleName). We read it from $GITHUB_ENV
-        # rather than recomputing — recomputing risks divergence from what was
-        # actually sent to Application Insights.
+        # ROLE_NAME comes from docker-env-full's 'Generate container secrets' step (same
+        # value sent to the container as VirtoCommerce:ApplicationInsights:RoleName) —
+        # read from $GITHUB_ENV rather than recomputed, to avoid drift.
         if [ -n "$ROLE_NAME" ]; then
           echo "::notice title=Application Insights role name::${ROLE_NAME}"
         else
