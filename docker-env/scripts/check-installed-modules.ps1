@@ -28,7 +28,9 @@ function Get-AuthToken {
     return $responseContent.access_token
 }
 
-$platformIsUp = (Watch-Url-Up -ApiUrl $ApiUrl -TimeoutMinutes 15 -RetrySeconds 5 -WaitSeconds 5 -ContainerId $ContainerId)
+# WaitSeconds 0: the caller already confirmed vc-platform-web is running via
+# InspectContainerStatus, so no need to blind-sleep before the first HTTP check.
+$platformIsUp = (Watch-Url-Up -ApiUrl $ApiUrl -TimeoutMinutes 15 -RetrySeconds 5 -WaitSeconds 0 -ContainerId $ContainerId)
 
 if ($platformIsUp) {
     $authToken = (Get-AuthToken $appAuthUrl $Username $Password)[1]

@@ -117,15 +117,43 @@ runs:
         echo "::add-mask::$pw"
         echo "ADMIN_PASSWORD=$pw" >> "$GITHUB_ENV"
 
+    # Key covers OS, Python, browser, test repo/branch, and dependency-manifest hash.
+    - name: Cache Python venv and Playwright browsers
+      id: venv-cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          ${{ inputs.vctestingPath }}/.venv
+          ~/.cache/ms-playwright
+        key: pytest-tests-venv-${{ runner.os }}-py3.13-${{ inputs.browser }}-${{ inputs.vctestingRepo }}-${{ inputs.vctestingRepoBranch }}-${{ hashFiles(format('{0}/pyproject.toml', inputs.vctestingPath), format('{0}/setup.py', inputs.vctestingPath), format('{0}/setup.cfg', inputs.vctestingPath), format('{0}/requirements*.txt', inputs.vctestingPath), format('{0}/poetry.lock', inputs.vctestingPath)) }}
+
     - name: Install dependencies
       shell: bash
       working-directory: ${{ inputs.vctestingPath }}
+      env:
+        CACHE_HIT: ${{ steps.venv-cache.outputs.cache-hit }}
       run: |
         echo "::group::Install Python dependencies"
-        python -m venv .venv
-        source .venv/bin/activate
-        python -m pip install --upgrade pip
-        pip install -e .
+        reuse_cache=false
+        # Probe via .venv/bin/pip directly — activating first could poison PATH with a
+        # broken venv before the fallback below gets to rebuild it.
+        if [ "$CACHE_HIT" = "true" ] && [ -x .venv/bin/python ] && .venv/bin/pip install -e . --no-deps --dry-run >/dev/null 2>&1; then
+          reuse_cache=true
+        elif [ "$CACHE_HIT" = "true" ]; then
+          echo "Cached venv failed sanity check — falling back to a full install."
+        fi
+        if [ "$reuse_cache" = true ]; then
+          echo "Cache hit: reusing venv and Playwright browsers, skipping full reinstall."
+          source .venv/bin/activate
+        else
+          # Remove first — recreating in place doesn't reliably fix a corrupt/partial venv.
+          rm -rf .venv
+          python -m venv .venv
+          source .venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install -e .
+        fi
+        # Cheap no-op if already installed; ensures OS deps on fresh runners.
         playwright install --with-deps ${{ inputs.browser }}
         echo "::endgroup::"
         echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
@@ -169,7 +197,7 @@ runs:
           --junitxml=report/graphql-junit.xml
         echo "::endgroup::"
 
-    - name: Run E2E tests
+    - name: Run E2E tests (parallel-safe)
       shell: bash
       if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'e2e')
       working-directory: ${{ inputs.vctestingPath }}
@@ -177,12 +205,30 @@ runs:
         PYTEST_MARKERS: ${{ inputs.pytestMarkers }}
         BROWSER: ${{ inputs.browser }}
       run: |
-        echo "::group::E2E tests"
-        MARKERS="not ignore"
+        echo "::group::E2E tests (parallel-safe)"
+        # with_user tests share one real account and mutate its cart/etc, so they run serially
+        # below instead (xdist_group didn't reliably isolate them); others get a fresh user_id.
+        MARKERS="not ignore and not with_user"
         [ -n "$PYTEST_MARKERS" ] && MARKERS="($MARKERS) and ($PYTEST_MARKERS)"
-        echo "+ pytest tests/e2e -m '$MARKERS' --browser '$BROWSER' -v -s --color=yes --junitxml=report/e2e-junit.xml"
-        pytest tests/e2e -m "$MARKERS" --browser "$BROWSER" -v -s --color=yes \
+        echo "+ pytest tests/e2e -m '$MARKERS' --browser '$BROWSER' -n auto -v -s --color=yes --junitxml=report/e2e-junit.xml"
+        pytest tests/e2e -m "$MARKERS" --browser "$BROWSER" -n auto -v -s --color=yes \
           --junitxml=report/e2e-junit.xml
+        echo "::endgroup::"
+
+    - name: Run E2E tests (serial — shared backend user)
+      shell: bash
+      if: (success() || failure()) && steps.seed.outcome == 'success' && contains(inputs.testSuites, 'e2e')
+      working-directory: ${{ inputs.vctestingPath }}
+      env:
+        PYTEST_MARKERS: ${{ inputs.pytestMarkers }}
+        BROWSER: ${{ inputs.browser }}
+      run: |
+        echo "::group::E2E tests (serial)"
+        MARKERS="not ignore and with_user"
+        [ -n "$PYTEST_MARKERS" ] && MARKERS="($MARKERS) and ($PYTEST_MARKERS)"
+        echo "+ pytest tests/e2e -m '$MARKERS' --browser '$BROWSER' -v -s --color=yes --junitxml=report/e2e-serial-junit.xml"
+        pytest tests/e2e -m "$MARKERS" --browser "$BROWSER" -v -s --color=yes \
+          --junitxml=report/e2e-serial-junit.xml
         echo "::endgroup::"
 
     - name: Run REST API tests (parallel-safe)
@@ -224,9 +270,8 @@ runs:
         PYTEST_MARKERS: ${{ inputs.pytestMarkers }}
       run: |
         echo "::group::REST API restart-platform test"
-        # Unlike the other suites, this step has no default marker expression
-        # (it targets a single test by node-id), so an empty -m must be omitted
-        # entirely — passing `-m ""` would deselect everything.
+        # No default marker (targets one test by node-id) — omit -m entirely when empty,
+        # since `-m ""` would deselect everything.
         MARKER_ARGS=()
         MARKER_ECHO=""
         if [ -n "$PYTEST_MARKERS" ]; then
@@ -350,11 +395,9 @@ runs:
       if: always()
       shell: bash
       run: |
-        # ROLE_NAME is produced by docker-env-full's 'Generate container secrets'
-        # step (the same value passed to the platform container as
-        # VirtoCommerce:ApplicationInsights:RoleName). We read it from $GITHUB_ENV
-        # rather than recomputing — recomputing risks divergence from what was
-        # actually sent to Application Insights.
+        # ROLE_NAME comes from docker-env-full's 'Generate container secrets' step (same
+        # value sent to the container as VirtoCommerce:ApplicationInsights:RoleName) —
+        # read from $GITHUB_ENV rather than recomputed, to avoid drift.
         if [ -n "$ROLE_NAME" ]; then
           echo "::notice title=Application Insights role name::${ROLE_NAME}"
         else

@@ -209,6 +209,11 @@ ClientBin/
 # credentials and should never be committed.
 .env
 
+# Fetched fresh from vc-docker by base-image/README.md's build instructions right
+# before `docker build` — not committed, so a rebuild always picks up whatever
+# wait-for-it.sh vc-docker currently ships instead of a copy that can silently drift.
+docker-env-full/base-image/wait-for-it.sh
+
 node_modules/
 
 # Legacy pre-bundling actions: they have no ncc dist/ and ship their
