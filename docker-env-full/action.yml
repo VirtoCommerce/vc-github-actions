@@ -220,14 +220,13 @@ runs:
         path: ${{ github.action_path }}/publish
         key: platform-publish-packagesjson-${{ runner.os }}-${{ steps.packagesjson-hash.outputs.hash }}
         # Prefix fallback: a one-manifest-behind ./publish still warm-starts the install
-        # below — vc-build skips modules already at the manifest's exact version. The step
-        # below drops the restored copy if its platform isn't the one requested.
+        # below — vc-build skips modules already at the manifest's exact version. The next
+        # step drops the restored copy if its platform isn't the one requested.
         restore-keys: |
           platform-publish-packagesjson-${{ runner.os }}-
 
-    # vc-build can't tell one platform build from another with the same numeric version (it
-    # compares FileVersion, which drops any alpha/PR suffix), so it would silently keep a
-    # mismatched cached platform. Drop such a restore here instead.
+    # vc-build compares FileVersion, which drops any alpha/PR suffix, so it can't tell two
+    # builds of the same numeric version apart and would keep a mismatched cached platform.
     - name: Discard cached publish holding a different platform (custom packages.json)
       if: ${{ inputs.customPackagesJsonUrl != '' }}
       working-directory: ${{ github.action_path }}
@@ -255,15 +254,6 @@ runs:
         Write-Host "::group::Build platform docker image"
         docker build -f ./Dockerfile.platform --build-arg "BASE_IMAGE=$env:PLATFORM_BASE_IMAGE" -t "$($env:PLATFORM_IMAGE):$($env:PLATFORM_DOCKER_TAG)" .
         Write-Host "::endgroup::"
-
-    # vc-build never downgrades an already-installed platform (see IsPlatformInstallationNeeded),
-    # so a stale cache-restored ./publish can silently leave a newer platform than the manifest
-    # asks for — surface that here instead of only via Check Installed Modules later.
-    - name: Compare requested vs installed platform version (custom packages.json)
-      if: ${{ inputs.customPackagesJsonUrl != '' }}
-      working-directory: ${{ github.action_path }}
-      shell: pwsh
-      run: ./scripts/compare-platform-version.ps1 -ManifestPath ./packages.json
 
     - name: Install Commerce Bundle Modules
       if: ${{ inputs.installModules  == 'true' }}
@@ -322,8 +312,8 @@ runs:
         path: ${{ github.action_path }}/publish
         key: platform-publish-custommodule-${{ runner.os }}-${{ steps.custommodule-manifest-hash.outputs.hash }}
         # Prefix fallback: a one-manifest-behind ./publish still warm-starts the install
-        # below — vc-build skips modules already at the manifest's exact version. The step
-        # below drops the restored copy if its platform isn't the one requested.
+        # below — vc-build skips modules already at the manifest's exact version. The next
+        # step drops the restored copy if its platform isn't the one requested.
         restore-keys: |
           platform-publish-custommodule-${{ runner.os }}-
 
@@ -456,17 +446,16 @@ runs:
         ../docker-env/scripts/check-installed-modules.ps1 -ApiUrl http://localhost:8090 -ContainerId $platformContainer -watchUrlScriptPath ../docker-env/scripts/watch-url-up.ps1 -Password store
         Write-Host "`e[32mInstalled Modules checked."
 
-    # Same warn-only check as on the customPackagesJsonUrl branch, deliberately placed after
-    # the environment is up rather than right after the build, so it sits next to the module
-    # versions Check Installed Modules just reported. Also cleans up the manifest, which had
-    # to survive this far to be read here.
-    - name: Compare requested vs installed platform version (custom module)
-      if: ${{ inputs.installCustomModule == 'true' }}
+    # Warn-only net: the discard step should have prevented any mismatch reaching this point.
+    # Placed here, after the environment is up, so it sits next to the module versions Check
+    # Installed Modules just reported. The two branches are mutually exclusive, so one step
+    # serves both — picking the manifest each produced. (Both operands of the ternary are
+    # non-empty; an empty one would be falsy and always yield the right-hand side.)
+    - name: Compare requested vs installed platform version
+      if: ${{ inputs.customPackagesJsonUrl != '' || inputs.installCustomModule == 'true' }}
       working-directory: ${{ github.action_path }}
       shell: pwsh
-      run: |
-        ./scripts/compare-platform-version.ps1 -ManifestPath ./new-packages.json
-        Remove-Item -Path ./new-packages.json -ErrorAction SilentlyContinue
+      run: ./scripts/compare-platform-version.ps1 -ManifestPath ${{ inputs.customPackagesJsonUrl != '' && './packages.json' || './new-packages.json' }}
 
     - name: Prepare data for tests
       if: ${{ inputs.installSampleData == 'true' }}
