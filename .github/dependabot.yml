@@ -51,8 +51,11 @@ updates:
   # one setting they do honor is ignore, hence these no-op entries whose only
   # job is to carry an ignore-everything rule for deprecated/.
   - package-ecosystem: npm
+    # ** (not *) so nested manifests are covered too: retired ADO task
+    # extensions keep their package.json a level deeper than the action
+    # folder (deprecated/backendPack/backendPack/package.json).
     directories:
-      - "/deprecated/*"
+      - "/deprecated/**"
     schedule:
       interval: weekly
     open-pull-requests-limit: 0
