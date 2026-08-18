@@ -98,7 +98,6 @@ const DRIFT_STRICT = [
 // them plain text; we still capture them for classification.
 const stopToken = process.env.GITHUB_ACTIONS ? crypto.randomUUID() : null;
 let resumed = false;
-// Called before we emit our OWN ::error::, so a real finding still annotates.
 function resumeCommands() {
   if (!stopToken || resumed) return;
   resumed = true;
@@ -107,6 +106,22 @@ function resumeCommands() {
 if (stopToken) {
   process.stdout.write(`::stop-commands::${stopToken}\n`);
   process.on('exit', resumeCommands);
+}
+
+// Detail first (still inside the stop window, so any ::error:: the bundle
+// printed stays inert), then resume, then our summary. The command goes out on
+// the SAME stream as the resume token: the runner reads stdout and stderr as
+// separate pipes with no ordering guarantee, so a stderr ::error:: could be
+// processed while stop-commands is still active and silently dropped.
+function annotate(summary, detail) {
+  if (detail) {
+    // The detail echoes the bundle's captured output, which contains its own
+    // ::error:: lines. Prefix them so they cannot be parsed as commands if the
+    // runner happens to read this stream after the resume token lands.
+    process.stderr.write(`${String(detail).replace(/^::/gm, '| ::')}\n`);
+  }
+  resumeCommands();
+  process.stdout.write(`::error::${summary}\n`);
 }
 
 loadFixture();
@@ -134,9 +149,7 @@ let settled = false;
 
 function fail(reason, detail) {
   settled = true;
-  resumeCommands();
-  console.error(`::error::Bundle load failure: ${reason}`);
-  if (detail) console.error(detail);
+  annotate(`Bundle load failure: ${reason}`, detail);
   process.exit(2);
 }
 
@@ -149,10 +162,11 @@ function classify() {
   const hit = patterns.find((re) => re.test(haystack));
 
   if (hit) {
-    resumeCommands();
-    console.error(`::error::Bundle load failure: dependency API drift (matched ${hit}).`);
-    console.error('A dependency no longer exposes what the bundle calls. Captured output:');
-    console.error(haystack);
+    annotate(
+      `Bundle load failure: dependency API drift (matched ${hit}).`,
+      `A dependency no longer exposes what the bundle calls. Captured output:
+${haystack}`
+    );
     process.exitCode = 2;
     return;
   }
