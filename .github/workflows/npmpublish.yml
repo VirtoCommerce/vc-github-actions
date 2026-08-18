@@ -15,11 +15,42 @@ jobs:
 
         - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
           with:
-            node-version: '12.x'
+            # Was pinned to Node 12 (EOL since 2022, npm 6). Publishing runs no
+            # lifecycle scripts here and npm excludes package-lock.json from
+            # tarballs, so the published payload is byte-identical either way --
+            # verified against the 1.2.16 tarball, both are README.md,
+            # index.d.ts, index.js and package.json.
+            node-version-file: .nvmrc
             registry-url: 'https://registry.npmjs.org'
 
         - name: Publish vc-actions-lib
           working-directory: ./vc-actions-lib
-          run: npm publish --access public
           env:
             NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          run: |
+            name=$(node -p "require('./package.json').name")
+            version=$(node -p "require('./package.json').version")
+
+            # master publishes as latest. A workflow_dispatch from any other
+            # branch goes to the next tag instead: npm prefers the
+            # latest-tagged version whenever it satisfies the requested range,
+            # so consumers on ^1.2.x keep resolving to the current latest and
+            # are unaffected until the change is merged.
+            if [ "$GITHUB_REF" = "refs/heads/master" ]; then
+              tag=latest
+            else
+              tag=next
+            fi
+
+            if ! npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "Publishing $name@$version under tag '$tag'."
+              npm publish --access public --tag "$tag"
+            elif [ "$tag" = latest ]; then
+              # Already on the registry, pre-released from a branch dispatch.
+              # npm refuses to republish an existing version, which would turn
+              # every post-dispatch merge red, so promote the tag instead.
+              echo "::notice::$name@$version already published; promoting to latest."
+              npm dist-tag add "$name@$version" latest
+            else
+              echo "::notice::$name@$version already published under '$tag'; nothing to do."
+            fi
