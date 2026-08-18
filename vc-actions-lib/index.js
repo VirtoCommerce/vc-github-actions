@@ -12,16 +12,21 @@ const projectTypeStorefront = "storefront";
 
 const DEPENDENCIES_LABEL = 'dependencies';
 
+// glob >=9 no longer sorts its results, while glob 7 (used up to
+// vc-actions-lib 1.2.16) sorted alphabetically. findArtifact returns the FIRST
+// match, so dropping the sort would silently change which artifact is picked
+// whenever a pattern matches more than one file. Sort explicitly to keep the
+// behaviour these callers were written against.
 async function findArtifact(pattern)
 {
-    let globResult = glob.sync(pattern);
+    let globResult = glob.sync(pattern).sort();
     console.log(globResult);
     return globResult[0];
 }
 
 async function findFiles(pattern)
 {
-    let globResult = glob.sync(pattern);
+    let globResult = glob.sync(pattern).sort();
     console.log(globResult);
     return globResult;
 }
