@@ -13,20 +13,25 @@ const projectTypeStorefront = "storefront";
 const DEPENDENCIES_LABEL = 'dependencies';
 
 // glob >=9 no longer sorts its results, while glob 7 (used up to
-// vc-actions-lib 1.2.16) sorted alphabetically. findArtifact returns the FIRST
-// match, so dropping the sort would silently change which artifact is picked
-// whenever a pattern matches more than one file. Sort explicitly to keep the
-// behaviour these callers were written against.
+// vc-actions-lib 1.2.16) sorted with `a.localeCompare(b, 'en')` (its internal
+// alphasort). findArtifact returns the FIRST match, so dropping or changing the
+// sort would silently change which artifact is picked whenever a pattern
+// matches more than one file. localeCompare rather than a bare .sort(): the
+// default sort is ordinal, which orders every uppercase letter ahead of every
+// lowercase one ("Zebra.zip" before "app.zip") and so would not reproduce
+// glob 7 for mixed-case matches.
+const alphasort = (a, b) => a.localeCompare(b, 'en');
+
 async function findArtifact(pattern)
 {
-    let globResult = glob.sync(pattern).sort();
+    let globResult = glob.sync(pattern).sort(alphasort);
     console.log(globResult);
     return globResult[0];
 }
 
 async function findFiles(pattern)
 {
-    let globResult = glob.sync(pattern).sort();
+    let globResult = glob.sync(pattern).sort(alphasort);
     console.log(globResult);
     return globResult;
 }
