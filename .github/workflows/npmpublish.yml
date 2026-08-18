@@ -15,11 +15,9 @@ jobs:
 
         - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
           with:
-            # Was pinned to Node 12 (EOL since 2022, npm 6). Publishing runs no
-            # lifecycle scripts here and npm excludes package-lock.json from
-            # tarballs, so the published payload is byte-identical either way --
-            # verified against the 1.2.16 tarball, both are README.md,
-            # index.d.ts, index.js and package.json.
+            # Was Node 12 (EOL, npm 6). No lifecycle scripts run and npm never
+            # packs package-lock.json, so the payload is identical -- verified
+            # against the 1.2.16 tarball.
             node-version-file: .nvmrc
             registry-url: 'https://registry.npmjs.org'
 
@@ -31,11 +29,9 @@ jobs:
             name=$(node -p "require('./package.json').name")
             version=$(node -p "require('./package.json').version")
 
-            # master publishes as latest. A workflow_dispatch from any other
-            # branch goes to the next tag instead: npm prefers the
-            # latest-tagged version whenever it satisfies the requested range,
-            # so consumers on ^1.2.x keep resolving to the current latest and
-            # are unaffected until the change is merged.
+            # master publishes latest; any other branch publishes next. npm
+            # prefers the latest-tagged version whenever it satisfies the
+            # requested range, so consumers stay put until this is merged.
             if [ "$GITHUB_REF" = "refs/heads/master" ]; then
               tag=latest
             else
@@ -46,9 +42,8 @@ jobs:
               echo "Publishing $name@$version under tag '$tag'."
               npm publish --access public --tag "$tag"
             elif [ "$tag" = latest ]; then
-              # Already on the registry, pre-released from a branch dispatch.
-              # npm refuses to republish an existing version, which would turn
-              # every post-dispatch merge red, so promote the tag instead.
+              # Pre-released from a branch dispatch. npm refuses to republish an
+              # existing version, so promote the tag instead of failing.
               echo "::notice::$name@$version already published; promoting to latest."
               npm dist-tag add "$name@$version" latest
             else

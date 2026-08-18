@@ -45,11 +45,9 @@ updates:
         update-types:
           - "major"
 
-  # exclude-paths above only scopes VERSION updates. Security updates are driven
-  # by Dependabot alerts and scan every manifest in the repo regardless of
-  # directories/exclude-paths, so retired actions kept opening PRs anyway. The
-  # one setting they do honor is ignore, hence these no-op entries whose only
-  # job is to carry an ignore-everything rule for deprecated/.
+  # exclude-paths above scopes VERSION updates only. Security updates are alert
+  # driven and scan every manifest regardless, so retired actions kept opening
+  # PRs. They do honor ignore -- hence these no-op entries.
   - package-ecosystem: npm
     # ** (not *) so nested manifests are covered too: retired ADO task
     # extensions keep their package.json a level deeper than the action

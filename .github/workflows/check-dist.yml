@@ -7,9 +7,8 @@ name: check-dist
 on:
   pull_request:
     paths:
-      # ** rather than * so an action whose manifest sits deeper than one level
-      # cannot slip past the trigger entirely (GitHub's path globs do not match
-      # across "/", so "*/package.json" is blind to a/b/package.json).
+      # ** not *: GitHub path globs don't match across "/", so "*/package.json"
+      # is blind to a nested a/b/package.json.
       - "**/src/**"
       - "**/index.js"       # actions like changelog-generator that bundle a root index.js
       - "**/index.ts"
@@ -20,8 +19,7 @@ on:
       - ".github/workflows/check-dist.yml"
       - ".github/scripts/smoke-load.cjs"
       - ".nvmrc"
-      # dist/ is an output, not an input -- a rebuild must not re-trigger the
-      # check. deprecated/ holds retired actions that no longer gate PRs.
+      # dist/ is an output, not an input. deprecated/ no longer gates PRs.
       - "!**/dist/**"
       - "!**/node_modules/**"
       - "!deprecated/**"
@@ -49,10 +47,8 @@ jobs:
         run: |
           changed=$(git diff --name-only "origin/${BASE_REF}...HEAD")
 
-          # A change to the guard itself (or to the Node version it builds
-          # with) affects every action, and resolving it the normal way yields
-          # an empty matrix -- so the guard change would ship untested. Fan out
-          # over all actions instead.
+          # A guard or Node change affects every action, and resolving it
+          # normally yields an empty matrix -- it would ship untested.
           if echo "$changed" | grep -qE '^(\.github/workflows/check-dist\.yml|\.github/scripts/smoke-load\.cjs|\.nvmrc)$'; then
             echo "::notice::Guard or Node version changed; checking every action."
             candidates=$(git ls-files '*/package.json' \
@@ -60,12 +56,9 @@ jobs:
               | grep -Ev '^deprecated/' \
               | xargs -n1 dirname)
           else
-            # Resolve each changed file to the action it belongs to by walking
-            # up to the nearest ancestor holding a package.json, rather than
-            # assuming the action is the first path segment. The old
-            # `awk -F/ '{print $1}'` mapped a/b/package.json to "a", which then
-            # failed the package.json gate below and was silently skipped
-            # instead of built.
+            # Resolve each file to its action by walking up to the nearest
+            # package.json. The old `awk '{print $1}'` mapped a/b/package.json
+            # to "a", which then hit the gate below and was silently skipped.
             candidates=$(echo "$changed" \
               | grep -Ev '(^|/)(node_modules|dist)/' \
               | grep -Ev '^(\.github|deprecated)/' \
@@ -75,10 +68,9 @@ jobs:
                   while [ "$dir" != "." ] && [ ! -f "$dir/package.json" ]; do
                     dir=$(dirname "$dir")
                   done
-                  # if/fi rather than a && tail: the loop's exit status is its
-                  # last body command, so a trailing false test (which happens
-                  # whenever the last changed file resolves to the repo root,
-                  # e.g. the root package.json) would fail the step under set -e.
+                  # if/fi, not a && tail: the loop exits with its last body
+                  # command, so a false test on the final file (the root
+                  # package.json resolves to ".") fails the step under set -e.
                   if [ "$dir" != "." ]; then echo "$dir"; fi
                 done)
           fi
@@ -127,9 +119,8 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         if: steps.gate.outputs.skip != 'true'
         with:
-          # .nvmrc is the single source of truth so a local rebuild produces the
-          # same bytes as CI -- a Node mismatch shows up as a spurious dist/
-          # parity failure that looks like a real staleness bug.
+          # .nvmrc is the single source of truth: a Node mismatch surfaces as a
+          # spurious dist/ parity failure that looks like real staleness.
           node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: ${{ matrix.action }}/package-lock.json
@@ -149,10 +140,8 @@ jobs:
         working-directory: ${{ matrix.action }}
         timeout-minutes: 3
         run: |
-          # node --check only parses. The classifier then loads the bundle for
-          # real and judges it on what it prints -- see the header of
-          # smoke-load.cjs for why inspecting a caught exception cannot work
-          # against actions that end in run().catch(core.setFailed).
+          # node --check only parses. The classifier loads the bundle and judges
+          # what it prints -- see smoke-load.cjs for why catching won't work.
           node --check dist/index.js
           node "$GITHUB_WORKSPACE/.github/scripts/smoke-load.cjs" dist/index.js
 

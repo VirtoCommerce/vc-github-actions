@@ -1,22 +1,19 @@
 #!/usr/bin/env node
 'use strict';
 
-// Smoke-load a built action bundle and decide whether the BUNDLE is broken or
-// the action is merely refusing to run outside a real GitHub Actions runtime.
+// Smoke-load a built action bundle: is the BUNDLE broken, or is the action just
+// refusing to run outside a real runner? Exit 0 = fine, 2 = broken.
 //
-// Why this isn't a try/catch around require():
-//   Every action in this repo ends with `run().catch(err => core.setFailed(...))`.
-//   The whole body therefore executes inside a promise, require() returns before
-//   it settles, and any TypeError thrown in run() is caught by the action's own
-//   .catch and converted into a `::error::` line. It never propagates to the
-//   caller and never becomes an unhandledRejection. A caught-exception check
-//   sees a clean load no matter how badly a dependency bump broke things.
+// Not a try/catch around require(): every action here ends with
+// `run().catch(core.setFailed)`, so the body runs inside a promise, require()
+// returns before it settles, and a TypeError is swallowed by the action's own
+// .catch -- never rethrown, never an unhandledRejection. So we let it run, tee
+// its output, wait for quiet, and classify what it PRINTED.
 //
-//   So we let the bundle run, tee its output, wait for it to go quiet, and
-//   classify what it PRINTED.
-//
-// Exit codes: 0 = bundle is fine, 2 = bundle is broken.
+// Not hermetic: the bundle runs far enough to hit real network calls and
+// subprocesses (git, docker) before failing its preconditions.
 
+const crypto = require('crypto');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -25,12 +22,8 @@ const bundle = path.resolve(process.argv[2] || 'dist/index.js');
 const DRAIN_MS = Number(process.env.SMOKE_DRAIN_MS || 5000);
 const QUIET_MS = Number(process.env.SMOKE_QUIET_MS || 500);
 
-// Optional per-action fixture: KEY=VALUE lines, blanks and #comments ignored.
-// Two jobs -- supply INPUT_* values an action needs to get past its own
-// preconditions, and let an action that cannot be satisfied offline opt out of
-// strict mode with SMOKE_STRICT=0 (state the reason in a comment there).
-// Applied before the defaults below and never over an already-set variable, so
-// precedence runs: real environment > smoke.env > seeded defaults.
+// Optional per-action fixture (KEY=VALUE): supplies INPUT_* values, or opts out
+// of strict mode with SMOKE_STRICT=0. Precedence: real env > smoke.env > seeded.
 function loadFixture() {
   const file = path.join(path.dirname(bundle), '..', 'smoke.env');
   if (!fs.existsSync(file)) return;
@@ -44,21 +37,17 @@ function loadFixture() {
   }
 }
 
-// Minimal runner environment. Without it, actions that read GITHUB_REF or the
-// event payload dereference undefined and throw "Cannot read properties of
-// undefined", which is indistinguishable from real API drift by message alone.
-// Measured: 7 of 24 bundles in this repo fail that way with a bare env, and
-// all of them load cleanly once these are set. Existing values always win, so
-// a caller (or a real runner) can override any of it.
+// Minimal runner env. Without it, actions reading GITHUB_REF or the event
+// payload throw "Cannot read properties of undefined", indistinguishable from
+// real drift by message alone (7 of 24 bundles did). Existing values win.
 function seedEnvironment() {
   const eventPath = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'smoke-')), 'event.json');
   fs.writeFileSync(
     eventPath,
     JSON.stringify({
       ref: 'refs/heads/master',
-      // Present but empty: actions that walk push commits or read a PR number
-      // iterate these directly, and an absent key is a property read on
-      // undefined -- the very thing strict mode is meant to flag.
+      // Present but empty: actions iterate these directly, and an absent key
+      // is the property-read-on-undefined that strict mode flags.
       commits: [],
       number: 1,
       repository: {
@@ -86,11 +75,8 @@ function seedEnvironment() {
   }
 }
 
-// A bundle that calls into a dependency which no longer exposes what it
-// expects is the signature of API drift from a version bump -- exactly what a
-// lockfile refresh can introduce.
-//
-// These are safe to treat as fatal unconditionally: a missing input yields a
+// Calling into a dependency that no longer exposes what it expects is the
+// signature of a version bump. Fatal unconditionally: a missing input yields a
 // property read on undefined, essentially never a bad call target.
 const DRIFT = [
   /is not a function/,
@@ -99,28 +85,35 @@ const DRIFT = [
   /Cannot destructure/,
 ];
 
-// Real drift too, but also what an action does when an input it needs is
-// absent -- so these are suppressed by SMOKE_STRICT=0, for actions whose
-// preconditions cannot be met offline. V8's wording varies by Node version
-// (>=16 says "Cannot read properties of undefined", older says "Cannot read
-// property 'x' of undefined"), hence both spellings.
+// Real drift too, but also what a missing input looks like -- hence the
+// SMOKE_STRICT=0 opt-out. Both spellings: V8's wording changed in Node 16.
 const DRIFT_STRICT = [
   /Cannot read propert(?:y|ies) of (?:undefined|null)/,
   /Cannot read property '[^']*' of (?:undefined|null)/,
   /(?:undefined|null) is not an object/,
 ];
 
-// Anything else the action prints -- missing token, absent event payload,
-// unset input -- means the bundle loaded and reached its own preconditions.
-// That is a pass: we have no runner, no secrets and no event to give it.
+// The bundle's own ::error:: lines are expected here, but the runner turns each
+// into a failure annotation -- a wall of red on a green PR. stop-commands makes
+// them plain text; we still capture them for classification.
+const stopToken = process.env.GITHUB_ACTIONS ? crypto.randomUUID() : null;
+let resumed = false;
+// Called before we emit our OWN ::error::, so a real finding still annotates.
+function resumeCommands() {
+  if (!stopToken || resumed) return;
+  resumed = true;
+  process.stdout.write(`::${stopToken}::\n`);
+}
+if (stopToken) {
+  process.stdout.write(`::stop-commands::${stopToken}\n`);
+  process.on('exit', resumeCommands);
+}
 
 loadFixture();
 seedEnvironment();
 
-// Strict is the default: with the seeded environment above, 23 of the 24
-// bundles in this repo clear their own preconditions and load cleanly under
-// it. An action that genuinely cannot (needs the network, needs real secrets)
-// opts out in its smoke.env rather than weakening the check for everyone.
+// Strict by default: 23 of 24 bundles clear their preconditions under the
+// seeded env. The one that cannot opts out in its smoke.env.
 const STRICT = process.env.SMOKE_STRICT !== '0';
 
 let captured = '';
@@ -141,6 +134,7 @@ let settled = false;
 
 function fail(reason, detail) {
   settled = true;
+  resumeCommands();
   console.error(`::error::Bundle load failure: ${reason}`);
   if (detail) console.error(detail);
   process.exit(2);
@@ -155,6 +149,7 @@ function classify() {
   const hit = patterns.find((re) => re.test(haystack));
 
   if (hit) {
+    resumeCommands();
     console.error(`::error::Bundle load failure: dependency API drift (matched ${hit}).`);
     console.error('A dependency no longer exposes what the bundle calls. Captured output:');
     console.error(haystack);
@@ -162,13 +157,11 @@ function classify() {
     return;
   }
 
-  // Deliberately clear whatever exit code the bundle set for itself: a
-  // core.setFailed over a missing input is expected here, not a failure.
+  // Clear the bundle's own exit code: setFailed over a missing input is expected.
   process.exitCode = 0;
 }
 
-// Covers a bundle that calls process.exit() during load, which would otherwise
-// skip the classification below.
+// Covers a bundle that calls process.exit() during load.
 process.on('exit', classify);
 
 try {
@@ -186,8 +179,8 @@ try {
 }
 
 (async () => {
-  // Wait for run() to settle: poll until the bundle stops producing output for
-  // QUIET_MS, capped at DRAIN_MS so a bundle that opens a socket can't hang CI.
+  // Wait for run() to settle: quiet for QUIET_MS, capped at DRAIN_MS so a
+  // bundle holding a socket can't hang CI.
   const deadline = Date.now() + DRAIN_MS;
   let lastLength = -1;
   let quietSince = Date.now();
