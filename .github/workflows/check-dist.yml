@@ -7,12 +7,24 @@ name: check-dist
 on:
   pull_request:
     paths:
-      - "*/src/**"
-      - "*/index.js"        # actions like changelog-generator that bundle a root index.js
-      - "*/package.json"
-      - "*/package-lock.json"
-      - "*/tsconfig.json"
+      # ** rather than * so an action whose manifest sits deeper than one level
+      # cannot slip past the trigger entirely (GitHub's path globs do not match
+      # across "/", so "*/package.json" is blind to a/b/package.json).
+      - "**/src/**"
+      - "**/index.js"       # actions like changelog-generator that bundle a root index.js
+      - "**/index.ts"
+      - "**/package.json"
+      - "**/package-lock.json"
+      - "**/tsconfig.json"
+      - "**/smoke.env"       # per-action fixture for the smoke-load classifier
       - ".github/workflows/check-dist.yml"
+      - ".github/scripts/smoke-load.cjs"
+      - ".nvmrc"
+      # dist/ is an output, not an input -- a rebuild must not re-trigger the
+      # check. deprecated/ holds retired actions that no longer gate PRs.
+      - "!**/dist/**"
+      - "!**/node_modules/**"
+      - "!deprecated/**"
 
 permissions:
   contents: read
@@ -35,12 +47,39 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref }}
         run: |
-          dirs=$(git diff --name-only \
-            "origin/${BASE_REF}...HEAD" \
-            -- '*/src/**' '*/index.js' '*/package.json' '*/package-lock.json' '*/tsconfig.json' \
-            | awk -F/ '$1 != "" && $1 != ".github" {print $1}' \
-            | sort -u \
-            | jq -R . | jq -sc .)
+          changed=$(git diff --name-only "origin/${BASE_REF}...HEAD")
+
+          # A change to the guard itself (or to the Node version it builds
+          # with) affects every action, and resolving it the normal way yields
+          # an empty matrix -- so the guard change would ship untested. Fan out
+          # over all actions instead.
+          if echo "$changed" | grep -qE '^(\.github/workflows/check-dist\.yml|\.github/scripts/smoke-load\.cjs|\.nvmrc)$'; then
+            echo "::notice::Guard or Node version changed; checking every action."
+            candidates=$(git ls-files '*/package.json' \
+              | grep -Ev '(^|/)node_modules/' \
+              | grep -Ev '^deprecated/' \
+              | xargs -n1 dirname)
+          else
+            # Resolve each changed file to the action it belongs to by walking
+            # up to the nearest ancestor holding a package.json, rather than
+            # assuming the action is the first path segment. The old
+            # `awk -F/ '{print $1}'` mapped a/b/package.json to "a", which then
+            # failed the package.json gate below and was silently skipped
+            # instead of built.
+            candidates=$(echo "$changed" \
+              | grep -Ev '(^|/)(node_modules|dist)/' \
+              | grep -Ev '^(\.github|deprecated)/' \
+              | grep -E '(\.(js|ts|json)|/smoke\.env)$' \
+              | while IFS= read -r file; do
+                  dir=$(dirname "$file")
+                  while [ "$dir" != "." ] && [ ! -f "$dir/package.json" ]; do
+                    dir=$(dirname "$dir")
+                  done
+                  [ "$dir" != "." ] && echo "$dir"
+                done)
+          fi
+
+          dirs=$(echo "$candidates" | grep -v '^$' | sort -u | jq -R . | jq -sc .)
           echo "actions=$dirs" >> "$GITHUB_OUTPUT"
           echo "Detected: $dirs"
 
@@ -84,7 +123,10 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         if: steps.gate.outputs.skip != 'true'
         with:
-          node-version: 24
+          # .nvmrc is the single source of truth so a local rebuild produces the
+          # same bytes as CI -- a Node mismatch shows up as a spurious dist/
+          # parity failure that looks like a real staleness bug.
+          node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: ${{ matrix.action }}/package-lock.json
 
@@ -101,38 +143,14 @@ jobs:
       - name: Smoke-load the bundle
         if: steps.gate.outputs.skip != 'true'
         working-directory: ${{ matrix.action }}
+        timeout-minutes: 3
         run: |
-          # node --check only parses. require() runs module init, so a
-          # structurally broken bundle (missing internal require,
-          # undefined identifier, malformed export) surfaces here.
-          #
-          # Discriminate by error class:
-          #   - SyntaxError / ReferenceError / "Cannot find module"
-          #     => bundle is broken, exit 2 (step fails).
-          #   - Anything else (TypeError from missing env, action's own
-          #     thrown Error on missing GITHUB_TOKEN / event payload, etc.)
-          #     => bundle loaded fine, the action just can't run without
-          #     a real GHA runtime. Tolerate.
-          # process.exit(0) at the end so process.exitCode set by the
-          # bundle's run().catch(core.setFailed) doesn't fail the step.
+          # node --check only parses. The classifier then loads the bundle for
+          # real and judges it on what it prints -- see the header of
+          # smoke-load.cjs for why inspecting a caught exception cannot work
+          # against actions that end in run().catch(core.setFailed).
           node --check dist/index.js
-          node -e "
-            try { require('./dist/index.js'); }
-            catch (e) {
-              const broken =
-                e instanceof SyntaxError ||
-                e instanceof ReferenceError ||
-                (e && e.code === 'MODULE_NOT_FOUND') ||
-                /Cannot find module/i.test(e && e.message || '');
-              if (broken) {
-                console.error('Bundle load failure:', e && e.stack || e);
-                process.exit(2);
-              }
-              // Otherwise: the action threw on a runtime precondition
-              // (missing env / token / payload). Bundle is fine.
-            }
-            process.exit(0);
-          "
+          node "$GITHUB_WORKSPACE/.github/scripts/smoke-load.cjs" dist/index.js
 
       - name: Verify committed dist/ matches rebuild
         if: steps.gate.outputs.skip != 'true'
