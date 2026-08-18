@@ -75,7 +75,11 @@ jobs:
                   while [ "$dir" != "." ] && [ ! -f "$dir/package.json" ]; do
                     dir=$(dirname "$dir")
                   done
-                  [ "$dir" != "." ] && echo "$dir"
+                  # if/fi rather than a && tail: the loop's exit status is its
+                  # last body command, so a trailing false test (which happens
+                  # whenever the last changed file resolves to the repo root,
+                  # e.g. the root package.json) would fail the step under set -e.
+                  if [ "$dir" != "." ]; then echo "$dir"; fi
                 done)
           fi
 
