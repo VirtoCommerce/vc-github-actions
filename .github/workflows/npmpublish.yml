@@ -15,11 +15,37 @@ jobs:
 
         - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
           with:
-            node-version: '12.x'
+            # Was Node 12 (EOL, npm 6). No lifecycle scripts run and npm never
+            # packs package-lock.json, so the payload is identical -- verified
+            # against the 1.2.16 tarball.
+            node-version-file: .nvmrc
             registry-url: 'https://registry.npmjs.org'
 
         - name: Publish vc-actions-lib
           working-directory: ./vc-actions-lib
-          run: npm publish --access public
           env:
             NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          run: |
+            name=$(node -p "require('./package.json').name")
+            version=$(node -p "require('./package.json').version")
+
+            # master publishes latest; any other branch publishes next. npm
+            # prefers the latest-tagged version whenever it satisfies the
+            # requested range, so consumers stay put until this is merged.
+            if [ "$GITHUB_REF" = "refs/heads/master" ]; then
+              tag=latest
+            else
+              tag=next
+            fi
+
+            if ! npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "Publishing $name@$version under tag '$tag'."
+              npm publish --access public --tag "$tag"
+            elif [ "$tag" = latest ]; then
+              # Pre-released from a branch dispatch. npm refuses to republish an
+              # existing version, so promote the tag instead of failing.
+              echo "::notice::$name@$version already published; promoting to latest."
+              npm dist-tag add "$name@$version" latest
+            else
+              echo "::notice::$name@$version already published under '$tag'; nothing to do."
+            fi

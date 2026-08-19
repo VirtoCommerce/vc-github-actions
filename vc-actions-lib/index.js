@@ -12,16 +12,21 @@ const projectTypeStorefront = "storefront";
 
 const DEPENDENCIES_LABEL = 'dependencies';
 
+// glob >=9 stopped sorting; glob 7 (through 1.2.16) used localeCompare(b,'en').
+// findArtifact returns the FIRST match, so the sort decides which artifact ships.
+// Not a bare .sort(): that is ordinal, ordering "Zebra.zip" before "app.zip".
+const alphasort = (a, b) => a.localeCompare(b, 'en');
+
 async function findArtifact(pattern)
 {
-    let globResult = glob.sync(pattern);
+    let globResult = glob.sync(pattern).sort(alphasort);
     console.log(globResult);
     return globResult[0];
 }
 
 async function findFiles(pattern)
 {
-    let globResult = glob.sync(pattern);
+    let globResult = glob.sync(pattern).sort(alphasort);
     console.log(globResult);
     return globResult;
 }

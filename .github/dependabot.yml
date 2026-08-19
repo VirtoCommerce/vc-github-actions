@@ -45,24 +45,13 @@ updates:
         update-types:
           - "major"
 
-  # exclude-paths above only scopes VERSION updates. Security updates are driven
-  # by Dependabot alerts and scan every manifest in the repo regardless of
-  # directories/exclude-paths, so retired actions kept opening PRs anyway. The
-  # one setting they do honor is ignore, hence these no-op entries whose only
-  # job is to carry an ignore-everything rule for deprecated/.
-  - package-ecosystem: npm
-    directories:
-      - "/deprecated/*"
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 0
-    ignore:
-      - dependency-name: "*"
-
-  - package-ecosystem: github-actions
-    directories: ["/deprecated/**"]
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 0
-    ignore:
-      - dependency-name: "*"
+  # No deprecated/-scoped entry here, deliberately. exclude-paths above governs
+  # version updates only; security updates are alert-driven and scan every
+  # manifest regardless. Carrying an ignore rule for them needs a second entry
+  # per ecosystem, and Dependabot rejects the whole file for that: it requires a
+  # unique package-ecosystem + directory combination and compares `directories`
+  # globs without considering exclude-paths, so "/**" always reads as
+  # overlapping "/deprecated/**".
+  #
+  # Security PRs against retired actions are therefore suppressed by dismissing
+  # their alerts (Security tab -> dismiss as "not used"), not by config.
