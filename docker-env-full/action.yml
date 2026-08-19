@@ -55,13 +55,11 @@ inputs:
   platformBaseImage:
     description: |
       Pre-baked base image (see docker-env-full/base-image/) with wait-for-it.sh and
-      wkhtmltopdf already installed. Dockerfile.platform (in this action's own directory —
-      not downloaded from vc-docker) builds FROM this instead of the plain .NET runtime
-      image, so every build skips the ~20s apt-get install — that layer never changes, but
-      sat after the always-different `COPY publish` layer in vc-docker's own Dockerfile, so
-      it could never be a Docker layer-cache hit there. Only used by the two Dockerfile-build
-      branches below (customPackagesJsonUrl / installCustomModule); the installModules
-      branch pulls a fully-published image and never touches a Dockerfile at all.
+      wkhtmltopdf installed, saving ~20s of apt-get per build: in vc-docker's Dockerfile that
+      layer sat after the always-different `COPY publish`, so it could never cache-hit. Our
+      own Dockerfile.platform builds FROM this instead of the plain .NET runtime image.
+      Used only by the Dockerfile-build branches (customPackagesJsonUrl / installCustomModule);
+      installModules pulls a fully-published image and never touches a Dockerfile.
     required: false
     default: 'ghcr.io/virtocommerce/platform-base:10.0-wkhtmltopdf'
   sendgridApiKey:
@@ -78,13 +76,11 @@ inputs:
   searchProvider:
     description: |
       Search engine: elasticsearch8 | elasticsearch9 | opensearch. Picks the
-      docker-compose.search.<engine>.yml overlay, which brings up the matching engine container
-      and sets the platform's Search:Provider / Search:<Provider>:* keys in lockstep.
-
-      The platform image must ship the matching module — VirtoCommerce.ElasticSearch8,
-      VirtoCommerce.ElasticSearch9 or VirtoCommerce.OpenSearch respectively. The action cannot
-      check that; if the module is absent the platform fails on startup with a provider-not-found
-      error in its log.
+      docker-compose.search.<engine>.yml overlay, which brings up the engine container and sets
+      the platform's Search:Provider / Search:<Provider>:* keys in lockstep.
+      The platform image must ship the matching module (VirtoCommerce.ElasticSearch8 /
+      ElasticSearch9 / OpenSearch). The action cannot verify this; if it is absent the platform
+      fails on startup with a provider-not-found error in its log.
     required: false
     default: 'elasticsearch8'
   searchEngineVersion:
@@ -98,7 +94,6 @@ inputs:
     description: |
       Name of a workflow artifact containing a `docker save` tar of the platform image.
       When set, the action downloads and `docker load`s it instead of building or pulling.
-
       BREAKING CONTRACT — when this input is set, the following inputs MUST be at the listed values
       (the action will fail-fast with an actionable error otherwise):
         - installModules:        'false'  (a volume mount would otherwise shadow the baked-in modules)
@@ -463,35 +458,8 @@ runs:
             Get-Content 'early-up.log' -ErrorAction SilentlyContinue | Write-Host
             exit 1
           }
-          Write-Host "`e[32mEarly vc-db/search startup finished successfully after ~${earlyUpWaited}s wait."
+          Write-Host "`e[32mvc-db/search startup finished successfully after ~${earlyUpWaited}s wait."
         }
-
-        # wait-for-it gives up on search:9200 after 120s and the platform starts anyway, turning a
-        # dead engine into a much later, unrelated-looking failure. Fail here, with the engine log.
-        $searchContainer = "virtocommerce-search-1"
-        $searchTimeoutSeconds = 180
-        $searchWaited = 0
-        do {
-          $searchState = (docker inspect $searchContainer --format '{{.State.Status}}/{{.State.Health.Status}}' 2>$null)
-          if ($searchState -like '*healthy*' -and $searchState -notlike '*unhealthy*') { break }
-          if ($searchState -like 'exited*') { break }
-          Start-Sleep -Seconds 5
-          $searchWaited += 5
-        } while ($searchWaited -lt $searchTimeoutSeconds)
-        if ($searchState -like '*/healthy') {
-          Write-Host "`e[32mSearch engine container is healthy after ~${searchWaited}s."
-        }
-        else {
-          $searchDetail = (docker inspect $searchContainer --format 'status={{.State.Status}} exitCode={{.State.ExitCode}} oomKilled={{.State.OOMKilled}} restarts={{.RestartCount}}' 2>$null)
-          Write-Host "::error::Search engine container '$searchContainer' did not become healthy within ${searchTimeoutSeconds}s ($searchDetail). Overlay: $env:SEARCH_OVERLAY, image tag: $env:STACK_VERSION. oomKilled=true means the engine needs more memory than MEM_LIMIT allows."
-          Write-Host "::group::Search engine container log"
-          docker logs --tail 200 $searchContainer 2>&1 | Write-Host
-          Write-Host "::endgroup::"
-          exit 1
-        }
-
-        $platformContainer = "virtocommerce-vc-platform-web-1"
-        . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
 
         # Mount installed modules via a static overlay file (no PSGallery powershell-yaml).
         $composeFiles = @('-f', 'docker-compose.yml', '-f', "docker-compose.$env:DB_PROVIDER.yml", '-f', $env:SEARCH_OVERLAY)
@@ -499,6 +467,25 @@ runs:
           Write-Host "Mount installed modules via docker-compose.modules.yml overlay"
           $composeFiles += @('-f', 'docker-compose.modules.yml')
         }
+
+        # wait-for-it gives up on search:9200 after 120s and the platform starts anyway, turning a
+        # dead engine into a much later, unrelated-looking failure. Fail here, with the engine log.
+        # The container is already running (started early), so --wait just blocks on its healthcheck.
+        $searchContainer = "virtocommerce-search-1"
+        docker compose --project-name virtocommerce $composeFiles up -d --wait --wait-timeout 180 search
+        if ($LASTEXITCODE -ne 0) {
+          $searchDetail = (docker inspect $searchContainer --format 'status={{.State.Status}} exitCode={{.State.ExitCode}} oomKilled={{.State.OOMKilled}} restarts={{.RestartCount}}' 2>$null)
+          Write-Host "::error::Search engine container did not become healthy ($searchDetail). Overlay: $env:SEARCH_OVERLAY, image tag: $env:STACK_VERSION. oomKilled=true means the engine needs more memory than MEM_LIMIT allows."
+          Write-Host "::group::Search engine container log"
+          docker logs --tail 200 $searchContainer 2>&1 | Write-Host
+          Write-Host "::endgroup::"
+          exit 1
+        }
+        Write-Host "`e[32mSearch engine container is healthy."
+
+        $platformContainer = "virtocommerce-vc-platform-web-1"
+        . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
+
         # search/vc-db are already up (started early, above); only bring up the rest.
         Write-Host "::group::Start containers"
         docker compose --project-name virtocommerce $composeFiles up -d vc-platform-web nginx_frontend

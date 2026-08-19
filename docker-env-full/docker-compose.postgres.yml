@@ -10,21 +10,14 @@ services:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql
-    networks:
-      - virto
 
   vc-platform-web:
     environment:
       - DatabaseProvider=PostgreSql
       - ConnectionStrings:VirtoCommerce=User ID=postgres;Password=${DB_PASSWORD};Host=vc-db;Port=5432;Database=VirtoCommerce3docker
-    depends_on:
-      - vc-db
-      - search
     entrypoint: ["/wait-for-it.sh", "vc-db:5432", "-t", "120", "--", "/wait-for-it.sh", "search:9200", "-t", "120", "--", "dotnet", "VirtoCommerce.Platform.Web.dll"]
 
 volumes:
   postgres_data:
     driver: local
 
-networks:
-  virto:

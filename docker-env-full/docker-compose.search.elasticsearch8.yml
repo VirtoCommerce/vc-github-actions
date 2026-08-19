@@ -1,15 +1,12 @@
 # Search overlay: Elasticsearch 8.x — the action's default `searchProvider`.
-# Needs the VirtoCommerce.ElasticSearch8 module. Combine with docker-compose.yml + a <db> overlay.
+# Needs the VirtoCommerce.ElasticSearch8 module. Combine with docker-compose.yml + a <db> overlay;
+# the base supplies the engine-agnostic ports/limits/healthcheck and the searchdata volume.
 services:
 
   search:
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION:-8.18.0}
     volumes:
       - searchdata:/usr/share/elasticsearch/data
-    ports:
-      - ${SEARCH_PORT:-9200}:9200
-    networks:
-      - virto
     environment:
       - node.name=search
       - cluster.name=${CLUSTER_NAME:-elasticsearch}
@@ -21,20 +18,6 @@ services:
       - xpack.security.transport.ssl.enabled=false
       - xpack.license.self_generated.type=${LICENSE:-basic}
       - xpack.ml.use_auto_machine_memory_percent=true
-    mem_limit: ${MEM_LIMIT:-1g}
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -s http://localhost:${SEARCH_PORT:-9200}",
-        ]
-      interval: 10s
-      timeout: 10s
-      retries: 120
 
   vc-platform-web:
     environment:
@@ -44,10 +27,3 @@ services:
       - Search:ElasticSearch8:Key=${SEARCH_PASSWORD}
       # Carried over from the previous hard-coded config, to preserve behaviour.
       - Search:ElasticSearch8:EnableCompatibilityMode=true
-
-volumes:
-  searchdata:
-    driver: local
-
-networks:
-  virto:
