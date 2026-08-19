@@ -468,6 +468,31 @@ runs:
           Write-Host "`e[32mEarly vc-db/es startup finished successfully after ~${earlyUpWaited}s wait."
         }
 
+        # The platform's wait-for-it gives up on es:9200 after 120s and starts anyway, so a dead
+        # search engine used to surface only as a much later, unrelated-looking failure with no
+        # engine log anywhere in the job output. Fail here instead, with the engine's own log.
+        $esContainer = "virtocommerce-es-1"
+        $esTimeoutSeconds = 180
+        $esWaited = 0
+        do {
+          $esState = (docker inspect $esContainer --format '{{.State.Status}}/{{.State.Health.Status}}' 2>$null)
+          if ($esState -like '*healthy*' -and $esState -notlike '*unhealthy*') { break }
+          if ($esState -like 'exited*') { break }
+          Start-Sleep -Seconds 5
+          $esWaited += 5
+        } while ($esWaited -lt $esTimeoutSeconds)
+        if ($esState -like '*/healthy') {
+          Write-Host "`e[32mSearch engine container is healthy after ~${esWaited}s."
+        }
+        else {
+          $esDetail = (docker inspect $esContainer --format 'status={{.State.Status}} exitCode={{.State.ExitCode}} oomKilled={{.State.OOMKilled}} restarts={{.RestartCount}}' 2>$null)
+          Write-Host "::error::Search engine container '$esContainer' did not become healthy within ${esTimeoutSeconds}s ($esDetail). Overlay: $env:SEARCH_OVERLAY, image tag: $env:STACK_VERSION. oomKilled=true means the engine needs more memory than MEM_LIMIT allows."
+          Write-Host "::group::Search engine container log"
+          docker logs --tail 200 $esContainer 2>&1 | Write-Host
+          Write-Host "::endgroup::"
+          exit 1
+        }
+
         $platformContainer = "virtocommerce-vc-platform-web-1"
         . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
 

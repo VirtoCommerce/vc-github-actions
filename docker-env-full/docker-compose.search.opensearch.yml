@@ -21,8 +21,16 @@ services:
       - cluster.name=${CLUSTER_NAME:-opensearch}
       - discovery.type=single-node
       - bootstrap.memory_lock=true
+      # Required. Elasticsearch sizes its heap from the container's cgroup limit, so it fits
+      # MEM_LIMIT automatically; OpenSearch ships a fixed -Xms1g/-Xmx1g in jvm.options, which
+      # against mem_limit=1g gets the container OOM-killed (exit 137) before it ever binds 9200.
+      # 512m mirrors what Elasticsearch picks for itself at the same limit.
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+      # Second JVM, useless for CI and pure memory pressure inside the same limit.
+      - DISABLE_PERFORMANCE_ANALYZER_AGENT_CLI=true
       # No TLS and no auth, matching how the Elasticsearch overlays run.
       - DISABLE_SECURITY_PLUGIN=true
+      - DISABLE_INSTALL_DEMO_CONFIG=true
       # Unused while the security plugin is off, but the image's entrypoint still
       # validates it is set on 2.12+.
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${ELASTIC_PASSWORD}
