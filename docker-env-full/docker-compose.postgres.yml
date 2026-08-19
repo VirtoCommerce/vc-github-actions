@@ -10,12 +10,18 @@ services:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql
+    # Checks the seeded database specifically, so the probe only passes once initdb has
+    # finished creating it — not merely when the postmaster accepts connections.
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d VirtoCommerce3docker" ]
+      interval: 10s
+      timeout: 10s
+      retries: 30
 
   vc-platform-web:
     environment:
       - DatabaseProvider=PostgreSql
       - ConnectionStrings:VirtoCommerce=User ID=postgres;Password=${DB_PASSWORD};Host=vc-db;Port=5432;Database=VirtoCommerce3docker
-    entrypoint: ["/wait-for-it.sh", "vc-db:5432", "-t", "120", "--", "/wait-for-it.sh", "search:9200", "-t", "120", "--", "dotnet", "VirtoCommerce.Platform.Web.dll"]
 
 volumes:
   postgres_data:

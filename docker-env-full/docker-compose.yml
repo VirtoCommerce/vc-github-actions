@@ -73,9 +73,14 @@ services:
       - Notifications:DefaultSender=virto.start@virtoway.com
       - Notifications:Gateway=SendGrid
       - Notifications:SendGrid:ApiKey=${SENDGRID_API_KEY}
+    # service_healthy, not service_started: Compose refuses to create this container until both
+    # backends actually answer. Replaces the old wait-for-it entrypoint, which capped its wait at
+    # 120s and then started the platform anyway against a dead backend.
     depends_on:
-      - vc-db
-      - search
+      vc-db:
+        condition: service_healthy
+      search:
+        condition: service_healthy
     volumes:
       - cms-content-volume:/opt/virtocommerce/platform/wwwroot/cms-content
       - modules-volume:/opt/virtocommerce/platform/modules

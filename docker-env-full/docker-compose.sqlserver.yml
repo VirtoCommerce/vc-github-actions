@@ -10,10 +10,21 @@ services:
       - ACCEPT_EULA=Y
       - MSSQL_PID=Express
       - MSSQL_SA_PASSWORD=${DB_PASSWORD}
+    # $$ escapes to a literal $ so the password is read from the container's own env rather
+    # than being interpolated into the compose config. sqlcmd v18 defaults to an encrypted
+    # connection, hence -C to trust the server's self-signed cert.
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1'",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 30
 
   vc-platform-web:
     environment:
       - DatabaseProvider=SqlServer
       - ConnectionStrings:VirtoCommerce=Data Source=vc-db;Initial Catalog=VirtoCommerce3docker;Persist Security Info=True;User ID=sa;Password=${DB_PASSWORD};MultipleActiveResultSets=False;Connect Timeout=360;TrustServerCertificate=True;
-    entrypoint: ["/wait-for-it.sh", "vc-db:1433", "-t", "120", "--", "/wait-for-it.sh", "search:9200", "-t", "120", "--", "dotnet", "VirtoCommerce.Platform.Web.dll"]
 

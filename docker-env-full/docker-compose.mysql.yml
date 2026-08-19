@@ -9,12 +9,23 @@ services:
       - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
+    # $$ escapes to a literal $ so the password is read from the container's own env rather
+    # than being interpolated into the compose config. MYSQL_PWD instead of -p avoids
+    # mysqladmin's "password on the command line is insecure" warning on every probe.
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "MYSQL_PWD=\"$$MYSQL_ROOT_PASSWORD\" mysqladmin ping -h 127.0.0.1 -u root --silent",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 30
 
   vc-platform-web:
     environment:
       - DatabaseProvider=MySql
       - ConnectionStrings:VirtoCommerce=Server=vc-db;Port=3306;Database=VirtoCommerce3docker;User=root;Password=${DB_PASSWORD}
-    entrypoint: ["/wait-for-it.sh", "vc-db:3306", "-t", "120", "--", "/wait-for-it.sh", "search:9200", "-t", "120", "--", "dotnet", "VirtoCommerce.Platform.Web.dll"]
 
 volumes:
   mysql_data:
