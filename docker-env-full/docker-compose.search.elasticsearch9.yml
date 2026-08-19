@@ -1,8 +1,6 @@
-# Search overlay: Elasticsearch 9.x.
-# Selected by the action's `searchProvider: elasticsearch9` input.
-# Requires the VirtoCommerce.ElasticSearch9 module in the platform image — the action
-# cannot verify that, so the platform fails on startup if it is missing.
-# Always combined with docker-compose.yml and a docker-compose.<db>.yml overlay.
+# Search overlay: Elasticsearch 9.x (`searchProvider: elasticsearch9`).
+# Needs the VirtoCommerce.ElasticSearch9 module — unverifiable here, so a missing one surfaces
+# only as a platform startup failure. Combine with docker-compose.yml + a <db> overlay.
 services:
 
   search:

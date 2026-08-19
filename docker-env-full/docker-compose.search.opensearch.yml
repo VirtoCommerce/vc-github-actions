@@ -1,11 +1,6 @@
-# Search overlay: OpenSearch 2.x.
-# Selected by the action's `searchProvider: opensearch` input.
-# Requires the VirtoCommerce.OpenSearch module in the platform image — the action
-# cannot verify that, so the platform fails on startup if it is missing.
-# Always combined with docker-compose.yml and a docker-compose.<db>.yml overlay.
-#
-# The service is named `search`, not after the engine, so the base file's depends_on, the
-# wait-for-it entrypoints in the db overlays and the platform's Server URL stay engine-agnostic.
+# Search overlay: OpenSearch 2.x (`searchProvider: opensearch`).
+# Needs the VirtoCommerce.OpenSearch module — unverifiable here, so a missing one surfaces
+# only as a platform startup failure. Combine with docker-compose.yml + a <db> overlay.
 services:
 
   search:
@@ -21,18 +16,16 @@ services:
       - cluster.name=${CLUSTER_NAME:-opensearch}
       - discovery.type=single-node
       - bootstrap.memory_lock=true
-      # Required. Elasticsearch sizes its heap from the container's cgroup limit, so it fits
-      # MEM_LIMIT automatically; OpenSearch ships a fixed -Xms1g/-Xmx1g in jvm.options, which
-      # against mem_limit=1g gets the container OOM-killed (exit 137) before it ever binds 9200.
-      # 512m mirrors what Elasticsearch picks for itself at the same limit.
+      # Required: unlike Elasticsearch, OpenSearch does not size its heap from the cgroup limit —
+      # its fixed 1g default is OOM-killed (exit 137) under mem_limit=1g before 9200 ever binds.
+      # 512m is what Elasticsearch picks for itself at the same limit.
       - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
-      # Second JVM, useless for CI and pure memory pressure inside the same limit.
+      # A second JVM: no CI value, pure memory pressure inside the same limit.
       - DISABLE_PERFORMANCE_ANALYZER_AGENT_CLI=true
       # No TLS and no auth, matching how the Elasticsearch overlays run.
       - DISABLE_SECURITY_PLUGIN=true
       - DISABLE_INSTALL_DEMO_CONFIG=true
-      # Unused while the security plugin is off, but the image's entrypoint still
-      # validates it is set on 2.12+.
+      # Unused with security off, but the 2.12+ entrypoint still requires it to be set.
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${SEARCH_PASSWORD}
     mem_limit: ${MEM_LIMIT:-1g}
     ulimits:
@@ -52,8 +45,7 @@ services:
   vc-platform-web:
     environment:
       - Search:Provider=OpenSearch
-      # Search:OpenSearch:User / :Password are intentionally unset — the security
-      # plugin is disabled above, so the server accepts unauthenticated requests.
+      # User/Password intentionally unset: security is disabled above, so no auth is expected.
       - Search:OpenSearch:Server=http://search:${SEARCH_PORT:-9200}
 
 volumes:

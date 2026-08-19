@@ -13,16 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Base file. Provider-specific pieces live in overlays and must always be combined
-# with this file:
-#   * vc-db + the vc-platform-web DB connection string -> docker-compose.<db>.yml
-#   * the search service + the vc-platform-web Search:* keys -> docker-compose.search.<engine>.yml
-# e.g.
-#   docker compose -f docker-compose.yml \
-#                  -f docker-compose.sqlserver.yml \
+# Base file. Always combine with both overlays — docker-compose.<db>.yml (vc-db + the DB
+# connection string) and docker-compose.search.<engine>.yml (search service + Search:* keys):
+#   docker compose -f docker-compose.yml -f docker-compose.sqlserver.yml \
 #                  -f docker-compose.search.elasticsearch8.yml up -d
-#
-# The searchdata volume below stays in the base because every search overlay mounts it.
+# searchdata stays here because every search overlay mounts it.
 
 services:
 

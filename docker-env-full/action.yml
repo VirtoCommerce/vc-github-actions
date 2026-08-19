@@ -113,17 +113,15 @@ inputs:
 runs:
   using: "composite"
   steps:
-    # Runs before anything else so an unknown searchProvider fails the action before any
-    # container starts. Exports SEARCH_OVERLAY (consumed by both `docker compose` call sites
-    # below) and STACK_VERSION (interpolated into the engine image tag by the overlay).
+    # First so a bad searchProvider fails before any container starts. Exports SEARCH_OVERLAY
+    # (used by both compose calls below) and STACK_VERSION (the overlay's image tag).
     - name: Resolve search provider
       shell: pwsh
       env:
         SEARCH_PROVIDER_INPUT: ${{ inputs.searchProvider }}
         SEARCH_ENGINE_VERSION_INPUT: ${{ inputs.searchEngineVersion }}
       run: |
-        # Per-provider default engine tag, used when searchEngineVersion is empty
-        # (keep in sync with the searchEngineVersion input description).
+        # Defaults for an empty searchEngineVersion (keep in sync with its input description).
         $defaultVersions = @{
           elasticsearch8 = '8.18.0'
           elasticsearch9 = '9.5.1'
@@ -468,9 +466,8 @@ runs:
           Write-Host "`e[32mEarly vc-db/search startup finished successfully after ~${earlyUpWaited}s wait."
         }
 
-        # The platform's wait-for-it gives up on search:9200 after 120s and starts anyway, so a dead
-        # search engine used to surface only as a much later, unrelated-looking failure with no
-        # engine log anywhere in the job output. Fail here instead, with the engine's own log.
+        # wait-for-it gives up on search:9200 after 120s and the platform starts anyway, turning a
+        # dead engine into a much later, unrelated-looking failure. Fail here, with the engine log.
         $searchContainer = "virtocommerce-search-1"
         $searchTimeoutSeconds = 180
         $searchWaited = 0

@@ -1,7 +1,5 @@
-# Search overlay: Elasticsearch 8.x.
-# Selected by the action's `searchProvider: elasticsearch8` input (the default).
-# Requires the VirtoCommerce.ElasticSearch8 module in the platform image.
-# Always combined with docker-compose.yml and a docker-compose.<db>.yml overlay.
+# Search overlay: Elasticsearch 8.x — the action's default `searchProvider`.
+# Needs the VirtoCommerce.ElasticSearch8 module. Combine with docker-compose.yml + a <db> overlay.
 services:
 
   search:
@@ -44,7 +42,7 @@ services:
       - Search:ElasticSearch8:Server=http://search:${SEARCH_PORT:-9200}
       - Search:ElasticSearch8:User=elastic
       - Search:ElasticSearch8:Key=${SEARCH_PASSWORD}
-      # Carried over from the previous hard-coded config; kept to preserve behaviour.
+      # Carried over from the previous hard-coded config, to preserve behaviour.
       - Search:ElasticSearch8:EnableCompatibilityMode=true
 
 volumes:
