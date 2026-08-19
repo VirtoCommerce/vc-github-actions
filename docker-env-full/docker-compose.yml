@@ -13,45 +13,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Base file. The vc-db service and vc-platform-web DB connection settings live
-# in docker-compose.<provider>.yml overlays. Always combine with one overlay:
-#   docker compose -f docker-compose.yml -f docker-compose.sqlserver.yml up -d
+# Base file. Provider-specific pieces live in overlays and must always be combined
+# with this file:
+#   * vc-db + the vc-platform-web DB connection string -> docker-compose.<db>.yml
+#   * the es service + the vc-platform-web Search:* keys -> docker-compose.search.<engine>.yml
+# e.g.
+#   docker compose -f docker-compose.yml \
+#                  -f docker-compose.sqlserver.yml \
+#                  -f docker-compose.search.elasticsearch8.yml up -d
+#
+# The esdata01 volume below stays in the base because every search overlay mounts it.
 
 services:
-
-  es:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION:-8.18.0}
-    volumes:
-      - esdata01:/usr/share/elasticsearch/data
-    ports:
-      - ${ES_PORT:-9200}:9200
-    networks:
-      - virto
-    environment:
-      - node.name=es
-      - cluster.name=${CLUSTER_NAME:-elasticsearch}
-      - cluster.initial_master_nodes=es
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-      - bootstrap.memory_lock=true
-      - xpack.security.enabled=false
-      - xpack.security.http.ssl.enabled=false
-      - xpack.security.transport.ssl.enabled=false
-      - xpack.license.self_generated.type=${LICENSE:-basic}
-      - xpack.ml.use_auto_machine_memory_percent=true
-    mem_limit: ${MEM_LIMIT:-1g}
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -s http://localhost:${ES_PORT:-9200}",
-        ]
-      interval: 10s
-      timeout: 10s
-      retries: 120
 
   nginx_frontend:
     depends_on:
@@ -74,11 +47,6 @@ services:
       - VirtoCommerce:ApplicationInsights:RoleName=${ROLE_NAME}
       - Assets:FileSystem:PublicUrl=http://localhost:${DOCKER_PLATFORM_PORT:-8090}/assets/
       - Content:FileSystem:PublicUrl=http://localhost:${DOCKER_PLATFORM_PORT:-8090}/cms-content/
-      - Search:Provider=ElasticSearch8
-      - Search:ElasticSearch8:Server=http://es:${ES_PORT:-9200}
-      - Search:ElasticSearch8:User=elastic
-      - Search:ElasticSearch8:Key=${ELASTIC_PASSWORD}
-      - Search:ElasticSearch8:EnableCompatibilityMode=true
       - Search:PickupLocationFullTextSearchEnabled=true
       - IdentityOptions:User:MaxPasswordAge=0
       - Notifications:DefaultSender=virto.start@virtoway.com

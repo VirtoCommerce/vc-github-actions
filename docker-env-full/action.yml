@@ -75,6 +75,25 @@ inputs:
     description: 'Database provider: sqlserver | mysql | postgres'
     required: false
     default: 'sqlserver'
+  searchProvider:
+    description: |
+      Search engine: elasticsearch8 | elasticsearch9 | opensearch. Picks the
+      docker-compose.search.<engine>.yml overlay, which brings up the matching engine container
+      and sets the platform's Search:Provider / Search:<Provider>:* keys in lockstep.
+
+      The platform image must ship the matching module — VirtoCommerce.ElasticSearch8,
+      VirtoCommerce.ElasticSearch9 or VirtoCommerce.OpenSearch respectively. The action cannot
+      check that; if the module is absent the platform fails on startup with a provider-not-found
+      error in its log.
+    required: false
+    default: 'elasticsearch8'
+  searchEngineVersion:
+    description: |
+      Engine image tag, exported as STACK_VERSION. Leave empty to use the default for the
+      selected searchProvider: elasticsearch8 -> 8.18.0, elasticsearch9 -> 9.5.1,
+      opensearch -> 2.18.0.
+    required: false
+    default: ''
   prebuiltImageArtifact:
     description: |
       Name of a workflow artifact containing a `docker save` tar of the platform image.
@@ -94,7 +113,36 @@ inputs:
 runs:
   using: "composite"
   steps:
-    # Runs first so the next step can start vc-db/es early.
+    # Runs before anything else so an unknown searchProvider fails the action before any
+    # container starts. Exports SEARCH_OVERLAY (consumed by both `docker compose` call sites
+    # below) and STACK_VERSION (interpolated into the engine image tag by the overlay).
+    - name: Resolve search provider
+      shell: pwsh
+      env:
+        SEARCH_PROVIDER_INPUT: ${{ inputs.searchProvider }}
+        SEARCH_ENGINE_VERSION_INPUT: ${{ inputs.searchEngineVersion }}
+      run: |
+        # Per-provider default engine tag, used when searchEngineVersion is empty
+        # (keep in sync with the searchEngineVersion input description).
+        $defaultVersions = @{
+          elasticsearch8 = '8.18.0'
+          elasticsearch9 = '9.5.1'
+          opensearch     = '2.18.0'
+        }
+        $provider = "$env:SEARCH_PROVIDER_INPUT".Trim().ToLowerInvariant()
+        if (-not $defaultVersions.ContainsKey($provider)) {
+          $allowed = ($defaultVersions.Keys | Sort-Object) -join ', '
+          Write-Host "::error::Unknown searchProvider '$env:SEARCH_PROVIDER_INPUT'. Allowed values: $allowed."
+          exit 1
+        }
+        $version = "$env:SEARCH_ENGINE_VERSION_INPUT".Trim()
+        if (-not $version) { $version = $defaultVersions[$provider] }
+        $overlay = "docker-compose.search.$provider.yml"
+        Add-Content -Path $env:GITHUB_ENV -Value "SEARCH_OVERLAY=$overlay"
+        Add-Content -Path $env:GITHUB_ENV -Value "STACK_VERSION=$version"
+        Write-Host "`e[32mSearch provider: $provider (engine version $version, overlay $overlay)"
+
+    # Runs ahead of the container steps so the next step can start vc-db/es early.
     - name: Generate container secrets
       shell: pwsh
       env:
@@ -140,7 +188,7 @@ runs:
       run: |
         Write-Host "`e[33mStarting vc-db/es early (detached) so their cold start overlaps with the platform/frontend image build."
         Remove-Item -Path 'early-up.exitcode', 'early-up.log' -ErrorAction SilentlyContinue
-        $composeFiles = @('-f', 'docker-compose.yml', '-f', "docker-compose.$env:DB_PROVIDER.yml")
+        $composeFiles = @('-f', 'docker-compose.yml', '-f', "docker-compose.$env:DB_PROVIDER.yml", '-f', $env:SEARCH_OVERLAY)
         $composeArgs = @('compose', '--project-name', 'virtocommerce') + $composeFiles + @('up', '-d', 'es', 'vc-db')
         # Nested pwsh drops the exit code to a sentinel file for the cross-step check below,
         # since the Process object doesn't survive past this step.
@@ -424,7 +472,7 @@ runs:
         . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
 
         # Mount installed modules via a static overlay file (no PSGallery powershell-yaml).
-        $composeFiles = @('-f', 'docker-compose.yml', '-f', "docker-compose.$env:DB_PROVIDER.yml")
+        $composeFiles = @('-f', 'docker-compose.yml', '-f', "docker-compose.$env:DB_PROVIDER.yml", '-f', $env:SEARCH_OVERLAY)
         if ( $env:INSTALL_MODULES -eq 'true' ){
           Write-Host "Mount installed modules via docker-compose.modules.yml overlay"
           $composeFiles += @('-f', 'docker-compose.modules.yml')

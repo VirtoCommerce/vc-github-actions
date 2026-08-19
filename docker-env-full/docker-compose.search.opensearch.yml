@@ -1,0 +1,56 @@
+# Search overlay: OpenSearch 2.x.
+# Selected by the action's `searchProvider: opensearch` input.
+# Requires the VirtoCommerce.OpenSearch module in the platform image — the action
+# cannot verify that, so the platform fails on startup if it is missing.
+# Always combined with docker-compose.yml and a docker-compose.<db>.yml overlay.
+#
+# The service keeps the `es` name so the base file's depends_on, the wait-for-it
+# entrypoints in the db overlays, and the platform's Server URL stay provider-agnostic.
+services:
+
+  es:
+    image: opensearchproject/opensearch:${STACK_VERSION:-2.18.0}
+    volumes:
+      - esdata01:/usr/share/opensearch/data
+    ports:
+      - ${ES_PORT:-9200}:9200
+    networks:
+      - virto
+    environment:
+      - node.name=es
+      - cluster.name=${CLUSTER_NAME:-opensearch}
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      # No TLS and no auth, matching how the Elasticsearch overlays run.
+      - DISABLE_SECURITY_PLUGIN=true
+      # Unused while the security plugin is off, but the image's entrypoint still
+      # validates it is set on 2.12+.
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${ELASTIC_PASSWORD}
+    mem_limit: ${MEM_LIMIT:-1g}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s http://localhost:${ES_PORT:-9200}",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+
+  vc-platform-web:
+    environment:
+      - Search:Provider=OpenSearch
+      # Search:OpenSearch:User / :Password are intentionally unset — the security
+      # plugin is disabled above, so the server accepts unauthenticated requests.
+      - Search:OpenSearch:Server=http://es:${ES_PORT:-9200}
+
+volumes:
+  esdata01:
+    driver: local
+
+networks:
+  virto:
