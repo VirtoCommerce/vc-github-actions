@@ -19,8 +19,8 @@ services:
       - ConnectionStrings:VirtoCommerce=User ID=postgres;Password=${DB_PASSWORD};Host=vc-db;Port=5432;Database=VirtoCommerce3docker
     depends_on:
       - vc-db
-      - es
-    entrypoint: ["/wait-for-it.sh", "vc-db:5432", "-t", "120", "--", "/wait-for-it.sh", "es:9200", "-t", "120", "--", "dotnet", "VirtoCommerce.Platform.Web.dll"]
+      - search
+    entrypoint: ["/wait-for-it.sh", "vc-db:5432", "-t", "120", "--", "/wait-for-it.sh", "search:9200", "-t", "120", "--", "dotnet", "VirtoCommerce.Platform.Web.dll"]
 
 volumes:
   postgres_data:

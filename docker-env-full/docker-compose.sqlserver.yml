@@ -19,8 +19,8 @@ services:
       - ConnectionStrings:VirtoCommerce=Data Source=vc-db;Initial Catalog=VirtoCommerce3docker;Persist Security Info=True;User ID=sa;Password=${DB_PASSWORD};MultipleActiveResultSets=False;Connect Timeout=360;TrustServerCertificate=True;
     depends_on:
       - vc-db
-      - es
-    entrypoint: ["/wait-for-it.sh", "vc-db:1433", "-t", "120", "--", "/wait-for-it.sh", "es:9200", "-t", "120", "--", "dotnet", "VirtoCommerce.Platform.Web.dll"]
+      - search
+    entrypoint: ["/wait-for-it.sh", "vc-db:1433", "-t", "120", "--", "/wait-for-it.sh", "search:9200", "-t", "120", "--", "dotnet", "VirtoCommerce.Platform.Web.dll"]
 
 networks:
   virto:

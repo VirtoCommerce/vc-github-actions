@@ -142,7 +142,7 @@ runs:
         Add-Content -Path $env:GITHUB_ENV -Value "STACK_VERSION=$version"
         Write-Host "`e[32mSearch provider: $provider (engine version $version, overlay $overlay)"
 
-    # Runs ahead of the container steps so the next step can start vc-db/es early.
+    # Runs ahead of the container steps so the next step can start vc-db/search early.
     - name: Generate container secrets
       shell: pwsh
       env:
@@ -158,11 +158,11 @@ runs:
           return 'Vc!' + (-join $chars)
         }
         $dbPassword = New-RandomPassword
-        $esPassword = New-RandomPassword
+        $searchPassword = New-RandomPassword
         Write-Host "::add-mask::$dbPassword"
-        Write-Host "::add-mask::$esPassword"
+        Write-Host "::add-mask::$searchPassword"
         Add-Content -Path $env:GITHUB_ENV -Value "DB_PASSWORD=$dbPassword"
-        Add-Content -Path $env:GITHUB_ENV -Value "ELASTIC_PASSWORD=$esPassword"
+        Add-Content -Path $env:GITHUB_ENV -Value "SEARCH_PASSWORD=$searchPassword"
         # ROLE_NAME: <repo>-<run>-<attempt>-<db>.
         $repoName = "$env:GITHUB_REPOSITORY".Split('/')[-1]
         $dbSuffix = if ($env:DB_PROVIDER_INPUT) { "-$env:DB_PROVIDER_INPUT" } else { '' }
@@ -175,21 +175,21 @@ runs:
           Add-Content -Path $env:GITHUB_ENV -Value "APPLICATIONINSIGHTS_INSTRUMENTATIONKEY=$aiKey"
         }
 
-    # Starts only vc-db/es early so their cold start overlaps with the image
+    # Starts only vc-db/search early so their cold start overlaps with the image
     # build/install steps below (vc-platform-web waits on wait-for-it regardless
     # of start order, so this only helps). Launched detached (`up -d` takes ~20s)
     # so this step returns immediately; the later "Start containers" step's own
     # `up -d` is the natural sync point via depends_on.
-    - name: Start database and search engine containers early
+    - name: Start database and search engine containers
       env:
         DB_PROVIDER: ${{ inputs.databaseProvider }}
       shell: pwsh
       working-directory: ${{ github.action_path }}
       run: |
-        Write-Host "`e[33mStarting vc-db/es early (detached) so their cold start overlaps with the platform/frontend image build."
+        Write-Host "`e[33mStarting vc-db/search containers."
         Remove-Item -Path 'early-up.exitcode', 'early-up.log' -ErrorAction SilentlyContinue
         $composeFiles = @('-f', 'docker-compose.yml', '-f', "docker-compose.$env:DB_PROVIDER.yml", '-f', $env:SEARCH_OVERLAY)
-        $composeArgs = @('compose', '--project-name', 'virtocommerce') + $composeFiles + @('up', '-d', 'es', 'vc-db')
+        $composeArgs = @('compose', '--project-name', 'virtocommerce') + $composeFiles + @('up', '-d', 'search', 'vc-db')
         # Nested pwsh drops the exit code to a sentinel file for the cross-step check below,
         # since the Process object doesn't survive past this step.
         $inner = "docker $($composeArgs -join ' ') *> 'early-up.log'; `$LASTEXITCODE | Out-File -Encoding ascii 'early-up.exitcode'"
@@ -446,9 +446,9 @@ runs:
       run: |
         Write-Host "`e[33mStart Containers step started."
 
-        # Surfaces the result of the detached early es/vc-db startup, which didn't wait
+        # Surfaces the result of the detached early search/vc-db startup, which didn't wait
         # for `docker compose up` to finish.
-        Write-Host "Waiting for the early vc-db/es startup (detached above) to finish..."
+        Write-Host "Waiting for the vc-db/search startup (detached above) to finish..."
         $earlyUpTimeoutSeconds = 180
         $earlyUpWaited = 0
         while (-not (Test-Path 'early-up.exitcode') -and $earlyUpWaited -lt $earlyUpTimeoutSeconds) {
@@ -456,39 +456,39 @@ runs:
           $earlyUpWaited += 2
         }
         if (-not (Test-Path 'early-up.exitcode')) {
-          Write-Warning "early-up.exitcode never appeared after ${earlyUpTimeoutSeconds}s; the detached 'docker compose up' for es/vc-db may have hung. Proceeding anyway — the compose command below will surface any real problem."
+          Write-Warning "early-up.exitcode never appeared after ${earlyUpTimeoutSeconds}s; the detached 'docker compose up' for search/vc-db may have hung. Proceeding anyway — the compose command below will surface any real problem."
         }
         else {
           $earlyUpExitCode = (Get-Content 'early-up.exitcode' -Raw).Trim()
           if ($earlyUpExitCode -ne '0') {
-            Write-Host "::error::Early vc-db/es startup failed (exit code $earlyUpExitCode). Log:"
+            Write-Host "::error::Early vc-db/search startup failed (exit code $earlyUpExitCode). Log:"
             Get-Content 'early-up.log' -ErrorAction SilentlyContinue | Write-Host
             exit 1
           }
-          Write-Host "`e[32mEarly vc-db/es startup finished successfully after ~${earlyUpWaited}s wait."
+          Write-Host "`e[32mEarly vc-db/search startup finished successfully after ~${earlyUpWaited}s wait."
         }
 
-        # The platform's wait-for-it gives up on es:9200 after 120s and starts anyway, so a dead
+        # The platform's wait-for-it gives up on search:9200 after 120s and starts anyway, so a dead
         # search engine used to surface only as a much later, unrelated-looking failure with no
         # engine log anywhere in the job output. Fail here instead, with the engine's own log.
-        $esContainer = "virtocommerce-es-1"
-        $esTimeoutSeconds = 180
-        $esWaited = 0
+        $searchContainer = "virtocommerce-search-1"
+        $searchTimeoutSeconds = 180
+        $searchWaited = 0
         do {
-          $esState = (docker inspect $esContainer --format '{{.State.Status}}/{{.State.Health.Status}}' 2>$null)
-          if ($esState -like '*healthy*' -and $esState -notlike '*unhealthy*') { break }
-          if ($esState -like 'exited*') { break }
+          $searchState = (docker inspect $searchContainer --format '{{.State.Status}}/{{.State.Health.Status}}' 2>$null)
+          if ($searchState -like '*healthy*' -and $searchState -notlike '*unhealthy*') { break }
+          if ($searchState -like 'exited*') { break }
           Start-Sleep -Seconds 5
-          $esWaited += 5
-        } while ($esWaited -lt $esTimeoutSeconds)
-        if ($esState -like '*/healthy') {
-          Write-Host "`e[32mSearch engine container is healthy after ~${esWaited}s."
+          $searchWaited += 5
+        } while ($searchWaited -lt $searchTimeoutSeconds)
+        if ($searchState -like '*/healthy') {
+          Write-Host "`e[32mSearch engine container is healthy after ~${searchWaited}s."
         }
         else {
-          $esDetail = (docker inspect $esContainer --format 'status={{.State.Status}} exitCode={{.State.ExitCode}} oomKilled={{.State.OOMKilled}} restarts={{.RestartCount}}' 2>$null)
-          Write-Host "::error::Search engine container '$esContainer' did not become healthy within ${esTimeoutSeconds}s ($esDetail). Overlay: $env:SEARCH_OVERLAY, image tag: $env:STACK_VERSION. oomKilled=true means the engine needs more memory than MEM_LIMIT allows."
+          $searchDetail = (docker inspect $searchContainer --format 'status={{.State.Status}} exitCode={{.State.ExitCode}} oomKilled={{.State.OOMKilled}} restarts={{.RestartCount}}' 2>$null)
+          Write-Host "::error::Search engine container '$searchContainer' did not become healthy within ${searchTimeoutSeconds}s ($searchDetail). Overlay: $env:SEARCH_OVERLAY, image tag: $env:STACK_VERSION. oomKilled=true means the engine needs more memory than MEM_LIMIT allows."
           Write-Host "::group::Search engine container log"
-          docker logs --tail 200 $esContainer 2>&1 | Write-Host
+          docker logs --tail 200 $searchContainer 2>&1 | Write-Host
           Write-Host "::endgroup::"
           exit 1
         }
@@ -502,7 +502,7 @@ runs:
           Write-Host "Mount installed modules via docker-compose.modules.yml overlay"
           $composeFiles += @('-f', 'docker-compose.modules.yml')
         }
-        # es/vc-db are already up (started early, above); only bring up the rest.
+        # search/vc-db are already up (started early, above); only bring up the rest.
         Write-Host "::group::Start containers"
         docker compose --project-name virtocommerce $composeFiles up -d vc-platform-web nginx_frontend
         Write-Host "::endgroup::"

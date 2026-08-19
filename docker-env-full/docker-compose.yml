@@ -16,13 +16,13 @@
 # Base file. Provider-specific pieces live in overlays and must always be combined
 # with this file:
 #   * vc-db + the vc-platform-web DB connection string -> docker-compose.<db>.yml
-#   * the es service + the vc-platform-web Search:* keys -> docker-compose.search.<engine>.yml
+#   * the search service + the vc-platform-web Search:* keys -> docker-compose.search.<engine>.yml
 # e.g.
 #   docker compose -f docker-compose.yml \
 #                  -f docker-compose.sqlserver.yml \
 #                  -f docker-compose.search.elasticsearch8.yml up -d
 #
-# The esdata01 volume below stays in the base because every search overlay mounts it.
+# The searchdata volume below stays in the base because every search overlay mounts it.
 
 services:
 
@@ -53,7 +53,7 @@ services:
       - Notifications:Gateway=SendGrid
       - Notifications:SendGrid:ApiKey=${SENDGRID_API_KEY}
     depends_on:
-      - es
+      - search
     volumes:
       - cms-content-volume:/opt/virtocommerce/platform/wwwroot/cms-content
       - modules-volume:/opt/virtocommerce/platform/modules
@@ -66,7 +66,7 @@ volumes:
     name: cms-content-data
   modules-volume:
     name: modules-data
-  esdata01:
+  searchdata:
     driver: local
 
 networks:
