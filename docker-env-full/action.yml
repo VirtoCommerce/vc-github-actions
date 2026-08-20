@@ -123,6 +123,7 @@ runs:
         SEARCH_PROVIDER_INPUT: ${{ inputs.searchProvider }}
         SEARCH_ENGINE_VERSION_INPUT: ${{ inputs.searchEngineVersion }}
         CUSTOM_MODULE_ID_INPUT: ${{ inputs.customModuleId }}
+        CUSTOM_PACKAGES_JSON_URL_INPUT: ${{ inputs.customPackagesJsonUrl }}
       run: |
         # Defaults for an empty searchEngineVersion (keep in sync with its input description).
         $defaultVersions = @{
@@ -130,8 +131,6 @@ runs:
           elasticsearch9 = '9.5.1'
           opensearch     = '2.18.0'
         }
-        # A provider module under test is the only case that isn't ElasticSearch8: every other
-        # path installs the commerce bundle module list, which carries ElasticSearch8.
         $providerModules = @{
           'virtocommerce.elasticsearch8' = 'elasticsearch8'
           'virtocommerce.elasticsearch9' = 'elasticsearch9'
@@ -139,14 +138,36 @@ runs:
         }
         $provider = "$env:SEARCH_PROVIDER_INPUT".Trim().ToLowerInvariant()
         $source = 'searchProvider input'
+
+        # A provider module under test names its own engine.
         if (-not $provider) {
           $moduleId = "$env:CUSTOM_MODULE_ID_INPUT".Trim().ToLowerInvariant()
           if ($providerModules.ContainsKey($moduleId)) {
             $provider = $providerModules[$moduleId]
             $source = "customModuleId ($env:CUSTOM_MODULE_ID_INPUT)"
           }
-          else { $provider = 'elasticsearch8'; $source = 'default' }
         }
+
+        # A custom manifest may pin a provider other than the bundle's ElasticSearch8 — running
+        # its client against the wrong engine fails with an opaque protocol error, not a clear one.
+        $packagesUrl = "$env:CUSTOM_PACKAGES_JSON_URL_INPUT".Trim()
+        if (-not $provider -and $packagesUrl) {
+          try {
+            $manifest = (Invoke-WebRequest -Uri $packagesUrl -UseBasicParsing).Content | ConvertFrom-Json
+            $found = @($manifest.Sources.Modules.Id |
+              Where-Object { $_ -and $providerModules.ContainsKey("$_".ToLowerInvariant()) } |
+              ForEach-Object { $providerModules["$_".ToLowerInvariant()] } |
+              Select-Object -Unique)
+            # Only a manifest pinning exactly one provider states an intent; several means none.
+            if ($found.Count -eq 1) { $provider = $found[0]; $source = 'customPackagesJsonUrl' }
+          }
+          catch {
+            Write-Warning "Could not read $packagesUrl to detect a search provider ($($_.Exception.Message)); falling back to the default."
+          }
+        }
+
+        # installModules and prebuiltImageArtifact land here: the bundle carries ElasticSearch8.
+        if (-not $provider) { $provider = 'elasticsearch8'; $source = 'default' }
         if (-not $defaultVersions.ContainsKey($provider)) {
           $allowed = ($defaultVersions.Keys | Sort-Object) -join ', '
           Write-Host "::error::Unknown searchProvider '$env:SEARCH_PROVIDER_INPUT'. Allowed values: $allowed."
