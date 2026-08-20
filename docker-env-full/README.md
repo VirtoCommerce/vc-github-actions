@@ -107,15 +107,15 @@ Runs Docker Environment
 
     description: |
       Search engine: elasticsearch8 | elasticsearch9 | opensearch. Picks the
-      docker-compose.search.<engine>.yml overlay, which brings up the matching engine container
-      and sets the platform's Search:Provider / Search:<Provider>:* keys in lockstep.
-
-      The platform image must ship the matching module — VirtoCommerce.ElasticSearch8,
-      VirtoCommerce.ElasticSearch9 or VirtoCommerce.OpenSearch respectively. The action cannot
-      check that; if the module is absent the platform fails on startup with a provider-not-found
-      error in its log.
+      docker-compose.search.<engine>.yml overlay, which brings up the engine container and sets
+      the platform's Search:Provider / Search:<Provider>:* keys in lockstep.
+      Leave empty to resolve automatically: a customModuleId of VirtoCommerce.ElasticSearch8 /
+      ElasticSearch9 / OpenSearch selects that engine, everything else gets elasticsearch8 —
+      which is what the commerce bundle module list installs anyway.
+      The platform image must ship the matching module. The action cannot verify this; if it is
+      absent the platform fails on startup with a provider-not-found error in its log.
     required: false
-    default: 'elasticsearch8'
+    default: ''
 
 ### searchEngineVersion:
 
@@ -159,5 +159,5 @@ Runs Docker Environment
     testSecretEnvFile: ${{ secrets.TEST_SECRET_ENV_FILE }}
     sendgridApiKey: ${{ secrets.SENDGRID_API_KEY }}
     databaseProvider: 'sqlserver'
-    searchProvider: 'elasticsearch8'
+    # searchProvider omitted: resolved from customModuleId, defaulting to elasticsearch8.
 ```

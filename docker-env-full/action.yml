@@ -78,11 +78,13 @@ inputs:
       Search engine: elasticsearch8 | elasticsearch9 | opensearch. Picks the
       docker-compose.search.<engine>.yml overlay, which brings up the engine container and sets
       the platform's Search:Provider / Search:<Provider>:* keys in lockstep.
-      The platform image must ship the matching module (VirtoCommerce.ElasticSearch8 /
-      ElasticSearch9 / OpenSearch). The action cannot verify this; if it is absent the platform
-      fails on startup with a provider-not-found error in its log.
+      Leave empty to resolve automatically: a customModuleId of VirtoCommerce.ElasticSearch8 /
+      ElasticSearch9 / OpenSearch selects that engine, everything else gets elasticsearch8 —
+      which is what the commerce bundle module list installs anyway.
+      The platform image must ship the matching module. The action cannot verify this; if it is
+      absent the platform fails on startup with a provider-not-found error in its log.
     required: false
-    default: 'elasticsearch8'
+    default: ''
   searchEngineVersion:
     description: |
       Engine image tag, exported as STACK_VERSION. Leave empty to use the default for the
@@ -105,16 +107,22 @@ inputs:
     description: 'Application Insights instrumentation key (GUID). Passed to the platform container as `ApplicationInsights:InstrumentationKey`.'
     required: false
     default: ''
+outputs:
+  searchProvider:
+    description: 'The resolved search engine: elasticsearch8 | elasticsearch9 | opensearch.'
+    value: ${{ steps.resolve-search.outputs.provider }}
 runs:
   using: "composite"
   steps:
     # First so a bad searchProvider fails before any container starts. Exports SEARCH_OVERLAY
     # (used by both compose calls below) and STACK_VERSION (the overlay's image tag).
     - name: Resolve search provider
+      id: resolve-search
       shell: pwsh
       env:
         SEARCH_PROVIDER_INPUT: ${{ inputs.searchProvider }}
         SEARCH_ENGINE_VERSION_INPUT: ${{ inputs.searchEngineVersion }}
+        CUSTOM_MODULE_ID_INPUT: ${{ inputs.customModuleId }}
       run: |
         # Defaults for an empty searchEngineVersion (keep in sync with its input description).
         $defaultVersions = @{
@@ -122,7 +130,23 @@ runs:
           elasticsearch9 = '9.5.1'
           opensearch     = '2.18.0'
         }
+        # A provider module under test is the only case that isn't ElasticSearch8: every other
+        # path installs the commerce bundle module list, which carries ElasticSearch8.
+        $providerModules = @{
+          'virtocommerce.elasticsearch8' = 'elasticsearch8'
+          'virtocommerce.elasticsearch9' = 'elasticsearch9'
+          'virtocommerce.opensearch'     = 'opensearch'
+        }
         $provider = "$env:SEARCH_PROVIDER_INPUT".Trim().ToLowerInvariant()
+        $source = 'searchProvider input'
+        if (-not $provider) {
+          $moduleId = "$env:CUSTOM_MODULE_ID_INPUT".Trim().ToLowerInvariant()
+          if ($providerModules.ContainsKey($moduleId)) {
+            $provider = $providerModules[$moduleId]
+            $source = "customModuleId ($env:CUSTOM_MODULE_ID_INPUT)"
+          }
+          else { $provider = 'elasticsearch8'; $source = 'default' }
+        }
         if (-not $defaultVersions.ContainsKey($provider)) {
           $allowed = ($defaultVersions.Keys | Sort-Object) -join ', '
           Write-Host "::error::Unknown searchProvider '$env:SEARCH_PROVIDER_INPUT'. Allowed values: $allowed."
@@ -133,7 +157,10 @@ runs:
         $overlay = "docker-compose.search.$provider.yml"
         Add-Content -Path $env:GITHUB_ENV -Value "SEARCH_OVERLAY=$overlay"
         Add-Content -Path $env:GITHUB_ENV -Value "STACK_VERSION=$version"
-        Write-Host "`e[32mSearch provider: $provider (engine version $version, overlay $overlay)"
+        # SEARCH_PROVIDER feeds ROLE_NAME below; the output lets callers name artifacts per engine.
+        Add-Content -Path $env:GITHUB_ENV -Value "SEARCH_PROVIDER=$provider"
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "provider=$provider"
+        Write-Host "`e[32mSearch provider: $provider (engine version $version, from $source)"
 
     # Runs ahead of the container steps so the next step can start vc-db/search early.
     - name: Generate container secrets
@@ -156,10 +183,12 @@ runs:
         Write-Host "::add-mask::$searchPassword"
         Add-Content -Path $env:GITHUB_ENV -Value "DB_PASSWORD=$dbPassword"
         Add-Content -Path $env:GITHUB_ENV -Value "SEARCH_PASSWORD=$searchPassword"
-        # ROLE_NAME: <repo>-<run>-<attempt>-<db>.
+        # ROLE_NAME: <repo>-<run>-<attempt>-<db>-<search>. Both suffixes are needed to keep
+        # telemetry separable when one run exercises several backend combinations.
         $repoName = "$env:GITHUB_REPOSITORY".Split('/')[-1]
         $dbSuffix = if ($env:DB_PROVIDER_INPUT) { "-$env:DB_PROVIDER_INPUT" } else { '' }
-        $roleName = "$repoName-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT$dbSuffix"
+        $searchSuffix = if ($env:SEARCH_PROVIDER) { "-$env:SEARCH_PROVIDER" } else { '' }
+        $roleName = "$repoName-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT$dbSuffix$searchSuffix"
         Add-Content -Path $env:GITHUB_ENV -Value "ROLE_NAME=$roleName"
         Write-Host "Application Insights role name: $roleName"
         $aiKey = $env:APP_INSIGHTS_IKEY_INPUT
