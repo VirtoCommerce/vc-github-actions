@@ -85,13 +85,6 @@ inputs:
       installed only the newer one loads and the engine must match it.
     required: false
     default: ''
-  searchEngineVersion:
-    description: |
-      Engine image tag, exported as STACK_VERSION. Leave empty to use the default for the
-      selected searchProvider: elasticsearch8 -> 8.18.0, elasticsearch9 -> 9.5.1,
-      opensearch -> 2.18.0.
-    required: false
-    default: ''
   prebuiltImageArtifact:
     description: |
       Name of a workflow artifact containing a `docker save` tar of the platform image.
@@ -115,32 +108,29 @@ runs:
   using: "composite"
   steps:
     # First so a bad searchProvider fails before any container starts. Exports SEARCH_OVERLAY
-    # (used by both compose calls below) and STACK_VERSION (the overlay's image tag).
+    # (both compose calls below) and STACK_VERSION (the engine image tag).
     - name: Resolve search provider
       id: resolve-search
       shell: pwsh
       env:
         SEARCH_PROVIDER_INPUT: ${{ inputs.searchProvider }}
-        SEARCH_ENGINE_VERSION_INPUT: ${{ inputs.searchEngineVersion }}
       run: |
-        # Defaults for an empty searchEngineVersion (keep in sync with its input description).
-        $defaultVersions = @{
+        # The one place engine image tags are pinned — each overlay reads STACK_VERSION and has no
+        # default of its own. Doubles as the allow-list. Which engine suits a given module set is
+        # the caller's call.
+        $engineVersions = @{
           elasticsearch8 = '8.18.0'
           elasticsearch9 = '9.5.1'
           opensearch     = '2.18.0'
         }
-        # Which engine suits a given module set is the caller's call — pytest-tests.yml derives it
-        # from customModuleId / customPackagesJsonUrl once, for the whole matrix.
         $provider = "$env:SEARCH_PROVIDER_INPUT".Trim().ToLowerInvariant()
         $source = 'searchProvider input'
         if (-not $provider) { $provider = 'elasticsearch8'; $source = 'default' }
-        if (-not $defaultVersions.ContainsKey($provider)) {
-          $allowed = ($defaultVersions.Keys | Sort-Object) -join ', '
-          Write-Host "::error::Unknown searchProvider '$env:SEARCH_PROVIDER_INPUT'. Allowed values: $allowed."
+        if (-not $engineVersions.ContainsKey($provider)) {
+          Write-Host "::error::Unknown searchProvider '$env:SEARCH_PROVIDER_INPUT'. Allowed values: $(($engineVersions.Keys | Sort-Object) -join ', ')."
           exit 1
         }
-        $version = "$env:SEARCH_ENGINE_VERSION_INPUT".Trim()
-        if (-not $version) { $version = $defaultVersions[$provider] }
+        $version = $engineVersions[$provider]
         $overlay = "docker-compose.search.$provider.yml"
         Add-Content -Path $env:GITHUB_ENV -Value "SEARCH_OVERLAY=$overlay"
         Add-Content -Path $env:GITHUB_ENV -Value "STACK_VERSION=$version"
@@ -170,12 +160,13 @@ runs:
         Write-Host "::add-mask::$searchPassword"
         Add-Content -Path $env:GITHUB_ENV -Value "DB_PASSWORD=$dbPassword"
         Add-Content -Path $env:GITHUB_ENV -Value "SEARCH_PASSWORD=$searchPassword"
-        # ROLE_NAME: <repo>-<run>-<attempt>-<db>-<search>. Both suffixes are needed to keep
-        # telemetry separable when one run exercises several backend combinations.
+        # ROLE_NAME: <repo>-<run>-<attempt>-<db>-<search>. Both backends are named to keep
+        # telemetry separable when one run exercises several combinations. SEARCH_PROVIDER is
+        # always set — resolve-search either exports it or fails the action — while the db
+        # suffix stays guarded, since databaseProvider reaches us straight from the caller.
         $repoName = "$env:GITHUB_REPOSITORY".Split('/')[-1]
         $dbSuffix = if ($env:DB_PROVIDER_INPUT) { "-$env:DB_PROVIDER_INPUT" } else { '' }
-        $searchSuffix = if ($env:SEARCH_PROVIDER) { "-$env:SEARCH_PROVIDER" } else { '' }
-        $roleName = "$repoName-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT$dbSuffix$searchSuffix"
+        $roleName = "$repoName-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT$dbSuffix-$env:SEARCH_PROVIDER"
         Add-Content -Path $env:GITHUB_ENV -Value "ROLE_NAME=$roleName"
         Write-Host "Application Insights role name: $roleName"
         $aiKey = $env:APP_INSIGHTS_IKEY_INPUT
@@ -184,11 +175,9 @@ runs:
           Add-Content -Path $env:GITHUB_ENV -Value "APPLICATIONINSIGHTS_INSTRUMENTATIONKEY=$aiKey"
         }
 
-    # Starts only vc-db/search early so their cold start overlaps with the image
-    # build/install steps below (vc-platform-web waits on wait-for-it regardless
-    # of start order, so this only helps). Launched detached (`up -d` takes ~20s)
-    # so this step returns immediately; the later "Start containers" step's own
-    # `up -d` is the natural sync point via depends_on.
+    # Only vc-db/search, so their cold start overlaps the image build/install steps below.
+    # Detached (`up -d` takes ~20s) so this step returns immediately; "Start containers"
+    # collects the exit code and waits on health.
     - name: Start database and search engine containers
       env:
         DB_PROVIDER: ${{ inputs.databaseProvider }}
@@ -199,8 +188,8 @@ runs:
         Remove-Item -Path 'early-up.exitcode', 'early-up.log' -ErrorAction SilentlyContinue
         $composeFiles = @('-f', 'docker-compose.yml', '-f', "docker-compose.$env:DB_PROVIDER.yml", '-f', $env:SEARCH_OVERLAY)
         $composeArgs = @('compose', '--project-name', 'virtocommerce') + $composeFiles + @('up', '-d', 'search', 'vc-db')
-        # Nested pwsh drops the exit code to a sentinel file for the cross-step check below,
-        # since the Process object doesn't survive past this step.
+        # Nested pwsh drops the exit code to a sentinel file: the Process object doesn't
+        # survive past this step.
         $inner = "docker $($composeArgs -join ' ') *> 'early-up.log'; `$LASTEXITCODE | Out-File -Encoding ascii 'early-up.exitcode'"
         Start-Process -FilePath 'pwsh' -ArgumentList '-NoProfile', '-Command', $inner -NoNewWindow -WorkingDirectory $PWD.Path
 
@@ -455,8 +444,8 @@ runs:
       run: |
         Write-Host "`e[33mStart Containers step started."
 
-        # Surfaces the result of the detached early search/vc-db startup, which didn't wait
-        # for `docker compose up` to finish.
+        # Surfaces the result of the detached search/vc-db startup, which didn't wait for
+        # `docker compose up` to finish.
         Write-Host "Waiting for the vc-db/search startup (detached above) to finish..."
         $earlyUpTimeoutSeconds = 180
         $earlyUpWaited = 0
@@ -484,14 +473,14 @@ runs:
           $composeFiles += @('-f', 'docker-compose.modules.yml')
         }
 
-        # wait-for-it gives up on search:9200 after 120s and the platform starts anyway, turning a
-        # dead engine into a much later, unrelated-looking failure. Fail here, with the engine log.
-        # The container is already running (started early), so --wait just blocks on its healthcheck.
+        # Fail here, with the engine log, rather than letting a dead engine surface later as an
+        # unrelated-looking platform failure. Already running (started early), so --wait only
+        # blocks on the healthcheck.
         $searchContainer = "virtocommerce-search-1"
         docker compose --project-name virtocommerce $composeFiles up -d --wait --wait-timeout 180 search
         if ($LASTEXITCODE -ne 0) {
-          $searchDetail = (docker inspect $searchContainer --format 'status={{.State.Status}} exitCode={{.State.ExitCode}} oomKilled={{.State.OOMKilled}} restarts={{.RestartCount}}' 2>$null)
-          Write-Host "::error::Search engine container did not become healthy ($searchDetail). Overlay: $env:SEARCH_OVERLAY, image tag: $env:STACK_VERSION. oomKilled=true means the engine needs more memory than MEM_LIMIT allows."
+          $searchDetail = (docker inspect $searchContainer --format 'image={{.Config.Image}} status={{.State.Status}} exitCode={{.State.ExitCode}} oomKilled={{.State.OOMKilled}} restarts={{.RestartCount}}' 2>$null)
+          Write-Host "::error::Search engine container did not become healthy ($searchDetail). Overlay: $env:SEARCH_OVERLAY. oomKilled=true means the engine needs more memory than MEM_LIMIT allows."
           Write-Host "::group::Search engine container log"
           docker logs --tail 200 $searchContainer 2>&1 | Write-Host
           Write-Host "::endgroup::"
@@ -502,10 +491,23 @@ runs:
         $platformContainer = "virtocommerce-vc-platform-web-1"
         . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
 
-        # search/vc-db are already up (started early, above); only bring up the rest.
+        # search/vc-db are already up (started early, above); only bring up the rest. This is
+        # also where depends_on first blocks on vc-db's health — nothing waits on it earlier.
+        # Unchecked, a never-healthy database leaves no vc-platform-web container and the
+        # inspect below would poll a nonexistent one for its full timeout.
         Write-Host "::group::Start containers"
         docker compose --project-name virtocommerce $composeFiles up -d vc-platform-web nginx_frontend
+        $upExitCode = $LASTEXITCODE
         Write-Host "::endgroup::"
+        if ($upExitCode -ne 0) {
+          $dbContainer = "virtocommerce-vc-db-1"
+          $dbDetail = (docker inspect $dbContainer --format 'status={{.State.Status}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}} exitCode={{.State.ExitCode}} oomKilled={{.State.OOMKilled}}' 2>$null)
+          Write-Host "::error::Failed to start vc-platform-web/nginx_frontend (exit code $upExitCode). Database container: $dbDetail. A 'dependency failed to start' message above means vc-db never passed its healthcheck."
+          Write-Host "::group::Database container log"
+          docker logs --tail 200 $dbContainer 2>&1 | Write-Host
+          Write-Host "::endgroup::"
+          exit 1
+        }
         InspectContainerStatus -ContainerId $platformContainer -TimeoutMinutes 5 -RetrySeconds 3 -WaitSeconds 0
         Write-Host "`e[32mAll containers started."
 

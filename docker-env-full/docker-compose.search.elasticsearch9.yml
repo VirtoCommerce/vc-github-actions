@@ -1,11 +1,11 @@
-# Search overlay: Elasticsearch 9.x (`searchProvider: elasticsearch9`).
-# Needs the VirtoCommerce.ElasticSearch9 module — unverifiable here, so a missing one surfaces
-# only as a platform startup failure. Combine with docker-compose.yml + a <db> overlay;
-# the base supplies the engine-agnostic ports/limits/healthcheck and the searchdata volume.
+# Search overlay: Elasticsearch 9.x (`searchProvider: elasticsearch9`). Needs the
+# VirtoCommerce.ElasticSearch9 module — unverifiable here, so a missing one surfaces only as a
+# platform startup failure. Combine with docker-compose.yml + a <db> overlay, which supply the
+# engine-agnostic ports/limits/healthcheck and the searchdata volume.
 services:
 
   search:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION:-9.5.1}
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION:?}
     volumes:
       - searchdata:/usr/share/elasticsearch/data
     environment:
@@ -23,6 +23,6 @@ services:
   vc-platform-web:
     environment:
       - Search:Provider=ElasticSearch9
-      - Search:ElasticSearch9:Server=http://search:${SEARCH_PORT:-9200}
+      - Search:ElasticSearch9:Server=http://search:9200
       - Search:ElasticSearch9:User=elastic
       - Search:ElasticSearch9:Key=${SEARCH_PASSWORD}

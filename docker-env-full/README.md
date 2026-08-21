@@ -109,20 +109,11 @@ Runs Docker Environment
       Search engine: elasticsearch8 | elasticsearch9 | opensearch. Picks the
       docker-compose.search.<engine>.yml overlay, which brings up the engine container and sets
       the platform's Search:Provider / Search:<Provider>:* keys in lockstep.
-      Leave empty to resolve automatically: a customModuleId of VirtoCommerce.ElasticSearch8 /
-      ElasticSearch9 / OpenSearch selects that engine, everything else gets elasticsearch8 —
-      which is what the commerce bundle module list installs anyway.
+      Defaults to elasticsearch8, which is what the commerce bundle module list installs.
       The platform image must ship the matching module. The action cannot verify this; if it is
       absent the platform fails on startup with a provider-not-found error in its log.
-    required: false
-    default: ''
-
-### searchEngineVersion:
-
-    description: |
-      Engine image tag, exported as STACK_VERSION. Leave empty to use the default for the
-      selected searchProvider: elasticsearch8 -> 8.18.0, elasticsearch9 -> 9.5.1,
-      opensearch -> 2.18.0.
+      Note ElasticSearch8 and ElasticSearch9 share one client assembly, so when both modules are
+      installed only the newer one loads and the engine must match it.
     required: false
     default: ''
 
@@ -146,10 +137,17 @@ Runs Docker Environment
     required: false
     default: ''
 
+## outputs:
+
+### searchProvider:
+
+    description: 'The resolved search engine: elasticsearch8 | elasticsearch9 | opensearch.'
+
 ## Example of usage
 
 ```yaml
 - name: Run Docker Environment
+  id: dockerEnv
   uses: VirtoCommerce/vc-github-actions/docker-env-full@master
   with:
     installModules: 'true'
@@ -159,5 +157,6 @@ Runs Docker Environment
     testSecretEnvFile: ${{ secrets.TEST_SECRET_ENV_FILE }}
     sendgridApiKey: ${{ secrets.SENDGRID_API_KEY }}
     databaseProvider: 'sqlserver'
-    # searchProvider omitted: resolved from customModuleId, defaulting to elasticsearch8.
+    # searchProvider omitted: defaults to elasticsearch8. Set it explicitly when the platform
+    # image ships a different search module (elasticsearch9 | opensearch).
 ```

@@ -10,9 +10,8 @@ services:
       - ACCEPT_EULA=Y
       - MSSQL_PID=Express
       - MSSQL_SA_PASSWORD=${DB_PASSWORD}
-    # $$ escapes to a literal $ so the password is read from the container's own env rather
-    # than being interpolated into the compose config. sqlcmd v18 defaults to an encrypted
-    # connection, hence -C to trust the server's self-signed cert.
+    # $$ escapes to a literal $: the password comes from the container's own env, not from
+    # compose interpolation. -C trusts the self-signed cert sqlcmd v18 now insists on.
     healthcheck:
       test:
         [

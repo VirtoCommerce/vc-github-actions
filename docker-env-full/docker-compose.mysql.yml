@@ -9,9 +9,8 @@ services:
       - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
-    # $$ escapes to a literal $ so the password is read from the container's own env rather
-    # than being interpolated into the compose config. MYSQL_PWD instead of -p avoids
-    # mysqladmin's "password on the command line is insecure" warning on every probe.
+    # $$ escapes to a literal $: the password comes from the container's own env, not from
+    # compose interpolation. MYSQL_PWD over -p to skip mysqladmin's "insecure" warning.
     healthcheck:
       test:
         [
