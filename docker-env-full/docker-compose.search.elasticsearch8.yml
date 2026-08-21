@@ -25,5 +25,3 @@ services:
       - Search:ElasticSearch8:Server=http://search:${SEARCH_PORT:-9200}
       - Search:ElasticSearch8:User=elastic
       - Search:ElasticSearch8:Key=${SEARCH_PASSWORD}
-      # Carried over from the previous hard-coded config, to preserve behaviour.
-      - Search:ElasticSearch8:EnableCompatibilityMode=true
