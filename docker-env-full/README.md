@@ -137,17 +137,10 @@ Runs Docker Environment
     required: false
     default: ''
 
-## outputs:
-
-### searchProvider:
-
-    description: 'The resolved search engine: elasticsearch8 | elasticsearch9 | opensearch.'
-
 ## Example of usage
 
 ```yaml
 - name: Run Docker Environment
-  id: dockerEnv
   uses: VirtoCommerce/vc-github-actions/docker-env-full@master
   with:
     installModules: 'true'
