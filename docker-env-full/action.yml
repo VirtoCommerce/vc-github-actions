@@ -100,24 +100,15 @@ inputs:
     description: 'Application Insights instrumentation key (GUID). Passed to the platform container as `ApplicationInsights:InstrumentationKey`.'
     required: false
     default: ''
-outputs:
-  searchProvider:
-    description: 'The resolved search engine: elasticsearch8 | elasticsearch9 | opensearch.'
-    value: ${{ steps.resolve-search.outputs.provider }}
 runs:
   using: "composite"
   steps:
-    # First so a bad searchProvider fails before any container starts. Exports SEARCH_OVERLAY
-    # (both compose calls below) and STACK_VERSION (the engine image tag).
     - name: Resolve search provider
-      id: resolve-search
       shell: pwsh
       env:
         SEARCH_PROVIDER_INPUT: ${{ inputs.searchProvider }}
       run: |
-        # The one place engine image tags are pinned — each overlay reads STACK_VERSION and has no
-        # default of its own. Doubles as the allow-list. Which engine suits a given module set is
-        # the caller's call.
+        # Engine image tags, pinned here only; overlays read STACK_VERSION. Doubles as the allow-list.
         $engineVersions = @{
           elasticsearch8 = '8.18.0'
           elasticsearch9 = '9.5.1'
@@ -134,9 +125,8 @@ runs:
         $overlay = "docker-compose.search.$provider.yml"
         Add-Content -Path $env:GITHUB_ENV -Value "SEARCH_OVERLAY=$overlay"
         Add-Content -Path $env:GITHUB_ENV -Value "STACK_VERSION=$version"
-        # SEARCH_PROVIDER feeds ROLE_NAME below; the output lets callers name artifacts per engine.
+        # SEARCH_PROVIDER feeds ROLE_NAME below.
         Add-Content -Path $env:GITHUB_ENV -Value "SEARCH_PROVIDER=$provider"
-        Add-Content -Path $env:GITHUB_OUTPUT -Value "provider=$provider"
         Write-Host "`e[32mSearch provider: $provider (engine version $version, from $source)"
 
     # Runs ahead of the container steps so the next step can start vc-db/search early.
@@ -160,10 +150,8 @@ runs:
         Write-Host "::add-mask::$searchPassword"
         Add-Content -Path $env:GITHUB_ENV -Value "DB_PASSWORD=$dbPassword"
         Add-Content -Path $env:GITHUB_ENV -Value "SEARCH_PASSWORD=$searchPassword"
-        # ROLE_NAME: <repo>-<run>-<attempt>-<db>-<search>. Both backends are named to keep
-        # telemetry separable when one run exercises several combinations. SEARCH_PROVIDER is
-        # always set — resolve-search either exports it or fails the action — while the db
-        # suffix stays guarded, since databaseProvider reaches us straight from the caller.
+        # ROLE_NAME: <repo>-<run>-<attempt>-<db>-<search>, so telemetry stays separable per
+        # combination. SEARCH_PROVIDER is always set; databaseProvider comes raw from the caller.
         $repoName = "$env:GITHUB_REPOSITORY".Split('/')[-1]
         $dbSuffix = if ($env:DB_PROVIDER_INPUT) { "-$env:DB_PROVIDER_INPUT" } else { '' }
         $roleName = "$repoName-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT$dbSuffix-$env:SEARCH_PROVIDER"
@@ -188,8 +176,7 @@ runs:
         Remove-Item -Path 'early-up.exitcode', 'early-up.log' -ErrorAction SilentlyContinue
         $composeFiles = @('-f', 'docker-compose.yml', '-f', "docker-compose.$env:DB_PROVIDER.yml", '-f', $env:SEARCH_OVERLAY)
         $composeArgs = @('compose', '--project-name', 'virtocommerce') + $composeFiles + @('up', '-d', 'search', 'vc-db')
-        # Nested pwsh drops the exit code to a sentinel file: the Process object doesn't
-        # survive past this step.
+        # Nested pwsh drops the exit code to a sentinel file: the Process object doesn't survive past this step.
         $inner = "docker $($composeArgs -join ' ') *> 'early-up.log'; `$LASTEXITCODE | Out-File -Encoding ascii 'early-up.exitcode'"
         Start-Process -FilePath 'pwsh' -ArgumentList '-NoProfile', '-Command', $inner -NoNewWindow -WorkingDirectory $PWD.Path
 
@@ -256,8 +243,8 @@ runs:
       working-directory: ${{ github.action_path }}
       run: echo "hash=$(sha256sum packages.json | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
 
-    # vc-build install re-downloads ~50 module zips every run even when unchanged;
-    # ./publish is restored whenever packages.json matches a previous run's byte-for-byte.
+    # vc-build install re-downloads ~50 module zips every run even when unchanged, so ./publish is
+    # cached: a byte-for-byte packages.json match skips the install, a prefix hit warm-starts it.
     - name: Cache platform publish output (custom packages.json)
       if: ${{ inputs.customPackagesJsonUrl != '' }}
       id: publish-cache-packagesjson
@@ -271,8 +258,8 @@ runs:
         restore-keys: |
           platform-publish-packagesjson-${{ runner.os }}-
 
-    # vc-build compares FileVersion, which drops any alpha/PR suffix, so it can't tell two
-    # builds of the same numeric version apart and would keep a mismatched cached platform.
+    # vc-build compares FileVersion, which can't distinguish alpha/PR suffixes, so a mismatched
+    # cached platform would otherwise be kept.
     - name: Discard cached publish holding a different platform (custom packages.json)
       if: ${{ inputs.customPackagesJsonUrl != '' }}
       working-directory: ${{ github.action_path }}
@@ -311,9 +298,7 @@ runs:
       shell: pwsh
       run: |
         Write-Host "`e[33mInstall Modules step started."
-        # docker pull doesn't depend on vc-build install below, so run it as a background
-        # job concurrently with the module install. Start-Job spawns a child process, which
-        # inherits $env: vars, so PLATFORM_DOCKER_TAG is available inside the script block.
+        # Pull docker image in background to overlap with vc-build install
         $pullJob = Start-Job -ScriptBlock {
           docker pull "ghcr.io/virtocommerce/platform:$env:PLATFORM_DOCKER_TAG"
           if ($LASTEXITCODE -ne 0) {
@@ -444,8 +429,7 @@ runs:
       run: |
         Write-Host "`e[33mStart Containers step started."
 
-        # Surfaces the result of the detached search/vc-db startup, which didn't wait for
-        # `docker compose up` to finish.
+        # Surfaces the detached search/vc-db startup, which didn't wait for compose to finish.
         Write-Host "Waiting for the vc-db/search startup (detached above) to finish..."
         $earlyUpTimeoutSeconds = 180
         $earlyUpWaited = 0
@@ -473,9 +457,7 @@ runs:
           $composeFiles += @('-f', 'docker-compose.modules.yml')
         }
 
-        # Fail here, with the engine log, rather than letting a dead engine surface later as an
-        # unrelated-looking platform failure. Already running (started early), so --wait only
-        # blocks on the healthcheck.
+        # Fail here with the engine log, not later as an unrelated-looking platform failure.
         $searchContainer = "virtocommerce-search-1"
         docker compose --project-name virtocommerce $composeFiles up -d --wait --wait-timeout 180 search
         if ($LASTEXITCODE -ne 0) {
@@ -491,10 +473,7 @@ runs:
         $platformContainer = "virtocommerce-vc-platform-web-1"
         . ../docker-env/scripts/inspect-docker-status.ps1 -ContainerId $platformContainer
 
-        # search/vc-db are already up (started early, above); only bring up the rest. This is
-        # also where depends_on first blocks on vc-db's health — nothing waits on it earlier.
-        # Unchecked, a never-healthy database leaves no vc-platform-web container and the
-        # inspect below would poll a nonexistent one for its full timeout.
+        # search/vc-db are already up (started early, above); only bring up the rest, verifying the platform container's health.
         Write-Host "::group::Start containers"
         docker compose --project-name virtocommerce $composeFiles up -d vc-platform-web nginx_frontend
         $upExitCode = $LASTEXITCODE
@@ -521,11 +500,6 @@ runs:
         ../docker-env/scripts/check-installed-modules.ps1 -ApiUrl http://localhost:8090 -ContainerId $platformContainer -watchUrlScriptPath ../docker-env/scripts/watch-url-up.ps1 -Password store
         Write-Host "`e[32mInstalled Modules checked."
 
-    # Warn-only net: the discard step should have prevented any mismatch reaching this point.
-    # Placed here, after the environment is up, so it sits next to the module versions Check
-    # Installed Modules just reported. The two branches are mutually exclusive, so one step
-    # serves both — picking the manifest each produced. (Both operands of the ternary are
-    # non-empty; an empty one would be falsy and always yield the right-hand side.)
     - name: Compare requested vs installed platform version
       if: ${{ inputs.customPackagesJsonUrl != '' || inputs.installCustomModule == 'true' }}
       working-directory: ${{ github.action_path }}
