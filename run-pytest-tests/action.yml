@@ -387,8 +387,8 @@ runs:
         echo "::group::Database logs"
         docker logs virtocommerce-vc-db-1 --tail 100
         echo "::endgroup::"
-        echo "::group::Elasticsearch logs"
-        docker logs virtocommerce-es-1 --tail 50
+        echo "::group::Search engine logs"
+        docker logs virtocommerce-search-1 --tail 50
         echo "::endgroup::"
 
     - name: Log Application Insights role name

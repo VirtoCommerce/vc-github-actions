@@ -103,6 +103,20 @@ Runs Docker Environment
     required: false
     default: 'sqlserver'
 
+### searchProvider:
+
+    description: |
+      Search engine: elasticsearch8 | elasticsearch9 | opensearch. Picks the
+      docker-compose.search.<engine>.yml overlay, which brings up the engine container and sets
+      the platform's Search:Provider / Search:<Provider>:* keys in lockstep.
+      Defaults to elasticsearch8, which is what the commerce bundle module list installs.
+      The platform image must ship the matching module. The action cannot verify this; if it is
+      absent the platform fails on startup with a provider-not-found error in its log.
+      Note ElasticSearch8 and ElasticSearch9 share one client assembly, so when both modules are
+      installed only the newer one loads and the engine must match it.
+    required: false
+    default: ''
+
 ### prebuiltImageArtifact:
 
     description: |
@@ -136,4 +150,6 @@ Runs Docker Environment
     testSecretEnvFile: ${{ secrets.TEST_SECRET_ENV_FILE }}
     sendgridApiKey: ${{ secrets.SENDGRID_API_KEY }}
     databaseProvider: 'sqlserver'
+    # searchProvider omitted: defaults to elasticsearch8. Set it explicitly when the platform
+    # image ships a different search module (elasticsearch9 | opensearch).
 ```

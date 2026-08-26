@@ -1,0 +1,32 @@
+# Search overlay: OpenSearch 2.x (`searchProvider: opensearch`). Needs the
+# VirtoCommerce.OpenSearch module — unverifiable here, so a missing one surfaces only as a
+# platform startup failure. Combine with docker-compose.yml + a <db> overlay, which supply the
+# engine-agnostic ports/limits/healthcheck and the searchdata volume.
+services:
+
+  search:
+    image: opensearchproject/opensearch:${STACK_VERSION:?}
+    volumes:
+      - searchdata:/usr/share/opensearch/data
+    environment:
+      - node.name=search
+      - cluster.name=${CLUSTER_NAME:-opensearch}
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      # Required: OpenSearch doesn't size its heap from the cgroup limit, so its fixed 1g default
+      # is OOM-killed (exit 137) under mem_limit=1g before 9200 binds. 512m is what
+      # Elasticsearch picks for itself at the same limit.
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+      # A second JVM: no CI value, pure memory pressure inside the same limit.
+      - DISABLE_PERFORMANCE_ANALYZER_AGENT_CLI=true
+      # No TLS, no auth — matching the Elasticsearch overlays.
+      - DISABLE_SECURITY_PLUGIN=true
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+      # Unused with security off, but the 2.12+ entrypoint still requires it.
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${SEARCH_PASSWORD}
+
+  vc-platform-web:
+    environment:
+      - Search:Provider=OpenSearch
+      # User/Password intentionally unset: security is disabled above.
+      - Search:OpenSearch:Server=http://search:9200

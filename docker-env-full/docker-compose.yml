@@ -13,45 +13,38 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Base file. The vc-db service and vc-platform-web DB connection settings live
-# in docker-compose.<provider>.yml overlays. Always combine with one overlay:
-#   docker compose -f docker-compose.yml -f docker-compose.sqlserver.yml up -d
+# Base file. Always combine with both overlays — docker-compose.<db>.yml (vc-db + connection
+# string) and docker-compose.search.<engine>.yml (search image + Search:* keys):
+#   docker compose -f docker-compose.yml -f docker-compose.sqlserver.yml \
+#                  -f docker-compose.search.elasticsearch8.yml up -d
+# searchdata stays here because every search overlay mounts it.
 
 services:
 
-  es:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION:-8.18.0}
-    volumes:
-      - esdata01:/usr/share/elasticsearch/data
-    ports:
-      - ${ES_PORT:-9200}:9200
+  # Engine-agnostic plumbing only; image, environment and data volume come from the overlays.
+  vc-db:
     networks:
       - virto
-    environment:
-      - node.name=es
-      - cluster.name=${CLUSTER_NAME:-elasticsearch}
-      - cluster.initial_master_nodes=es
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-      - bootstrap.memory_lock=true
-      - xpack.security.enabled=false
-      - xpack.security.http.ssl.enabled=false
-      - xpack.security.transport.ssl.enabled=false
-      - xpack.license.self_generated.type=${LICENSE:-basic}
-      - xpack.ml.use_auto_machine_memory_percent=true
+
+  search:
+    # SEARCH_PORT remaps the host side only; in-container it is always 9200, which is what the
+    # healthcheck and the overlays' Search:<Provider>:Server both talk to.
+    ports:
+      - ${SEARCH_PORT:-9200}:9200
+    networks:
+      - virto
     mem_limit: ${MEM_LIMIT:-1g}
     ulimits:
       memlock:
         soft: -1
         hard: -1
+    # 18 x 10s = the 180s the action's `up --wait --wait-timeout 180` allows; a larger count
+    # here would just be cut short by that.
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -s http://localhost:${ES_PORT:-9200}",
-        ]
+      test: [ "CMD-SHELL", "curl -s http://localhost:9200" ]
       interval: 10s
       timeout: 10s
-      retries: 120
+      retries: 18
 
   nginx_frontend:
     depends_on:
@@ -74,18 +67,18 @@ services:
       - VirtoCommerce:ApplicationInsights:RoleName=${ROLE_NAME}
       - Assets:FileSystem:PublicUrl=http://localhost:${DOCKER_PLATFORM_PORT:-8090}/assets/
       - Content:FileSystem:PublicUrl=http://localhost:${DOCKER_PLATFORM_PORT:-8090}/cms-content/
-      - Search:Provider=ElasticSearch8
-      - Search:ElasticSearch8:Server=http://es:${ES_PORT:-9200}
-      - Search:ElasticSearch8:User=elastic
-      - Search:ElasticSearch8:Key=${ELASTIC_PASSWORD}
-      - Search:ElasticSearch8:EnableCompatibilityMode=true
       - Search:PickupLocationFullTextSearchEnabled=true
       - IdentityOptions:User:MaxPasswordAge=0
       - Notifications:DefaultSender=virto.start@virtoway.com
       - Notifications:Gateway=SendGrid
       - Notifications:SendGrid:ApiKey=${SENDGRID_API_KEY}
+    # service_healthy, not service_started: no container until both backends actually answer.
+    # Replaces the wait-for-it entrypoint, which gave up after 120s and started anyway.
     depends_on:
-      - es
+      vc-db:
+        condition: service_healthy
+      search:
+        condition: service_healthy
     volumes:
       - cms-content-volume:/opt/virtocommerce/platform/wwwroot/cms-content
       - modules-volume:/opt/virtocommerce/platform/modules
@@ -98,7 +91,7 @@ volumes:
     name: cms-content-data
   modules-volume:
     name: modules-data
-  esdata01:
+  searchdata:
     driver: local
 
 networks:
