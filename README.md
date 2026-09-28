@@ -1,5 +1,10 @@
 # VirtoCommerce Continuous Integration
 
+> [!IMPORTANT]
+> **These actions have moved to [VirtoCommerce/.github](https://github.com/VirtoCommerce/.github/tree/main/actions).** This repository is frozen: changes go to `.github` only.
+>
+> Existing `uses: VirtoCommerce/vc-github-actions/<action>@master` refs keep working, but they no longer get updates. Switch them to `uses: VirtoCommerce/.github/actions/<action>@v3.1000.1` (or a later `.github` release).
+
 ## Overview
 
 VirtoCommerce continuous integration based on [GitHub Actions feature](https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/introduction-to-github-actions). It contain:
